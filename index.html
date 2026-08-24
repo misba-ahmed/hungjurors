@@ -44,7 +44,7 @@
   .espn-float{
     position:fixed;
     right:max(16px,env(safe-area-inset-right));
-    bottom:max(16px,env(safe-area-inset-bottom));
+    bottom:max(24px,calc(env(safe-area-inset-bottom) + 8px));
     z-index:100;
     width:52px;
     height:52px;
@@ -53,7 +53,7 @@
     overflow:hidden;
     background:#fff;
     text-decoration:none;
-    box-shadow:0 7px 22px rgba(12,34,56,.32);
+    box-shadow:0 6px 16px rgba(12,34,56,.22);
     transition:transform .14s ease,box-shadow .14s ease;
   }
   .espn-float img{
@@ -64,14 +64,14 @@
   }
   .espn-float:hover{
     transform:translateY(-2px) scale(1.04);
-    box-shadow:0 10px 26px rgba(12,34,56,.38);
+    box-shadow:0 8px 18px rgba(12,34,56,.28);
   }
   .espn-float:focus-visible{
     outline:3px solid var(--brass-bright);
     outline-offset:3px;
   }
   @media(max-width:520px){
-    .espn-float{width:46px;height:46px;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));border-radius:12px}
+    .espn-float{width:46px;height:46px;right:max(12px,env(safe-area-inset-right));bottom:max(24px,calc(env(safe-area-inset-bottom) + 8px));border-radius:12px}
   }
   @media print{.espn-float{display:none}}
 
