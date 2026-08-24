@@ -224,6 +224,12 @@
   .hof .award-title-row{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;min-width:0}
   .hof .award-title-row .k{margin-bottom:0;min-width:0;flex:1}
   .hof .prize{margin-left:auto;white-space:nowrap;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--win-green)}
+  details.awards-fold{margin-top:26px}
+  details.awards-fold summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:900;color:var(--navy);font-size:19px;padding:4px 0 10px;border-bottom:1px solid var(--line)}
+  details.awards-fold summary::-webkit-details-marker{display:none}
+  details.awards-fold summary::before{content:"+";font-family:var(--mono);font-size:15px;color:var(--brass);width:16px}
+  details.awards-fold[open] summary::before{content:"–"}
+  details.awards-fold .hof,details.awards-fold .fold-body{margin-top:14px}
   .subhead{font-family:var(--serif);font-weight:900;color:var(--navy);font-size:19px;margin:26px 0 12px}
 
   details.season{background:#fff;border:1px solid var(--line);border-radius:8px;margin-bottom:12px;overflow:hidden}
@@ -487,11 +493,20 @@
       </div>
     </div>
 
-    <h4 class="subhead">Final Overall Rankings — 2025</h4>
-    <div class="tbl-wrap"><table id="final-tbl"></table></div>
+    <details class="awards-fold" id="rankings-2025-fold" open>
+      <summary>Final Overall Rankings — 2025</summary>
+      <div class="fold-body"><div class="tbl-wrap"><table id="final-tbl"></table></div></div>
+    </details>
 
-    <h4 class="subhead">2025 Season Awards</h4>
-    <div class="hof" id="hof-out"></div>
+    <details class="awards-fold" id="awards-2025-fold" open>
+      <summary>2025 Season Awards</summary>
+      <div class="hof" id="hof-out"></div>
+    </details>
+
+    <details class="awards-fold" id="awards-2024-fold">
+      <summary>2024 Season Awards</summary>
+      <div class="hof" id="hof-2024-out"></div>
+    </details>
 
     <h4 class="subhead">Past Seasons — Final Standings</h4>
     <div id="seasons-out"></div>
@@ -619,7 +634,7 @@ const DATA = {
       { r:10, short:"CESAR",    w:5, l:9,  pf:1657.68 }
     ],
     awards: [
-      { k:"Last Man Standing", who:"BRYAN",   stat:"Survived all 14 weeks", link:"lms", prize:30 },
+      { k:"Last Man Standing", who:"BRYAN",   stat:"Survived all 9 eliminations", link:"lms", prize:30 },
       { k:"Raffle Winner",     who:"BRYAN",   stat:"5 raffle entries", link:"raffle", prize:30 },
       { k:"Titty Special",     who:"BRYAN",   stat:"103 titties", link:"titty", prize:10 },
       { k:"Overachiever Special", who:"BRYAN", stat:"+125.45 vs. projections", link:"overachiever", prize:10 },
@@ -627,6 +642,18 @@ const DATA = {
       { k:"Optimizer Special", who:"BRYAN",   stat:"222.7 total difference", link:"optimizer", prize:10 },
       { k:"League High Score", who:"KAT",     stat:"203.26 — Week 4", link:"raffle" },
       { k:"Most Points For",   who:"BRYAN",   stat:"2,041.88 PF", link:null }
+    ]
+  },
+
+  s2024: {
+    awards: [
+      { k:"Last Man Standing", who:"BRYAN",   stat:"Survived all 9 eliminations", link:"lms", prize:30 },
+      { k:"Raffle Winner",     who:"WASI",    stat:"1 raffle entry · won the draw", link:"raffle", prize:30 },
+      { k:"Titty Special",     who:"GARRETT", stat:"104 titties", link:"titty", prize:10 },
+      { k:"Overachiever Special", who:"BRYAN", stat:"+90.04 vs. projections", link:"overachiever", prize:10 },
+      { k:"MVP Special",       who:"WASI",    stat:"13 MVP points", link:"mvp", prize:10 },
+      { k:"League High Score", who:"MISBA",   stat:"191.58 — Round 1", link:"raffle" },
+      { k:"Most Points For",   who:"BRYAN",   stat:"1,935.54 PF", link:null }
     ]
   }
 };
@@ -641,6 +668,10 @@ const VENMO_V = "iVBORw0KGgoAAAANSUhEUgAAAaMAAAHMCAYAAAB4N8d7AACZFElEQVR4nOz9+Zd
    RENDER — you shouldn't need to touch anything below this line.
    ===================================================================== */
 const $ = s => document.querySelector(s);
+// Always start 2025 history folds expanded and 2024 awards collapsed on a fresh load.
+$('#rankings-2025-fold').open = true;
+$('#awards-2025-fold').open = true;
+$('#awards-2024-fold').open = false;
 const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pad = n => String(n).padStart(2,'0');
 const av  = (s, cls='', useDefault=false) => AV[s] ? `<img class="av ${cls}" src="data:image/png;base64,${AV[s]}" alt="">`
@@ -901,6 +932,19 @@ $('#holder-badge').innerHTML = `${av(DATA.trophyHolder)} <span>Current holder: <
   }).join('');
 }
 
+/* ---- 2024 awards grid (expandable) ---- */
+{
+  const a = DATA.s2024;
+  $('#hof-2024-out').innerHTML = a.awards.map(r=>{
+    const inner = `<div class="award-title-row"><div class="k">${esc(r.k)}</div>${r.prize ? `<div class="prize">$${r.prize}</div>` : ''}</div>
+      <span class="who-cell">${av(r.who,'',true)}<span class="who">${esc(r.who)}</span></span>
+      <div class="stat">${esc(r.stat)}</div>`;
+    return r.link
+      ? `<a class="card" href="#award/2024/${r.link}">${inner}</a>`
+      : `<div class="card">${inner}</div>`;
+  }).join('');
+}
+
 /* ---- past seasons (manager names) ---- */
 {
   const champByYear = Object.fromEntries(DATA.champions.map(c=>[c.year,c]));
@@ -1001,6 +1045,77 @@ const AWD = {
     { qb:["C. Williams",29.12,null],  rb:["J. Taylor",32.8,"WASI"],     wr:["T. Tucker",40.9,null],        te:["H. Henry",33,"TYLER"],       dst:["M. Vikings",36,null],        k:["C. McLaughlin",20,"CESAR"],ovrl:["T. Tucker",null] },
     { qb:["J. Goff",33.96,null],      rb:["J. Taylor",29.5,"WASI"],     wr:["A. St. Brown",39.2,"GARRETT"], te:["T. Kraft",27.4,null],       dst:["A. Falcons",27,null],        k:["B. Aubrey",23,"MISBA"],   ovrl:["A. St. Brown","GARRETT"] },
     { qb:["J. Allen",38.76,"GARRETT"], rb:["D. Henry",29.2,"NATHAN M"], wr:["Z. Flowers",28.1,"CESAR"],    te:["J. Johnson",19.6,null],      dst:["D. Broncos",22,"TYLER"],     k:["S. Shrader",16,null],     ovrl:["J. Allen","GARRETT"] }
+  ]
+};
+
+
+/* ---- 2024 AWARD DETAIL DATA — transcribed from the 2024 league scoreboard ---- */
+const AWD24 = {
+  managers:["MISBA","GARRETT","CESAR","BRYAN","NATHAN T","NATHAN M","TYLER","WASI","JARRETT","SAXON"],
+  weeks:[
+    { l:"W1",  hi:["NATHAN T",142.02], lo:["SAXON",85.46] },
+    { l:"W2",  hi:["BRYAN",179.44],    lo:["NATHAN M",78.64] },
+    { l:"W3",  hi:["BRYAN",150.68],    lo:["JARRETT",103.02] },
+    { l:"W4",  hi:["SAXON",163.88],    lo:["MISBA",82.50] },
+    { l:"W5",  hi:["GARRETT",154.18],  lo:["MISBA",87.04],    out:["MISBA",87.04] },
+    { l:"W6",  hi:["JARRETT",144.90],  lo:["NATHAN T",94.22], out:["NATHAN T",94.22] },
+    { l:"W7",  hi:["WASI",160.06],     lo:["SAXON",71.44],    out:["SAXON",71.44] },
+    { l:"W8",  hi:["TYLER",163.66],    lo:["SAXON",85.30],    out:["NATHAN M",126.84] },
+    { l:"W9",  hi:["BRYAN",158.84],    lo:["NATHAN T",82.60], out:["CESAR",91.12] },
+    { l:"W10", hi:["CESAR",148.62],    lo:["SAXON",83.74],    out:["TYLER",84.40] },
+    { l:"W11", hi:["BRYAN",162.98],    lo:["NATHAN T",62.98], out:["JARRETT",124.44] },
+    { l:"W12", hi:["NATHAN T",162.08], lo:["SAXON",84.48],    out:["WASI",97.46] },
+    { l:"W13", hi:["NATHAN T",179.88], lo:["GARRETT",91.56],  out:["GARRETT",91.56] },
+    { l:"W14", hi:["MISBA",186.18],    lo:["SAXON",83.96] },
+    { l:"R1",  hi:["MISBA",191.58],    lo:["GARRETT",87.84], playoff:true },
+    { l:"R2",  hi:["BRYAN",190.98],    lo:["SAXON",87.64],   playoff:true }
+  ],
+  lmsWinner:"BRYAN", raffleWinner:"WASI",
+  titty:[
+    { s:"GARRETT",  t:104, v:[6,4,8,4,8,10,7,4,10,4,6,10,6,8,7,2] },
+    { s:"WASI",     t:101, v:[4,8,9,7,2,8,7,6,7,9,7,8,6,6,2,5] },
+    { s:"MISBA",    t:95,  v:[6,8,12,9,2,4,2,8,4,3,6,3,3,9,8,8] },
+    { s:"NATHAN T", t:93,  v:[6,9,5,9,8,1,6,6,4,9,4,6,4,4,4,8] },
+    { s:"JARRETT",  t:92,  v:[7,7,7,3,6,5,0,7,6,6,7,5,6,5,7,8] },
+    { s:"NATHAN M", t:90,  v:[8,5,3,9,8,5,5,4,4,8,9,8,4,4,1,5] },
+    { s:"CESAR",    t:87,  v:[7,3,7,6,8,5,3,2,7,7,6,7,4,6,5,4] },
+    { s:"BRYAN",    t:87,  v:[7,4,5,3,2,9,4,5,4,5,4,7,5,9,7,7] },
+    { s:"TYLER",    t:87,  v:[7,8,6,4,4,6,2,5,8,7,6,4,3,6,6,5] },
+    { s:"SAXON",    t:65,  v:[3,7,4,4,5,3,3,2,4,2,6,4,8,3,4,3] }
+  ],
+  over:[
+    { s:"BRYAN",    t:90.04,   v:[42.98,-16.34,-13.44,-3.52,-11.4,32.58,-32.26,18.04,-10.86,6.24,-21.24,25.08,2.58,21.08,54.14,-3.62] },
+    { s:"WASI",     t:84.45,   v:[-22.76,16.1,45.72,5.22,-10.94,16.74,23.28,-4.4,15.54,32.56,-12.35,35.14,-4.78,4.54,-37.98,-17.18] },
+    { s:"JARRETT",  t:55.54,   v:[24.52,4.34,16.68,-28.3,13.56,-4.56,-40.66,-6.5,10.3,-8.2,16.7,16.0,23.18,-17.68,24.06,11.98] },
+    { s:"NATHAN M", t:41.28,   v:[-0.88,27.34,-30.88,34.54,23.9,-2.36,-15.42,-2.46,2.64,10.14,13.26,39.42,2.82,-11.38,-50.86,1.46] },
+    { s:"GARRETT",  t:26.10,   v:[3.28,-43.56,22.46,-38.44,29.66,30.44,-8.68,-3.72,26.78,-31.92,15.6,30.98,6.28,16.56,-7.18,-22.44] },
+    { s:"TYLER",    t:-17.02,  v:[31.72,-5.9,13.2,-24.94,-20.98,14.88,-36.4,2.02,35.26,22.68,13.6,-12.96,-32.2,-9.6,-12.66,5.44] },
+    { s:"MISBA",    t:-34.48,  v:[-28.54,58.28,57.18,18.92,-21.94,-16.92,-21.3,20.5,-30.58,-38.18,-7.5,-38.06,-39.4,6.42,31.56,15.08] },
+    { s:"NATHAN T", t:-46.18,  v:[-16.52,20.5,-3.06,56.88,43.78,-56.92,-5.2,-46.3,8.16,17.14,-16.38,-8.08,-11.06,-14.62,-29.22,14.46] },
+    { s:"CESAR",    t:-51.84,  v:[1.22,-25.02,38.8,-13.24,5.82,-5.94,21.92,-33.48,14.84,-19.4,13.82,18.46,-14.28,-9.12,-5.04,-41.2] },
+    { s:"SAXON",    t:-124.68, v:[-16.06,39.26,-1.24,-7.32,-18.92,-0.02,-26.56,-11.66,-19.6,-32.96,-21.52,-8.06,43.38,-15.4,6.7,-34.74] }
+  ],
+  mvpTotals:[
+    { s:"WASI",t:13 },{ s:"BRYAN",t:12 },{ s:"MISBA",t:11 },{ s:"GARRETT",t:9 },{ s:"NATHAN M",t:9 },
+    { s:"JARRETT",t:7 },{ s:"NATHAN T",t:5 },{ s:"TYLER",t:2 },{ s:"SAXON",t:2 },{ s:"CESAR",t:0 }
+  ],
+  mvpWeeks:[
+    { qb:["J. Daniels",34.42,"NATHAN M"], rb:["J. Taylor",39.8,null], wr:["J. Jefferson",36.4,"BRYAN"], te:["B. Bowers",20.9,"BRYAN"], dst:["A. Falcons",29,"JARRETT"], k:["B. Aubrey",21,"MISBA"], ovrl:["J. Taylor",null] },
+    { qb:["J. Allen",41.28,"MISBA"], rb:["J. Conner",30.8,"BRYAN"], wr:["D. Adams",42.8,"MISBA"], te:["J. Smith",19.8,"NATHAN T"], dst:["K. Chiefs",27,"NATHAN M"], k:["C. McLaughlin",18,null], ovrl:["D. Adams","MISBA"] },
+    { qb:["J. Allen",51.88,"MISBA"], rb:["Z. Charbonnet",38.3,"WASI"], wr:["J. Chase",45.1,"WASI"], te:["G. Kittle",21.1,"GARRETT"], dst:["S.F. 49ers",22,null], k:["M. Wright",16,null], ovrl:["J. Allen","MISBA"] },
+    { qb:["J. Winston",32.98,null], rb:["B. Irving",27.5,"NATHAN T"], wr:["J. Jeudy",40.5,null], te:["B. Bowers",30.2,"BRYAN"], dst:["D. Cowboys",24,"MISBA"], k:["C. Ryland",16,null], ovrl:["J. Jeudy",null] },
+    { qb:["J. Daniels",30.4,"NATHAN M"], rb:["S. Barkley",46.2,"BRYAN"], wr:["J. Addison",30.2,null], te:["T. McBride",25.3,"MISBA"], dst:["H. Texans",26,null], k:["W. Lutz",22,"NATHAN M"], ovrl:["S. Barkley","BRYAN"] },
+    { qb:["J. Goff",34.58,null], rb:["J. Mixon",35.3,"NATHAN M"], wr:["A. St. Brown",38.7,"WASI"], te:["T. Hill",41.52,null], dst:["H. Texans",22,null], k:["C. Boswell",24,"WASI"], ovrl:["T. Hill",null] },
+    { qb:["J. Burrow",33.72,"GARRETT"], rb:["B. Robinson",29.4,"NATHAN M"], wr:["J. Chase",55.4,"WASI"], te:["T. Kelce",20.4,"NATHAN M"], dst:["N.E. Patriots",25,null], k:["J. Karty",18,null], ovrl:["J. Chase","WASI"] },
+    { qb:["J. Hurts",29.9,"WASI"], rb:["S. Barkley",32.9,"BRYAN"], wr:["J. Smith-Njigba",37,null], te:["M. Gesicki",27,null], dst:["L.A. Chargers",25,"BRYAN"], k:["T. Bass",14,null], ovrl:["J. Smith-Njigba",null] },
+    { qb:["J. Hurts",35.14,"WASI"], rb:["J. Cook",28.3,"GARRETT"], wr:["C. Lamb",39.6,"GARRETT"], te:["C. Otton",29.1,"TYLER"], dst:["P. Steelers",17,"JARRETT"], k:["A. Carlson",16,null], ovrl:["C. Lamb","GARRETT"] },
+    { qb:["L. Jackson",34.44,"NATHAN T"], rb:["J. Gibbs",32,null], wr:["A. St. Brown",25.2,"SAXON"], te:["D. Njoku",23.6,"JARRETT"], dst:["D. Broncos",27,"TYLER"], k:["C. Dicker",21,null], ovrl:["L. Jackson","NATHAN T"] },
+    { qb:["C. Williams",28.64,null], rb:["S. Tucker",34.2,null], wr:["C. Godwin",35.5,"WASI"], te:["C. Kmet",24,"NATHAN M"], dst:["D. Lions",23,null], k:["J. Bates",19,null], ovrl:["C. Godwin","WASI"] },
+    { qb:["K. Cousins",34.36,null], rb:["T. Bigsby",25.9,null], wr:["J. Chase",41.3,"WASI"], te:["T. Kraft",24.8,null], dst:["N.Y. Giants",25,null], k:["K. Fairbairn",16,null], ovrl:["J. Chase","WASI"] },
+    { qb:["J. Fields",31.98,null], rb:["D. Henry",35.9,null], wr:["N. Collins",33.1,"SAXON"], te:["T. Kraft",17.3,null], dst:["S.F. 49ers",29,"JARRETT"], k:["N. Folk",24,"GARRETT"], ovrl:["D. Henry",null] },
+    { qb:["J. Allen",30.92,"MISBA"], rb:["S. Barkley",33.6,"BRYAN"], wr:["J. Jennings",46.5,"GARRETT"], te:["D. Goedert",27,"WASI"], dst:["G.B. Packers",31,null], k:["W. Lutz",16,"NATHAN T"], ovrl:["J. Jennings","GARRETT"] },
+    { qb:["K. Murray",28.54,"BRYAN"], rb:["A. Kamara",44,"JARRETT"], wr:["M. Harrison Jr.",29,"MISBA"], te:["G. Kittle",20.6,"GARRETT"], dst:["H. Texans",23,null], k:["A. Seibert",22,"NATHAN M"], ovrl:["A. Kamara","JARRETT"] },
+    { qb:["J. Allen",31.18,"MISBA"], rb:["S. Barkley",33.2,"BRYAN"], wr:["J. Reed",33.1,null], te:["I. Likely",26.1,null], dst:["C. Bears",29,null], k:["J. Moody",26,"JARRETT"], ovrl:["S. Barkley","BRYAN"] }
   ]
 };
 
@@ -1157,17 +1272,122 @@ const AWARD_VIEWS = {
   }
 };
 
+
+/* ---- 2024 award detail renderers ---- */
+const awHead24 = (title, pot, winner, stat) => `
+  <a class="back-chip" href="#history">← Back to 2024 Awards</a>
+  <div class="aw-head"><span class="ex">2024 Season</span><h3>${title}</h3><span class="pot">${pot}</span></div>
+  <div class="champ-banner">${av(winner,'lg',true)}<div><div class="k">2024 Winner</div><div class="who">🏆 ${esc(winner)}</div><div class="s">${esc(stat)}</div></div></div>
+  <div class="aw-rule">${esc(RULES_CUR)}</div>`;
+
+const AWARD24_VIEWS = {
+  lms(){
+    RULES_CUR = RULES.lms;
+    const wk = [...AWD24.weeks].filter(w=>!w.playoff).reverse();
+    const outOrder = AWD24.weeks.filter(w=>w.out);
+    const tl = wk.map(w=>{
+      const wn = AWD24.weeks.indexOf(w);
+      if(w.out) return `<div class="tl-row out"><span class="wk">${w.l}</span>${av(w.out[0],'',true)}<span class="mgr elim">${esc(w.out[0])}</span><span class="sc">${w.out[1].toFixed(2)}</span><span class="rem">☠️ eliminated · ${10-outOrder.filter(o=>AWD24.weeks.indexOf(o)<=wn).length} remain</span></div>`;
+      return `<div class="tl-row safe"><span class="wk">${w.l}</span><span style="font-size:13px;opacity:.7">No elimination — lowest was ${esc(w.lo[0])} (${w.lo[1]})</span></div>`;
+    }).join('');
+    const winnerRow = `<div class="tl-row winner"><span class="wk">END</span>${av(AWD24.lmsWinner,'',true)}<span class="mgr">${esc(AWD24.lmsWinner)}</span><span class="sc" style="color:var(--brass)">🏆 LAST MAN STANDING</span></div>`;
+    const elimWk = Object.fromEntries(outOrder.map(w=>[w.out[0], parseInt(w.l.slice(1))]));
+    const cols = [5,6,7,8,9,10,11,12,13,14];
+    const board = `<div class="tbl-wrap"><table class="surv"><thead><tr><th>Manager</th>${cols.map(c=>`<th style="text-align:center">W${c}</th>`).join('')}</tr></thead><tbody>` +
+      AWD24.managers.map(s=>{
+        const e = elimWk[s];
+        const cells = cols.map(c=>{
+          if(e===undefined) return `<td class="alive">✓</td>`;
+          if(c < e) return `<td class="alive">✓</td>`;
+          if(c === e) return `<td class="dead">✗</td>`;
+          return `<td class="gone">·</td>`;
+        }).join('');
+        return `<tr class="${e===undefined?'gold':''}"><td class="nm"><span class="who-cell">${av(s,'',true)}<span class="mgr" style="font-size:13px">${esc(s)}${e===undefined?' 👑':''}</span></span></td>${cells}</tr>`;
+      }).join('') + `</tbody></table></div>`;
+    return awHead24('Last Man Standing','$30','BRYAN','Outlasted all 9 eliminations and was the final manager standing')
+      + `<h4 class="aw-sub">Elimination Feed</h4><div class="tl">${winnerRow}${tl}</div>`
+      + `<h4 class="aw-sub">Survival Board</h4>${board}<div class="legend"><span><span class="sw" style="background:#E7F1E9"></span>✓ survived</span><span><span class="sw" style="background:#F5DEDC"></span>✗ eliminated that week</span></div>`;
+  },
+
+  raffle(){
+    RULES_CUR = RULES.raffle;
+    const tally = {};
+    AWD24.weeks.filter(w=>!w.playoff).forEach(w=>{ tally[w.hi[0]] = (tally[w.hi[0]]||0)+1; });
+    const entries = Object.entries(tally).sort((a,b)=>b[1]-a[1]);
+    const total = entries.reduce((a,[,n])=>a+n,0);
+    const tk = entries.map(([s,n])=>`<div class="tk-row ${s===AWD24.raffleWinner?'first':''}">
+        <span class="who-cell">${av(s,'',true)}<span class="mgr">${esc(s)}</span></span>
+        <span class="tks">${'🎟️'.repeat(n)}</span>
+        <span class="odds">${n} · ${(n/total*100).toFixed(0)}%</span></div>`).join('');
+    const feed = [...AWD24.weeks].reverse().map(w=>`<div class="tl-row ${w.playoff?'':'safe'}">
+        <span class="wk">${w.l}</span>${av(w.hi[0],'',true)}<span class="mgr">${esc(w.hi[0])}</span>
+        <span style="font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:${w.playoff?'var(--navy-ink)':'var(--win-green)'};opacity:.85">${w.playoff?'PLAYOFFS — NO ENTRY':'+1 ENTRY 🎟️'}</span>
+        <span class="sc">${w.hi[1].toFixed(2)}</span></div>`).join('');
+    return awHead24('Highest Scorer Raffle','$30','WASI','Had 1 of 14 tickets in the drum — and won the draw')
+      + `<h4 class="aw-sub">Tickets in the Drum</h4><div class="bars">${tk}</div>`
+      + `<h4 class="aw-sub">Weekly High Scores</h4><div class="tl">${feed}</div>`;
+  },
+
+  titty(){
+    RULES_CUR = RULES.titty;
+    const maxCell = Math.max(...AWD24.titty.flatMap(r=>r.v));
+    const heat = heatHTML(AWD24.titty, v=>`rgba(185,138,46,${v===0?0:(0.12+0.78*v/maxCell)})`, t=>t);
+    return awHead24('The Titty Special','$10','GARRETT','104 titties — the highest season total')
+      + `<h4 class="aw-sub">Season Totals</h4><div class="bars">${barsHTML(AWD24.titty)}</div>`
+      + `<h4 class="aw-sub">Week-by-Week Heatmap</h4>${heat}<div class="legend"><span><span class="sw" style="background:rgba(185,138,46,.15)"></span>few</span><span><span class="sw" style="background:rgba(185,138,46,.9)"></span>many</span><span>Misba's 12 in W14 was the season high</span></div>`;
+  },
+
+  overachiever(){
+    RULES_CUR = RULES.overachiever;
+    const rows = AWD24.over;
+    const maxAbsT = Math.max(...rows.map(r=>Math.abs(r.t)));
+    const lb = rows.map((r,i)=>{
+      const pct = Math.abs(r.t)/maxAbsT*100;
+      return `<div class="div-row ${i===0?'first':''}">
+        <span class="who-cell">${av(r.s,'',true)}<span class="mgr">${esc(r.s)}</span></span>
+        <div class="div-neg">${r.t<0?`<div class="f" style="width:${pct}%"></div>`:''}</div>
+        <div class="div-pos">${r.t>0?`<div class="f" style="width:${pct}%"></div>`:''}</div>
+        <span class="val ${r.t>=0?'pos':'neg'}">${r.t>0?'+':''}${r.t.toFixed(2)}</span></div>`;
+    }).join('');
+    const maxAbsV = Math.max(...rows.flatMap(r=>r.v.map(Math.abs)));
+    const heat = heatHTML(rows,
+      v => v>=0 ? `rgba(46,125,79,${0.1+0.75*Math.abs(v)/maxAbsV})` : `rgba(179,53,44,${0.1+0.75*Math.abs(v)/maxAbsV})`,
+      t => (t>0?'+':'')+t.toFixed(1));
+    return awHead24('The Overachiever Special','$10','BRYAN','+90.04 above projections across the season')
+      + `<h4 class="aw-sub">Running Totals vs. Projection</h4><div class="bars">${lb}</div>`
+      + `<h4 class="aw-sub">Weekly Over/Under</h4>${heat}<div class="legend"><span><span class="sw" style="background:rgba(46,125,79,.7)"></span>beat projection</span><span><span class="sw" style="background:rgba(179,53,44,.7)"></span>fell short</span></div>`;
+  },
+
+  mvp(){
+    RULES_CUR = RULES.mvp;
+    const wkcards = AWD24.mvpWeeks.map((w,i)=>{
+      const chip = (pos, d, isOvrl=false) => {
+        if(isOvrl) return `<div class="chip ovrl"><span class="pos">⭐ Overall MVP</span><span class="pl">${esc(d[0])}</span><span class="mg">${d[1]?av(d[1],'',true)+esc(d[1]):'<span class="chip unclaimed" style="border:none;padding:0;background:none">nobody started him</span>'}</span></div>`;
+        return `<div class="chip ${d[2]?'':'unclaimed'}"><span class="pos">${pos}</span><span class="pl">${esc(d[0])} · ${d[1]}</span><span class="mg">${d[2]?av(d[2],'',true)+esc(d[2]):'nobody started him'}</span></div>`;
+      };
+      return `<div class="wkcard"><div class="wt">${WKS[i]}</div><div class="chips">${chip('QB',w.qb)}${chip('RB',w.rb)}${chip('WR',w.wr)}${chip('TE',w.te)}${chip('D/ST',w.dst)}${chip('K',w.k)}${chip('',w.ovrl,true)}</div></div>`;
+    }).join('');
+    return awHead24('The MVP Special','$10','WASI','13 MVP points — the top total in 2024')
+      + `<h4 class="aw-sub">MVP Point Totals</h4><div class="bars">${barsHTML(AWD24.mvpTotals)}</div>`
+      + `<h4 class="aw-sub">Weekly Positional MVPs</h4><div class="wkcards">${wkcards}</div>`;
+  }
+};
+
 /* ---- hash router ---- */
 if('scrollRestoration' in history) history.scrollRestoration = 'manual';
 const awardPage = $('#award-page');
 const homeEls = [...document.querySelector('main').children].filter(el => el !== awardPage);
 let savedY = 0;
+let awardReturnTarget = 'hof-out';
 const settleScroll = y => requestAnimationFrame(()=>requestAnimationFrame(()=>window.scrollTo({top:y, left:0, behavior:'instant'})));
 function route(){
-  const m = location.hash.match(/^#award\/(\w+)$/);
-  if(m && AWARD_VIEWS[m[1]]){
+  const m24 = location.hash.match(/^#award\/2024\/(\w+)$/);
+  const m25 = location.hash.match(/^#award\/(\w+)$/);
+  const view = m24 && AWARD24_VIEWS[m24[1]] ? AWARD24_VIEWS[m24[1]] : (m25 && AWARD_VIEWS[m25[1]] ? AWARD_VIEWS[m25[1]] : null);
+  if(view){
     if(awardPage.hidden) savedY = window.scrollY;   // remember where they clicked from
-    awardPage.innerHTML = AWARD_VIEWS[m[1]]();
+    awardReturnTarget = m24 ? 'hof-2024-out' : 'hof-out';
+    awardPage.innerHTML = view();
     homeEls.forEach(el=>el.style.display='none');
     awardPage.hidden = false;
     settleScroll(0);
@@ -1176,9 +1396,9 @@ function route(){
     awardPage.hidden = true;
     homeEls.forEach(el=>el.style.display='');
     if(wasAward){
-      // drop them back exactly where they were; if they deep-linked in, land on the awards grid
+      // drop them back exactly where they were; if they deep-linked in, land on the right awards grid
       if(savedY > 0) settleScroll(savedY);
-      else requestAnimationFrame(()=>{ const t = document.getElementById('hof-out'); if(t) t.scrollIntoView({behavior:'instant'}); });
+      else requestAnimationFrame(()=>{ const t = document.getElementById(awardReturnTarget); if(t) t.scrollIntoView({behavior:'instant'}); });
     }
   }
 }
