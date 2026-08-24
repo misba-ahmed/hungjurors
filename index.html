@@ -221,7 +221,9 @@
   .hof .who-cell{margin-top:2px}
   .hof .who{font-family:var(--serif);font-weight:900;font-size:21px;color:var(--navy)}
   .hof .stat{font-family:var(--mono);font-size:12px;color:var(--brass);margin-top:6px}
-  .hof .prize{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--win-green);margin-top:7px}
+  .hof .award-title-row{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;min-width:0}
+  .hof .award-title-row .k{margin-bottom:0;min-width:0;flex:1}
+  .hof .prize{margin-left:auto;white-space:nowrap;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--win-green)}
   .subhead{font-family:var(--serif);font-weight:900;color:var(--navy);font-size:19px;margin:26px 0 12px}
 
   details.season{background:#fff;border:1px solid var(--line);border-radius:8px;margin-bottom:12px;overflow:hidden}
@@ -652,10 +654,10 @@ const duesCell = m => {
   return `<span class="paid-wrap"><span class="paid">💵 PAID</span>${venmo}</span>`;
 };
 
-function draftCalendarHref(){
+function draftCalendarIcs(){
   const start = new Date(DATA.draft.when);
   const utc = d => d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z');
-  const ics = [
+  return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//The Hung Jurors//2026 Draft//EN',
@@ -671,7 +673,28 @@ function draftCalendarHref(){
     'END:VEVENT',
     'END:VCALENDAR'
   ].join('\r\n');
-  return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
+}
+
+function openDraftCalendar(){
+  const blob = new Blob([draftCalendarIcs()], {type:'text/calendar;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  if(isiOS){
+    window.location.assign(url);
+    setTimeout(()=>URL.revokeObjectURL(url), 30000);
+    return;
+  }
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'hung-jurors-2026-draft.ics';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
 }
 
 function draftDirectionsHref(){
@@ -701,7 +724,7 @@ $('#due-line').textContent = DATA.draft.dueDisplay;
 
 /* ---- draft cards ---- */
 const draftCards = [
-  { k:'Date & Time', v:DATA.draft.display, s:DATA.draft.tzNote, href:draftCalendarHref(), action:'Add to calendar →', calendar:true },
+  { k:'Date & Time', v:DATA.draft.display, s:DATA.draft.tzNote, href:'#', action:'Add to calendar →', calendar:true },
   { k:'Format', v:'Online live snake draft', s:"It's an online draft — draft from wherever you are. But anyone who wants to is welcome to come over to the Commish's place to hang out, eat, and draft together in person." },
   { k:'IRL Draft Hangout', v:DATA.draft.location, s:'Bring your own laptop + charger', href:draftDirectionsHref(), action:'Open directions →' },
   { k:'Draft Order', v:'Randomly determined by ESPN an hour before the draft', s:'' }
@@ -709,9 +732,17 @@ const draftCards = [
 $('#draft-cards').innerHTML = draftCards.map(c=>{
   const inner = `<div class="k">${esc(c.k)}</div><div class="v">${esc(c.v)}</div>${c.s?`<div class="s">${esc(c.s)}</div>`:''}`;
   if(!c.href) return `<div class="card">${inner}</div>`;
-  const download = c.calendar ? ' download="hung-jurors-2026-draft.ics"' : '';
-  return `<a class="card draft-link" href="${c.href}"${download} data-action="${esc(c.action)}">${inner}</a>`;
+  const calendarAttr = c.calendar ? ' data-calendar="true"' : '';
+  return `<a class="card draft-link" href="${c.href}"${calendarAttr} data-action="${esc(c.action)}">${inner}</a>`;
 }).join('');
+
+const draftCalendarLink = document.querySelector('[data-calendar="true"]');
+if(draftCalendarLink){
+  draftCalendarLink.addEventListener('click', e=>{
+    e.preventDefault();
+    openDraftCalendar();
+  });
+}
 
 /* ---- managers / dues ---- */
 {
@@ -861,10 +892,9 @@ $('#holder-badge').innerHTML = `${av(DATA.trophyHolder)} <span>Current holder: <
   $('#final-tbl').innerHTML = `<thead><tr><th>Final</th><th>Manager</th><th>Record</th><th>Points For</th></tr></thead><tbody>${rows}</tbody>`;
 
   $('#hof-out').innerHTML = a.awards.map(r=>{
-    const inner = `<div class="k">${esc(r.k)}</div>
+    const inner = `<div class="award-title-row"><div class="k">${esc(r.k)}</div>${r.prize ? `<div class="prize">$${r.prize}</div>` : ''}</div>
       <span class="who-cell">${av(r.who)}<span class="who">${esc(r.who)}</span></span>
-      <div class="stat">${esc(r.stat)}</div>
-      ${r.prize ? `<div class="prize">$${r.prize}</div>` : ''}`;
+      <div class="stat">${esc(r.stat)}</div>`;
     return r.link
       ? `<a class="card" href="#award/${r.link}">${inner}</a>`
       : `<div class="card">${inner}</div>`;
