@@ -144,6 +144,8 @@
   .card .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);margin-bottom:6px}
   .card .v{font-family:var(--serif);font-weight:600;font-size:18px;color:var(--navy)}
   .card .s{font-size:13px;opacity:.75;margin-top:4px}
+  a.card.draft-link{cursor:pointer}
+  a.card.draft-link::after{content:attr(data-action);color:var(--win-green);font-weight:700}
 
   .buyin{background:var(--navy);border-radius:10px;padding:26px 24px;color:var(--paper);border-top:4px solid var(--brass-bright)}
   .buyin .amt-row{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
@@ -219,6 +221,7 @@
   .hof .who-cell{margin-top:2px}
   .hof .who{font-family:var(--serif);font-weight:900;font-size:21px;color:var(--navy)}
   .hof .stat{font-family:var(--mono);font-size:12px;color:var(--brass);margin-top:6px}
+  .hof .prize{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--win-green);margin-top:7px}
   .subhead{font-family:var(--serif);font-weight:900;color:var(--navy);font-size:19px;margin:26px 0 12px}
 
   details.season{background:#fff;border:1px solid var(--line);border-radius:8px;margin-bottom:12px;overflow:hidden}
@@ -524,7 +527,7 @@ const DATA = {
     { short:"KAT",      paid:false },
     { short:"JARRETT",  paid:false },
     { short:"NATHAN M", paid:false },
-    { short:"WASI",     paid:false }
+    { short:"WASI",     paid:true,  payVia:"venmo" }
   ],
 
   payouts: [
@@ -614,12 +617,12 @@ const DATA = {
       { r:10, short:"CESAR",    w:5, l:9,  pf:1657.68 }
     ],
     awards: [
-      { k:"Last Man Standing", who:"BRYAN",   stat:"Survived all 14 weeks", link:"lms" },
-      { k:"Raffle Winner",     who:"BRYAN",   stat:"5 raffle entries", link:"raffle" },
-      { k:"Titty Special",     who:"BRYAN",   stat:"103 titties", link:"titty" },
-      { k:"Overachiever Special", who:"BRYAN", stat:"+125.45 vs. projections", link:"overachiever" },
-      { k:"MVP Special",       who:"GARRETT", stat:"17 MVP points", link:"mvp" },
-      { k:"Optimizer Special", who:"BRYAN",   stat:"222.7 total difference", link:"optimizer" },
+      { k:"Last Man Standing", who:"BRYAN",   stat:"Survived all 14 weeks", link:"lms", prize:30 },
+      { k:"Raffle Winner",     who:"BRYAN",   stat:"5 raffle entries", link:"raffle", prize:30 },
+      { k:"Titty Special",     who:"BRYAN",   stat:"103 titties", link:"titty", prize:10 },
+      { k:"Overachiever Special", who:"BRYAN", stat:"+125.45 vs. projections", link:"overachiever", prize:10 },
+      { k:"MVP Special",       who:"GARRETT", stat:"17 MVP points", link:"mvp", prize:10 },
+      { k:"Optimizer Special", who:"BRYAN",   stat:"222.7 total difference", link:"optimizer", prize:10 },
       { k:"League High Score", who:"KAT",     stat:"203.26 — Week 4", link:"raffle" },
       { k:"Most Points For",   who:"BRYAN",   stat:"2,041.88 PF", link:null }
     ]
@@ -649,6 +652,36 @@ const duesCell = m => {
   return `<span class="paid-wrap"><span class="paid">💵 PAID</span>${venmo}</span>`;
 };
 
+function draftCalendarHref(){
+  const start = new Date(DATA.draft.when);
+  const utc = d => d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z');
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//The Hung Jurors//2026 Draft//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    `UID:hung-jurors-2026-draft@${location.hostname || 'local'}`,
+    `DTSTAMP:${utc(new Date())}`,
+    `DTSTART:${utc(start)}`,
+    'SUMMARY:The Hung Jurors — 2026 Draft',
+    `LOCATION:${DATA.draft.location.replace(/,/g,'\\,')}`,
+    'DESCRIPTION:Online live snake draft. Bring your own laptop + charger if joining the IRL draft hangout.',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+  return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
+}
+
+function draftDirectionsHref(){
+  const address = encodeURIComponent(DATA.draft.location);
+  const ua = navigator.userAgent || '';
+  if(/iPad|iPhone|iPod/.test(ua)) return `maps://?daddr=${address}`;
+  if(/Android/i.test(ua)) return `geo:0,0?q=${address}`;
+  return `https://www.google.com/maps/dir/?api=1&destination=${address}`;
+}
+
 /* ---- countdown ---- */
 const target = new Date(DATA.draft.when).getTime();
 function tick(){
@@ -667,12 +700,18 @@ $('#draft-line').innerHTML = `<b>${esc(DATA.draft.display)}</b> — online draft
 $('#due-line').textContent = DATA.draft.dueDisplay;
 
 /* ---- draft cards ---- */
-$('#draft-cards').innerHTML = [
-  ['Date & Time', DATA.draft.display, DATA.draft.tzNote],
-  ['Format', 'Online live snake draft', "It's an online draft — draft from wherever you are. But anyone who wants to is welcome to come over to the Commish's place to hang out, eat, and draft together in person."],
-  ['If you come through', DATA.draft.location, 'Bring your own laptop + charger'],
-  ['Draft Order', 'Randomly determined by ESPN an hour before the draft', '']
-].map(([k,v,s])=>`<div class="card"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div>${s?`<div class="s">${esc(s)}</div>`:''}</div>`).join('');
+const draftCards = [
+  { k:'Date & Time', v:DATA.draft.display, s:DATA.draft.tzNote, href:draftCalendarHref(), action:'Add to calendar →', calendar:true },
+  { k:'Format', v:'Online live snake draft', s:"It's an online draft — draft from wherever you are. But anyone who wants to is welcome to come over to the Commish's place to hang out, eat, and draft together in person." },
+  { k:'IRL Draft Hangout', v:DATA.draft.location, s:'Bring your own laptop + charger', href:draftDirectionsHref(), action:'Open directions →' },
+  { k:'Draft Order', v:'Randomly determined by ESPN an hour before the draft', s:'' }
+];
+$('#draft-cards').innerHTML = draftCards.map(c=>{
+  const inner = `<div class="k">${esc(c.k)}</div><div class="v">${esc(c.v)}</div>${c.s?`<div class="s">${esc(c.s)}</div>`:''}`;
+  if(!c.href) return `<div class="card">${inner}</div>`;
+  const download = c.calendar ? ' download="hung-jurors-2026-draft.ics"' : '';
+  return `<a class="card draft-link" href="${c.href}"${download} data-action="${esc(c.action)}">${inner}</a>`;
+}).join('');
 
 /* ---- managers / dues ---- */
 {
@@ -824,7 +863,8 @@ $('#holder-badge').innerHTML = `${av(DATA.trophyHolder)} <span>Current holder: <
   $('#hof-out').innerHTML = a.awards.map(r=>{
     const inner = `<div class="k">${esc(r.k)}</div>
       <span class="who-cell">${av(r.who)}<span class="who">${esc(r.who)}</span></span>
-      <div class="stat">${esc(r.stat)}</div>`;
+      <div class="stat">${esc(r.stat)}</div>
+      ${r.prize ? `<div class="prize">$${r.prize}</div>` : ''}`;
     return r.link
       ? `<a class="card" href="#award/${r.link}">${inner}</a>`
       : `<div class="card">${inner}</div>`;
