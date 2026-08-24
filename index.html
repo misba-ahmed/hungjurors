@@ -35,7 +35,8 @@
   nav .nav-in{max-width:1060px;margin:0 auto;display:flex;gap:2px;padding:0 12px}
   nav a{flex:0 0 auto;color:rgba(247,243,232,.75);text-decoration:none;font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;padding:12px 12px;border-bottom:2px solid transparent;white-space:nowrap}
   nav a:hover,nav a:focus-visible{color:var(--paper);border-bottom-color:var(--brass)}
-  nav a.espn{margin-left:auto;color:var(--brass-bright);font-weight:700}
+  nav a.active{color:var(--paper);border-bottom-color:var(--brass)}
+  nav a.espn{color:var(--brass-bright);font-weight:700}
   nav a.espn:hover{color:#fff;border-bottom-color:var(--brass-bright)}
 
   /* ---------- TROPHY DISPLAY CASE ---------- */
@@ -286,6 +287,7 @@
 
 <nav aria-label="Sections">
   <div class="nav-in">
+    <a class="espn" href="https://fantasy.espn.com/football/league?leagueId=1630558" target="_blank" rel="noopener">ESPN League ↗</a>
     <a href="#draft">Draft</a>
     <a href="#buyin">Buy-In</a>
     <a href="#managers">Managers</a>
@@ -296,7 +298,6 @@
     <a href="#specials">Specials</a>
     <a href="#trophy">The Trophy</a>
     <a href="#history">League History</a>
-    <a class="espn" href="https://fantasy.espn.com/football/league?leagueId=1630558" target="_blank" rel="noopener">ESPN League ↗</a>
   </div>
 </nav>
 
@@ -372,7 +373,7 @@
   </section>
 
   <section id="trophy">
-    <div class="sec-head"><span class="ex">Exhibit I</span><h3>The Trophy™</h3><span class="pot">$140 value</span></div>
+    <div class="sec-head"><span class="ex">Exhibit I</span><h3>The Trophy™</h3></div>
     <div class="trophy-grid">
       <div class="t-case" id="t-case">
         <div class="t-glow"></div>
@@ -946,7 +947,7 @@ const AWARD_VIEWS = {
         return `<tr class="${e===undefined?'gold':''}"><td class="nm"><span class="who-cell">${av(m.short)}<span class="mgr" style="font-size:13px">${esc(m.short)}${e===undefined?' 👑':''}</span></span></td>${cells}</tr>`;
       }).join('') + `</tbody></table></div>`;
     return awHead('Last Man Standing','$30','BRYAN','Outlasted all 9 eliminations — never the lowest score in 14 weeks')
-      + `<h4 class="aw-sub">Elimination Feed — Newest First</h4><div class="tl">${winnerRow}${tl}</div>`
+      + `<h4 class="aw-sub">Elimination Feed</h4><div class="tl">${winnerRow}${tl}</div>`
       + `<h4 class="aw-sub">Survival Board</h4>${board}
          <div class="legend"><span><span class="sw" style="background:#E7F1E9"></span>✓ survived</span><span><span class="sw" style="background:#F5DEDC"></span>✗ eliminated that week</span></div>`;
   },
@@ -967,7 +968,7 @@ const AWARD_VIEWS = {
         <span class="sc">${w.hi[1].toFixed(2)}</span></div>`).join('');
     return awHead('Highest Scorer Raffle','$30','BRYAN','5 of 14 tickets in the drum — and his number came up')
       + `<h4 class="aw-sub">Tickets in the Drum</h4><div class="bars">${tk}</div>`
-      + `<h4 class="aw-sub">Weekly High Scores — Newest First</h4><div class="tl">${feed}</div>`;
+      + `<h4 class="aw-sub">Weekly High Scores</h4><div class="tl">${feed}</div>`;
   },
 
   titty(){
@@ -976,7 +977,7 @@ const AWARD_VIEWS = {
     const heat = heatHTML(AWD.titty, v=>`rgba(185,138,46,${v===0?0:(0.12+0.78*v/maxCell)})`, t=>t);
     return awHead('The Titty Special','$10','BRYAN','103 titties — a league record pace of 6.4 per week')
       + `<h4 class="aw-sub">Season Totals</h4><div class="bars">${barsHTML(AWD.titty)}</div>`
-      + `<h4 class="aw-sub">Week-by-Week Heatmap — Newest First</h4>${heat}
+      + `<h4 class="aw-sub">Week-by-Week Heatmap</h4>${heat}
          <div class="legend"><span><span class="sw" style="background:rgba(185,138,46,.15)"></span>few</span><span><span class="sw" style="background:rgba(185,138,46,.9)"></span>many</span><span>Kat's 13 in W4 and 12 in R2 are the season highs</span></div>`;
   },
 
@@ -998,7 +999,7 @@ const AWARD_VIEWS = {
       t => (t>0?'+':'')+t.toFixed(1));
     return awHead('The Overachiever Special','$10','BRYAN','+125.45 above projections — carried by a +61.24 Week 9')
       + `<h4 class="aw-sub">Running Totals vs. Projection</h4><div class="bars">${lb}</div>`
-      + `<h4 class="aw-sub">Weekly Over/Under — Newest First</h4>${heat}
+      + `<h4 class="aw-sub">Weekly Over/Under</h4>${heat}
          <div class="legend"><span><span class="sw" style="background:rgba(46,125,79,.7)"></span>beat projection</span><span><span class="sw" style="background:rgba(179,53,44,.7)"></span>fell short</span></div>`;
   },
 
@@ -1009,13 +1010,13 @@ const AWARD_VIEWS = {
         if(isOvrl) return `<div class="chip ovrl"><span class="pos">⭐ Overall MVP</span><span class="pl">${esc(d[0])}</span><span class="mg">${d[1]?av(d[1])+esc(d[1]):'<span class="chip unclaimed" style="border:none;padding:0;background:none">nobody started him</span>'}</span></div>`;
         return `<div class="chip ${d[2]?'':'unclaimed'}"><span class="pos">${pos}</span><span class="pl">${esc(d[0])} · ${d[1]}</span><span class="mg">${d[2]?av(d[2])+esc(d[2]):'nobody started him'}</span></div>`;
       };
-      return `<div class="wkcard"><div class="wt">${WKS[i]}${i===0?' — LATEST':''}</div><div class="chips">
+      return `<div class="wkcard"><div class="wt">${WKS[i]}</div><div class="chips">
         ${chip('QB',w.qb)}${chip('RB',w.rb)}${chip('WR',w.wr)}${chip('TE',w.te)}${chip('D/ST',w.dst)}${chip('K',w.k)}${chip('',w.ovrl,true)}
       </div></div>`;
     }).join('');
     return awHead('The MVP Special','$10','GARRETT','17 MVP points — 6 of them from Trey McBride alone')
       + `<h4 class="aw-sub">MVP Point Totals</h4><div class="bars">${barsHTML(AWD.mvpTotals)}</div>`
-      + `<h4 class="aw-sub">Weekly Positional MVPs — Newest First</h4><div class="wkcards">${wkcards}</div>`;
+      + `<h4 class="aw-sub">Weekly Positional MVPs</h4><div class="wkcards">${wkcards}</div>`;
   },
 
   optimizer(){
@@ -1030,7 +1031,7 @@ const AWARD_VIEWS = {
     const heat = heatHTML(rows, v=>`rgba(179,53,44,${v===0?0:(0.08+0.75*v/maxV)})`, t=>t.toFixed(1));
     return awHead('The Optimizer Special','$10','BRYAN','Only 222.7 total points left on the bench — lowest gap wins')
       + `<h4 class="aw-sub">Points Left on the Bench (lower is better — longer bar = closer to perfect)</h4><div class="bars">${lb}</div>`
-      + `<h4 class="aw-sub">Weekly Gap to Optimal Lineup — Newest First</h4>${heat}
+      + `<h4 class="aw-sub">Weekly Gap to Optimal Lineup</h4>${heat}
          <div class="legend"><span><span class="sw" style="background:rgba(179,53,44,.08)"></span>perfect lineup (0)</span><span><span class="sw" style="background:rgba(179,53,44,.8)"></span>left a lot behind</span></div>`;
   }
 };
@@ -1062,6 +1063,38 @@ function route(){
 }
 window.addEventListener('hashchange', route);
 route();
+
+/* ---- scroll-spy: underline the nav item for the section on screen ---- */
+{
+  const navLinks = [...document.querySelectorAll('nav .nav-in a')].filter(a => a.getAttribute('href')?.startsWith('#') && a.getAttribute('href').length > 1 && !a.getAttribute('href').startsWith('#award'));
+  const sections = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  let currentActive = null;
+  function spy(){
+    if(!awardPage.hidden){                      // on an award page: clear highlights
+      if(currentActive){ currentActive.classList.remove('active'); currentActive = null; }
+      return;
+    }
+    const marker = 90;                          // just below the sticky nav
+    let active = null;
+    for(const sec of sections){
+      if(sec.getBoundingClientRect().top <= marker) active = sec; else break;
+    }
+    const link = active ? navLinks[sections.indexOf(active)] : null;
+    if(link !== currentActive){
+      if(currentActive) currentActive.classList.remove('active');
+      currentActive = link;
+      if(link){
+        link.classList.add('active');
+        link.scrollIntoView({block:'nearest', inline:'nearest'});   // keep it visible in the nav strip
+      }
+    }
+  }
+  let ticking = false;
+  window.addEventListener('scroll', ()=>{
+    if(!ticking){ ticking = true; requestAnimationFrame(()=>{ spy(); ticking = false; }); }
+  }, {passive:true});
+  spy();
+}
 </script>
 </body>
 </html>
