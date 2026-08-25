@@ -38,6 +38,42 @@
   nav a.active{color:var(--paper);border-bottom-color:var(--brass)}
   nav a.espn{color:var(--brass-bright);font-weight:700}
   nav a.espn:hover{color:#fff;border-bottom-color:var(--brass-bright)}
+  /* ---------- SEASON CHALLENGES NAV + HUB ---------- */
+  #challenge-nav-link{display:flex;align-items:center;gap:5px}
+  #challenge-nav-link .nav-caret{font-size:9px;color:var(--brass-bright);transition:transform .14s ease}
+  #challenge-nav-link[aria-expanded="true"] .nav-caret{transform:rotate(180deg)}
+  .challenge-menu{position:fixed;z-index:80;min-width:280px;max-width:330px;background:#fff;border:1px solid var(--line);border-top:3px solid var(--brass);border-radius:0 0 9px 9px;box-shadow:0 15px 30px rgba(12,34,56,.2);padding:7px;display:grid;gap:3px}
+  .challenge-menu[hidden]{display:none}
+  .challenge-menu button{appearance:none;-webkit-appearance:none;border:0;background:transparent;border-radius:6px;padding:9px 10px;display:flex;align-items:center;justify-content:space-between;gap:14px;text-align:left;cursor:pointer;color:var(--navy);font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.055em;text-transform:uppercase}
+  .challenge-menu button:hover,.challenge-menu button:focus-visible{background:var(--paper-dim);outline:none}
+  .challenge-menu .menu-prize{color:var(--win-green);font-size:10px;white-space:nowrap}
+  #challenges{scroll-margin-top:64px}
+  .challenge-intro{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:-8px 0 13px;flex-wrap:wrap}
+  .challenge-intro p{font-size:13px;color:var(--navy-ink);opacity:.7;margin:0}
+  .challenge-intro .challenge-total{font-family:var(--mono);font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--brass);font-weight:700}
+  .challenge-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}
+  .challenge-card{appearance:none;-webkit-appearance:none;min-width:0;border:1px solid var(--line);border-bottom:3px solid transparent;background:#fff;border-radius:8px;padding:11px 12px;text-align:left;cursor:pointer;color:inherit;transition:border-color .12s ease,background .12s ease,transform .12s ease}
+  .challenge-card:hover{border-color:rgba(185,134,42,.58);transform:translateY(-1px)}
+  .challenge-card:focus-visible{outline:3px solid var(--brass-bright);outline-offset:2px}
+  .challenge-card[aria-selected="true"]{border-color:var(--navy);border-bottom-color:var(--brass);background:#FFFDF6}
+  .challenge-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:9px}
+  .challenge-card-name{font-family:var(--mono);font-size:10px;line-height:1.25;letter-spacing:.065em;text-transform:uppercase;font-weight:700;color:var(--navy)}
+  .challenge-card-prize{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--win-green);white-space:nowrap}
+  .challenge-card-blurb{font-size:10.5px;line-height:1.3;color:var(--navy-ink);opacity:.65;margin-top:5px}
+  .challenge-panel{background:#fff;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .challenge-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:14px 16px 12px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,#fff,var(--paper-dim))}
+  .challenge-panel-title{font-family:var(--serif);font-size:20px;font-weight:900;color:var(--navy);line-height:1.15}
+  .challenge-panel-prize{font-family:var(--serif);font-weight:900;font-size:23px;line-height:1;color:var(--win-green);white-space:nowrap}
+  .challenge-panel-rule{padding:10px 16px;background:var(--paper-dim);border-bottom:1px solid var(--line);font-size:12px;line-height:1.45;color:var(--navy-ink)}
+  .challenge-panel-body{padding:14px}
+  .challenge-panel-body .empty{margin:0}
+  @media(max-width:720px){
+    .challenge-menu{left:8px!important;right:8px!important;top:var(--challenge-menu-top,44px)!important;width:auto;max-width:none;grid-template-columns:repeat(2,minmax(0,1fr));border-radius:0 0 9px 9px}
+    .challenge-menu button{font-size:9.5px;padding:10px 8px;gap:5px}
+    .challenge-strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(180px,72vw);grid-template-columns:none;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 1px 8px;margin-right:-2px;-webkit-overflow-scrolling:touch}
+    .challenge-card{scroll-snap-align:start}
+    .challenge-panel-head{padding:12px 13px}.challenge-panel-rule{padding:9px 13px}.challenge-panel-body{padding:10px}
+  }
 
 
   /* ---------- FLOATING ESPN LEAGUE SHORTCUT ---------- */
@@ -136,6 +172,30 @@
   #countdown .l{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;margin-top:8px;color:var(--brass)}
   .until{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--navy-ink);opacity:.6;margin-top:10px}
 
+  /* ---------- NFL WEEK 1 QUICK SCHEDULE ---------- */
+  .week1-wrap{margin:0 auto;padding:0 0 28px;text-align:left;max-width:100%;width:100%}
+  .week1-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 2px 8px}
+  .week1-title{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);font-weight:700}
+  .week1-hint{font-family:var(--mono);font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--navy-ink);opacity:.5;white-space:nowrap}
+  .week1-scroll{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;padding:2px 2px 10px;-webkit-overflow-scrolling:touch;overscroll-behavior-inline:contain}
+  .week1-scroll::-webkit-scrollbar{height:6px}
+  .week1-scroll::-webkit-scrollbar-track{background:var(--paper-dim);border-radius:4px}
+  .week1-scroll::-webkit-scrollbar-thumb{background:rgba(188,137,41,.55);border-radius:4px}
+  .nfl-game{flex:0 0 225px;scroll-snap-align:start;background:#fff;border:1px solid var(--line);border-radius:8px;padding:11px 12px 10px;min-width:0;box-shadow:0 2px 7px rgba(20,50,79,.06)}
+  .nfl-game-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:-11px -12px 8px;padding:7px 10px;background:var(--navy);border-radius:7px 7px 0 0;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff}
+  .nfl-game-time{white-space:nowrap;color:#fff}
+  .nfl-game-net{color:var(--brass-bright);white-space:nowrap;text-align:right}
+  .nfl-team{display:flex;align-items:center;gap:8px;min-width:0;padding:2px 0}
+  .nfl-team img{width:22px;height:22px;object-fit:contain;flex:0 0 22px}
+  .nfl-team-name{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nfl-team-record{margin-left:auto;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.04em;color:var(--navy-ink);opacity:.58;white-space:nowrap}
+  @media(max-width:520px){
+    .week1-wrap{margin-top:0;padding-bottom:24px}
+    .nfl-game{flex-basis:205px;padding:10px 11px 9px}
+    .nfl-game-top{margin:-10px -11px 8px}
+    .week1-hint{display:none}
+  }
+
   main{max-width:1060px;margin:0 auto;padding:0 20px 80px}
   section{padding-top:58px}
   .sec-head{display:flex;align-items:baseline;gap:14px;border-bottom:2px solid var(--navy);padding-bottom:10px;margin-bottom:22px;flex-wrap:wrap}
@@ -149,7 +209,38 @@
   .card .v{font-family:var(--serif);font-weight:600;font-size:18px;color:var(--navy)}
   .card .s{font-size:13px;opacity:.75;margin-top:4px}
   a.card.draft-link{cursor:pointer}
-  a.card.draft-link::after{content:attr(data-action);color:var(--win-green);font-weight:700}
+  a.card.draft-link::after{content:attr(data-action);display:block;margin-top:9px;color:var(--win-green);font-family:var(--mono);font-size:10px;letter-spacing:.08em;font-weight:700}
+
+  /* ---------- PAYOUTS ---------- */
+  .payouts-wrap{display:grid;gap:14px}
+  .payout-group-title{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-top:2px}
+  .payout-group-title::after{content:"";height:1px;background:var(--line);flex:1}
+  .payout-podium{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .payout-main{position:relative;overflow:hidden;border-radius:10px;background:#fff;border:1px solid var(--line)}
+  .payout-main.winner{grid-column:1/-1;padding:18px 20px;background:linear-gradient(145deg,#fffdf7,#f7ecd0);border:2px solid var(--brass);box-shadow:0 8px 18px rgba(177,126,29,.12)}
+  .payout-main.winner::after{content:"♛";position:absolute;right:12px;bottom:-18px;font-size:84px;line-height:1;color:rgba(177,126,29,.09);font-family:serif;pointer-events:none}
+  .payout-main:not(.winner){display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"place amount" "desc amount";align-items:center;column-gap:14px;row-gap:2px;padding:12px 14px;min-height:0}
+  .payout-place{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);font-weight:700}
+  .payout-main:not(.winner) .payout-place{grid-area:place}
+  .payout-main.winner .payout-place{color:var(--navy)}
+  .payout-amount{font-family:var(--serif);font-weight:900;color:var(--navy);font-size:clamp(28px,4vw,38px);line-height:1.05;margin:8px 0 5px}
+  .payout-main:not(.winner) .payout-amount{grid-area:amount;font-size:27px;margin:0;align-self:center}
+  .payout-trophy{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;font-weight:700;text-transform:uppercase;background:var(--navy);color:var(--brass-bright);border-radius:999px;padding:5px 8px;margin:1px 0 7px}
+  .payout-desc{font-size:12.5px;color:var(--navy-ink);opacity:.72;line-height:1.35}
+  .payout-main:not(.winner) .payout-desc{grid-area:desc;font-size:11.5px;white-space:normal}
+  .payout-sides{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+  .payout-side{background:#fff;border:1px solid var(--line);border-radius:9px;padding:14px 14px 13px;position:relative;overflow:hidden;transition:transform .14s ease,border-color .14s ease}
+  .payout-side::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--brass)}
+  @media(hover:hover) and (pointer:fine){.payout-side:hover{transform:translateY(-2px);border-color:#c8a251}}
+  .payout-side-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .payout-side-title{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--navy);line-height:1.35}
+  .payout-side-amt{font-family:var(--serif);font-size:22px;line-height:1;font-weight:900;color:var(--win-green);white-space:nowrap}
+  .payout-side-desc{font-size:11.5px;color:var(--navy-ink);opacity:.7;margin-top:7px;line-height:1.35}
+  @media(max-width:520px){
+    .payout-podium{grid-template-columns:1fr}
+    .payout-main.winner{grid-column:auto}
+    .payout-sides{grid-template-columns:1fr}
+  }
 
   .buyin{background:var(--navy);border-radius:10px;padding:26px 24px;color:var(--paper);border-top:4px solid var(--brass-bright)}
   .buyin .amt-row{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
@@ -193,6 +284,8 @@
   .tabs button{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:9px 14px;border:1px solid var(--line);background:#fff;color:var(--navy-ink);border-radius:6px;cursor:pointer}
   .tabs button[aria-selected="true"]{background:var(--navy);color:var(--paper);border-color:var(--navy)}
   .rules{font-size:13.5px;background:var(--paper-dim);border-left:3px solid var(--brass);padding:12px 14px;border-radius:0 6px 6px 0;margin-bottom:16px;max-width:760px}
+  #challenge-strip.tabs{margin-bottom:16px}
+  #challenge-strip.tabs button{padding:10px 15px}
 
   /* trophy */
   .trophy-grid{display:grid;grid-template-columns:minmax(260px,380px) 1fr;gap:30px;align-items:start}
@@ -224,12 +317,12 @@
   .champ-banner .av{width:74px;height:74px;border-color:var(--brass-bright)}
 
   .hof{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:14px}
-  .hof .card{border-top:3px solid var(--brass)}
-  .hof .who-cell{margin-top:2px}
+  .hof .card{padding:18px}
+  .hof .who-cell{margin:0}
   .hof .who{font-family:var(--serif);font-weight:900;font-size:21px;color:var(--navy)}
-  .hof .stat{font-family:var(--mono);font-size:12px;color:var(--brass);margin-top:6px}
-  .hof .award-title-row{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;min-width:0}
-  .hof .award-title-row .k{margin-bottom:0;min-width:0;flex:1}
+  .hof .stat{font-family:var(--mono);font-size:12px;color:var(--brass);margin-top:7px}
+  .hof .award-title-row{display:flex;align-items:center;gap:10px;margin:0 0 14px;padding:0;min-width:0;background:transparent}
+  .hof .award-title-row .k{margin-bottom:0;min-width:0;flex:1;color:var(--brass)}
   .hof .prize{margin-left:auto;white-space:nowrap;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--win-green)}
   details.awards-fold{margin-top:26px}
   details.awards-fold summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:900;color:var(--navy);font-size:19px;padding:4px 0 10px;border-bottom:1px solid var(--line)}
@@ -376,13 +469,19 @@
     <a href="#managers">Managers</a>
     <a href="#payouts">Payouts</a>
     <a href="#standings">Standings</a>
-    <a href="#raffle">Raffle</a>
-    <a href="#lms">Last Man Standing</a>
-    <a href="#specials">Specials</a>
+    <a href="#challenges" id="challenge-nav-link" aria-haspopup="true" aria-expanded="false">Season Challenges <span class="nav-caret">▼</span></a>
     <a href="#trophy">The Trophy</a>
     <a href="#history">League History</a>
   </div>
 </nav>
+<div id="challenge-menu" class="challenge-menu" role="menu" aria-label="Season Challenges" hidden>
+  <button type="button" role="menuitem" data-challenge="raffle"><span>Highest Scorer Raffle</span><span class="menu-prize">$30</span></button>
+  <button type="button" role="menuitem" data-challenge="lms"><span>Last Man Standing</span><span class="menu-prize">$30</span></button>
+  <button type="button" role="menuitem" data-challenge="titty"><span>Titty Special</span><span class="menu-prize">$10</span></button>
+  <button type="button" role="menuitem" data-challenge="overachiever"><span>Overachiever</span><span class="menu-prize">$10</span></button>
+  <button type="button" role="menuitem" data-challenge="mvp"><span>MVP Special</span><span class="menu-prize">$10</span></button>
+  <button type="button" role="menuitem" data-challenge="optimizer"><span>Optimizer Special</span><span class="menu-prize">$10</span></button>
+</div>
 
 <main>
 
@@ -394,6 +493,13 @@
       <p class="sub" id="draft-line"></p>
       <div id="countdown" aria-live="polite"></div>
       <div class="until">until we're on the clock</div>
+    </div>
+    <div class="week1-wrap" aria-label="NFL Week 1 schedule">
+      <div class="week1-head">
+        <span class="week1-title">NFL Week 1 · Sep 9–14</span>
+        <span class="week1-hint">Swipe / scroll →</span>
+      </div>
+      <div class="week1-scroll" id="week1-scroll"></div>
     </div>
   </div>
 
@@ -436,27 +542,15 @@
     <div id="standings-out"></div>
   </section>
 
-  <section id="raffle">
-    <div class="sec-head"><span class="ex">Exhibit F</span><h3>Highest Scorer Raffle</h3><span class="pot">$30</span></div>
-    <div class="rules">Each week, the highest scoring team earns 1 entry into end-of-season raffle to determine the winner.</div>
-    <div id="raffle-out"></div>
-  </section>
-
-  <section id="lms">
-    <div class="sec-head"><span class="ex">Exhibit G</span><h3>Last Man Standing</h3><span class="pot">$30</span></div>
-    <div class="rules">Starting week 5, the lowest scoring team remaining gets eliminated each week until only one team remains.</div>
-    <div id="lms-out"></div>
-  </section>
-
-  <section id="specials">
-    <div class="sec-head"><span class="ex">Exhibit H</span><h3>The Specials</h3><span class="pot">$10 each</span></div>
-    <div class="tabs" role="tablist" id="spec-tabs"></div>
-    <div class="rules" id="spec-rule"></div>
-    <div id="spec-out"></div>
+  <section id="challenges">
+    <div class="sec-head"><span class="ex">Exhibit F</span><h3>Season Challenges</h3><span class="pot" id="challenge-prize-badge">$30</span></div>
+    <div class="tabs" id="challenge-strip" role="tablist" aria-label="Season Challenges"></div>
+    <div class="rules" id="challenge-rule"></div>
+    <div id="challenge-out"></div>
   </section>
 
   <section id="trophy">
-    <div class="sec-head"><span class="ex">Exhibit I</span><h3>The Trophy™</h3></div>
+    <div class="sec-head"><span class="ex">Exhibit G</span><h3>The Trophy™</h3></div>
     <div class="trophy-grid">
       <div class="t-case" id="t-case">
         <div class="t-glow"></div>
@@ -826,18 +920,48 @@ tick(); setInterval(tick,1000);
 $('#draft-line').innerHTML = `<b>${esc(DATA.draft.display)}</b> — online draft, from wherever you are`;
 $('#due-line').textContent = DATA.draft.dueDisplay;
 
+/* ---- NFL Week 1 quick schedule ---- */
+const NFL_WEEK1 = [
+  { day:'WED', date:'SEP 9',  time:'7:20 PM', net:'NBC',     a:['PATRIOTS','ne'],   b:['SEAHAWKS','sea'] },
+  { day:'THU', date:'SEP 10', time:'7:35 PM', net:'NETFLIX', a:['49ERS','sf'],     b:['RAMS','lar'] },
+  { day:'SUN', date:'SEP 13', time:'12:00 PM', net:'FOX',    a:['BEARS','chi'],     b:['PANTHERS','car'] },
+  { day:'SUN', date:'SEP 13', time:'12:00 PM', net:'FOX',    a:['BUCCANEERS','tb'], b:['BENGALS','cin'] },
+  { day:'SUN', date:'SEP 13', time:'12:00 PM', net:'FOX',    a:['SAINTS','no'],      b:['LIONS','det'] },
+  { day:'SUN', date:'SEP 13', time:'12:00 PM', net:'CBS',    a:['BILLS','buf'],      b:['TEXANS','hou'] },
+  { day:'SUN', date:'SEP 13', time:'12:00 PM', net:'CBS',    a:['RAVENS','bal'],     b:['COLTS','ind'] },
+  { day:'SUN', date:'SEP 13', time:'12:00 PM', net:'CBS',    a:['BROWNS','cle'],     b:['JAGUARS','jax'] },
+  { day:'SUN', date:'SEP 13', time:'12:00 PM', net:'FOX',    a:['FALCONS','atl'],    b:['STEELERS','pit'] },
+  { day:'SUN', date:'SEP 13', time:'12:00 PM', net:'CBS',    a:['JETS','nyj'],       b:['TITANS','ten'] },
+  { day:'SUN', date:'SEP 13', time:'3:25 PM',  net:'CBS',    a:['CARDINALS','ari'],  b:['CHARGERS','lac'] },
+  { day:'SUN', date:'SEP 13', time:'3:25 PM',  net:'FOX',    a:['DOLPHINS','mia'],   b:['RAIDERS','lv'] },
+  { day:'SUN', date:'SEP 13', time:'3:25 PM',  net:'CBS',    a:['PACKERS','gb'],     b:['VIKINGS','min'] },
+  { day:'SUN', date:'SEP 13', time:'3:25 PM',  net:'FOX',    a:['COMMANDERS','wsh'], b:['EAGLES','phi'] },
+  { day:'SUN', date:'SEP 13', time:'7:20 PM',  net:'NBC',    a:['COWBOYS','dal'],    b:['GIANTS','nyg'] },
+  { day:'MON', date:'SEP 14', time:'7:15 PM',  net:'ESPN',   a:['BRONCOS','den'],    b:['CHIEFS','kc'] }
+];
+const nflLogo = abbr => `https://a.espncdn.com/i/teamlogos/nfl/500/${abbr}.png`;
+const week1El = $('#week1-scroll');
+if(week1El){
+  const teamRow = t => `<div class="nfl-team"><img src="${nflLogo(t[1])}" alt="" loading="lazy"><span class="nfl-team-name">${esc(t[0])}</span><span class="nfl-team-record">0-0</span></div>`;
+  week1El.innerHTML = NFL_WEEK1.map(g => `<article class="nfl-game">
+    <div class="nfl-game-top"><span class="nfl-game-time">${g.day} | ${g.date} | ${g.time}</span><span class="nfl-game-net">${g.net}</span></div>
+    ${teamRow(g.a)}${teamRow(g.b)}
+  </article>`).join('');
+}
+
 /* ---- draft cards ---- */
 const draftCards = [
   { k:'Date & Time', v:DATA.draft.display, s:DATA.draft.tzNote, href:'#', action:'Add to calendar →', calendar:true },
-  { k:'Format', v:'Online live snake draft', s:"It's an online draft — draft from wherever you are. But anyone who wants to is welcome to come over to the Commish's place to hang out, eat, and draft together in person." },
+  { k:'Format', v:'Online live snake draft', s:"It's an online draft — draft from wherever you are. But anyone who wants to is welcome to come over to the Commish's place to hang out, eat, and draft together in person.", href:'https://fantasy.espn.com/football/mockdraftlobby', action:'PRACTICE MOCK DRAFT →', target:'_blank' },
   { k:'IRL Draft Hangout', v:DATA.draft.location, s:'Bring your own laptop + charger', href:draftDirectionsHref(), action:'Open directions →' },
-  { k:'Draft Order', v:'Randomly determined by ESPN an hour before the draft', s:'' }
+  { k:'Draft Order', v:'Randomly determined by ESPN an hour before the draft', s:'', href:'https://fantasy.espn.com/football/editdraftstrategy?leagueId=1630558', action:'EDIT DRAFT STRATEGY →', target:'_blank' }
 ];
 $('#draft-cards').innerHTML = draftCards.map(c=>{
   const inner = `<div class="k">${esc(c.k)}</div><div class="v">${esc(c.v)}</div>${c.s?`<div class="s">${esc(c.s)}</div>`:''}`;
   if(!c.href) return `<div class="card">${inner}</div>`;
   const calendarAttr = c.calendar ? ' data-calendar="true"' : '';
-  return `<a class="card draft-link" href="${c.href}"${calendarAttr} data-action="${esc(c.action)}">${inner}</a>`;
+  const targetAttr = c.target ? ` target="${c.target}" rel="noopener"` : '';
+  return `<a class="card draft-link" href="${c.href}"${calendarAttr}${targetAttr} data-action="${esc(c.action)}">${inner}</a>`;
 }).join('');
 
 const draftCalendarLink = document.querySelector('[data-calendar="true"]');
@@ -855,7 +979,29 @@ if(draftCalendarLink){
 }
 
 /* ---- payouts ---- */
-$('#purse-cards').innerHTML = DATA.payouts.map(p=>`<div class="card"><div class="k">${esc(p.k)}</div><div class="v">${esc(p.v)}</div><div class="s">${esc(p.s)}</div></div>`).join('');
+{
+  const [winner, second, third, ...sides] = DATA.payouts;
+  const podiumCard = (p, cls='') => {
+    const isWinner = cls === 'winner';
+    const amount = isWinner ? '$260' : esc(p.v);
+    return `<div class="payout-main ${cls}">
+      <div class="payout-place">${esc(p.k)}</div>
+      <div class="payout-amount">${amount}</div>
+      ${isWinner ? '<div class="payout-trophy">+ THE TROPHY™</div>' : ''}
+      <div class="payout-desc">${esc(p.s)}</div>
+    </div>`;
+  };
+  const sideCards = sides.map(p=>`<div class="payout-side">
+      <div class="payout-side-top"><div class="payout-side-title">${esc(p.k)}</div><div class="payout-side-amt">${esc(p.v)}</div></div>
+      <div class="payout-side-desc">${esc(p.s)}</div>
+    </div>`).join('');
+  $('#purse-cards').className = 'payouts-wrap';
+  $('#purse-cards').innerHTML = `
+    <div class="payout-group-title">Championship Podium</div>
+    <div class="payout-podium">${podiumCard(winner,'winner')}${podiumCard(second)}${podiumCard(third)}</div>
+    <div class="payout-group-title">Season Challenges</div>
+    <div class="payout-sides">${sideCards}</div>`;
+}
 
 /* ---- 2026 standings ---- */
 {
@@ -872,76 +1018,123 @@ $('#purse-cards').innerHTML = DATA.payouts.map(p=>`<div class="card"><div class=
   }
 }
 
-/* ---- raffle ---- */
-{
-  const out = $('#raffle-out');
+/* ---- season challenges hub ---- */
+const CHALLENGES = [
+  { id:'raffle', label:'Highest Scorer Raffle', prize:'$30', blurb:'One ticket for each weekly high score.',
+    rule:'Each week, the highest scoring team earns 1 entry into the end-of-season raffle to determine the winner.', type:'raffle' },
+  { id:'lms', label:'Last Man Standing', prize:'$30', blurb:'Lowest remaining score is eliminated from Week 5 on.',
+    rule:'Starting Week 5, the lowest scoring team remaining gets eliminated each week until only one team remains.', type:'lms' },
+  { id:'titty', label:'The Titty Special', prize:'$10', blurb:'Most starter TDs, plus 50+ yard field goals.',
+    rule:'Teams earn “titties” for each touchdown scored by their starters each week, including passing TD’s, rushing TD’s, receiving TD’s, and defensive/special teams TD’s. Kickers can earn titties by making 50+ yard FG’s. The team with the most titties at the end of the season wins $10. If there is a tie, the tiebreaker is the total yards from all starting quarterbacks, running backs, and wide receivers.', type:'special', dataKey:'titty', dir:'desc', fmt:v=>v },
+  { id:'overachiever', label:'The Overachiever Special', prize:'$10', blurb:'Best season total versus weekly projections.',
+    rule:'Teams compete throughout the season by comparing their actual weekly scores to their projected scores each week. If you score above the projection, you add the difference to your running total; if below, it’s subtracted. The highest running total at the end of the season claims the $10 prize.', type:'special', dataKey:'overachiever', dir:'desc', fmt:v=>(v>0?'+':'')+v.toFixed(2) },
+  { id:'mvp', label:'The MVP Special', prize:'$10', blurb:'Most weekly positional MVP points.',
+    rule:'Points are awarded weekly to teams whose starters are the highest scorers in each position (QB, RB, WR, TE, DST, K). An extra point is given for starting the overall highest scoring player of the week. At the end of the season, the team with the most MVP points wins $10. In case of a tie, the total fantasy points from all MVP players during the season will decide the winner.', type:'special', dataKey:'mvp', dir:'desc', fmt:v=>v },
+  { id:'optimizer', label:'The Optimizer Special', prize:'$10', blurb:'Smallest season gap to the optimal lineup.',
+    rule:'Each week, every team’s actual starting lineup score is compared to their “optimal lineup” score (the highest possible score they could have achieved with players on their roster that week). The team with the LOWEST total difference at the end of the season wins $10.', type:'special', dataKey:'optimizer', dir:'asc', fmt:v=>v.toFixed(2) }
+];
+
+function renderRaffleChallenge(out){
   if(!DATA.weeks.length){
     out.innerHTML = `<div class="empty">First raffle entry goes to the Week 1 high scorer</div>`;
-  } else {
-    const tally = {};
-    DATA.weeks.forEach(w => { tally[w.high.short] = (tally[w.high.short]||0)+1; });
-    const tRows = Object.entries(tally).sort((a,b)=>b[1]-a[1])
-      .map(([s,n],i)=>`<tr class="${i===0?'top':''}"><td>${whoCell(s)}</td><td class="num">${'🎟️'.repeat(n)} ${n}</td></tr>`).join('');
-    const wRows = DATA.weeks.map(w=>`<tr><td class="num">${w.week}</td><td>${whoCell(w.high.short)}</td><td class="num">${w.high.pts}</td></tr>`).join('');
-    const winner = DATA.raffleWinner ? `<tr><td colspan="2" style="background:var(--navy);color:var(--paper);font-family:var(--mono);font-size:13px;letter-spacing:.1em">🎟️ RAFFLE WINNER: <span class="who-cell" style="display:inline-flex;margin-left:7px">${av(DATA.raffleWinner,'xs')}<b style="color:var(--brass-bright)">${esc(DATA.raffleWinner)}</b></span></td></tr>` : '';
-    out.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">
-      <div class="tbl-wrap"><table><thead><tr><th>Manager</th><th>Entries</th></tr></thead><tbody>${tRows}${winner}</tbody></table></div>
-      <div class="tbl-wrap"><table><thead><tr><th>Week</th><th>High Scorer</th><th>Points</th></tr></thead><tbody>${wRows}</tbody></table></div>
-    </div>`;
+    return;
   }
+  const tally = {};
+  DATA.weeks.forEach(w => { tally[w.high.short] = (tally[w.high.short]||0)+1; });
+  const tRows = Object.entries(tally).sort((a,b)=>b[1]-a[1])
+    .map(([s,n],i)=>`<tr class="${i===0?'top':''}"><td>${whoCell(s)}</td><td class="num">${'🎟️'.repeat(n)} ${n}</td></tr>`).join('');
+  const wRows = DATA.weeks.map(w=>`<tr><td class="num">${w.week}</td><td>${whoCell(w.high.short)}</td><td class="num">${w.high.pts}</td></tr>`).join('');
+  const winner = DATA.raffleWinner ? `<tr><td colspan="2" style="background:var(--navy);color:var(--paper);font-family:var(--mono);font-size:13px;letter-spacing:.1em">🎟️ RAFFLE WINNER: <span class="who-cell" style="display:inline-flex;margin-left:7px">${av(DATA.raffleWinner,'xs')}<b style="color:var(--brass-bright)">${esc(DATA.raffleWinner)}</b></span></td></tr>` : '';
+  out.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px">
+    <div class="tbl-wrap"><table><thead><tr><th>Manager</th><th>Entries</th></tr></thead><tbody>${tRows}${winner}</tbody></table></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Week</th><th>High Scorer</th><th>Points</th></tr></thead><tbody>${wRows}</tbody></table></div>
+  </div>`;
 }
 
-/* ---- last man standing ---- */
-{
-  const out = $('#lms-out');
+function renderLmsChallenge(out){
   const elims = DATA.weeks.filter(w => w.eliminated);
   if(!elims.length){
     out.innerHTML = `<div class="empty">Eliminations begin Week 5</div>`;
-  } else {
-    const rows = elims.map(w=>`<tr>
-      <td class="num">${w.week}</td>
-      <td><span class="who-cell">${av(w.eliminated.short)}<span class="elim">${esc(w.eliminated.short)}</span></span></td>
-      <td class="num" style="color:var(--verdict-red)">${w.eliminated.pts}</td>
-    </tr>`).join('');
-    const alive = DATA.managers.map(m=>m.short).filter(s => !elims.some(w=>w.eliminated.short===s));
-    const foot = DATA.lmsWinner
-      ? `<tr><td colspan="3" style="background:var(--navy);color:var(--paper);font-family:var(--mono);font-size:13px;letter-spacing:.1em">🏆 LAST MAN STANDING: <span class="who-cell" style="display:inline-flex;margin-left:7px">${av(DATA.lmsWinner,'xs')}<b style="color:var(--brass-bright)">${esc(DATA.lmsWinner)}</b></span></td></tr>`
-      : `<tr><td colspan="3" style="font-size:13px"><b>Still alive:</b> <span style="display:inline-flex;flex-wrap:wrap;gap:7px 12px;margin-left:6px;vertical-align:middle">${alive.map(s=>`<span class="who-cell" style="display:inline-flex;gap:5px">${av(s,'xs')}<span class="mgr">${esc(s)}</span></span>`).join('')}</span></td></tr>`;
-    out.innerHTML = `<div class="tbl-wrap"><table><thead><tr><th>Week</th><th>Eliminated</th><th>Score</th></tr></thead><tbody>${rows}${foot}</tbody></table></div>`;
+    return;
   }
+  const rows = elims.map(w=>`<tr>
+    <td class="num">${w.week}</td>
+    <td><span class="who-cell">${av(w.eliminated.short)}<span class="elim">${esc(w.eliminated.short)}</span></span></td>
+    <td class="num" style="color:var(--verdict-red)">${w.eliminated.pts}</td>
+  </tr>`).join('');
+  const alive = DATA.managers.map(m=>m.short).filter(s => !elims.some(w=>w.eliminated.short===s));
+  const foot = DATA.lmsWinner
+    ? `<tr><td colspan="3" style="background:var(--navy);color:var(--paper);font-family:var(--mono);font-size:13px;letter-spacing:.1em">🏆 LAST MAN STANDING: <span class="who-cell" style="display:inline-flex;margin-left:7px">${av(DATA.lmsWinner,'xs')}<b style="color:var(--brass-bright)">${esc(DATA.lmsWinner)}</b></span></td></tr>`
+    : `<tr><td colspan="3" style="font-size:13px"><b>Still alive:</b> <span style="display:inline-flex;flex-wrap:wrap;gap:7px 12px;margin-left:6px;vertical-align:middle">${alive.map(s=>`<span class="who-cell" style="display:inline-flex;gap:5px">${av(s,'xs')}<span class="mgr">${esc(s)}</span></span>`).join('')}</span></td></tr>`;
+  out.innerHTML = `<div class="tbl-wrap"><table><thead><tr><th>Week</th><th>Eliminated</th><th>Score</th></tr></thead><tbody>${rows}${foot}</tbody></table></div>`;
 }
 
-/* ---- specials (descriptions verbatim from league notes) ---- */
-{
-  const SPECS = [
-    { id:'titty', label:'The Titty Special', data:DATA.titty, dir:'desc', fmt:v=>v,
-      rule:'Teams earn \u201Ctitties\u201D for each touchdown scored by their starters each week, including passing TD\u2019s, rushing TD\u2019s, receiving TD\u2019s, and defensive/special teams TD\u2019s. Kickers can earn titties by making 50+ yard FG\u2019s. The team with the most titties at the end of the season wins $10. If there is a tie, the tiebreaker is the total yards from all starting quarterbacks, running backs, and wide receivers.' },
-    { id:'overachiever', label:'The Overachiever Special', data:DATA.overachiever, dir:'desc', fmt:v=>(v>0?'+':'')+v.toFixed(2),
-      rule:'Teams compete throughout the season by comparing their actual weekly scores to their projected scores each week. If you score above the projection, you add the difference to your running total; if below, it\u2019s subtracted. The highest running total at the end of the season claims the $10 prize.' },
-    { id:'mvp', label:'The MVP Special', data:DATA.mvp, dir:'desc', fmt:v=>v,
-      rule:'Points are awarded weekly to teams whose starters are the highest scorers in each position (QB, RB, WR, TE, DST, K). An extra point is given for starting the overall highest scoring player of the week. At the end of the season, the team with the most MVP points wins $10. In case of a tie, the total fantasy points from all MVP players during the season will decide the winner.' },
-    { id:'optimizer', label:'The Optimizer Special', data:DATA.optimizer, dir:'asc', fmt:v=>v.toFixed(2),
-      rule:'Each week, every team\u2019s actual starting lineup score is compared to their \u201Coptimal lineup\u201D score (the highest possible score they could have achieved with players on their roster that week). The team with the LOWEST total difference at the end of the season wins $10.' }
-  ];
-  const tabs = $('#spec-tabs'), rule = $('#spec-rule'), out = $('#spec-out');
-  function show(id){
-    const sp = SPECS.find(s=>s.id===id);
-    tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected', b.dataset.id===id));
-    rule.textContent = sp.rule;
-    if(!sp.data.length){
-      out.innerHTML = `<div class="empty">Tracking starts Week 1</div>`;
-      return;
-    }
-    const rows = [...sp.data].sort((a,b)=> sp.dir==='desc' ? b.total-a.total : a.total-b.total)
-      .map((r,i,arr)=>{
-        const cls = i===0 ? 'top' : (i===arr.length-1 ? 'bottom' : '');
-        return `<tr class="${cls}"><td><span class="rank-chip">${pad(i+1)}</span></td><td>${whoCell(r.short)}</td><td class="num">${sp.fmt(r.total)}</td></tr>`;
-      }).join('');
-    out.innerHTML = `<div class="tbl-wrap"><table><thead><tr><th>Rank</th><th>Manager</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+function renderSpecialChallenge(ch, out){
+  const data = DATA[ch.dataKey];
+  if(!data.length){
+    out.innerHTML = `<div class="empty">Tracking starts Week 1</div>`;
+    return;
   }
-  tabs.innerHTML = SPECS.map(s=>`<button role="tab" data-id="${s.id}" aria-selected="false">${s.label}</button>`).join('');
-  tabs.addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) show(b.dataset.id); });
-  show('titty');
+  const rows = [...data].sort((a,b)=> ch.dir==='desc' ? b.total-a.total : a.total-b.total)
+    .map((r,i,arr)=>{
+      const cls = i===0 ? 'top' : (i===arr.length-1 ? 'bottom' : '');
+      return `<tr class="${cls}"><td><span class="rank-chip">${pad(i+1)}</span></td><td>${whoCell(r.short)}</td><td class="num">${ch.fmt(r.total)}</td></tr>`;
+    }).join('');
+  out.innerHTML = `<div class="tbl-wrap"><table><thead><tr><th>Rank</th><th>Manager</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function selectChallenge(id){
+  const ch = CHALLENGES.find(c=>c.id===id) || CHALLENGES[0];
+  document.querySelectorAll('#challenge-strip button').forEach(b=>b.setAttribute('aria-selected', b.dataset.challenge===ch.id));
+  $('#challenge-rule').textContent = ch.rule;
+  const prize = $('#challenge-prize-badge');
+  if(prize) prize.textContent = ch.prize;
+  const out = $('#challenge-out');
+  if(ch.type==='raffle') renderRaffleChallenge(out);
+  else if(ch.type==='lms') renderLmsChallenge(out);
+  else renderSpecialChallenge(ch,out);
+}
+
+{
+  const strip = $('#challenge-strip');
+  strip.innerHTML = CHALLENGES.map(ch=>`<button type="button" role="tab" data-challenge="${ch.id}" aria-selected="false">${ch.label}</button>`).join('');
+  strip.addEventListener('click', e=>{
+    const b=e.target.closest('button[data-challenge]');
+    if(b) selectChallenge(b.dataset.challenge);
+  });
+  selectChallenge('raffle');
+}
+
+/* ---- Season Challenges nav dropdown ---- */
+{
+  const nav = document.querySelector('nav');
+  const trigger = $('#challenge-nav-link');
+  const menu = $('#challenge-menu');
+  const closeMenu = () => { menu.hidden=true; trigger.setAttribute('aria-expanded','false'); };
+  const positionMenu = () => {
+    const nr = nav.getBoundingClientRect();
+    const tr = trigger.getBoundingClientRect();
+    document.documentElement.style.setProperty('--challenge-menu-top', `${Math.round(nr.bottom)}px`);
+    menu.style.top = `${Math.round(nr.bottom)}px`;
+    menu.style.left = `${Math.round(Math.max(8, Math.min(tr.left, window.innerWidth - 340)))}px`;
+  };
+  const openMenu = () => { positionMenu(); menu.hidden=false; trigger.setAttribute('aria-expanded','true'); };
+  trigger.addEventListener('click', e=>{
+    e.preventDefault();
+    menu.hidden ? openMenu() : closeMenu();
+  });
+  menu.addEventListener('click', e=>{
+    const b=e.target.closest('button[data-challenge]');
+    if(!b) return;
+    selectChallenge(b.dataset.challenge);
+    closeMenu();
+    const sec=$('#challenges');
+    if(sec) sec.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  document.addEventListener('click', e=>{ if(!menu.hidden && !menu.contains(e.target) && e.target!==trigger && !trigger.contains(e.target)) closeMenu(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeMenu(); });
+  window.addEventListener('resize', ()=>{ if(!menu.hidden) positionMenu(); }, {passive:true});
+  window.addEventListener('scroll', ()=>{ if(!menu.hidden) positionMenu(); }, {passive:true});
 }
 
 /* ---- trophy holder ---- */
