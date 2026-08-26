@@ -1173,7 +1173,12 @@
      scrollers (nav, champion carousel, NFL strip, tabs, data tables) remain
      scrollable inside their own containers. */
   @media(max-width:640px){
-    html,body{max-width:100%;overflow-x:hidden}
+    /* Do not put overflow-x:hidden on html/body here. On iOS Safari that can
+       turn the page root into a competing scroll container and make vertical
+       scrolling snap back toward the top. Card widths are constrained below,
+       so the document itself does not need to become a horizontal scroller. */
+    html,body{max-width:100%}
+    @supports (overflow-x:clip){html{overflow-x:clip}}
 
     /* Modals should scroll vertically only. Wide tables keep their own
        contained scrollers via .tbl-wrap / .heat-wrap. */
@@ -3360,7 +3365,17 @@ route();
       currentActive = link;
       if(link){
         link.classList.add('active');
-        link.scrollIntoView({block:'nearest', inline:'nearest'});   // keep it visible in the nav strip
+        /* Keep the active tab visible by moving only the nav's horizontal
+           scroller. scrollIntoView() can move the document vertically on
+           mobile Safari, which makes the page appear to jump back upward. */
+        const navScroller = link.closest('nav');
+        if(navScroller){
+          const lr = link.getBoundingClientRect();
+          const nr = navScroller.getBoundingClientRect();
+          const pad = 8;
+          if(lr.left < nr.left + pad) navScroller.scrollLeft -= (nr.left + pad - lr.left);
+          else if(lr.right > nr.right - pad) navScroller.scrollLeft += (lr.right - (nr.right - pad));
+        }
       }
     }
   }
