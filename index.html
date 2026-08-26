@@ -1167,6 +1167,99 @@
   }
   @media(prefers-reduced-motion:reduce){#record-book-fold .rb-flip-sheet,#record-book-fold[open] #record-book-out.rb-book{animation:none!important}}
 
+
+  /* ---------- MOBILE CARD WIDTH SAFETY ----------
+     Keep card/detail layouts inside the viewport. Intentional horizontal
+     scrollers (nav, champion carousel, NFL strip, tabs, data tables) remain
+     scrollable inside their own containers. */
+  @media(max-width:640px){
+    html,body{max-width:100%;overflow-x:hidden}
+
+    /* Modals should scroll vertically only. Wide tables keep their own
+       contained scrollers via .tbl-wrap / .heat-wrap. */
+    .season-modal-scroll,.manager-modal-scroll,.award-modal-scroll{
+      overflow-x:hidden;
+      overscroll-behavior-x:none;
+    }
+
+    /* A one-column grid with a minmax(0,1fr) track prevents a wide child
+       (especially a table) from setting the intrinsic width of the entire
+       season detail card. */
+    .season-detail.season-capsule{
+      width:100%;
+      max-width:100%;
+      min-width:0;
+      grid-template-columns:minmax(0,1fr);
+    }
+    .season-detail.season-capsule>*,
+    .season-capsule-hero,
+    .season-capsule-main,
+    .season-title-score,
+    .season-section,
+    .season-section>*{
+      min-width:0;
+      max-width:100%;
+    }
+    .season-capsule-hero,.season-section{width:100%}
+    .season-capsule-badges{max-width:100%}
+    .season-capsule-badge{max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:center}
+    .season-title-score{width:100%}
+    .season-title-score .score{max-width:100%;font-size:clamp(22px,7vw,27px)}
+
+    /* All card grids are allowed to shrink. This prevents one long label,
+       badge, or table from making the surrounding card wider than the phone. */
+    .season-leader-grid,.season-story-grid,.season-draft-grid,.season-first-round,
+    .season-settings-grid,.season-mini-facts,.profile-stats,.profile-awards,
+    .profile-dna,.profile-rivals,.profile-team-archive,.record-book-grid,
+    .cards,.hof,.chips,.payout-podium,.payout-sides,.wkcards{
+      min-width:0;
+      max-width:100%;
+    }
+    .season-leader-card,.season-story-card,.season-draft-panel,.season-first-pick,
+    .season-setting-card,.season-mini-fact,.profile-highlight,.profile-winnings-card,
+    .profile-stat,.profile-award,.profile-dna-card,.profile-rival,.profile-team-year,
+    .profile-season-row,.record-card,.card,.wkcard,.chip,.payout-main,.payout-side,
+    .buyin,.mini-playoffs,.playoffs-panel,.pt-match,.mini-match{
+      min-width:0;
+      max-width:100%;
+    }
+
+    /* The bracket must use the space available inside the season card rather
+       than preserve a desktop intrinsic width. */
+    .season-modal-scroll .playoff-tree,
+    .season-modal-scroll .mini-bracket,
+    .season-modal-scroll .bracket{
+      width:100%;
+      max-width:100%;
+      min-width:0;
+    }
+    .season-modal-scroll .pt-final-slot,
+    .season-modal-scroll .pt-final-stack,
+    .season-modal-scroll .pt-third,
+    .season-modal-scroll .pt-third-wrap,
+    .season-modal-scroll .mini-round{
+      min-width:0;
+      max-width:100%;
+    }
+
+    /* Tables can still scroll if the data genuinely needs width, but that
+       scroll stays inside the table frame instead of dragging the whole card. */
+    .season-modal-scroll .tbl-wrap,
+    .award-modal-scroll .tbl-wrap,
+    .award-modal-scroll .heat-wrap{
+      width:100%;
+      max-width:100%;
+      min-width:0;
+    }
+
+    /* Long text should wrap instead of creating a phantom minimum width. */
+    .season-section-title,.season-section-note,.season-story-card .v,
+    .season-story-card .s,.season-leader-card .sub,.profile-team-archive-name,
+    .record-person-name,.payout-side-title,.wkcard,.card{
+      overflow-wrap:anywhere;
+    }
+  }
+
 </style>
 </head>
 <body>
