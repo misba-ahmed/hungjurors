@@ -146,23 +146,30 @@
   details.agreement-fold .inner{padding:0 16px 18px}
 
   /* ---------- CHAMPIONS PODIUM CAROUSEL ---------- */
-  .champ-scroll{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 16px;-webkit-overflow-scrolling:touch}
+  .champ-scroll{display:flex;align-items:center;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:14px 8px 24px;-webkit-overflow-scrolling:touch;perspective:1200px}
   .champ-scroll::-webkit-scrollbar{height:8px}
   .champ-scroll::-webkit-scrollbar-track{background:var(--paper-dim);border-radius:4px}
   .champ-scroll::-webkit-scrollbar-thumb{background:var(--brass);border-radius:4px}
-  .cc{flex:0 0 248px;scroll-snap-align:start;background:#fff;border:1px solid var(--line);border-bottom:4px solid var(--brass);border-radius:10px;padding:16px 14px 10px;position:relative;color:inherit;font:inherit;text-align:initial;overflow:hidden}
+  .cc{flex:0 0 248px;scroll-snap-align:center;align-self:center;background:#fff;border:1px solid var(--line);border-bottom:4px solid var(--brass);border-radius:10px;padding:16px 14px 10px;position:relative;color:inherit;font:inherit;text-align:initial;overflow:hidden;transform-origin:50% 58%;transform-style:preserve-3d;transition:transform .32s cubic-bezier(.2,.78,.2,1),box-shadow .32s ease,border-color .24s ease,background .24s ease,filter .24s ease}
+  .cc::after{content:"";position:absolute;inset:-35% -70%;background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.42) 48%,rgba(255,255,255,.14) 54%,transparent 64%);transform:translateX(-62%) rotate(2deg);opacity:0;pointer-events:none;transition:transform .55s cubic-bezier(.2,.78,.2,1),opacity .18s ease}
   button.cc{appearance:none;-webkit-appearance:none;cursor:pointer}
-  button.cc:hover{border-color:var(--brass);border-bottom-color:var(--brass);background:#FFFDF4}
+  @media(hover:hover) and (pointer:fine){
+    button.cc:hover{border-color:var(--brass);border-bottom-color:var(--brass);background:#FFFDF4;transform:translateY(-9px) scale(1.025) rotateX(1.5deg);box-shadow:0 18px 34px rgba(20,50,79,.18);filter:saturate(1.03)}
+    button.cc:hover::after{opacity:1;transform:translateX(62%) rotate(2deg)}
+    button.cc:hover .pod.p1 .av{transform:translateY(-3px) scale(1.06)}
+    button.cc:hover .cc-flipcue .arr{transform:translateX(5px)}
+  }
+  button.cc:active{transform:translateY(-3px) scale(.992)}
   button.cc:focus-visible{outline:3px solid var(--brass-bright);outline-offset:3px}
   .cc.reigning{border:2px solid var(--brass);border-bottom:4px solid var(--brass);background:#FFFDF4}
   .cc .cyr{font-family:var(--serif);font-weight:900;font-size:26px;color:var(--navy);text-align:center}
-  .cc-flipcue{margin-top:8px;padding-top:7px;border-top:1px solid rgba(27,55,82,.08);font-family:var(--mono);font-size:7.5px;line-height:1.15;letter-spacing:.13em;text-transform:uppercase;text-align:center;color:#9aa3ad;font-weight:700;white-space:nowrap}
-  .cc-flipcue .arr{font-size:9px;margin-left:3px;color:#8d97a2}
+  .cc-flipcue{margin-top:8px;padding-top:7px;border-top:1px solid rgba(27,55,82,.08);font-family:var(--mono);font-size:7.2px;line-height:1.2;letter-spacing:.10em;text-transform:uppercase;text-align:center;color:#9aa3ad;font-weight:800;white-space:nowrap;transition:color .24s ease}
+  .cc-flipcue .arr{display:inline-block;font-size:10px;margin-left:4px;color:#8d97a2;transition:transform .26s ease,color .26s ease}
   .cc .ctag{position:absolute;top:12px;right:12px;font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;background:var(--brass);color:#fff;border-radius:4px;padding:3px 7px}
   .podium{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:end;gap:8px;margin-top:14px}
   .pod{display:flex;flex-direction:column;align-items:center;gap:5px}
   .pod .crown{font-size:16px;line-height:1;height:18px}
-  .pod .av{width:40px;height:40px}
+  .pod .av{width:40px;height:40px;transition:transform .3s cubic-bezier(.2,.78,.2,1),filter .3s ease}
   .pod.p1 .av{width:54px;height:54px;border-color:var(--brass)}
   .pod .pnm{font-family:var(--mono);font-size:10px;letter-spacing:.04em;font-weight:700;color:var(--navy);text-align:center;white-space:nowrap}
   .pod .blk{width:100%;border-radius:5px 5px 0 0;display:flex;align-items:flex-start;justify-content:center;font-family:var(--serif);font-weight:900;color:#fff;padding-top:3px;font-size:14px}
@@ -177,6 +184,53 @@
   .cc-season-snapshot .value{font-size:10.5px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .cc-season-snapshot .team{font-size:10px;color:#496176;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .cc-flipcue{color:#657789}
+
+  /* The newest season is the lead archive card, not another identical tile. */
+  .cc.featured-season{
+    flex:0 0 430px;
+    padding:18px 18px 12px;
+    border:2px solid var(--brass);
+    border-bottom:5px solid var(--brass);
+    background:linear-gradient(180deg,#FFFDF5 0%,#FBF3DE 100%);
+    box-shadow:0 12px 26px rgba(20,50,79,.12),inset 0 1px 0 rgba(255,255,255,.9);
+  }
+  @media(hover:hover) and (pointer:fine){.cc.featured-season:hover{background:linear-gradient(180deg,#fffef9 0%,#fbf0d3 100%);transform:translateY(-11px) scale(1.018) rotateX(1.2deg);box-shadow:0 22px 42px rgba(20,50,79,.19)}}
+  .cc.featured-season .cyr{font-size:34px;line-height:1}
+  .cc.featured-season .ctag{top:13px;right:13px;background:var(--navy);color:#fff;border:1px solid rgba(255,255,255,.18)}
+  .cc.featured-season .podium{max-width:300px;margin:12px auto 0;gap:12px}
+  .cc.featured-season .pod .av{width:44px;height:44px}
+  .cc.featured-season .pod.p1 .av{width:62px;height:62px}
+  .cc.featured-season .pod .pnm{font-size:10.5px}
+  .cc-featured-standings{margin-top:12px;padding:10px 11px 9px;border:1px solid rgba(20,50,79,.12);border-radius:9px;background:rgba(255,255,255,.72)}
+  .cc-featured-standings-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;padding-bottom:6px;border-bottom:1px solid rgba(20,50,79,.10)}
+  .cc-featured-standings-head span:first-child{font-family:var(--mono);font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--brass);font-weight:900}
+  .cc-featured-standings-head span:last-child{font-family:var(--mono);font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:#718091;font-weight:800}
+  .cc-featured-rankings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:14px;row-gap:3px}
+  .cc-featured-ranking{display:grid;grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:5px;min-width:0;padding:3px 4px;border-radius:5px}
+  .cc-featured-ranking.champion{background:#F7EAC8}
+  .cc-featured-ranking .rank{font-family:var(--mono);font-size:8px;font-weight:900;color:#8A6828;text-align:center}
+  .cc-featured-ranking .name{font-size:9.5px;font-weight:850;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cc-featured-ranking .record{font-family:var(--mono);font-size:8.5px;font-weight:800;color:#496176;white-space:nowrap}
+  .cc.featured-season .cc-flipcue{margin-top:9px;font-size:8px;color:#5E7182}
+
+  @media(prefers-reduced-motion:reduce){
+    .cc,.cc::after,.pod .av,.cc-flipcue .arr{transition:none!important}
+    .cc::after{display:none!important}
+  }
+  @media(max-width:640px){
+    .cc{flex-basis:224px}
+    .cc.featured-season{flex-basis:min(88vw,360px);padding:16px 14px 11px}
+    .cc.featured-season .cyr{font-size:30px}
+    .cc.featured-season .podium{max-width:270px;gap:8px}
+    .cc.featured-season .pod .av{width:40px;height:40px}
+    .cc.featured-season .pod.p1 .av{width:56px;height:56px}
+    .cc-featured-standings{padding:9px 8px 8px}
+    .cc-featured-rankings{column-gap:8px;row-gap:2px}
+    .cc-featured-ranking{grid-template-columns:18px minmax(0,1fr) auto;gap:4px;padding:3px 2px}
+    .cc-featured-ranking .rank{font-size:7.2px}
+    .cc-featured-ranking .name{font-size:8.5px}
+    .cc-featured-ranking .record{font-size:7.8px}
+  }
 
 
 
@@ -755,6 +809,7 @@
   }
   @media(prefers-reduced-motion:reduce){
     .season-modal-overlay,.season-modal-stage,.season-modal-flip,.award-modal-overlay,.award-modal-stage,.award-modal-flip{transition:none!important}
+    .award-bookcase-glass::after{animation:none!important;opacity:0!important}
   }
 
   .hero{background:var(--paper);border-bottom:1px solid var(--line)}
@@ -1028,6 +1083,335 @@
   button.card.award-flip-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(20,50,79,.14);border-color:var(--brass)}
   button.card.award-flip-card:focus-visible{outline:3px solid var(--brass-bright);outline-offset:3px}
   button.card.award-flip-card::after{content:"Flip for details ↻";display:block;margin-top:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);opacity:.78}
+  /* =====================================================================
+     LEAGUE AWARDS — BOOKCASE V2
+     Fresh award presentation. No legacy card/plaque layout is reused here.
+     ===================================================================== */
+  .award-bookcase{
+    position:relative;
+    overflow:hidden;
+    border:1px solid rgba(115,76,39,.18);
+    border-radius:16px;
+    background:#e9c995;
+    box-shadow:0 18px 40px rgba(20,50,79,.10),inset 0 1px 0 rgba(255,255,255,.46);
+    perspective:1800px;
+  }
+  @keyframes awardBookcaseSheen{
+    0%,58%{left:-38%;opacity:0}
+    62%{opacity:.9}
+    78%{left:118%;opacity:.9}
+    82%,100%{left:118%;opacity:0}
+  }
+  .award-bookcase-nav{
+    position:relative;z-index:20;
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    padding:16px 16px 12px;
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0) 52%),
+      linear-gradient(180deg,#e7bd8b 0%,#d9a56e 100%);
+    border-bottom:1px solid rgba(95,57,25,.22);
+    box-shadow:0 7px 16px rgba(92,53,20,.12),inset 0 1px 0 rgba(255,255,255,.30),inset 0 -3px 0 rgba(126,74,34,.12);
+  }
+  .award-bookcase-yearrow{display:flex;justify-content:center;gap:12px;width:100%}
+  .award-bookcase-top-hint{
+    margin-top:2px;pointer-events:none;user-select:none;
+    font-family:var(--mono);font-size:8.9px;line-height:1;letter-spacing:.15em;text-transform:uppercase;font-weight:900;
+    color:rgba(79,44,18,.86);
+    text-shadow:0 1px 0 rgba(255,238,204,.42),0 -1px 0 rgba(89,48,18,.30);
+    opacity:.96;
+  }
+  .award-bookcase-year{
+    appearance:none;-webkit-appearance:none;cursor:pointer;
+    min-width:148px;min-height:42px;padding:8px 18px;
+    border-radius:8px;border:1px solid rgba(77,49,24,.20);
+    background:linear-gradient(180deg,#f7e5ca 0%,#e6c392 100%);
+    color:#5b351a;
+    font-family:var(--mono);font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.58),0 4px 9px rgba(93,55,23,.08);
+    transition:transform .2s ease,box-shadow .2s ease,background .2s ease,color .2s ease,border-color .2s ease;
+  }
+  .award-bookcase-year-label{display:block;white-space:nowrap}
+  .award-bookcase-year:hover{transform:translateY(-2px);box-shadow:0 7px 13px rgba(93,55,23,.14)}
+  .award-bookcase-year.active{
+    color:#fff;background:linear-gradient(180deg,#173a5a 0%,#102a44 100%);border-color:#0d2942;
+    box-shadow:inset 0 -3px 0 rgba(217,169,63,.70),0 7px 14px rgba(12,34,56,.20);
+  }
+  .award-bookcase-year:focus-visible{outline:3px solid var(--brass-bright);outline-offset:3px}
+  .award-bookcase-viewport{
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(180deg,#f2d8af 0%,#e8c291 100%);
+    box-shadow:inset 0 18px 24px rgba(104,61,25,.08),inset 0 -10px 16px rgba(81,46,20,.05);
+  }
+  .award-bookcase-viewport::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:2;
+    pointer-events:none;
+    background:
+      linear-gradient(90deg,rgba(92,54,23,.14) 0%,rgba(92,54,23,0) 8%,rgba(92,54,23,0) 92%,rgba(92,54,23,.14) 100%),
+      linear-gradient(180deg,rgba(84,48,20,.12) 0%,rgba(84,48,20,0) 16%,rgba(84,48,20,0) 76%,rgba(255,255,255,.10) 100%);
+    box-shadow:inset 0 24px 28px rgba(85,49,21,.09);
+  }
+  .award-bookcase-track{display:flex;width:200%;transform:translate3d(0,0,0);transition:transform .78s cubic-bezier(.18,.8,.18,1);will-change:transform}
+  .award-bookcase[data-year="2024"] .award-bookcase-track{transform:translate3d(-50%,0,0)}
+  .award-bookcase-panel{flex:0 0 50%;width:50%;min-width:0;padding-top:0!important;position:relative;z-index:3}
+  .award-bookcase-glass{
+    position:absolute;
+    inset:0 28px 30px;
+    z-index:18;
+    overflow:hidden;
+    pointer-events:none;
+  }
+  .award-bookcase-glass::after{
+    content:"";
+    position:absolute;
+    top:-34%;
+    left:-38%;
+    width:23%;
+    height:172%;
+    pointer-events:none;
+    background:linear-gradient(105deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.045) 28%,rgba(255,255,255,.34) 48%,rgba(255,255,255,.085) 68%,rgba(255,255,255,0) 100%);
+    transform:rotate(10deg);
+    filter:blur(1.7px);
+    mix-blend-mode:screen;
+    animation:awardBookcaseSheen 5.4s ease-in-out infinite;
+  }
+  .award-bookcase-case{
+    position:relative;
+    padding:0 28px 30px;
+    background:
+      radial-gradient(ellipse at 50% 10%,rgba(255,247,229,.34) 0%,rgba(255,247,229,0) 44%),
+      repeating-linear-gradient(90deg,rgba(255,255,255,.045) 0 3px,rgba(170,117,53,.025) 3px 6px),
+      linear-gradient(90deg,rgba(103,61,25,.11) 0%,rgba(103,61,25,0) 10%,rgba(103,61,25,0) 90%,rgba(103,61,25,.11) 100%),
+      linear-gradient(180deg,#f4dbb2 0%,#e9c792 100%);
+    box-shadow:
+      inset 34px 0 34px rgba(102,63,28,.11),
+      inset -34px 0 34px rgba(102,63,28,.11),
+      inset 0 16px 20px rgba(255,255,255,.22),
+      inset 0 -18px 24px rgba(92,53,21,.07),
+      inset 0 44px 42px rgba(104,61,25,.06);
+  }
+  .award-bookcase-case::before,.award-bookcase-case::after{
+    content:"";position:absolute;top:0;bottom:0;width:18px;z-index:12;pointer-events:none;
+    background:linear-gradient(90deg,#ddb07a 0%,#efcb97 42%,#d39f68 100%);
+    box-shadow:inset 0 0 0 1px rgba(112,67,29,.08),0 0 14px rgba(91,52,21,.08);
+  }
+  .award-bookcase-case::before{left:0;border-right:1px solid rgba(111,65,28,.12)}
+  .award-bookcase-case::after{right:0;transform:scaleX(-1);border-right:1px solid rgba(111,65,28,.12)}
+  .award-bookcase-panel-head{display:none!important}
+
+  .award-bookcase-layout{display:none}
+  .award-bookcase-layout.desktop{display:flex;flex-direction:column;gap:0}
+  .award-shelf{
+    position:relative;
+    min-height:316px;
+    padding:10px 28px 54px;
+    background:
+      radial-gradient(ellipse at 50% 0%,rgba(255,249,232,.40) 0%,rgba(255,249,232,0) 48%),
+      repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0 3px,rgba(165,112,49,.022) 3px 6px),
+      linear-gradient(90deg,rgba(108,66,30,.09) 0%,rgba(108,66,30,0) 10%,rgba(108,66,30,0) 90%,rgba(108,66,30,.09) 100%),
+      linear-gradient(180deg,#efd2a4 0%,#e3bd89 100%);
+    border-left:1px solid rgba(112,70,34,.10);border-right:1px solid rgba(112,70,34,.10);
+    box-shadow:
+      inset 0 24px 30px rgba(89,51,21,.07),
+      inset 0 -30px 34px rgba(91,52,21,.06),
+      inset 24px 0 20px rgba(96,57,24,.05),
+      inset -24px 0 20px rgba(96,57,24,.05);
+    transform-style:preserve-3d;
+  }
+  .award-shelf::before{
+    content:"";position:absolute;left:1px;right:1px;bottom:21px;height:36px;z-index:6;
+    clip-path:polygon(2.5% 0,97.5% 0,100% 100%,0 100%);
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.40) 0 2px,transparent 2px),
+      linear-gradient(180deg,#f6ddb3 0%,#e7c18d 58%,#d7a46f 100%);
+    border-top:1px solid rgba(255,255,255,.40);
+    box-shadow:0 13px 18px rgba(78,44,17,.18),inset 0 2px 0 rgba(255,255,255,.34);
+    transform-origin:bottom;
+  }
+  .award-shelf::after{
+    content:"";position:absolute;left:0;right:0;bottom:0;height:25px;z-index:5;
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.15) 0 1px,transparent 1px),
+      linear-gradient(180deg,#d9a56e 0%,#bf8453 100%);
+    border-top:1px solid rgba(118,72,34,.18);border-bottom:1px solid rgba(85,48,21,.20);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 5px 9px rgba(71,40,17,.10);
+  }
+  .award-shelf-grid{
+    --cols:4;
+    position:relative;z-index:9;
+    width:min(100%,calc(var(--cols) * 226px + (var(--cols) - 1) * 22px));
+    margin:0 auto;
+    display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:22px;align-items:end;
+    perspective:1400px;transform-style:preserve-3d;
+    transform:translateY(18px);
+  }
+
+  .award-plaque-item{
+    --lean:0deg;
+    position:relative;height:246px;min-width:0;cursor:pointer;outline:none;transform-style:preserve-3d;
+  }
+  .award-plaque-item::before{
+    content:"";position:absolute;left:8%;right:8%;bottom:-5px;height:13px;z-index:-1;
+    background:radial-gradient(ellipse at center,rgba(58,34,16,.46) 0%,rgba(58,34,16,.22) 44%,transparent 76%);
+    filter:blur(3px);pointer-events:none;
+  }
+  .award-plaque-item::after{
+    content:"";position:absolute;left:10%;right:6%;top:12px;bottom:2px;z-index:-1;border-radius:12px;
+    background:rgba(68,39,17,.19);filter:blur(9px);transform:translate(8px,7px);pointer-events:none;
+  }
+  .award-plaque-object{
+    position:relative;height:100%;transform-origin:50% 100%;
+    transform:translateZ(16px) rotateY(var(--lean));
+    transition:transform .25s cubic-bezier(.2,.78,.2,1),filter .25s ease;will-change:transform;
+  }
+  .award-plaque-item:hover .award-plaque-object{transform:translateY(-8px) translateZ(32px) rotateY(calc(var(--lean) * .25));filter:brightness(1.025)}
+  .award-plaque-item:focus-visible{outline:3px solid var(--brass-bright);outline-offset:5px;border-radius:13px}
+
+  .award-plaque-backing{
+    position:relative;height:100%;padding:9px;
+    clip-path:polygon(6% 0,94% 0,100% 6%,100% 94%,94% 100%,6% 100%,0 94%,0 6%);
+    background:linear-gradient(145deg,#6d3b20 0%,#4f2915 55%,#361a0d 100%);
+    box-shadow:0 14px 22px rgba(65,34,13,.28),inset 0 1px 0 rgba(255,255,255,.10),inset 0 -7px 12px rgba(0,0,0,.20);
+  }
+  .award-plaque-backing::before{content:"";position:absolute;inset:5px;clip-path:inherit;border:1px solid rgba(219,177,113,.18);pointer-events:none}
+  .award-plaque-plate{
+    position:relative;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;
+    padding:14px 13px 12px;
+    clip-path:polygon(4% 0,96% 0,100% 4%,100% 96%,96% 100%,4% 100%,0 96%,0 4%);
+    background:
+      linear-gradient(125deg,rgba(255,255,255,.30) 0 11%,transparent 12% 72%,rgba(87,56,20,.07) 73% 100%),
+      linear-gradient(180deg,#f0dca7 0%,#dabb72 58%,#c5974e 100%);
+    border:1px solid rgba(100,67,27,.42);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.44),inset 0 -8px 14px rgba(82,51,16,.10),0 0 0 2px rgba(235,209,151,.14);
+  }
+  .award-plaque-plate::before,.award-plaque-plate::after{
+    content:"";position:absolute;top:9px;width:6px;height:6px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%,#fff2c6 0 18%,#b88438 19% 58%,#6f4419 59% 100%);
+    box-shadow:0 0 0 1px rgba(86,55,21,.20);
+  }
+  .award-plaque-plate::before{left:10px}.award-plaque-plate::after{right:10px}
+  .award-plaque-heading{
+    width:100%;margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    text-align:center;
+  }
+  .award-plaque-year{
+    margin:0;text-align:center;
+    font-family:var(--serif);font-size:17.5px;line-height:1;font-weight:900;letter-spacing:0;color:#17324d;
+  }
+  .award-plaque-title{
+    width:100%;margin:0 2px;display:block;text-align:center;
+    font-family:var(--serif);font-size:19.5px;line-height:1.02;font-weight:900;color:#17324d;text-wrap:balance;
+  }
+  .award-plaque-engraving{
+    width:88%;margin:5px auto 0;padding-top:6px;
+    border-top:1px solid rgba(93,61,22,.28);
+    text-align:center;font-family:var(--mono);font-size:10px;line-height:1.22;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#6f552d;
+    display:block;overflow-wrap:anywhere;
+  }
+  .award-plaque-winner{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;text-decoration:none;color:#17324d;
+    border-radius:10px;padding:2px 8px 3px;margin-top:10px;
+  }
+  .award-plaque-winner:hover,.award-plaque-winner:focus-visible{background:rgba(255,255,255,.14)}
+  .award-plaque-avatar{
+    width:54px;height:54px;flex:0 0 54px;padding:4px;border-radius:50%;
+    background:linear-gradient(180deg,#f5e4b5 0%,#b9863f 100%);
+    box-shadow:0 4px 8px rgba(74,42,13,.18),inset 0 1px 0 rgba(255,255,255,.48),0 0 0 1px rgba(84,53,20,.28);
+  }
+  .award-plaque-avatar .av{width:100%;height:100%;display:block;border:0;border-radius:50%;background:#fff}
+  .award-plaque-winner-name{margin-top:5px;font-size:13.5px;line-height:1;font-weight:900;letter-spacing:.025em;color:#17324d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center}
+  .award-plaque-winner:hover .award-plaque-winner-name,.award-plaque-winner:focus-visible .award-plaque-winner-name{text-decoration:underline;text-underline-offset:2px}
+  .award-plaque-prize{
+    width:86%;margin-top:9px;padding-top:7px;
+    border-top:1px solid rgba(91,58,20,.24);
+    text-align:center;font-family:var(--mono);font-size:8px;line-height:1;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:#654719;
+  }
+  .award-plaque-prize b{font-size:10.5px;letter-spacing:.08em;color:#49341a}
+
+  .award-bookcase.is-switching .award-bookcase-panel.is-active .award-plaque-item{animation:awardShelfSettle .56s both}
+  .award-bookcase.is-switching .award-bookcase-panel.is-active .award-plaque-item:nth-child(2){animation-delay:.04s}
+  .award-bookcase.is-switching .award-bookcase-panel.is-active .award-plaque-item:nth-child(3){animation-delay:.08s}
+  .award-bookcase.is-switching .award-bookcase-panel.is-active .award-plaque-item:nth-child(4){animation-delay:.12s}
+  @keyframes awardShelfSettle{0%{opacity:.08;transform:translateY(14px) scale(.97)}68%{opacity:1;transform:translateY(-3px) scale(1.01)}100%{opacity:1;transform:none}}
+
+  /* Full-screen award transition: grow from shelf, then flip. */
+  .award-modal-overlay.is-open .award-modal-flip{transform:none}
+  .award-modal-stage.is-flipped .award-modal-flip{transform:rotateY(180deg)}
+  .award-modal-front{padding:0;background:#d9ad78;border:0;color:var(--navy-ink)}
+  .award-modal-front>.award-plaque-object{height:100%;padding:clamp(20px,3vw,36px);transform:none!important}
+  .award-modal-front .award-plaque-backing{height:100%;padding:clamp(12px,1.8vw,18px)}
+  .award-modal-front .award-plaque-plate{padding:clamp(28px,4vw,46px) clamp(20px,4vw,38px) clamp(24px,4vw,40px)}
+  .award-modal-front .award-plaque-plate::before,.award-modal-front .award-plaque-plate::after{top:18px;width:11px;height:11px}
+  .award-modal-front .award-plaque-heading{height:auto;gap:4px;margin-top:0}.award-modal-front .award-plaque-year{font-size:clamp(25px,4vw,38px)}
+  .award-modal-front .award-plaque-title{font-size:clamp(36px,6vw,60px);min-height:0;margin:0 auto;max-width:820px;align-items:flex-start}
+  .award-modal-front .award-plaque-engraving{font-size:clamp(12px,1.5vw,16px);min-height:0;margin-top:clamp(12px,2vh,18px);padding-top:clamp(10px,1.6vh,14px);max-width:700px;letter-spacing:.05em}
+  .award-modal-front .award-plaque-winner{margin-top:clamp(16px,3vh,24px)}
+  .award-modal-front .award-plaque-avatar{width:clamp(84px,12vw,124px);height:clamp(84px,12vw,124px);flex-basis:auto;padding:6px}
+  .award-modal-front .award-plaque-winner-name{font-size:clamp(24px,4vw,38px);margin-top:7px}
+  .award-modal-front .award-plaque-prize{font-size:clamp(10px,1.4vw,14px);padding-top:clamp(12px,2vh,18px);max-width:600px}
+  .award-modal-front .award-plaque-prize b{font-size:clamp(14px,2vw,20px)}
+  .award-modal-winner{display:inline-flex;align-items:center;gap:8px;margin-top:7px;padding:5px 8px 5px 5px;border-radius:999px;color:#fff;text-decoration:none;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}
+  .award-modal-winner .av{width:26px;height:26px;border-color:rgba(255,255,255,.55)}
+  .award-modal-winner span{font-size:11px;font-weight:800}
+  .award-modal-winner:hover,.award-modal-winner:focus-visible{background:rgba(255,255,255,.15)}
+
+  @media(min-width:921px){
+    .award-bookcase-layout.desktop{display:flex}
+  }
+  @media(min-width:641px) and (max-width:920px){
+    .award-bookcase-layout.desktop{display:none}
+    .award-bookcase-layout.tablet{display:flex;flex-direction:column}
+    .award-shelf{min-height:318px;padding-left:22px;padding-right:22px;padding-bottom:54px}
+    .award-shelf-grid{gap:18px;transform:translateY(18px)}
+  }
+  @media(max-width:640px){
+    .award-bookcase{border-radius:12px}
+    .award-bookcase-nav{padding:11px 9px 10px;gap:7px}
+    .award-bookcase-yearrow{gap:8px}
+    .award-bookcase-year{min-width:0;flex:1;min-height:40px;padding:7px 10px;font-size:9px;letter-spacing:.11em}
+    .award-bookcase-top-hint{font-size:7.6px;letter-spacing:.12em}
+    .award-bookcase-case{padding:0 18px 18px}
+    .award-bookcase-case::before,.award-bookcase-case::after{width:12px}
+    .award-bookcase-glass{inset:0 18px 18px}
+    .award-bookcase-layout.desktop,.award-bookcase-layout.tablet{display:none}
+    .award-bookcase-layout.mobile{display:flex;flex-direction:column}
+    .award-shelf{min-height:232px;padding:8px 8px 43px}
+    .award-shelf-grid{gap:10px;width:min(100%,calc(var(--cols) * 170px + (var(--cols) - 1) * 10px));transform:translateY(14px)}
+    .award-shelf::before{bottom:16px;height:29px}
+    .award-shelf::after{height:20px}
+    .award-plaque-item{height:184px}
+    .award-plaque-backing{padding:6px}
+    .award-plaque-plate{padding:9px 7px 8px}
+    .award-plaque-plate::before,.award-plaque-plate::after{top:6px;width:5px;height:5px}.award-plaque-plate::before{left:7px}.award-plaque-plate::after{right:7px}
+    .award-plaque-heading{gap:1px;margin:0}
+    .award-plaque-year{font-size:14px;letter-spacing:0;margin:0}
+    .award-plaque-title{font-size:14.8px;line-height:1.02;margin:0 1px}
+    .award-plaque-engraving{font-size:7.8px;line-height:1.2;margin-top:4px;padding-top:5px;width:92%;letter-spacing:.04em}
+    .award-plaque-winner{margin-top:7px;padding:1px 5px 2px}
+    .award-plaque-avatar{width:40px;height:40px;flex-basis:40px;padding:3px}
+    .award-plaque-winner-name{font-size:10.2px;margin-top:3px}
+    .award-plaque-prize{font-size:6px;margin-top:7px;padding-top:5px;width:86%}.award-plaque-prize b{font-size:7.8px}
+    .award-modal-stage{border-radius:0!important}
+    .award-modal-face{border-radius:0}
+    .award-modal-front>.award-plaque-object{padding:8px}
+    .award-modal-front .award-plaque-backing{padding:8px;clip-path:none;border-radius:0}
+    .award-modal-front .award-plaque-plate{clip-path:none;border-radius:0;padding:22px 14px 18px}
+    .award-modal-front .award-plaque-heading{height:auto;gap:5px}.award-modal-front .award-plaque-year{font-size:22px}
+    .award-modal-front .award-plaque-title{font-size:clamp(30px,9vw,42px);margin:0 auto}
+    .award-modal-front .award-plaque-engraving{font-size:13px;margin-top:12px;padding-top:10px}
+    .award-modal-front .award-plaque-avatar{width:80px;height:80px}
+    .award-modal-front .award-plaque-winner-name{font-size:25px}
+    .award-modal-front .award-plaque-prize{font-size:10px}.award-modal-front .award-plaque-prize b{font-size:14px}
+    .award-modal-scroll{overflow-x:hidden}
+  }
+  @media(max-width:360px){
+    .award-plaque-item{height:178px}
+    .award-plaque-title{font-size:14px}
+    .award-plaque-engraving{font-size:7.2px}
+  }
   details.awards-fold{margin-top:26px}
   details.awards-fold summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:900;color:var(--navy);font-size:19px;padding:4px 0 10px;border-bottom:1px solid var(--line)}
   details.awards-fold summary::-webkit-details-marker{display:none}
@@ -1662,36 +2046,12 @@
       </div>
     </details>
 
-    <details class="awards-fold history-fold" id="season-2025-fold" open>
-      <summary>2025 Season</summary>
-      <div class="fold-body">
-        <div class="champ-banner" id="champ-banner"></div>
-
-        <div class="playoffs-panel">
-          <div class="rd-label">Playoffs</div>
-          <div id="playoff-bracket-2025"></div>
-        </div>
-
-        <details class="awards-fold" id="rankings-2025-fold" open>
-          <summary>Final Overall Rankings — 2025</summary>
-          <div class="fold-body"><div class="tbl-wrap"><table id="final-tbl"></table></div></div>
-        </details>
-
-        <details class="awards-fold" id="awards-2025-fold" open>
-          <summary>2025 Season Awards</summary>
-          <div class="hof" id="hof-out"></div>
-        </details>
-      </div>
-    </details>
-
-    <details class="awards-fold" id="awards-2024-fold">
-      <summary>2024 Season Awards</summary>
-      <div class="hof" id="hof-2024-out"></div>
+    <details class="awards-fold history-fold" id="league-awards-fold" open>
+      <summary>League Awards</summary>
+      <div class="fold-body" id="league-awards-out"></div>
     </details>
 
   </section>
-
-  <div id="award-page" hidden></div>
 
 </main>
 
@@ -1896,12 +2256,9 @@ HIST.draft_history = [{"year":2017,"manager":"MISBA","team":"Osama Bin Winning",
    RENDER — you shouldn't need to touch anything below this line.
    ===================================================================== */
 const $ = s => document.querySelector(s);
-// Always start the current League History sections expanded and 2024 awards collapsed on a fresh load.
+// Start the primary League History sections expanded on a fresh load.
 $('#champions-fold').open = true;
-$('#season-2025-fold').open = true;
-$('#rankings-2025-fold').open = true;
-$('#awards-2025-fold').open = true;
-$('#awards-2024-fold').open = false;
+$('#league-awards-fold').open = true;
 const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pad = n => String(n).padStart(2,'0');
 const av  = (s, cls='') => `<img class="av ${cls} manager-profile-avatar" data-manager="${esc(s)}" src="data:image/png;base64,${AV[s] || AV_DEFAULT}" alt="" title="Open ${esc(s)} profile">`;
@@ -2546,23 +2903,40 @@ const getSeasonArchive = year => {
     </div>`;
   $('#champs-carousel').innerHTML = [...DATA.champions].sort((a,b)=>b.year-a.year).map((c,i)=>{
     const x=getSeasonArchive(c.year);
-    const champRecord=x?.champRow ? `${Math.round(x.champRow.wins)}–${Math.round(x.champRow.losses)}` : '';
-    const finalScore=x ? `${seasonFmt(seasonWinnerScore(x.final))}–${seasonFmt(seasonLoserScore(x.final))}` : '';
-    const team=x?.champRow?.team || x?.summary?.champion_team || '';
-    const inner = `${i===0?'<span class="ctag">Reigning</span>':''}
+    const compactRankings = i===0 && x ? `<div class="cc-featured-standings"><div class="cc-featured-standings-head"><span>Final Rankings</span><span>W–L</span></div><div class="cc-featured-rankings">${x.rows.slice(0,10).map(r=>`<div class="cc-featured-ranking${r.final_finish===1?' champion':''}"><span class="rank">${pad(r.final_finish)}</span><span class="name">${esc(r.manager)}${r.final_finish===1?' 👑':''}</span><span class="record">${Math.round(r.wins)}–${Math.round(r.losses)}</span></div>`).join('')}</div></div>` : '';
+    const inner = `${i===0?'<span class="ctag">Latest</span>':''}
       <div class="cyr">${c.year}</div>
       <div class="podium">${pod(c.runnerUp,2)}${pod(c.champ,1)}${pod(c.third,3)}</div>
-      <div class="cc-flipcue">Open full season <span class="arr">↻</span></div>`;
-    return `<button type="button" class="cc history-jump ${i===0?'reigning':''}" data-year="${c.year}" aria-label="Open ${c.year} season details">${inner}</button>`;
+      ${compactRankings}
+      <div class="cc-flipcue">FLIP FOR FULL SEASON DETAILS <span class="arr">→</span></div>`;
+    return `<button type="button" class="cc history-jump ${i===0?'featured-season reigning':''}" data-year="${c.year}" aria-label="Open ${c.year} season details">${inner}</button>`;
   }).join('');
 }
 
-const awardCardHTML = (r, year, index) => {
-  const inner = `<div class="award-title-row"><div class="k">${esc(r.k)}</div>${r.prize ? `<div class="prize">$${r.prize}</div>` : ''}</div>
-    <span class="who-cell manager-profile-trigger" data-manager="${esc(r.who)}">${av(r.who,'',year===2024)}<span class="who">${esc(r.who)}</span></span>
-    <div class="stat">${esc(r.stat)}</div>`;
-  return `<button type="button" class="card award-flip-card" data-year="${year}" data-award-index="${index}" data-award-link="${esc(r.link||'')}" aria-label="Open ${esc(r.k)} details">${inner}</button>`;
+const awardRowsForDisplay = year => Number(year)===2024 ? DATA.s2024.awards : DATA.s2025.awards;
+const awardPrizeDisplay = r => r.prize ? `$${Number(r.prize)}` : 'Honor';
+const awardChunks = (items,size) => items.reduce((rows,item,i)=>{
+  if(i % size === 0) rows.push([]);
+  rows[rows.length-1].push(item);
+  return rows;
+},[]);
+const awardPlaqueLean = i => ['-1.2deg','-.45deg','.45deg','1.2deg'][i % 4];
+const awardPlaqueHTML = (r,year,index) => `<article class="award-plaque-item award-flip-card" style="--lean:${awardPlaqueLean(index)}" data-year="${year}" data-award-index="${index}" data-award-link="${esc(r.link||'')}" tabindex="0" role="button" aria-label="Open ${esc(r.k)} award details"><div class="award-plaque-object"><div class="award-plaque-backing"><div class="award-plaque-plate"><div class="award-plaque-heading"><div class="award-plaque-year">${year}</div><div class="award-plaque-title">${esc(r.k)}</div></div><div class="award-plaque-engraving">${esc(r.stat)}</div><span class="award-plaque-winner manager-profile-trigger" data-manager="${esc(r.who)}" tabindex="0" role="button" aria-label="Open ${esc(r.who)} profile"><span class="award-plaque-avatar">${av(r.who,'',year===2024)}</span><span class="award-plaque-winner-name">${esc(r.who)}</span></span><div class="award-plaque-prize">${r.prize?`Prize · <b>${awardPrizeDisplay(r)}</b>`:'<b>League Honor</b>'}</div></div></div></div></article>`;
+const awardShelfHTML = (year,row,startIndex) => `<div class="award-shelf"><div class="award-shelf-grid" style="--cols:${row.length}">${row.map((r,i)=>awardPlaqueHTML(r,year,startIndex+i)).join('')}</div></div>`;
+const awardLayoutHTML = (year,awards,size,cls) => `<div class="award-bookcase-layout ${cls}">${awardChunks(awards,size).map((row,rowIndex)=>awardShelfHTML(year,row,rowIndex*size)).join('')}</div>`;
+const awardPanelHTML = (year,awards) => `<section class="award-bookcase-panel${year===2025?' is-active':''}" data-award-panel="${year}" aria-label="${year} league awards"><div class="award-bookcase-case">${awardLayoutHTML(year,awards,4,'desktop')}${awardLayoutHTML(year,awards,3,'tablet')}${awardLayoutHTML(year,awards,2,'mobile')}</div><div class="award-bookcase-glass" aria-hidden="true"></div></section>`;
+const leagueAwardsHTML = () => `<div class="award-bookcase" data-year="2025"><div class="award-bookcase-nav"><div class="award-bookcase-yearrow" role="tablist" aria-label="League award year"><button type="button" class="award-bookcase-year active" data-award-year="2025" role="tab" aria-selected="true"><span class="award-bookcase-year-label">2025 Awards</span></button><button type="button" class="award-bookcase-year" data-award-year="2024" role="tab" aria-selected="false"><span class="award-bookcase-year-label">2024 Awards</span></button></div><div class="award-bookcase-top-hint" aria-hidden="true">Flip plaques for award details ↻</div></div><div class="award-bookcase-viewport"><div class="award-bookcase-track">${awardPanelHTML(2025,DATA.s2025.awards)}${awardPanelHTML(2024,DATA.s2024.awards)}</div></div></div>`;
+const setLeagueAwardsYear = (root,year) => {
+  root.dataset.year=String(year);
+  root.querySelectorAll('.award-bookcase-year').forEach(btn=>{
+    const active=Number(btn.dataset.awardYear)===Number(year);
+    btn.classList.toggle('active',active);btn.setAttribute('aria-selected',active?'true':'false');
+  });
+  root.querySelectorAll('.award-bookcase-panel').forEach(panel=>panel.classList.toggle('is-active',Number(panel.dataset.awardPanel)===Number(year)));
+  root.classList.add('is-switching');clearTimeout(root._awardSwitchTimer);root._awardSwitchTimer=setTimeout(()=>root.classList.remove('is-switching'),820);
 };
+
+$('#league-awards-out').innerHTML=leagueAwardsHTML();
 
 const playoffRows = (m, type='past') => {
   if(type === '2025') return [
@@ -2588,30 +2962,8 @@ const playoffTreeHTML = (p, type='past', compact=false) => `<div class="playoff-
   <div class="pt-third"><div class="pt-third-wrap"><div class="pt-label">3rd Place</div>${playoffMatchHTML(p.third,type,'',compact)}</div></div>
 </div>`;
 
-/* ---- 2025 detail ---- */
-{
-  const a = DATA.s2025;
-  $('#champ-banner').innerHTML = `${av(a.champion.who,'lg')}
-    <div><div class="k">2025 League Champion</div>
-    <div class="who">👑 ${esc(a.champion.who)}</div>
-    <div class="s">${esc(a.champion.s)}</div></div>`;
-  $('#playoff-bracket-2025').innerHTML = playoffTreeHTML(a,'2025');
-
-  const rows = a.finalRankings.map(t=>{
-    const cls = t.r===1 ? 'top gold' : (t.r===a.finalRankings.length ? 'bottom' : '');
-    return `<tr class="${cls}"><td><span class="rank-chip">${pad(t.r)}</span></td><td>${whoCell(t.short, t.r===1?' 👑':'')}</td><td class="num">${t.w}–${t.l}</td><td class="num">${t.pf.toFixed(2)}</td></tr>`;
-  }).join('');
-  $('#final-tbl').innerHTML = `<thead><tr><th>Final</th><th>Manager</th><th>Record</th><th>Points For</th></tr></thead><tbody>${rows}</tbody>`;
-
-  $('#hof-out').innerHTML = a.awards.map((r,i)=>awardCardHTML(r,2025,i)).join('');
-}
-
-/* ---- 2024 awards grid (expandable) ---- */
-{
-  const a = DATA.s2024;
-  $('#hof-2024-out').innerHTML = a.awards.map((r,i)=>awardCardHTML(r,2024,i)).join('');
-}
-
+/* ---- past seasons + full season capsules from Champions ---- */
+/* ---- past seasons + full season capsules from Champions ---- */
 /* ---- past seasons + full season capsules from Champions ---- */
 {
   const champByYear = Object.fromEntries(DATA.champions.map(c=>[c.year,c]));
@@ -3177,7 +3529,7 @@ const AWARD24_VIEWS = {
   }
 };
 
-/* ---- flippable Season Award cards ---- */
+/* ---- League Award plaque -> full-screen award file ---- */
 {
   let activeAwardModal = null;
   const awardRowsForYear = year => Number(year)===2024 ? DATA.s2024.awards : DATA.s2025.awards;
@@ -3185,11 +3537,7 @@ const AWARD24_VIEWS = {
     let note = 'Season award result.';
     if(/League High Score/i.test(r.k)) note = 'Highest single-game fantasy score recorded during the season.';
     if(/Most Points For/i.test(r.k)) note = 'Manager who finished the season with the most total points scored.';
-    return `<div class="award-modal-content">
-      <div class="champ-banner">${av(r.who,'lg',Number(year)===2024)}<div><div class="k">${year} Award Winner</div><div class="who">🏆 ${esc(r.who)}</div><div class="s">${esc(r.stat)}</div></div></div>
-      <div class="aw-rule">${esc(note)}</div>
-      <div class="award-summary-card"><div class="label">Official Result</div><div class="value">${esc(r.stat)}</div></div>
-    </div>`;
+    return `<div class="award-modal-content"><div class="champ-banner">${av(r.who,'lg',Number(year)===2024)}<div><div class="k">${year} Award Winner</div><div class="who">🏆 ${esc(r.who)}</div><div class="s">${esc(r.stat)}</div></div></div><div class="aw-rule">${esc(note)}</div><div class="award-summary-card"><div class="label">Official Result</div><div class="value">${esc(r.stat)}</div></div></div>`;
   };
   const detailedAwardHTML = (year, r) => {
     const genericOnly = /League High Score|Most Points For/i.test(r.k) || !r.link;
@@ -3201,97 +3549,82 @@ const AWARD24_VIEWS = {
     temp.querySelectorAll('.back-chip,.aw-head').forEach(el=>el.remove());
     return `<div class="award-modal-content">${temp.innerHTML}</div>`;
   };
+  const makeDetailManagerLinks = root => {
+    root.querySelectorAll('.who-cell').forEach(cell=>{
+      const source = cell.querySelector('[data-manager]');
+      if(!source) return;
+      cell.classList.add('manager-profile-trigger');
+      cell.dataset.manager = source.dataset.manager;
+      cell.tabIndex = 0;
+      cell.setAttribute('role','button');
+      cell.setAttribute('aria-label',`Open ${source.dataset.manager} profile`);
+    });
+  };
+  const finishCloseAwardModal = state => {
+    state.overlay.remove();
+    state.card?.focus?.({preventScroll:true});
+  };
   const closeAwardModal = (instant=false) => {
-    const state = activeAwardModal;
+    const state=activeAwardModal;
     if(!state) return;
-    activeAwardModal = null;
-    const {overlay,stage,card,rect,onKey} = state;
-    document.removeEventListener('keydown',onKey);
+    activeAwardModal=null;
+    const {overlay,stage,card,rect,onKey}=state;
+    document.removeEventListener('keydown',onKey,true);
     document.body.classList.remove('award-modal-open');
-    const finish = () => { overlay.remove(); card?.focus?.({preventScroll:true}); };
-    if(instant || matchMedia('(prefers-reduced-motion: reduce)').matches){ finish(); return; }
-    overlay.classList.remove('is-open');
-    stage.style.left = rect.left+'px';
-    stage.style.top = rect.top+'px';
-    stage.style.width = rect.width+'px';
-    stage.style.height = rect.height+'px';
-    stage.style.borderRadius = '8px';
-    setTimeout(finish,700);
+    if(instant || matchMedia('(prefers-reduced-motion: reduce)').matches){finishCloseAwardModal(state);return;}
+    stage.classList.remove('is-flipped');
+    setTimeout(()=>{
+      overlay.classList.remove('is-open');
+      stage.style.left=rect.left+'px';stage.style.top=rect.top+'px';stage.style.width=rect.width+'px';stage.style.height=rect.height+'px';stage.style.borderRadius='10px';
+      setTimeout(()=>finishCloseAwardModal(state),660);
+    },300);
   };
   const openAwardModal = card => {
     if(activeAwardModal) closeAwardModal(true);
-    const year = Number(card.dataset.year);
-    const index = Number(card.dataset.awardIndex);
-    const r = awardRowsForYear(year)?.[index];
+    const year=Number(card.dataset.year), index=Number(card.dataset.awardIndex), r=awardRowsForYear(year)?.[index];
     if(!r) return;
-    const rect = card.getBoundingClientRect();
-    const overlay = document.createElement('div');
-    overlay.className = 'award-modal-overlay';
-    overlay.setAttribute('role','presentation');
-    const stage = document.createElement('div');
-    stage.className = 'award-modal-stage';
-    stage.setAttribute('role','dialog');
-    stage.setAttribute('aria-modal','true');
-    stage.setAttribute('aria-label',`${year} ${r.k} details`);
-    stage.style.left = rect.left+'px';
-    stage.style.top = rect.top+'px';
-    stage.style.width = rect.width+'px';
-    stage.style.height = rect.height+'px';
-    stage.style.borderRadius = '8px';
-
-    const flip = document.createElement('div');
-    flip.className = 'award-modal-flip';
-    const front = document.createElement('div');
-    front.className = 'award-modal-face award-modal-front';
-    front.innerHTML = card.innerHTML;
-    const back = document.createElement('div');
-    back.className = 'award-modal-face award-modal-back';
-    const head = document.createElement('div');
-    head.className = 'award-modal-head';
-    head.innerHTML = `<div class="award-modal-heading"><div class="award-modal-kicker">${year} Season Award</div><h2 class="award-modal-title">${esc(r.k)}</h2></div>${r.prize?`<div class="award-modal-prize">$${r.prize}</div>`:''}`;
-    const close = document.createElement('button');
-    close.type='button';
-    close.className='award-modal-close';
-    close.setAttribute('aria-label','Close award details');
-    close.textContent='×';
-    head.appendChild(close);
-    const scroll = document.createElement('div');
-    scroll.className='award-modal-scroll';
-    scroll.innerHTML=detailedAwardHTML(year,r);
-    back.append(head,scroll);
-    flip.append(front,back);
-    stage.appendChild(flip);
-    overlay.appendChild(stage);
-    document.body.appendChild(overlay);
-
-    const onKey = e => { if(e.key==='Escape'){ e.stopImmediatePropagation(); closeAwardModal(); } };
-    activeAwardModal={overlay,stage,card,rect,onKey};
-    document.body.classList.add('award-modal-open');
-    document.addEventListener('keydown',onKey,true);
-    close.addEventListener('click',()=>closeAwardModal());
-    overlay.addEventListener('click',e=>{ if(e.target===overlay) closeAwardModal(); });
-
-    const margin=Math.max(12,Math.min(28,innerWidth*.025));
-    const targetW=Math.min(1120,innerWidth-margin*2);
-    const targetH=Math.min(900,innerHeight-margin*2);
-    const targetLeft=Math.max(margin,(innerWidth-targetW)/2);
-    const targetTop=Math.max(margin,(innerHeight-targetH)/2);
+    const rect=card.getBoundingClientRect();
+    const overlay=document.createElement('div');overlay.className='award-modal-overlay';overlay.setAttribute('role','presentation');
+    const stage=document.createElement('div');stage.className='award-modal-stage';stage.setAttribute('role','dialog');stage.setAttribute('aria-modal','true');stage.setAttribute('aria-label',`${year} ${r.k} details`);
+    stage.style.left=rect.left+'px';stage.style.top=rect.top+'px';stage.style.width=rect.width+'px';stage.style.height=rect.height+'px';stage.style.borderRadius='10px';
+    const flip=document.createElement('div');flip.className='award-modal-flip';
+    const front=document.createElement('div');front.className='award-modal-face award-modal-front';
+    const object=card.querySelector('.award-plaque-object');front.innerHTML=object?object.outerHTML:card.innerHTML;
+    const back=document.createElement('div');back.className='award-modal-face award-modal-back';
+    const head=document.createElement('div');head.className='award-modal-head';
+    head.innerHTML=`<div class="award-modal-heading"><div class="award-modal-kicker">${year} League Award</div><h2 class="award-modal-title">${esc(r.k)}</h2><span class="award-modal-winner manager-profile-trigger" data-manager="${esc(r.who)}" tabindex="0" role="button" aria-label="Open ${esc(r.who)} profile">${av(r.who,'mini',year===2024)}<span>${esc(r.who)}</span></span></div>${r.prize?`<div class="award-modal-prize">$${r.prize}</div>`:''}`;
+    const close=document.createElement('button');close.type='button';close.className='award-modal-close';close.setAttribute('aria-label','Close award details');close.textContent='×';head.appendChild(close);
+    const scroll=document.createElement('div');scroll.className='award-modal-scroll';scroll.innerHTML=detailedAwardHTML(year,r);makeDetailManagerLinks(scroll);
+    back.append(head,scroll);flip.append(front,back);stage.appendChild(flip);overlay.appendChild(stage);document.body.appendChild(overlay);
+    const onKey=e=>{if(e.key==='Escape'){e.stopImmediatePropagation();closeAwardModal();}};
+    activeAwardModal={overlay,stage,card,rect,onKey};document.body.classList.add('award-modal-open');document.addEventListener('keydown',onKey,true);
+    close.addEventListener('click',()=>closeAwardModal());overlay.addEventListener('click',e=>{if(e.target===overlay)closeAwardModal();});
+    const mobile=innerWidth<=700;
+    const margin=mobile?0:Math.max(12,Math.min(28,innerWidth*.025));
+    const targetW=mobile?innerWidth:Math.min(1120,innerWidth-margin*2);
+    const targetH=mobile?innerHeight:Math.min(900,innerHeight-margin*2);
+    const targetLeft=mobile?0:Math.max(margin,(innerWidth-targetW)/2);
+    const targetTop=mobile?0:Math.max(margin,(innerHeight-targetH)/2);
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       overlay.classList.add('is-open');
-      stage.style.left=targetLeft+'px';
-      stage.style.top=targetTop+'px';
-      stage.style.width=targetW+'px';
-      stage.style.height=targetH+'px';
-      stage.style.borderRadius='14px';
-      setTimeout(()=>close.focus({preventScroll:true}),540);
+      stage.style.left=targetLeft+'px';stage.style.top=targetTop+'px';stage.style.width=targetW+'px';stage.style.height=targetH+'px';stage.style.borderRadius=mobile?'0':'14px';
+      setTimeout(()=>{if(activeAwardModal?.stage===stage)stage.classList.add('is-flipped');},520);
+      setTimeout(()=>close.focus({preventScroll:true}),1050);
     }));
   };
   document.addEventListener('click',e=>{
-    const card=e.target.closest('button.award-flip-card');
-    if(card) openAwardModal(card);
+    const yearBtn=e.target.closest('.award-bookcase-year');
+    if(yearBtn){const root=yearBtn.closest('.award-bookcase');if(root)setLeagueAwardsYear(root,Number(yearBtn.dataset.awardYear));return;}
+    const card=e.target.closest('.award-flip-card');
+    if(!card || e.target.closest('.manager-profile-trigger')) return;
+    openAwardModal(card);
+  });
+  document.addEventListener('keydown',e=>{
+    const card=e.target.closest?.('.award-flip-card');
+    if(!card || e.target.closest('.manager-profile-trigger')) return;
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();openAwardModal(card);}
   });
 }
-
 
 
 /* ---- Manager Profile Cards + League Record Book — verified 2017–2025 history ---- */
@@ -3430,6 +3763,14 @@ const AWARD24_VIEWS = {
   const closeGame=R.scoring.closest_regular_season_game, blow=R.scoring.biggest_regular_season_blowout, combo=R.scoring.highest_combined_score_game;
   const bestWeekly=R.regular_season.best_all_play_season;
   const playoffHigh=R.playoffs.highest_single_week_playoff_score_2018_onward, closeFinal=R.playoffs.closest_championship_2018_onward, bigFinal=R.playoffs.largest_championship_margin_2018_onward;
+  const playoffGames2018Onward=HIST.official_playoffs.filter(p=>Number(p.year)>=2018).flatMap(p=>[
+    ...(p.semifinals||[]).map(g=>({...g,year:Number(p.year),round:'Semifinal'})),
+    ...(p.championship?[{...p.championship,year:Number(p.year),round:'Championship'}]:[])
+  ]);
+  const combinedPlayoff=playoffGames2018Onward.reduce((best,g)=>{
+    const total=Number(g.score1)+Number(g.score2);
+    return !best||total>best.total?{...g,total}:best;
+  },null);
   const winStreak=R.regular_season.longest_win_streak, lossStreak=R.regular_season.longest_loss_streak;
   const championYears=name=>HIST.official_playoffs.filter(p=>{
     const g=p.championship;
@@ -3466,6 +3807,7 @@ const AWARD24_VIEWS = {
     ]},
     playoffs:{label:'Playoffs',rows:[
       {title:'Highest Playoff Score',mark:num(playoffHigh.score,2),unit:'points',holders:[{name:playoffHigh.manager,meta:`${playoffHigh.year} Championship`}],context:''},
+      {title:'Highest Combined Playoff Game',mark:num(combinedPlayoff.total,2),unit:'combined',duel:[{name:combinedPlayoff.manager1,score:num(combinedPlayoff.score1,2)},{name:combinedPlayoff.manager2,score:num(combinedPlayoff.score2,2)}],context:`${combinedPlayoff.year} ${combinedPlayoff.round}`},
       {title:'Closest Championship',mark:num(closeFinal.margin,2),unit:'point margin',duel:[{name:gameWinner(closeFinal),score:num(Math.max(closeFinal.score1,closeFinal.score2),2)},{name:gameLoser(closeFinal),score:num(Math.min(closeFinal.score1,closeFinal.score2),2)}],context:`${closeFinal.year} Championship`},
       {title:'Biggest Championship Win',mark:num(bigFinal.margin,2),unit:'point margin',duel:[{name:gameWinner(bigFinal),score:num(Math.max(bigFinal.score1,bigFinal.score2),2)},{name:gameLoser(bigFinal),score:num(Math.min(bigFinal.score1,bigFinal.score2),2)}],context:`${bigFinal.year} Championship`}
     ]}
@@ -3543,37 +3885,7 @@ const AWARD24_VIEWS = {
 }
 
 
-/* ---- hash router ---- */
 if('scrollRestoration' in history) history.scrollRestoration = 'manual';
-const awardPage = $('#award-page');
-const homeEls = [...document.querySelector('main').children].filter(el => el !== awardPage);
-let savedY = 0;
-let awardReturnTarget = 'hof-out';
-const settleScroll = y => requestAnimationFrame(()=>requestAnimationFrame(()=>window.scrollTo({top:y, left:0, behavior:'instant'})));
-function route(){
-  const m24 = location.hash.match(/^#award\/2024\/(\w+)$/);
-  const m25 = location.hash.match(/^#award\/(\w+)$/);
-  const view = m24 && AWARD24_VIEWS[m24[1]] ? AWARD24_VIEWS[m24[1]] : (m25 && AWARD_VIEWS[m25[1]] ? AWARD_VIEWS[m25[1]] : null);
-  if(view){
-    if(awardPage.hidden) savedY = window.scrollY;   // remember where they clicked from
-    awardReturnTarget = m24 ? 'hof-2024-out' : 'hof-out';
-    awardPage.innerHTML = view();
-    homeEls.forEach(el=>el.style.display='none');
-    awardPage.hidden = false;
-    settleScroll(0);
-  } else {
-    const wasAward = !awardPage.hidden;
-    awardPage.hidden = true;
-    homeEls.forEach(el=>el.style.display='');
-    if(wasAward){
-      // drop them back exactly where they were; if they deep-linked in, land on the right awards grid
-      if(savedY > 0) settleScroll(savedY);
-      else requestAnimationFrame(()=>{ const t = document.getElementById(awardReturnTarget); if(t) t.scrollIntoView({behavior:'instant'}); });
-    }
-  }
-}
-window.addEventListener('hashchange', route);
-route();
 
 /* ---- scroll-spy: underline the nav item for the section on screen ---- */
 {
@@ -3581,10 +3893,6 @@ route();
   const sections = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
   let currentActive = null;
   function spy(){
-    if(!awardPage.hidden){                      // on an award page: clear highlights
-      if(currentActive){ currentActive.classList.remove('active'); currentActive = null; }
-      return;
-    }
     const marker = 90;                          // just below the sticky nav
     let active = null;
     for(const sec of sections){
