@@ -410,6 +410,154 @@
   .season-standings-identity{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;text-align:left}
   .season-standings-manager{font-size:14px;line-height:1.1;font-weight:800;color:var(--navy);white-space:nowrap;cursor:pointer}
   .season-standings-table .team-name{display:block;font-size:10px;line-height:1.25;color:#657789;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;text-align:left}
+  .season-standings-mobile-label{display:none}
+
+
+  /* ---------- FINAL STANDINGS: RESPONSIVE CARD LIST ---------- */
+  .season-standings-list{
+    width:100%;
+    min-width:0;
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    background:#fff;
+  }
+  .season-standings-head,
+  .season-standing-card{
+    display:grid;
+    grid-template-columns:64px minmax(180px,1fr) minmax(300px,.9fr);
+    align-items:center;
+    gap:14px;
+    min-width:0;
+  }
+  .season-standings-head{
+    padding:10px 14px;
+    background:var(--navy);
+    color:var(--paper);
+    font-family:var(--mono);
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.13em;
+    text-transform:uppercase;
+  }
+  .season-standing-card{
+    padding:12px 14px;
+    border-top:1px solid var(--line);
+    background:#fff;
+  }
+  .season-standing-card:nth-child(odd){background:var(--paper-dim)}
+  .season-standing-card.is-champion{background:#FBF3DC}
+  .season-standing-rank{display:flex;align-items:center;justify-content:flex-start;min-width:0}
+  .season-standing-person{display:flex;align-items:center;gap:11px;min-width:0}
+  .season-standing-person>.av{width:48px;height:48px;flex:0 0 48px;border-width:2px}
+  .season-standing-identity{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .season-standing-manager{
+    font-size:15px;
+    line-height:1.1;
+    font-weight:900;
+    color:var(--navy);
+    white-space:normal;
+    overflow-wrap:anywhere;
+    cursor:pointer;
+  }
+  .season-standing-team{
+    font-size:11px;
+    line-height:1.3;
+    color:#657789;
+    white-space:normal;
+    overflow-wrap:anywhere;
+  }
+  .season-standing-stats{
+    display:grid;
+    grid-template-columns:minmax(70px,.7fr) minmax(100px,1fr) minmax(100px,1fr);
+    align-items:center;
+    gap:12px;
+    min-width:0;
+  }
+  .season-standing-stat{min-width:0}
+  .season-standing-stat-label{display:none}
+  .season-standing-stat-value{
+    font-family:var(--mono);
+    font-size:13px;
+    font-weight:800;
+    color:var(--navy);
+    white-space:nowrap;
+  }
+  .season-standing-finish{min-width:0}
+  .season-standing-finish .season-finish-chip{max-width:100%;white-space:normal;text-align:center;justify-content:center}
+  .season-standings-head-stats{
+    display:grid;
+    grid-template-columns:minmax(70px,.7fr) minmax(100px,1fr) minmax(100px,1fr);
+    gap:12px;
+    min-width:0;
+  }
+
+  @media(max-width:900px){
+    .season-standings-head{display:none}
+    .season-standings-list{
+      border:0;
+      border-radius:0;
+      overflow:visible;
+      background:transparent;
+      display:grid;
+      gap:10px;
+    }
+    .season-standing-card,
+    .season-standing-card:nth-child(odd),
+    .season-standing-card.is-champion{
+      grid-template-columns:auto minmax(0,1fr);
+      grid-template-areas:
+        "rank person"
+        "stats stats";
+      gap:10px 12px;
+      padding:13px;
+      border:1px solid var(--line);
+      border-radius:11px;
+      background:#fff;
+      box-shadow:0 2px 8px rgba(20,50,79,.04);
+      overflow:hidden;
+    }
+    .season-standing-card.is-champion{background:#FBF3DC;border-color:rgba(185,138,46,.40)}
+    .season-standing-rank{grid-area:rank;align-self:start;padding-top:1px}
+    .season-standing-person{grid-area:person;align-items:flex-start}
+    .season-standing-person>.av{width:44px;height:44px;flex-basis:44px}
+    .season-standing-manager{font-size:15px}
+    .season-standing-team{font-size:11.5px;line-height:1.3}
+    .season-standing-stats{
+      grid-area:stats;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:0;
+      border-top:1px solid rgba(20,50,79,.11);
+      margin:2px -13px -13px;
+      background:rgba(247,243,232,.78);
+    }
+    .season-standing-stat,
+    .season-standing-finish{
+      min-width:0;
+      padding:10px 11px 11px;
+    }
+    .season-standing-stat+.season-standing-stat,
+    .season-standing-stat+.season-standing-finish,
+    .season-standing-finish{border-left:1px solid rgba(20,50,79,.09)}
+    .season-standing-stat-label{
+      display:block;
+      font-family:var(--mono);
+      font-size:7.5px;
+      line-height:1.2;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      color:#657789;
+      margin-bottom:4px;
+      font-weight:800;
+    }
+    .season-standing-stat-value{font-size:12px;white-space:normal;overflow-wrap:anywhere}
+    .season-standing-finish .season-finish-chip{font-size:7.5px;padding:4px 6px;line-height:1.2}
+    .season-standing-rank .rank-chip{font-size:13px;padding:4px 8px;min-width:42px;text-align:center}
+  }
+  @media(max-width:390px){
+    .season-standing-stats{grid-template-columns:1fr 1fr}
+    .season-standing-finish{grid-column:1/-1;border-left:0!important;border-top:1px solid rgba(20,50,79,.09)}
+  }
   .season-finish-chip{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-family:var(--mono);font-size:8px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;background:#edf2f6;color:#455e73;border:1px solid #d2dde6}
   .season-finish-chip.champ{background:#fbf1d7;color:#8b651d;border-color:#e6cf95}
   .season-finish-chip.runner{background:#f1f3f5;color:#596b7b;border-color:#d8dde2}
@@ -475,6 +623,81 @@
     .season-standings-person>.av{width:38px;height:38px;flex-basis:38px}
     .season-standings-manager{font-size:12px}
     .season-standings-table .team-name{max-width:135px}
+
+    /* Redesign season standings on phones so the modal never needs
+       horizontal scrolling and manager/team text has room to breathe. */
+    .season-section .tbl-wrap{overflow:visible}
+    .season-standings-table{display:block;background:transparent}
+    .season-standings-table thead{display:none}
+    .season-standings-table tbody{display:grid;grid-template-columns:1fr;gap:10px}
+    .season-standings-table tr{
+      display:grid;
+      grid-template-columns:auto minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);
+      grid-template-areas:
+        "rank manager manager manager"
+        "record pf finish finish";
+      align-items:stretch;
+      border:1px solid var(--line);
+      border-radius:12px;
+      overflow:hidden;
+      background:#fff;
+      box-shadow:0 2px 8px rgba(20,50,79,.04);
+    }
+    .season-standings-table tr.top.gold{background:#FBF3DC}
+    .season-standings-table tr.top.gold td{background:transparent!important}
+    .season-standings-table td{
+      display:block;
+      min-width:0;
+      padding:0;
+      border-top:0;
+      background:transparent;
+    }
+    .season-standings-table .standings-rank-cell{grid-area:rank;padding:14px 0 0 14px;align-self:start}
+    .season-standings-table .standings-manager-cell{grid-area:manager;padding:14px 14px 12px 10px}
+    .season-standings-table .season-standings-person{align-items:flex-start;gap:10px}
+    .season-standings-table .season-standings-person>.av{width:44px;height:44px;flex-basis:44px}
+    .season-standings-table .season-standings-identity{gap:4px;min-width:0;flex:1}
+    .season-standings-table .season-standings-manager{font-size:15px;line-height:1.1;white-space:normal;overflow-wrap:anywhere}
+    .season-standings-table .team-name{
+      max-width:none;
+      white-space:normal;
+      overflow:visible;
+      text-overflow:clip;
+      font-size:12px;
+      line-height:1.35;
+    }
+    .season-standings-table .standings-record-cell,
+    .season-standings-table .standings-pf-cell,
+    .season-standings-table .standings-finish-cell{
+      padding:10px 12px 12px;
+      border-top:1px solid rgba(20,50,79,.10);
+      background:rgba(247,243,232,.82);
+    }
+    .season-standings-table .standings-record-cell{grid-area:record;border-right:1px solid rgba(20,50,79,.08)}
+    .season-standings-table .standings-pf-cell{grid-area:pf;border-right:1px solid rgba(20,50,79,.08)}
+    .season-standings-table .standings-finish-cell{grid-area:finish}
+    .season-standings-table .season-standings-mobile-label{
+      display:block;
+      font-family:var(--mono);
+      font-size:8px;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      color:#657789;
+      margin-bottom:4px;
+    }
+    .season-standings-table td.num{
+      font-family:var(--serif);
+      font-size:21px;
+      font-weight:900;
+      color:var(--navy);
+      white-space:nowrap;
+      line-height:1.05;
+    }
+    .season-standings-table .standings-record-cell td,
+    .season-standings-table .standings-pf-cell td{font-family:inherit}
+    .season-standings-table .standings-finish-cell{display:flex;flex-direction:column;justify-content:center}
+    .season-standings-table .standings-finish-cell .season-finish-chip{align-self:flex-start}
+    .season-standings-table .rank-chip{font-size:18px;padding:6px 11px;border-radius:9px;min-width:52px;text-align:center}
     .season-settings-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   }
   @media(max-width:390px){.season-leader-grid,.season-story-grid,.season-mini-facts,.season-settings-grid{grid-template-columns:1fr}}
@@ -2404,8 +2627,16 @@ const playoffTreeHTML = (p, type='past', compact=false) => `<div class="playoff-
     return `${seasonManagerInline(winner)} ${seasonFmt(ws)} · ${seasonManagerInline(loser)} ${seasonFmt(ls)}${includeWeek?` · Week ${m.week}`:''}`;
   };
   const standingsRowsHTML = x => x.rows.map(r=>{
-    const finish=seasonFinishLabel(r.final_finish), chip=finish?`<span class="season-finish-chip ${seasonFinishClass(r.final_finish)}">${esc(finish)}</span>`:'';
-    return `<tr class="${r.final_finish===1?'top gold':''}"><td><span class="rank-chip">${pad(r.final_finish)}</span></td><td><div class="season-standings-person">${av(r.manager)}<div class="season-standings-identity"><span class="season-standings-manager manager-profile-trigger" data-manager="${esc(r.manager)}" tabindex="0" role="button" aria-label="Open ${esc(r.manager)} profile">${esc(r.manager)}${r.final_finish===1?' 👑':''}</span><span class="team-name">${esc(r.team||'')}</span></div></div></td><td class="num">${Math.round(r.wins)}–${Math.round(r.losses)}</td><td class="num">${seasonFmt(r.points_for)}</td><td>${chip}</td></tr>`;
+    const finish=seasonFinishLabel(r.final_finish), chip=finish?`<span class="season-finish-chip ${seasonFinishClass(r.final_finish)}">${esc(finish)}</span>`:'—';
+    return `<div class="season-standing-card${r.final_finish===1?' is-champion':''}">
+      <div class="season-standing-rank"><span class="rank-chip">${pad(r.final_finish)}</span></div>
+      <div class="season-standing-person">${av(r.manager)}<div class="season-standing-identity"><span class="season-standing-manager manager-profile-trigger" data-manager="${esc(r.manager)}" tabindex="0" role="button" aria-label="Open ${esc(r.manager)} profile">${esc(r.manager)}${r.final_finish===1?' 👑':''}</span><span class="season-standing-team">${esc(r.team||'')}</span></div></div>
+      <div class="season-standing-stats">
+        <div class="season-standing-stat"><span class="season-standing-stat-label">Record</span><span class="season-standing-stat-value">${Math.round(r.wins)}–${Math.round(r.losses)}</span></div>
+        <div class="season-standing-stat"><span class="season-standing-stat-label">PF</span><span class="season-standing-stat-value">${seasonFmt(r.points_for)}</span></div>
+        <div class="season-standing-finish"><span class="season-standing-stat-label">Finish</span>${chip}</div>
+      </div>
+    </div>`;
   }).join('');
   const rulesHTML = x => {
     const s=x.settings;
@@ -2476,7 +2707,7 @@ const playoffTreeHTML = (p, type='past', compact=false) => `<div class="playoff-
         ${storyCard('Highest-Scoring Matchup',`${seasonFmt(combinedTotal)} combined <span class="season-story-week">· Week ${x.combined.week}</span>`,matchupCopy(x.combined,false))}
       </div></section>
 
-      <section class="season-section"><div class="season-section-head"><h3 class="season-section-title">Final Standings</h3><div class="season-section-note">Regular-season record · final playoff finish</div></div><div class="tbl-wrap"><table class="season-standings-table"><thead><tr><th>Final</th><th>Manager / Team</th><th>Record</th><th>PF</th><th>Finish</th></tr></thead><tbody>${standingsRowsHTML(x)}</tbody></table></div></section>
+      <section class="season-section"><div class="season-section-head"><h3 class="season-section-title">Final Standings</h3><div class="season-section-note">Regular-season record · final playoff finish</div></div><div class="season-standings-list"><div class="season-standings-head"><div>Final</div><div>Manager / Team</div><div class="season-standings-head-stats"><div>Record</div><div>PF</div><div>Finish</div></div></div>${standingsRowsHTML(x)}</div></section>
 
       ${draftHTML(x)}
       ${awardsHTML(x)}
