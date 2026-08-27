@@ -835,8 +835,8 @@
   .week1-scroll::-webkit-scrollbar{height:6px}
   .week1-scroll::-webkit-scrollbar-track{background:var(--paper-dim);border-radius:4px}
   .week1-scroll::-webkit-scrollbar-thumb{background:rgba(188,137,41,.55);border-radius:4px}
-  .nfl-game{flex:0 0 225px;height:104px;scroll-snap-align:start;min-width:0;perspective:1100px;transition:flex-basis .42s cubic-bezier(.22,.75,.25,1),height .42s cubic-bezier(.22,.75,.25,1);position:relative}
-  .nfl-game.is-open{flex-basis:min(660px,calc(100vw - 68px));height:485px;z-index:5}
+  .nfl-game{flex:0 0 225px;height:104px;scroll-snap-align:start;min-width:0;perspective:1100px;transition:flex-basis .42s cubic-bezier(.22,.75,.25,1);position:relative}
+  .nfl-game.is-open{flex-basis:min(660px,calc(100vw - 68px));height:auto;z-index:5}
   .nfl-card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .58s cubic-bezier(.2,.72,.2,1)}
   .nfl-game.is-open .nfl-card-inner{transform:rotateY(180deg)}
   .nfl-card-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 2px 7px rgba(20,50,79,.06);overflow:hidden}
@@ -844,7 +844,7 @@
   .nfl-card-front:focus-visible,.nfl-depth-close:focus-visible,.depth-retry:focus-visible{outline:3px solid var(--brass-bright);outline-offset:-3px}
   @media(hover:hover) and (pointer:fine){.nfl-card-front:hover{border-color:var(--brass);background:#fffdf7}}
   .nfl-card-back{transform:rotateY(180deg);display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none}
-  .nfl-game.is-open .nfl-card-back{bottom:auto;height:auto;min-height:100%;overflow:hidden}
+  .nfl-game.is-open .nfl-card-inner{height:auto}.nfl-game.is-open .nfl-card-back{position:relative;inset:auto;width:100%;height:auto;min-height:0;overflow:hidden}
   .nfl-game-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:-11px -12px 8px;padding:7px 10px;background:var(--navy);border-radius:7px 7px 0 0;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff}
   .nfl-game-time{white-space:nowrap;color:#fff}
   .nfl-game-net{color:var(--brass-bright);white-space:nowrap;text-align:right}
@@ -899,7 +899,7 @@
   @media(max-width:520px){
     .week1-wrap{margin-top:0;padding-bottom:24px}
     .nfl-game{flex-basis:205px;height:102px}
-    .nfl-game.is-open{flex-basis:calc(100vw - 48px);height:690px}
+    .nfl-game.is-open{flex-basis:calc(100vw - 48px);height:auto}
     .nfl-card-front{padding:10px 11px 9px}
     .nfl-game-top{margin:-10px -11px 8px}
     .week1-hint{display:none}
@@ -2888,17 +2888,7 @@ async function loadGameFantasy(card,gameIndex){
   box.innerHTML=`<div class="nfl-fantasy-head"><span class="nfl-fantasy-title">Fantasy Game Environment</span><span class="nfl-fantasy-source">LIVE</span></div><div class="fantasy-summary">${fantasyMetric('Weather',weatherLabel)}${fantasyMetric('Scoring environment',scoringLabel)}${fantasyMetric('Game script',scriptLabel)}</div><div class="fantasy-teams">${fantasyTeamRow(g.a,aProb,implied.away)}${fantasyTeamRow(g.b,bProb,implied.home)}</div><div class="fantasy-updated">Updated ${esc(t)}</div>`;
   fitOpenGameCard(card);
 }
-function fitOpenGameCard(card){
-  if(!card || !card.classList.contains('is-open')) return;
-  requestAnimationFrame(()=>{
-    if(!card.classList.contains('is-open')) return;
-    const back=card.querySelector('.nfl-card-back');
-    if(!back) return;
-    const needed=Math.ceil(back.getBoundingClientRect().height);
-    const current=Math.ceil(card.getBoundingClientRect().height);
-    if(needed>0 && Math.abs(needed-current)>1) card.style.height=`${needed}px`;
-  });
-}
+function fitOpenGameCard(card){}
 function centerOpenGame(card){
   requestAnimationFrame(()=>setTimeout(()=>{
     const max = Math.max(0, week1El.scrollWidth - week1El.clientWidth);
@@ -2908,8 +2898,6 @@ function centerOpenGame(card){
 }
 function closeGameCard(card){
   if(!card) return;
-  card._fitObserver?.disconnect?.();
-  card._fitObserver=null;
   card.classList.remove('is-open');
   card.style.height='';
   const front = card.querySelector('.nfl-card-front');
@@ -2920,13 +2908,6 @@ function openGameCard(card){
   week1El.querySelectorAll('.nfl-game.is-open').forEach(other=>{ if(other!==card) closeGameCard(other); });
   card.classList.add('is-open');
   card.style.height='';
-  const back=card.querySelector('.nfl-card-back');
-  if(back && 'ResizeObserver' in window){
-    card._fitObserver?.disconnect?.();
-    card._fitObserver=new ResizeObserver(()=>fitOpenGameCard(card));
-    card._fitObserver.observe(back);
-  }
-  fitOpenGameCard(card);
   const front = card.querySelector('.nfl-card-front');
   if(front) front.setAttribute('aria-expanded','true');
   centerOpenGame(card);
@@ -2964,14 +2945,7 @@ if(week1El){
   week1El.addEventListener('error', e=>{
     if(e.target?.classList?.contains('depth-headshot')) e.target.classList.add('is-missing');
   }, true);
-  let week1ResizeTimer;
-  window.addEventListener('resize',()=>{
-    clearTimeout(week1ResizeTimer);
-    week1ResizeTimer=setTimeout(()=>{
-      const open=week1El.querySelector('.nfl-game.is-open');
-      if(open){open.style.height='';fitOpenGameCard(open);}
-    },80);
-  },{passive:true});
+
 }
 
 /* ---- draft cards ---- */
