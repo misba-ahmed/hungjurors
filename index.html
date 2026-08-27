@@ -768,6 +768,16 @@
   .season-first-pick .player{font-size:9.5px;color:#52687b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
   .season-award-list{display:flex;flex-wrap:wrap;gap:8px}
   .season-award-chip{display:inline-flex;align-items:center;gap:7px;flex-wrap:wrap;border:1px solid var(--line);border-radius:999px;padding:7px 10px;background:var(--paper-dim);font-size:10.5px;color:#52687b}
+  .season-award-chip.award-flip-card{cursor:pointer;transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease}
+  @media(hover:hover) and (pointer:fine){.season-award-chip.award-flip-card:hover{transform:translateY(-1px);border-color:var(--brass);box-shadow:0 4px 10px rgba(20,50,79,.10)}}
+  .season-award-chip.award-flip-card:focus-visible{outline:3px solid var(--brass-bright);outline-offset:2px}
+  .award-modal-front.is-season-award-origin{display:grid;place-items:center;padding:24px;background:var(--paper)}
+  .season-award-modal-chip{display:inline-flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:min(92%,620px);border:1px solid var(--line);border-radius:999px;padding:14px 18px;background:var(--paper-dim);font-size:16px;color:#52687b;box-shadow:0 16px 42px rgba(20,50,79,.16)}
+  .season-award-modal-chip .season-award-winner{gap:7px}
+  .season-award-modal-chip .season-award-winner .av{width:30px;height:30px}
+  .season-award-modal-chip b{color:var(--navy)}
+  .season-award-modal-chip .cash{color:var(--win-green);font-family:var(--mono);font-weight:800}
+
   .season-award-winner{display:inline-flex;align-items:center;gap:5px;color:var(--navy);cursor:pointer}
   .season-award-winner .av{width:20px;height:20px;border-width:1px}
   .season-award-chip b{color:var(--navy)}
@@ -3492,10 +3502,28 @@ const txCareerStats=name=>{
     ];
     return items.map(([k,v])=>`<div class="season-setting-card"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`).join('');
   };
+  const seasonAwardDetailIndex = (year,a) => {
+    const rows=Number(year)===2024?DATA.s2024.awards:Number(year)===2025?DATA.s2025.awards:[];
+    const aliases={
+      'Highest Scorer Raffle':'Raffle Winner',
+      'The Titty Special':'Titty Special',
+      'The Overachiever Special':'Overachiever Special',
+      'The MVP Special':'MVP Special',
+      'The Optimizer Special':'Optimizer Special'
+    };
+    const target=aliases[a.award]||a.award;
+    return rows.findIndex(r=>r.k===target && r.who===a.winner);
+  };
   const awardsHTML = x => {
     const paid=x.awards.filter(a=>Number(a.cash_prize)>0);
     if(!paid.length) return '';
-    return `<section class="season-section"><div class="season-section-head"><h3 class="season-section-title">Season Awards</h3></div><div class="season-award-list">${paid.map(a=>`<span class="season-award-chip"><span>${esc(a.award)}</span><span class="season-award-winner manager-profile-trigger" data-manager="${esc(a.winner)}" tabindex="0" role="button" aria-label="Open ${esc(a.winner)} profile">${av(a.winner,'mini')}<b>${esc(a.winner)}</b></span><span class="cash">$${Number(a.cash_prize)}</span></span>`).join('')}</div></section>`;
+    return `<section class="season-section"><div class="season-section-head"><h3 class="season-section-title">Season Awards</h3></div><div class="season-award-list">${paid.map(a=>{
+      const idx=seasonAwardDetailIndex(x.year,a);
+      const attrs=idx>=0
+        ? `class="season-award-chip award-flip-card" data-year="${x.year}" data-award-index="${idx}" tabindex="0" role="button" aria-label="Open ${esc(a.award)} award details"`
+        : `class="season-award-chip"`;
+      return `<span ${attrs}><span>${esc(a.award)}</span><span class="season-award-winner manager-profile-trigger" data-manager="${esc(a.winner)}" tabindex="0" role="button" aria-label="Open ${esc(a.winner)} profile">${av(a.winner,'mini',Number(x.year)===2024)}<b>${esc(a.winner)}</b></span><span class="cash">$${Number(a.cash_prize)}</span></span>`;
+    }).join('')}</div></section>`;
   };
   const draftHTML = x => {
     const champPicks=x.champDraft.map(p=>`<div class="season-draft-pick"><span class="slot">R${p.round} · #${p.overall_pick}</span><span class="player">${esc(p.player)}</span><span class="pos">${esc(p.position)}</span></div>`).join('');
@@ -4085,7 +4113,13 @@ const AWARD24_VIEWS = {
     stage.style.left=rect.left+'px';stage.style.top=rect.top+'px';stage.style.width=rect.width+'px';stage.style.height=rect.height+'px';stage.style.borderRadius='10px';
     const flip=document.createElement('div');flip.className='award-modal-flip';
     const front=document.createElement('div');front.className='award-modal-face award-modal-front';
-    const object=card.querySelector('.award-plaque-object');front.innerHTML=object?object.outerHTML:card.innerHTML;
+    const object=card.querySelector('.award-plaque-object');
+    if(card.classList.contains('season-award-chip')){
+      front.classList.add('is-season-award-origin');
+      front.innerHTML=`<div class="season-award-modal-chip">${card.innerHTML}</div>`;
+    }else{
+      front.innerHTML=object?object.outerHTML:card.innerHTML;
+    }
     const back=document.createElement('div');back.className='award-modal-face award-modal-back';
     const head=document.createElement('div');head.className='award-modal-head';
     head.innerHTML=`<div class="award-modal-heading"><div class="award-modal-kicker">${year} League Award</div><h2 class="award-modal-title">${esc(r.k)}</h2><span class="award-modal-winner manager-profile-trigger" data-manager="${esc(r.who)}" tabindex="0" role="button" aria-label="Open ${esc(r.who)} profile">${av(r.who,'mini',year===2024)}<span>${esc(r.who)}</span></span></div>${r.prize?`<div class="award-modal-prize">$${r.prize}</div>`:''}`;
