@@ -831,19 +831,20 @@
   .week1-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 2px 8px}
   .week1-title{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);font-weight:700}
   .week1-hint{font-family:var(--mono);font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--navy-ink);opacity:.5;white-space:nowrap}
-  .week1-scroll{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;padding:2px 2px 10px;-webkit-overflow-scrolling:touch;overscroll-behavior-inline:contain}
+  .week1-scroll{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;padding:2px 2px 10px;-webkit-overflow-scrolling:touch;overscroll-behavior-inline:contain}
   .week1-scroll::-webkit-scrollbar{height:6px}
   .week1-scroll::-webkit-scrollbar-track{background:var(--paper-dim);border-radius:4px}
   .week1-scroll::-webkit-scrollbar-thumb{background:rgba(188,137,41,.55);border-radius:4px}
   .nfl-game{flex:0 0 225px;height:104px;scroll-snap-align:start;min-width:0;perspective:1100px;transition:flex-basis .42s cubic-bezier(.22,.75,.25,1),height .42s cubic-bezier(.22,.75,.25,1);position:relative}
-  .nfl-game.is-open{flex-basis:min(620px,calc(100vw - 68px));height:365px;z-index:5}
+  .nfl-game.is-open{flex-basis:min(660px,calc(100vw - 68px));height:485px;z-index:5}
   .nfl-card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .58s cubic-bezier(.2,.72,.2,1)}
   .nfl-game.is-open .nfl-card-inner{transform:rotateY(180deg)}
   .nfl-card-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 2px 7px rgba(20,50,79,.06);overflow:hidden}
   .nfl-card-front{appearance:none;-webkit-appearance:none;width:100%;height:100%;padding:11px 12px 10px;text-align:left;color:inherit;font:inherit;cursor:pointer}
   .nfl-card-front:focus-visible,.nfl-depth-close:focus-visible,.depth-retry:focus-visible{outline:3px solid var(--brass-bright);outline-offset:-3px}
   @media(hover:hover) and (pointer:fine){.nfl-card-front:hover{border-color:var(--brass);background:#fffdf7}}
-  .nfl-card-back{transform:rotateY(180deg);display:flex;flex-direction:column}
+  .nfl-card-back{transform:rotateY(180deg);display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none}
+  .nfl-game.is-open .nfl-card-back{bottom:auto;height:auto;min-height:100%;overflow:hidden}
   .nfl-game-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:-11px -12px 8px;padding:7px 10px;background:var(--navy);border-radius:7px 7px 0 0;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff}
   .nfl-game-time{white-space:nowrap;color:#fff}
   .nfl-game-net{color:var(--brass-bright);white-space:nowrap;text-align:right}
@@ -853,10 +854,11 @@
   .nfl-team-record{margin-left:auto;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.04em;color:var(--navy-ink);opacity:.58;white-space:nowrap}
   .nfl-depth-top{display:flex;align-items:center;gap:10px;background:var(--navy);color:#fff;padding:9px 11px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;min-height:39px}
   .nfl-depth-meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nfl-depth-game{color:var(--brass-bright);font-weight:900}
   .nfl-depth-source{margin-left:auto;color:var(--brass-bright);white-space:nowrap;font-size:8px;letter-spacing:.08em}
-  .nfl-depth-close{appearance:none;-webkit-appearance:none;border:0;background:rgba(255,255,255,.12);color:#fff;width:27px;height:27px;border-radius:50%;font-size:17px;line-height:1;display:grid;place-items:center;cursor:pointer;flex:0 0 27px}
+  .nfl-depth-close{margin-left:auto;appearance:none;-webkit-appearance:none;border:0;background:rgba(255,255,255,.12);color:#fff;width:27px;height:27px;border-radius:50%;font-size:17px;line-height:1;display:grid;place-items:center;cursor:pointer;flex:0 0 27px}
   @media(hover:hover) and (pointer:fine){.nfl-depth-close:hover{background:rgba(255,255,255,.22)}}
-  .nfl-depth-body{flex:1;min-height:0;padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;background:var(--paper-dim)}
+  .nfl-depth-body{flex:0 0 auto;min-height:0;min-width:0;padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;background:var(--paper-dim);overflow:hidden}
   .depth-team{min-width:0;background:#fff;border:1px solid var(--line);border-radius:7px;padding:8px 9px;overflow:hidden}
   .depth-team-head{display:flex;align-items:center;gap:7px;padding-bottom:6px;margin-bottom:5px;border-bottom:1px solid var(--line)}
   .depth-team-head img{width:27px;height:27px;object-fit:contain;flex:0 0 27px}
@@ -874,17 +876,44 @@
   .nfl-depth-loading,.nfl-depth-error{grid-column:1/-1;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;gap:8px;color:var(--navy-ink);font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:20px}
   .depth-live-dot{width:7px;height:7px;border-radius:50%;background:var(--win-green);box-shadow:0 0 0 4px rgba(47,125,78,.12)}
   .depth-retry{appearance:none;-webkit-appearance:none;border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:6px;padding:7px 10px;font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
-  .depth-updated{grid-column:1/-1;text-align:right;font-family:var(--mono);font-size:7.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--navy-ink);opacity:.48;margin-top:-4px}
+  .depth-updated{display:none!important}
+  .nfl-fantasy-wrap{border-top:1px solid rgba(185,138,46,.40);background:#fff;padding:4px 9px 8px;position:relative;min-width:0;overflow:hidden}
+  .nfl-fantasy-head{display:flex;align-items:baseline;gap:7px;margin-bottom:5px;min-width:0}
+  .nfl-fantasy-title{font-family:var(--mono);font-size:8.8px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--navy)}
+  .nfl-fantasy-source{margin-left:auto;font-family:var(--mono);font-size:6.8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);white-space:nowrap}
+  .nfl-fantasy-loading,.nfl-fantasy-error{min-height:68px;display:flex;align-items:center;justify-content:center;gap:7px;text-align:center;font-family:var(--mono);font-size:8px;letter-spacing:.07em;text-transform:uppercase;color:var(--navy-ink)}
+  .fantasy-summary{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,.72fr) minmax(0,1fr);gap:5px;margin-bottom:5px;min-width:0;overflow:hidden}
+  .fantasy-metric{min-width:0;background:var(--paper-dim);border:1px solid var(--line);border-radius:5px;padding:5px 6px}
+  .fantasy-metric-k{font-family:var(--mono);font-size:6.5px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:var(--brass);margin-bottom:2px}
+  .fantasy-metric-v{font-family:var(--mono);font-size:8.6px;line-height:1.18;font-weight:800;color:var(--navy);white-space:normal;overflow:hidden;overflow-wrap:anywhere}
+  .fantasy-teams{border:1px solid var(--line);border-radius:6px;overflow:hidden;margin:0}
+  .fantasy-team-row{display:grid;grid-template-columns:minmax(100px,1.45fr) minmax(64px,.72fr) minmax(62px,.65fr);align-items:center;gap:6px;padding:4px 6px;background:#fff;min-width:0;overflow:hidden}
+  .fantasy-team-row + .fantasy-team-row{border-top:1px solid var(--line)}
+  .fantasy-team-id{display:flex;align-items:center;gap:6px;min-width:0}
+  .fantasy-team-id img{width:19px;height:19px;object-fit:contain;flex:0 0 19px}
+  .fantasy-team-id b{font-family:var(--mono);font-size:8.4px;letter-spacing:.04em;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fantasy-team-stat{text-align:right;min-width:0}
+  .fantasy-team-stat span{display:block;font-family:var(--mono);font-size:5.9px;line-height:1;letter-spacing:.055em;text-transform:uppercase;color:var(--navy-ink);opacity:.52;margin-bottom:1px;white-space:nowrap}
+  .fantasy-team-stat b{font-family:var(--mono);font-size:9.5px;line-height:1;color:var(--navy)}
+  .fantasy-updated{text-align:right;margin-top:4px;font-family:var(--mono);font-size:6.1px;letter-spacing:.05em;text-transform:uppercase;color:var(--navy-ink);opacity:.38}
   @media(max-width:520px){
     .week1-wrap{margin-top:0;padding-bottom:24px}
     .nfl-game{flex-basis:205px;height:102px}
-    .nfl-game.is-open{flex-basis:calc(100vw - 48px);height:598px}
+    .nfl-game.is-open{flex-basis:calc(100vw - 48px);height:690px}
     .nfl-card-front{padding:10px 11px 9px}
     .nfl-game-top{margin:-10px -11px 8px}
     .week1-hint{display:none}
-    .nfl-depth-body{grid-template-columns:1fr;gap:8px;padding:8px;overflow-y:auto}
+    .nfl-depth-body{grid-template-columns:1fr;gap:8px;padding:8px}
     .depth-team{overflow:visible}
     .nfl-depth-source{display:none}
+    .nfl-fantasy-wrap{padding:7px 7px 8px}
+    .nfl-fantasy-source{display:none}
+    .fantasy-summary{grid-template-columns:minmax(0,1.35fr) minmax(0,.72fr) minmax(0,.95fr);gap:4px}
+    .fantasy-team-row{grid-template-columns:minmax(82px,1.25fr) minmax(54px,.65fr) minmax(54px,.6fr);gap:4px;padding:4px 5px}
+    .fantasy-team-id img{width:18px;height:18px;flex-basis:18px}
+    .fantasy-team-id b{font-size:7.8px}
+    .fantasy-team-stat span{font-size:5.5px;letter-spacing:.035em}
+    .fantasy-team-stat b{font-size:9px}
   }
   @media(prefers-reduced-motion:reduce){.nfl-game,.nfl-card-inner{transition:none}}
 
@@ -1872,6 +1901,46 @@
     }
   }
 
+
+
+  /* ---------- ROSTER MANAGEMENT HISTORY ---------- */
+  .roster-activity{margin-top:0;border:1px solid var(--line);border-radius:10px;background:linear-gradient(180deg,#fff 0%,#fbf7ed 100%);padding:12px 14px}
+  .roster-activity-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:11px}
+  .roster-activity-k{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:#8b651d;font-weight:900}
+  .roster-activity-v{font-family:var(--serif);font-size:23px;line-height:1;font-weight:900;color:var(--navy);margin-top:3px}
+  .roster-activity-range{font-family:var(--mono);font-size:8px;letter-spacing:.09em;color:#657789;text-transform:uppercase;white-space:nowrap}
+  .roster-activity-bars{height:96px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;align-items:end}
+  .roster-activity-year{min-width:0;height:100%;display:grid;grid-template-rows:16px 1fr 14px;gap:4px;align-items:end;text-align:center}
+  .roster-activity-count{font-family:var(--mono);font-size:7.5px;color:#657789;font-weight:800;line-height:1}
+  .roster-activity-track{height:100%;min-height:35px;background:#eef0ed;border:1px solid rgba(20,50,79,.08);border-radius:4px 4px 2px 2px;display:flex;align-items:flex-end;overflow:hidden}
+  .roster-activity-fill{display:block;width:100%;background:linear-gradient(180deg,#d6b05c,#b98a2e);border-top:1px solid rgba(255,255,255,.45)}
+  .roster-activity-year.current .roster-activity-track{box-shadow:0 0 0 2px rgba(20,50,79,.14)}
+  .roster-activity-year.current .roster-activity-fill{background:linear-gradient(180deg,#244d70,#14324f)}
+  .roster-activity-label{font-family:var(--mono);font-size:7.5px;color:#657789;font-weight:800;line-height:1}
+  .roster-activity-year.current .roster-activity-label,.roster-activity-year.current .roster-activity-count{color:var(--navy)}
+
+  .profile-roster-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+  .profile-roster-card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:9px;min-width:0}
+  .profile-roster-card .k{font-family:var(--mono);font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);font-weight:800;line-height:1.35}
+  .profile-roster-card .v{font-family:var(--serif);font-size:19px;font-weight:900;color:var(--navy);line-height:1.05;margin-top:4px;overflow-wrap:anywhere}
+  .profile-roster-card .s{font-size:8.7px;line-height:1.35;color:#496176;margin-top:4px}
+  .profile-roster-chart-label{margin:12px 0 6px;font-family:var(--mono);font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .profile-roster-years{margin-top:8px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;align-items:end}
+  .profile-roster-year{min-width:0;text-align:center}
+  .profile-roster-barbox{height:46px;border-radius:4px 4px 2px 2px;background:#f0eee7;border:1px solid rgba(20,50,79,.08);display:flex;align-items:flex-end;overflow:hidden}
+  .profile-roster-bar{display:block;width:100%;background:linear-gradient(180deg,#d9bb72,#b98a2e)}
+  .profile-roster-n{font-family:var(--mono);font-size:7px;color:#657789;font-weight:800;margin-bottom:3px;display:block}
+  .profile-roster-y{font-family:var(--mono);font-size:6.8px;color:#657789;font-weight:800;margin-top:4px;display:block}
+
+  @media(max-width:700px){
+    .roster-activity{padding:11px 10px}
+    .roster-activity-bars{gap:4px;height:88px}
+    .roster-activity-count,.roster-activity-label{font-size:6.6px}
+    .profile-roster-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .profile-roster-years{gap:3px}
+    .profile-roster-n{font-size:6.2px}.profile-roster-y{font-size:6px}
+  }
+
 </style>
 </head>
 <body>
@@ -2359,6 +2428,27 @@ const NFL_WEEK1 = [
   { day:'MON', date:'SEP 14', time:'7:15 PM',  net:'ESPN',   a:['BRONCOS','den'],    b:['CHIEFS','kc'] }
 ];
 const NFL_TEAM_IDS = {ari:22,atl:1,bal:33,buf:2,car:29,chi:3,cin:4,cle:5,dal:6,den:7,det:8,gb:9,hou:34,ind:11,jax:30,kc:12,lv:13,lac:24,lar:14,mia:15,min:16,ne:17,no:18,nyg:19,nyj:20,phi:21,pit:23,sf:25,sea:26,tb:27,ten:10,wsh:28};
+const NFELO_TEAM_SLUG = {ari:'cardinals',atl:'falcons',bal:'ravens',buf:'bills',car:'panthers',chi:'bears',cin:'bengals',cle:'browns',dal:'cowboys',den:'broncos',det:'lions',gb:'packers',hou:'texans',ind:'colts',jax:'jaguars',kc:'chiefs',lv:'raiders',lac:'chargers',lar:'rams',mia:'dolphins',min:'vikings',ne:'patriots',no:'saints',nyg:'giants',nyj:'jets',phi:'eagles',pit:'steelers',sf:'49ers',sea:'seahawks',tb:'buccaneers',ten:'titans',wsh:'commanders'};
+const NFELO_ABBR = {lv:'OAK',wsh:'WAS'};
+const NFL_GAME_META = [
+  {kickoff:'2026-09-10T00:20:00Z',lat:47.5952,lon:-122.3316,venue:'Lumen Field'},
+  {kickoff:'2026-09-11T00:35:00Z',lat:-37.81997,lon:144.9834,venue:'Melbourne Cricket Ground'},
+  {kickoff:'2026-09-13T17:00:00Z',lat:35.2258,lon:-80.8528,venue:'Bank of America Stadium'},
+  {kickoff:'2026-09-13T17:00:00Z',lat:39.0954,lon:-84.5160,venue:'Paycor Stadium'},
+  {kickoff:'2026-09-13T17:00:00Z',lat:42.3400,lon:-83.0456,venue:'Ford Field',roof:'DOME'},
+  {kickoff:'2026-09-13T17:00:00Z',lat:29.6847,lon:-95.4107,venue:'NRG Stadium',roof:'RETRACTABLE'},
+  {kickoff:'2026-09-13T17:00:00Z',lat:39.7601,lon:-86.1639,venue:'Lucas Oil Stadium',roof:'RETRACTABLE'},
+  {kickoff:'2026-09-13T17:00:00Z',lat:30.3239,lon:-81.6373,venue:'EverBank Stadium'},
+  {kickoff:'2026-09-13T17:00:00Z',lat:40.4468,lon:-80.0158,venue:'Acrisure Stadium'},
+  {kickoff:'2026-09-13T17:00:00Z',lat:36.1665,lon:-86.7713,venue:'Nissan Stadium'},
+  {kickoff:'2026-09-13T20:25:00Z',lat:33.9535,lon:-118.3392,venue:'SoFi Stadium',roof:'COVERED'},
+  {kickoff:'2026-09-13T20:25:00Z',lat:36.0908,lon:-115.1830,venue:'Allegiant Stadium',roof:'DOME'},
+  {kickoff:'2026-09-13T20:25:00Z',lat:44.9738,lon:-93.2575,venue:'U.S. Bank Stadium',roof:'DOME'},
+  {kickoff:'2026-09-13T20:25:00Z',lat:39.9008,lon:-75.1675,venue:'Lincoln Financial Field'},
+  {kickoff:'2026-09-14T00:20:00Z',lat:40.8135,lon:-74.0745,venue:'MetLife Stadium'},
+  {kickoff:'2026-09-15T00:15:00Z',lat:39.0489,lon:-94.4839,venue:'GEHA Field at Arrowhead Stadium'}
+];
+NFL_WEEK1.forEach((g,i)=>Object.assign(g,NFL_GAME_META[i]||{}));
 const nflLogo = abbr => `https://a.espncdn.com/i/teamlogos/nfl/500/${abbr}.png`;
 const nflHeadshot = id => `https://a.espncdn.com/i/headshots/nfl/players/full/${id}.png`;
 const depthCache = new Map();
@@ -2571,21 +2661,243 @@ function teamDepthPanel(team, rows){
   return `<section class="depth-team"><div class="depth-team-head"><img src="${nflLogo(team[1])}" alt=""><span class="depth-team-name">${esc(team[0])}</span></div><div class="depth-list">${rows.map(playerRow).join('')}</div></section>`;
 }
 function depthBackShell(g,i){
-  return `<div class="nfl-depth-top"><span class="nfl-depth-meta">${g.day} | ${g.date} | ${g.time} · ${g.a[0]} / ${g.b[0]}</span><span class="nfl-depth-source">LIVE · ESPN DEPTH CHART</span><button class="nfl-depth-close" type="button" aria-label="Close depth chart" data-close-game="${i}">×</button></div><div class="nfl-depth-body" data-depth-body="${i}"><div class="nfl-depth-loading"><span class="depth-live-dot"></span><span>Loading live depth chart…</span></div></div>`;
+  return `<div class="nfl-depth-top"><span class="nfl-depth-meta">${g.day} | ${g.date} | ${g.time} · <span class="nfl-depth-game">${g.a[0]} / ${g.b[0]}</span></span><button class="nfl-depth-close" type="button" aria-label="Close game details" data-close-game="${i}">×</button></div><div class="nfl-depth-body" data-depth-body="${i}"><div class="nfl-depth-loading"><span class="depth-live-dot"></span><span>Loading live depth chart…</span></div></div><div class="nfl-fantasy-wrap" data-fantasy-body="${i}"><div class="nfl-fantasy-head"><span class="nfl-fantasy-title">Fantasy Game Environment</span><span class="nfl-fantasy-source">LIVE</span></div><div class="nfl-fantasy-loading"><span class="depth-live-dot"></span><span>Loading current game environment…</span></div></div>`;
 }
 async function loadGameDepth(card, gameIndex, force=false){
   const g = NFL_WEEK1[gameIndex];
   const body = card.querySelector('[data-depth-body]');
   if(!g || !body) return;
   body.innerHTML = `<div class="nfl-depth-loading"><span class="depth-live-dot"></span><span>Loading live depth chart…</span></div>`;
+  fitOpenGameCard(card);
   try{
     const [aData,bData] = await Promise.all([fetchTeamDepth(g.a[1],force), fetchTeamDepth(g.b[1],force)]);
     const t = new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
     const fallbackNote = (aData.source !== 'ESPN depth chart' || bData.source !== 'ESPN depth chart') ? ' · roster fallback if needed' : '';
-    body.innerHTML = `${teamDepthPanel(g.a,aData.rows)}${teamDepthPanel(g.b,bData.rows)}<div class="depth-updated">Pulled from ESPN · ${esc(t)}${fallbackNote}</div>`;
+    body.innerHTML = `${teamDepthPanel(g.a,aData.rows)}${teamDepthPanel(g.b,bData.rows)}`;
+    fitOpenGameCard(card);
   }catch(err){
     body.innerHTML = `<div class="nfl-depth-error"><span>Live depth chart temporarily unavailable.</span><button class="depth-retry" type="button" data-retry-game="${gameIndex}">Retry</button></div>`;
+    fitOpenGameCard(card);
   }
+}
+function nfeloTeamAbbr(abbr){ return NFELO_ABBR[abbr] || String(abbr||'').toUpperCase(); }
+function nfeloGameUrl(g){
+  const away=NFELO_TEAM_SLUG[g.a[1]], home=NFELO_TEAM_SLUG[g.b[1]];
+  return away&&home ? `https://www.nfeloapp.com/games/${away}-vs-${home}-box-score-week-01-2026/` : '';
+}
+function textFromFetchedPage(raw=''){
+  const s=String(raw||'');
+  if(/<html|<!doctype/i.test(s)){
+    try{return new DOMParser().parseFromString(s,'text/html').body?.innerText || s;}catch(_){return s;}
+  }
+  return s.replace(/\r/g,'');
+}
+async function fetchNfeloPage(g){
+  const base=nfeloGameUrl(g); if(!base) throw new Error('No live model route');
+  const bust=`live=${Date.now()}`;
+  const live=base+(base.includes('?')?'&':'?')+bust;
+  const path=`${NFELO_TEAM_SLUG[g.a[1]]}-vs-${NFELO_TEAM_SLUG[g.b[1]]}-box-score-week-01-2026/`;
+  const fallbacks=[
+    live,
+    `https://r.jina.ai/https://www.nfeloapp.com/games/${path}?${bust}`,
+    `https://r.jina.ai/http://www.nfeloapp.com/games/${path}?${bust}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(live)}`
+  ];
+  let lastErr;
+  for(const url of fallbacks){
+    try{
+      const r=await fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store'});
+      if(!r.ok) throw new Error(`live model ${r.status}`);
+      const raw=await r.text();
+      const rendered=textFromFetchedPage(raw);
+      if(rendered && rendered.length>200 && /Projected\s+Winner/i.test(rendered) && /Win\s+Probability/i.test(rendered)) return rendered;
+      throw new Error('live model payload missing rendered data');
+    }catch(err){lastErr=err;}
+  }
+  throw lastErr || new Error('live model unavailable');
+}
+function parseNum(v){ const n=parseFloat(String(v??'').replace(/,/g,'')); return Number.isFinite(n)?n:null; }
+function parseNfeloGame(text,g){
+  const flat=String(text||'').replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').replace(/\n+/g,'\n');
+  const modelStart=flat.search(/Projected Winner/i);
+  const modelBlock=modelStart>=0 ? flat.slice(modelStart, modelStart+3200) : flat;
+  const a=nfeloTeamAbbr(g.a[1]), b=nfeloTeamAbbr(g.b[1]);
+
+  const winnerMatch=modelBlock.match(/\b([A-Z]{2,4})\s+Favored\b/i);
+  let winner=winnerMatch?String(winnerMatch[1]).toUpperCase():'';
+  const lineMatch=modelBlock.match(/Opening\s+([+\-]?\d+(?:\.\d+)?|N\/?A)\s+Current\s+([+\-]?\d+(?:\.\d+)?|N\/?A)\s+Model\s+([+\-]?\d+(?:\.\d+)?|N\/?A)/i);
+  const currentSpread=lineMatch?parseNum(lineMatch[2]):null;
+  const modelSpread=lineMatch?parseNum(lineMatch[3]):null;
+
+  if(![a,b].includes(winner)){
+    if(modelSpread!=null && modelSpread!==0) winner=modelSpread<0?b:a;
+    else winner='';
+  }
+
+  const winBlockMatch=modelBlock.match(/Win\s*Probability([\s\S]{0,360})/i);
+  const winBlock=winBlockMatch?winBlockMatch[1]:modelBlock;
+  const modelProbMatch=winBlock.match(/Model\s*([0-9]+(?:\.[0-9]+)?)%/i);
+  const marketProbMatch=winBlock.match(/Market\s*([0-9]+(?:\.[0-9]+)?)%/i);
+  const winProb=modelProbMatch?parseNum(modelProbMatch[1]):(marketProbMatch?parseNum(marketProbMatch[1]):null);
+  const probs={};
+  if(winner && winProb!=null){
+    probs[winner]=winProb;
+    probs[winner===a?b:a]=Math.max(0,Math.min(100,100-winProb));
+  }
+
+  const tempMatch=flat.match(/(\d{2,3})\s*°F/i);
+  let nfeloWeather=null;
+  if(tempMatch){
+    const idx=flat.indexOf(tempMatch[0]);
+    const tail=flat.slice(idx+tempMatch[0].length,idx+tempMatch[0].length+80);
+    const w=tail.match(/(?:^|\s)(\d{1,2}(?:\.\d+)?)\s*(?:mph)?(?:\s|$)/i);
+    nfeloWeather={temp:parseNum(tempMatch[1]),wind:w?parseNum(w[1]):null};
+  }
+  let total=null;
+  const totalMatch=flat.match(/(?:###\s*)?Total\s+(?:OVER|UNDER)?\s*([3-6]\d(?:\.5)?)/i);
+  if(totalMatch) total=parseNum(totalMatch[1]);
+  return {winner,currentSpread,modelSpread,probs,total,nfeloWeather};
+}
+async function fetchEspnGameMarket(g){
+  try{
+    const data=await fetchEspnJson('https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=2026&seasontype=2&week=1&limit=100');
+    const want=new Set([String(g.a[1]).toUpperCase(),String(g.b[1]).toUpperCase()]);
+    const event=(data?.events||[]).find(ev=>{
+      const teams=(ev?.competitions?.[0]?.competitors||[]).map(c=>String(c?.team?.abbreviation||'').toUpperCase());
+      return teams.length===2 && teams.every(t=>want.has(t));
+    });
+    const comp=event?.competitions?.[0]; const odds=comp?.odds?.[0]||{};
+    let total=parseNum(odds?.overUnder);
+    let homeSpread=null;
+    const details=String(odds?.details||'').trim();
+    const m=details.match(/^([A-Z]{2,4})\s+([+\-]?\d+(?:\.\d+)?)/i);
+    if(m){
+      const favorite=m[1].toUpperCase(), line=parseNum(m[2]);
+      const home=String(g.b[1]).toUpperCase();
+      if(line!=null) homeSpread=(favorite===home ? line : -line);
+    }
+    return {total,homeSpread,eventDate:event?.date||''};
+  }catch(_){return {total:null,homeSpread:null,eventDate:''};}
+}
+async function fetchKickoffWeather(g){
+  if(g.roof==='DOME') return {roof:'DOME'};
+  if(g.roof==='COVERED') return {roof:'COVERED'};
+  if(!g.lat||!g.lon||!g.kickoff) return null;
+  try{
+    const u=new URL('https://api.open-meteo.com/v1/forecast');
+    u.searchParams.set('latitude',g.lat);u.searchParams.set('longitude',g.lon);
+    u.searchParams.set('hourly','temperature_2m,precipitation_probability,wind_speed_10m,wind_gusts_10m');
+    u.searchParams.set('temperature_unit','fahrenheit');u.searchParams.set('wind_speed_unit','mph');u.searchParams.set('timezone','UTC');u.searchParams.set('forecast_days','16');
+    const r=await fetch(u.toString(),{cache:'no-store'}); if(!r.ok) throw new Error('weather');
+    const d=await r.json(); const times=d?.hourly?.time||[]; const target=new Date(g.kickoff).getTime();
+    let best=-1,delta=Infinity;
+    times.forEach((t,i)=>{const x=Math.abs(new Date(t+'Z').getTime()-target);if(x<delta){delta=x;best=i;}});
+    if(best<0 || delta>95*60*1000) return {pending:true,roof:g.roof||''};
+    return {temp:parseNum(d.hourly.temperature_2m?.[best]),precip:parseNum(d.hourly.precipitation_probability?.[best]),wind:parseNum(d.hourly.wind_speed_10m?.[best]),gust:parseNum(d.hourly.wind_gusts_10m?.[best]),roof:g.roof||''};
+  }catch(_){return {pending:true,roof:g.roof||''};}
+}
+function fmtLine(n){ if(n==null)return '—'; return n===0?'PK':`${n>0?'+':''}${n.toFixed(1)}`; }
+function favoriteFromHomeSpread(g,sp){
+  if(sp==null||sp===0)return {team:'PICK',line:sp};
+  return sp<0?{team:nfeloTeamAbbr(g.b[1]),line:sp}:{team:nfeloTeamAbbr(g.a[1]),line:-sp};
+}
+function impliedPoints(total,homeSpread){
+  if(total==null||homeSpread==null)return {away:null,home:null};
+  return {home:total/2-homeSpread/2,away:total/2+homeSpread/2};
+}
+function winProbFromHomeSpread(homeSpread){
+  if(homeSpread==null || !Number.isFinite(Number(homeSpread))) return {away:null,home:null};
+  const sp=Number(homeSpread);
+  if(sp===0) return {away:50,home:50};
+  // nfelo's displayed spread-to-win-probability relationship is effectively logistic.
+  // This reproduces values such as 1.5≈55.7%, 3.0≈61.3%, 3.5≈63.1%.
+  const favProb=100/(1+Math.exp(-0.153*Math.abs(sp)));
+  return sp<0
+    ? {away:100-favProb,home:favProb}
+    : {away:favProb,home:100-favProb};
+}
+function weatherText(w){
+  if(w?.roof==='DOME') return 'INDOOR · NO IMPACT';
+  if(w?.roof==='COVERED') return 'COVERED · MINIMAL IMPACT';
+  if(w && !w.pending && w.temp!=null){
+    const rain=w.precip!=null?`${Math.round(w.precip)}% rain`:'';
+    const wind=w.wind!=null?`${Math.round(w.wind)} mph`:'';
+    const harsh=(w.wind>=18)||(w.gust>=28)||(w.precip>=60);
+    const watch=(w.wind>=12)||(w.precip>=40);
+    const impact=harsh?'PASS/KICK ↓':watch?'WATCH PASS/KICK':'NO IMPACT';
+    return [`${Math.round(w.temp)}°F`,rain,wind,impact].filter(Boolean).join(' · ');
+  }
+  return 'FORECAST PENDING';
+}
+function scoringEnvironmentText(total){
+  if(total==null) return 'PENDING';
+  const level=total>=49?'HIGH':total<41?'LOW':total>=45?'GOOD':'NEUTRAL';
+  return `${level} · ${total.toFixed(1)} pts`;
+}
+function gameScriptText(g,aProb,bProb,homeSpread){
+  if(aProb!=null && bProb!=null){
+    const awayFav=aProb>=bProb;
+    const fav=awayFav?nfeloTeamAbbr(g.a[1]):nfeloTeamAbbr(g.b[1]);
+    const dog=awayFav?nfeloTeamAbbr(g.b[1]):nfeloTeamAbbr(g.a[1]);
+    const p=Math.max(aProb,bProb);
+    if(p>=70) return `${fav} Heavy Fav · RB↑ · ${dog} Pass↑`;
+    if(p>=60) return `${fav} Lean · RB↑`;
+    return 'CLOSE · Full Game Usage';
+  }
+  if(homeSpread!=null){
+    const favInfo=favoriteFromHomeSpread(g,homeSpread);
+    const fav=favInfo.team;
+    const dog=fav===nfeloTeamAbbr(g.a[1])?nfeloTeamAbbr(g.b[1]):nfeloTeamAbbr(g.a[1]);
+    const abs=Math.abs(homeSpread);
+    if(abs>=6) return `${fav} Heavy Fav · RB↑ · ${dog} Pass↑`;
+    if(abs>=3) return `${fav} Lean · RB↑`;
+    return 'CLOSE · Full Game Usage';
+  }
+  return 'PENDING';
+}
+function fantasyMetric(k,v){return `<div class="fantasy-metric"><div class="fantasy-metric-k">${esc(k)}</div><div class="fantasy-metric-v">${esc(v)}</div></div>`;}
+function fantasyTeamRow(team,prob,implied){return `<div class="fantasy-team-row"><div class="fantasy-team-id"><img src="${nflLogo(team[1])}" alt=""><b>${esc(team[0])}</b></div><div class="fantasy-team-stat"><span>WIN %</span><b>${prob==null?'—':prob.toFixed(1)+'%'}</b></div><div class="fantasy-team-stat"><span>Implied pts</span><b>${implied==null?'—':implied.toFixed(1)}</b></div></div>`;}
+async function loadGameFantasy(card,gameIndex){
+  const g=NFL_WEEK1[gameIndex], box=card.querySelector('[data-fantasy-body]'); if(!g||!box)return;
+  box.innerHTML=`<div class="nfl-fantasy-head"><span class="nfl-fantasy-title">Fantasy Game Environment</span><span class="nfl-fantasy-source">LIVE</span></div><div class="nfl-fantasy-loading"><span class="depth-live-dot"></span><span>Refreshing matchup data…</span></div>`;
+  fitOpenGameCard(card);
+  const [nfeloResult,market,weather]=await Promise.allSettled([fetchNfeloPage(g).then(t=>parseNfeloGame(t,g)),fetchEspnGameMarket(g),fetchKickoffWeather(g)]);
+  const n=nfeloResult.status==='fulfilled'?nfeloResult.value:{probs:{},currentSpread:null,modelSpread:null,total:null,nfeloWeather:null};
+  const m=market.status==='fulfilled'?market.value:{total:null,homeSpread:null};
+  const w=weather.status==='fulfilled'?weather.value:null;
+  const total=n.total ?? m.total;
+  const homeSpread=n.currentSpread ?? m.homeSpread;
+  const implied=impliedPoints(total,homeSpread);
+
+  // Prefer the exact live win probabilities from the matchup page.
+  // If that fetch/parser misses, derive the same style of percentage from
+  // the live model spread; ESPN's live spread is only the final fallback.
+  let aProb=n.probs?.[nfeloTeamAbbr(g.a[1])] ?? null;
+  let bProb=n.probs?.[nfeloTeamAbbr(g.b[1])] ?? null;
+  if(aProb==null || bProb==null){
+    const probabilitySpread=n.modelSpread ?? n.currentSpread ?? m.homeSpread;
+    const fallbackProb=winProbFromHomeSpread(probabilitySpread);
+    if(aProb==null) aProb=fallbackProb.away;
+    if(bProb==null) bProb=fallbackProb.home;
+  }
+
+  const weatherLabel=weatherText(w);
+  const scoringLabel=scoringEnvironmentText(total);
+  const scriptLabel=gameScriptText(g,aProb,bProb,homeSpread);
+  const t=new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+  box.innerHTML=`<div class="nfl-fantasy-head"><span class="nfl-fantasy-title">Fantasy Game Environment</span><span class="nfl-fantasy-source">LIVE</span></div><div class="fantasy-summary">${fantasyMetric('Weather',weatherLabel)}${fantasyMetric('Scoring environment',scoringLabel)}${fantasyMetric('Game script',scriptLabel)}</div><div class="fantasy-teams">${fantasyTeamRow(g.a,aProb,implied.away)}${fantasyTeamRow(g.b,bProb,implied.home)}</div><div class="fantasy-updated">Updated ${esc(t)}</div>`;
+  fitOpenGameCard(card);
+}
+function fitOpenGameCard(card){
+  if(!card || !card.classList.contains('is-open')) return;
+  requestAnimationFrame(()=>{
+    if(!card.classList.contains('is-open')) return;
+    const back=card.querySelector('.nfl-card-back');
+    if(!back) return;
+    const needed=Math.ceil(back.getBoundingClientRect().height);
+    const current=Math.ceil(card.getBoundingClientRect().height);
+    if(needed>0 && Math.abs(needed-current)>1) card.style.height=`${needed}px`;
+  });
 }
 function centerOpenGame(card){
   requestAnimationFrame(()=>setTimeout(()=>{
@@ -2596,7 +2908,10 @@ function centerOpenGame(card){
 }
 function closeGameCard(card){
   if(!card) return;
+  card._fitObserver?.disconnect?.();
+  card._fitObserver=null;
   card.classList.remove('is-open');
+  card.style.height='';
   const front = card.querySelector('.nfl-card-front');
   if(front) front.setAttribute('aria-expanded','false');
 }
@@ -2604,10 +2919,20 @@ function openGameCard(card){
   if(!card) return;
   week1El.querySelectorAll('.nfl-game.is-open').forEach(other=>{ if(other!==card) closeGameCard(other); });
   card.classList.add('is-open');
+  card.style.height='';
+  const back=card.querySelector('.nfl-card-back');
+  if(back && 'ResizeObserver' in window){
+    card._fitObserver?.disconnect?.();
+    card._fitObserver=new ResizeObserver(()=>fitOpenGameCard(card));
+    card._fitObserver.observe(back);
+  }
+  fitOpenGameCard(card);
   const front = card.querySelector('.nfl-card-front');
   if(front) front.setAttribute('aria-expanded','true');
   centerOpenGame(card);
-  loadGameDepth(card, Number(card.dataset.gameIndex));
+  const gameIndex=Number(card.dataset.gameIndex);
+  loadGameDepth(card, gameIndex);
+  loadGameFantasy(card, gameIndex);
 }
 
 const week1El = $('#week1-scroll');
@@ -2615,7 +2940,7 @@ if(week1El){
   const teamRow = t => `<div class="nfl-team"><img src="${nflLogo(t[1])}" alt="" loading="lazy"><span class="nfl-team-name">${esc(t[0])}</span><span class="nfl-team-record">0-0</span></div>`;
   week1El.innerHTML = NFL_WEEK1.map((g,i) => `<article class="nfl-game" data-game-index="${i}">
     <div class="nfl-card-inner">
-      <button class="nfl-card-face nfl-card-front" type="button" aria-expanded="false" aria-label="Show live fantasy depth chart for ${esc(g.a[0])} vs ${esc(g.b[0])}">
+      <button class="nfl-card-face nfl-card-front" type="button" aria-expanded="false" aria-label="Show live fantasy game details for ${esc(g.a[0])} vs ${esc(g.b[0])}">
         <div class="nfl-game-top"><span class="nfl-game-time">${g.day} | ${g.date} | ${g.time}</span><span class="nfl-game-net">${g.net}</span></div>
         ${teamRow(g.a)}${teamRow(g.b)}
       </button>
@@ -2639,6 +2964,14 @@ if(week1El){
   week1El.addEventListener('error', e=>{
     if(e.target?.classList?.contains('depth-headshot')) e.target.classList.add('is-missing');
   }, true);
+  let week1ResizeTimer;
+  window.addEventListener('resize',()=>{
+    clearTimeout(week1ResizeTimer);
+    week1ResizeTimer=setTimeout(()=>{
+      const open=week1El.querySelector('.nfl-game.is-open');
+      if(open){open.style.height='';fitOpenGameCard(open);}
+    },80);
+  },{passive:true});
 }
 
 /* ---- draft cards ---- */
@@ -2962,6 +3295,46 @@ const playoffTreeHTML = (p, type='past', compact=false) => `<div class="playoff-
   <div class="pt-third"><div class="pt-third-wrap"><div class="pt-label">3rd Place</div>${playoffMatchHTML(p.third,type,'',compact)}</div></div>
 </div>`;
 
+
+/* Roster-management archive from ESPN Transaction Counter pages, 2019–2025. */
+const TX_HISTORY={
+  2019:[
+    {manager:'MISBA',trades:3,adds:52,drops:50,activate:68,ir:11},{manager:'BRYAN',trades:2,adds:38,drops:38,activate:67,ir:9},{manager:'ED',trades:0,adds:52,drops:52,activate:80,ir:1},{manager:'NATHAN M',trades:1,adds:14,drops:14,activate:42,ir:0},{manager:'JACOB',trades:1,adds:31,drops:31,activate:57,ir:1},{manager:'CESAR',trades:0,adds:15,drops:15,activate:40,ir:3},{manager:'KAT',trades:2,adds:11,drops:11,activate:32,ir:1},{manager:'GARRETT',trades:1,adds:11,drops:10,activate:30,ir:2},{manager:'THOMAS',trades:0,adds:10,drops:9,activate:32,ir:1},{manager:'JESSICA',trades:2,adds:28,drops:27,activate:53,ir:2}
+  ],
+  2020:[
+    {manager:'MISBA',trades:1,adds:53,drops:53,activate:87,ir:20},{manager:'BRYAN',trades:1,adds:47,drops:47,activate:92,ir:9},{manager:'ED',trades:0,adds:24,drops:24,activate:73,ir:3},{manager:'NATHAN M',trades:0,adds:11,drops:10,activate:49,ir:1},{manager:'JACOB',trades:0,adds:23,drops:22,activate:41,ir:6},{manager:'CESAR',trades:0,adds:18,drops:18,activate:41,ir:3},{manager:'NATHAN T',trades:2,adds:20,drops:19,activate:50,ir:6},{manager:'GARRETT',trades:0,adds:10,drops:9,activate:44,ir:4},{manager:'THOMAS',trades:0,adds:14,drops:14,activate:45,ir:8},{manager:'JESSICA',trades:0,adds:24,drops:23,activate:52,ir:9}
+  ],
+  2021:[
+    {manager:'MISBA',trades:1,adds:39,drops:38,activate:68,ir:12},{manager:'BRYAN',trades:1,adds:46,drops:44,activate:78,ir:10},{manager:'LOGAN',trades:1,adds:13,drops:15,activate:34,ir:8},{manager:'NATHAN M',trades:0,adds:5,drops:5,activate:17,ir:0},{manager:'WASI',trades:0,adds:18,drops:17,activate:48,ir:3},{manager:'CESAR',trades:0,adds:18,drops:16,activate:59,ir:8},{manager:'NATHAN T',trades:0,adds:26,drops:27,activate:50,ir:5},{manager:'GARRETT',trades:0,adds:7,drops:7,activate:51,ir:3},{manager:'JARRETT',trades:0,adds:15,drops:13,activate:49,ir:2},{manager:'DANNY',trades:1,adds:17,drops:16,activate:56,ir:6}
+  ],
+  2022:[
+    {manager:'MISBA',trades:5,adds:49,drops:49,activate:67,ir:11},{manager:'JOE',trades:1,adds:33,drops:31,activate:64,ir:8},{manager:'TYLER',trades:1,adds:13,drops:13,activate:38,ir:0},{manager:'NATHAN M',trades:0,adds:5,drops:5,activate:33,ir:0},{manager:'WASI',trades:1,adds:21,drops:21,activate:37,ir:1},{manager:'CESAR',trades:0,adds:22,drops:20,activate:43,ir:8},{manager:'NATHAN T',trades:2,adds:28,drops:28,activate:68,ir:4},{manager:'GARRETT',trades:0,adds:22,drops:22,activate:52,ir:5},{manager:'JARRETT',trades:2,adds:8,drops:7,activate:36,ir:2},{manager:'SAXON',trades:0,adds:5,drops:5,activate:37,ir:1}
+  ],
+  2023:[
+    {manager:'MISBA',trades:2,adds:51,drops:49,activate:80,ir:8},{manager:'BRYAN',trades:1,adds:40,drops:38,activate:73,ir:7},{manager:'TYLER',trades:0,adds:15,drops:15,activate:37,ir:0},{manager:'NATHAN M',trades:0,adds:5,drops:5,activate:28,ir:0},{manager:'WASI',trades:1,adds:20,drops:20,activate:40,ir:1},{manager:'CESAR',trades:0,adds:14,drops:12,activate:44,ir:12},{manager:'NATHAN T',trades:0,adds:28,drops:28,activate:46,ir:4},{manager:'GARRETT',trades:1,adds:9,drops:8,activate:46,ir:2},{manager:'JARRETT',trades:1,adds:7,drops:5,activate:38,ir:3},{manager:'SAXON',trades:0,adds:6,drops:6,activate:39,ir:0}
+  ],
+  2024:[
+    {manager:'MISBA',trades:1,adds:45,drops:43,activate:64,ir:11},{manager:'BRYAN',trades:0,adds:33,drops:33,activate:68,ir:10},{manager:'TYLER',trades:0,adds:14,drops:14,activate:43,ir:0},{manager:'NATHAN M',trades:0,adds:4,drops:4,activate:26,ir:1},{manager:'WASI',trades:0,adds:21,drops:19,activate:63,ir:2},{manager:'CESAR',trades:0,adds:11,drops:11,activate:73,ir:4},{manager:'NATHAN T',trades:1,adds:17,drops:21,activate:51,ir:4},{manager:'GARRETT',trades:0,adds:12,drops:13,activate:61,ir:5},{manager:'JARRETT',trades:0,adds:10,drops:10,activate:46,ir:4},{manager:'SAXON',trades:0,adds:6,drops:5,activate:37,ir:3}
+  ],
+  2025:[
+    {manager:'MISBA',trades:3,adds:50,drops:49,activate:89,ir:9},{manager:'BRYAN',trades:1,adds:54,drops:53,activate:88,ir:6},{manager:'TYLER',trades:1,adds:10,drops:9,activate:34,ir:1},{manager:'NATHAN M',trades:0,adds:4,drops:3,activate:28,ir:1},{manager:'WASI',trades:0,adds:21,drops:21,activate:47,ir:2},{manager:'CESAR',trades:0,adds:14,drops:13,activate:32,ir:4},{manager:'NATHAN T',trades:1,adds:25,drops:24,activate:56,ir:7},{manager:'GARRETT',trades:0,adds:2,drops:3,activate:43,ir:3},{manager:'JARRETT',trades:0,adds:8,drops:8,activate:45,ir:3},{manager:'KAT',trades:0,adds:13,drops:12,activate:46,ir:2}
+  ]
+};
+const txRowsForYear=year=>TX_HISTORY[Number(year)]||[];
+const txMoves=r=>Number(r.trades)+Number(r.adds)+Number(r.drops)+Number(r.activate)+Number(r.ir);
+const txMax=(rows,getter)=>rows.reduce((m,r)=>Math.max(m,getter(r)),-Infinity);
+const txLeaders=(rows,getter)=>{const max=txMax(rows,getter);return {value:max,managers:rows.filter(r=>getter(r)===max).map(r=>r.manager)};};
+const txLeagueAdds=Object.fromEntries(Object.entries(TX_HISTORY).map(([year,rows])=>[Number(year),rows.reduce((n,r)=>n+Number(r.adds),0)]));
+const txYears=Object.keys(TX_HISTORY).map(Number).sort((a,b)=>a-b);
+const txCareerRows=name=>txYears.flatMap(year=>txRowsForYear(year).filter(r=>r.manager===name).map(r=>({...r,year,moves:txMoves(r)})));
+const txCareerStats=name=>{
+  const rows=txCareerRows(name); if(!rows.length) return null;
+  const totalAdds=rows.reduce((n,r)=>n+r.adds,0);
+  const totalTrades=rows.reduce((n,r)=>n+r.trades,0);
+  const busiest=rows.reduce((best,r)=>!best||r.adds>best.adds?r:best,null);
+  return {rows,totalAdds,totalTrades,avgAdds:totalAdds/rows.length,busiest};
+};
+
 /* ---- past seasons + full season capsules from Champions ---- */
 /* ---- past seasons + full season capsules from Champions ---- */
 /* ---- past seasons + full season capsules from Champions ---- */
@@ -3030,6 +3403,14 @@ const playoffTreeHTML = (p, type='past', compact=false) => `<div class="playoff-
   };
 
 
+  const txLeagueActivityHTML = year => {
+    const rows=txRowsForYear(year); if(!rows.length) return '';
+    const leagueAdds=txLeagueAdds[Number(year)]||0, maxLeague=Math.max(...Object.values(txLeagueAdds));
+    const bars=txYears.map(y=>`<div class="roster-activity-year${y===Number(year)?' current':''}"><span class="roster-activity-count">${txLeagueAdds[y]}</span><span class="roster-activity-track"><span class="roster-activity-fill" style="height:${Math.max(8,(txLeagueAdds[y]/maxLeague)*100).toFixed(1)}%"></span></span><span class="roster-activity-label">${y}</span></div>`).join('');
+    return `<section class="season-section"><div class="season-section-head"><h3 class="season-section-title">League Activity</h3><div class="season-section-note">Player adds by season</div></div><div class="roster-activity"><div class="roster-activity-head"><div><div class="roster-activity-k">${year} League Total</div><div class="roster-activity-v">${leagueAdds} player adds</div></div><div class="roster-activity-range">2019–2025</div></div><div class="roster-activity-bars">${bars}</div></div></section>`;
+  };
+
+
   const seasonDetailHTML = year => {
     const x=getSeasonArchive(year); if(!x) return '';
     const high=x.summary.highest_week;
@@ -3040,6 +3421,11 @@ const playoffTreeHTML = (p, type='past', compact=false) => `<div class="playoff-
     const heroBadges=[`${Math.round(x.champRow.wins)}–${Math.round(x.champRow.losses)} regular season`,`${seasonFmt(x.champRow.points_for)} PF`,`${x.champRow.final_finish===1?'1st overall':''}`].filter(Boolean);
     const bestRecordValue=`${Math.round(x.bestRecordRows[0].wins)}–${Math.round(x.bestRecordRows[0].losses)}`;
     const champSeries=x.regFinalMeetings.length ? `${seasonManagerTrigger(x.champ)} went ${x.champRegWins}–${x.regFinalMeetings.length-x.champRegWins} against ${seasonManagerTrigger(x.runner)} in the regular season before winning the title game.` : '';
+    const txRows=txRowsForYear(year);
+    const txAdds=txRows.length?txLeaders(txRows,r=>r.adds):null;
+    const txTrades=txRows.length?txLeaders(txRows,r=>r.trades):null;
+    const txRosterMoves=txRows.length?txLeaders(txRows,txMoves):null;
+    const txManagerList=leaders=>leaders.managers.map(seasonManagerInline).join(' · ');
     return `<div class="season-detail season-capsule">
       <section class="season-capsule-hero">${av(x.champ,'lg')}<div class="season-capsule-main"><div class="season-capsule-kicker">${year} League Champion</div><h3 class="season-capsule-name">${esc(x.champ)}</h3><div class="season-capsule-team">${esc(x.champRow.team||x.summary.champion_team||'')}</div><div class="season-capsule-badges">${heroBadges.map(b=>`<span class="season-capsule-badge">${esc(b)}</span>`).join('')}</div></div><div class="season-title-score"><div class="lab">Championship</div><div class="score">${seasonFmt(seasonWinnerScore(x.final))}–${seasonFmt(seasonLoserScore(x.final))}</div><div class="opp">over ${esc(x.runner)}</div></div></section>
 
@@ -3057,12 +3443,16 @@ const playoffTreeHTML = (p, type='past', compact=false) => `<div class="playoff-
         ${storyCard('Biggest Blowout',`${seasonFmt(x.blowout.margin)} pts <span class="season-story-week">· Week ${x.blowout.week}</span>`,matchupCopy(x.blowout,false))}
         ${storyCard('Highest Score in a Loss',`${seasonFmt(highLossScore)} pts <span class="season-story-week">· Week ${x.highLoss.week}</span>`,`${seasonManagerInline(highLossLoser)} lost to ${seasonManagerInline(highLossWinner)} ${seasonFmt(highLossWinScore)}–${seasonFmt(highLossScore)}`)}
         ${storyCard('Highest-Scoring Matchup',`${seasonFmt(combinedTotal)} combined <span class="season-story-week">· Week ${x.combined.week}</span>`,matchupCopy(x.combined,false))}
+        ${txAdds?storyCard('Most Player Adds',`${txAdds.value} adds`,txManagerList(txAdds)):''}
+        ${txTrades?storyCard('Most Trades',`${txTrades.value} trade${txTrades.value===1?'':'s'}`,txManagerList(txTrades)):''}
+        ${txRosterMoves?storyCard('Most Roster Moves',`${txRosterMoves.value} moves`,txManagerList(txRosterMoves)):''}
       </div></section>
 
       <section class="season-section"><div class="season-section-head"><h3 class="season-section-title">Final Standings</h3><div class="season-section-note">Regular-season record · final playoff finish</div></div><div class="season-standings-list"><div class="season-standings-head"><div>Final</div><div>Manager / Team</div><div class="season-standings-head-stats"><div>Record</div><div>PF</div><div>Finish</div></div></div>${standingsRowsHTML(x)}</div></section>
 
       ${draftHTML(x)}
       ${awardsHTML(x)}
+      ${txLeagueActivityHTML(year)}
 
       <section class="season-section"><div class="season-section-head"><h3 class="season-section-title">Season Settings</h3></div><div class="season-settings-grid">${rulesHTML(x)}</div></section>
       ${seasonNavHTML(year)}
@@ -3703,6 +4093,7 @@ const AWARD24_VIEWS = {
     const [frV,frS]=firstRoundText(dna);
     const repeated=dna?.most_repeated_players?.[0] || null;
     const winnings=careerWinningsBreakdown(name);
+    const tx=txCareerStats(name);
     const winningsItems=winnings.items.map(item=>`<div class="profile-winnings-item"><span class="profile-winnings-source">${item.year} ${esc(item.label)}</span><span class="profile-winnings-amount">$${item.amount.toLocaleString()}</span></div>`).join('');
     const titleYears=seasons.filter(s=>postseasonLabel(name,s.year)==='Champion').map(s=>s.year);
     const badges=[];
@@ -3728,6 +4119,13 @@ const AWARD24_VIEWS = {
 
     const awardHTML=awards.map(a=>`<div class="profile-award"><div class="profile-award-top"><span class="profile-award-year">${a.year}</span>${a.cash_prize?`<span class="profile-award-prize">$${a.cash_prize}</span>`:''}</div><div class="profile-award-name">${esc(a.award)}</div><div class="profile-award-stat">${a.value!=null?`${esc(a.value)}${a.metric?` · ${esc(a.metric)}`:''}`:(a.metric?esc(a.metric):'Official season award')}</div></div>`).join('');
 
+    const rosterHTML=tx?(()=>{
+      const maxAdds=Math.max(...tx.rows.map(r=>r.adds));
+      const rowMap=Object.fromEntries(tx.rows.map(r=>[r.year,r]));
+      const years=txYears.map(year=>{const r=rowMap[year];if(!r)return `<div class="profile-roster-year"><span class="profile-roster-n">—</span><span class="profile-roster-barbox"></span><span class="profile-roster-y">${year}</span></div>`;return `<div class="profile-roster-year" title="${year}: ${r.adds} player adds"><span class="profile-roster-n">${r.adds}</span><span class="profile-roster-barbox"><span class="profile-roster-bar" style="height:${Math.max(7,(r.adds/maxAdds)*100).toFixed(1)}%"></span></span><span class="profile-roster-y">${year}</span></div>`;}).join('');
+      return `<div class="profile-section"><div class="profile-section-title">Roster Management</div><div class="profile-roster-stats"><div class="profile-roster-card"><div class="k">Career Player Adds</div><div class="v">${tx.totalAdds}</div><div class="s">across ${tx.rows.length} tracked season${tx.rows.length===1?'':'s'}</div></div><div class="profile-roster-card"><div class="k">Career Trades</div><div class="v">${tx.totalTrades}</div><div class="s">completed trades</div></div><div class="profile-roster-card"><div class="k">Avg Adds / Season</div><div class="v">${num(tx.avgAdds,1)}</div></div><div class="profile-roster-card"><div class="k">Busiest Season</div><div class="v">${tx.busiest.year}</div><div class="s">${tx.busiest.adds} player adds</div></div></div><div class="profile-roster-chart-label">Player Adds by Season</div><div class="profile-roster-years">${years}</div></div>`;
+    })():'';
+
     return `<div class="manager-profile">
       <div class="profile-highlight"><div><div class="manager-modal-kicker">${current?'Current Manager':'League Alum'}</div><div style="font-family:var(--serif);font-weight:900;font-size:23px;color:var(--navy)">${esc(name)}</div></div><div class="champ-years">${badges.join('')}</div></div>
       <div class="profile-stats">
@@ -3743,6 +4141,7 @@ const AWARD24_VIEWS = {
       <div class="profile-winnings-card"><div class="profile-winnings-head"><span class="profile-winnings-label">Career Winnings</span><strong class="profile-winnings-total">$${winnings.total.toLocaleString()}</strong></div>${winningsItems?`<div class="profile-winnings-items">${winningsItems}</div>`:'<div class="profile-winnings-empty">No recorded prize winnings.</div>'}</div>
       ${weeklyBest?`<div class="profile-callout"><div class="profile-callout-k">Best Weekly Scoring Season</div><div class="profile-callout-v">${weeklyBest.year} · Outscored ${pct(weeklyBest.all_play_pct)} of the league week-to-week</div></div>`:''}
       <div class="profile-section"><div class="profile-section-title">Season History</div>${seasonList?`<div class="profile-season-list">${seasonList}</div>`:'<div class="profile-empty">No documented season results.</div>'}</div>
+      ${rosterHTML}
       <div class="profile-section"><div class="profile-section-title">Head-to-Head</div>${rivalRows?`<div class="profile-rivals">${rivalRows}</div>`:'<div class="profile-empty">No historical head-to-head matchups recorded.</div>'}</div>
       <div class="profile-section"><div class="profile-section-title">Draft DNA</div>${dna?`<div class="profile-dna">
         <div class="profile-dna-card"><div class="k">Drafts Tracked</div><div class="v">${dna.drafts}</div><div class="s">complete historical drafts</div></div>
@@ -3772,6 +4171,7 @@ const AWARD24_VIEWS = {
     return !best||total>best.total?{...g,total}:best;
   },null);
   const winStreak=R.regular_season.longest_win_streak, lossStreak=R.regular_season.longest_loss_streak;
+  const txAllRows=txYears.flatMap(year=>txRowsForYear(year).map(r=>({...r,year,moves:txMoves(r)})));
   const championYears=name=>HIST.official_playoffs.filter(p=>{
     const g=p.championship;
     const winner=Number(g.score1)>Number(g.score2)?g.manager1:g.manager2;
