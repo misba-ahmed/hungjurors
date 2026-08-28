@@ -167,6 +167,23 @@
     button.cc:hover .pod.p1 .av{transform:translateY(-3px) scale(1.06)}
     button.cc:hover .cc-flipcue .arr{transform:translateX(5px)}
   }
+
+  /* Phones/tablets have no hover. The card nearest the center of the
+     horizontal Past Seasons rail receives the same visual treatment
+     automatically as the user swipes through the dynasty. */
+  button.cc.is-scroll-active{
+    border-color:var(--brass);
+    border-bottom-color:var(--brass);
+    background:#FFFDF4;
+    transform:translateY(-9px) scale(1.025) rotateX(1.5deg);
+    box-shadow:0 18px 34px rgba(20,50,79,.18);
+    filter:saturate(1.03);
+    z-index:2;
+  }
+  button.cc.is-scroll-active::after{opacity:1;transform:translateX(62%) rotate(2deg)}
+  button.cc.is-scroll-active .pod.p1 .av{transform:translateY(-3px) scale(1.06)}
+  button.cc.is-scroll-active .cc-flipcue .arr{transform:translateX(5px)}
+
   button.cc:active{transform:translateY(-3px) scale(.992)}
   button.cc:focus-visible{outline:3px solid var(--brass-bright);outline-offset:3px}
   .cc.reigning{border:2px solid var(--brass);border-bottom:4px solid var(--brass);background:#FFFDF4}
@@ -203,6 +220,7 @@
     box-shadow:0 12px 26px rgba(20,50,79,.12),inset 0 1px 0 rgba(255,255,255,.9);
   }
   @media(hover:hover) and (pointer:fine){.cc.featured-season:hover{background:linear-gradient(180deg,#fffef9 0%,#fbf0d3 100%);transform:translateY(-11px) scale(1.018) rotateX(1.2deg);box-shadow:0 22px 42px rgba(20,50,79,.19)}}
+  .cc.featured-season.is-scroll-active{background:linear-gradient(180deg,#fffef9 0%,#fbf0d3 100%);transform:translateY(-11px) scale(1.018) rotateX(1.2deg);box-shadow:0 22px 42px rgba(20,50,79,.19)}
   .cc.featured-season .cyr{font-size:34px;line-height:1}
   .cc.featured-season .ctag{top:13px;right:13px;background:var(--navy);color:#fff;border:1px solid rgba(255,255,255,.18)}
   .cc.featured-season .podium{max-width:300px;margin:12px auto 0;gap:12px}
@@ -224,6 +242,8 @@
   @media(prefers-reduced-motion:reduce){
     .cc,.cc::after,.pod .av,.cc-flipcue .arr{transition:none!important}
     .cc::after{display:none!important}
+    button.cc.is-scroll-active{transform:none}
+    .cc.featured-season.is-scroll-active{transform:none}
   }
   @media(max-width:640px){
     .cc{flex-basis:224px}
@@ -3874,6 +3894,52 @@ const getSeasonArchive = year => {
       <div class="cc-flipcue">FLIP FOR FULL SEASON DETAILS <span class="arr">→</span></div>`;
     return `<button type="button" class="cc history-jump ${i===0?'featured-season reigning':''}" data-year="${c.year}" aria-label="Open ${c.year} season details">${inner}</button>`;
   }).join('');
+
+  const seasonRail=$('#champs-carousel');
+  const seasonCards=[...seasonRail.querySelectorAll('.cc')];
+  const seasonUsesAutoHighlight=()=>window.matchMedia('(hover: none)').matches || window.matchMedia('(pointer: coarse)').matches;
+
+  let seasonHighlightRaf=0;
+  const updateSeasonScrollHighlight=()=>{
+    seasonHighlightRaf=0;
+
+    if(!seasonUsesAutoHighlight()){
+      seasonCards.forEach(card=>card.classList.remove('is-scroll-active'));
+      return;
+    }
+
+    const railRect=seasonRail.getBoundingClientRect();
+    const railCenter=railRect.left + railRect.width/2;
+    let nearest=null;
+    let nearestDistance=Infinity;
+
+    seasonCards.forEach(card=>{
+      const rect=card.getBoundingClientRect();
+      const cardCenter=rect.left + rect.width/2;
+      const distance=Math.abs(cardCenter-railCenter);
+
+      /* Ignore cards completely outside the visible rail before choosing
+         the nearest center card. */
+      const visible=rect.right>railRect.left && rect.left<railRect.right;
+      if(visible && distance<nearestDistance){
+        nearest=card;
+        nearestDistance=distance;
+      }
+    });
+
+    seasonCards.forEach(card=>card.classList.toggle('is-scroll-active',card===nearest));
+  };
+  const queueSeasonScrollHighlight=()=>{
+    if(seasonHighlightRaf) return;
+    seasonHighlightRaf=requestAnimationFrame(updateSeasonScrollHighlight);
+  };
+
+  seasonRail.addEventListener('scroll',queueSeasonScrollHighlight,{passive:true});
+  window.addEventListener('resize',queueSeasonScrollHighlight,{passive:true});
+  window.matchMedia('(hover: none)').addEventListener?.('change',queueSeasonScrollHighlight);
+  window.matchMedia('(pointer: coarse)').addEventListener?.('change',queueSeasonScrollHighlight);
+
+  requestAnimationFrame(updateSeasonScrollHighlight);
 }
 
 const awardRowsForDisplay = year => Number(year)===2024 ? DATA.s2024.awards : DATA.s2025.awards;
