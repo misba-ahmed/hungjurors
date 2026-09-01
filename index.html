@@ -2387,6 +2387,7 @@
 
   main{max-width:1060px;margin:0 auto;padding:0 20px 80px}
   section{padding-top:58px}
+  #draft{padding-top:36px;scroll-margin-top:48px}
   .sec-head{display:flex;align-items:baseline;gap:14px;border-bottom:2px solid var(--navy);padding-bottom:10px;margin-bottom:22px;flex-wrap:wrap}
   .sec-head .ex{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--brass);text-transform:uppercase;white-space:nowrap}
   .sec-head h3{font-family:var(--serif);font-weight:900;font-size:clamp(22px,4vw,30px);color:var(--navy)}
@@ -5476,7 +5477,7 @@
     width:100%;
     max-width:100%;
     margin:2px auto 0;
-    padding:0 0 26px;
+    padding:0 0 14px;
     text-align:left;
   }
   .ffn-head{
@@ -5539,7 +5540,77 @@
     cursor:pointer;
     animation:ffnNewPulse 1.8s ease-in-out infinite;
   }
+  .ffn-refresh{
+    appearance:none;
+    -webkit-appearance:none;
+    width:22px;
+    height:22px;
+    flex:0 0 22px;
+    display:grid;
+    place-items:center;
+    padding:0;
+    border:0;
+    border-radius:50%;
+    background:transparent;
+    color:#7b838a;
+    font-family:Arial,sans-serif;
+    font-size:15px;
+    line-height:1;
+    cursor:pointer;
+    transition:color .16s ease,background .16s ease,opacity .16s ease;
+  }
+  .ffn-refresh svg{display:block;width:13px;height:13px}
+  .ffn-refresh:hover{color:var(--navy);background:rgba(20,50,79,.06)}
+  .ffn-refresh:focus-visible{outline:2px solid rgba(185,138,46,.55);outline-offset:2px}
+  .ffn-refresh:disabled{cursor:wait;opacity:.34}
   @keyframes ffnNewPulse{0%,100%{box-shadow:0 0 0 0 rgba(217,169,63,0)}50%{box-shadow:0 0 0 4px rgba(217,169,63,.10)}}
+
+  .ffn-filters{
+    display:grid;
+    grid-template-columns:minmax(120px,220px) 82px 82px auto;
+    align-items:center;
+    justify-content:start;
+    gap:6px;
+    margin:0 2px 8px;
+  }
+  .ffn-filter-control{
+    min-width:0;
+    height:27px;
+    border:1px solid rgba(20,50,79,.14);
+    border-radius:6px;
+    background:#fff;
+    color:var(--navy);
+    padding:0 7px;
+    font-family:var(--mono);
+    font-size:7.5px;
+    line-height:1;
+    font-weight:800;
+    letter-spacing:.025em;
+    outline:none;
+  }
+  .ffn-filter-control::placeholder{color:var(--navy-ink);opacity:.42}
+  .ffn-filter-control:hover{border-color:rgba(20,50,79,.26)}
+  .ffn-filter-control:focus{border-color:rgba(185,138,46,.68);box-shadow:0 0 0 2px rgba(185,138,46,.10)}
+  .ffn-filter-control:disabled{opacity:.48;cursor:wait;background:rgba(255,255,255,.62)}
+  select.ffn-filter-control{padding-right:3px;cursor:pointer}
+  .ffn-filter-reset{
+    height:27px;
+    padding:0 8px;
+    border:0;
+    border-radius:6px;
+    background:transparent;
+    color:#7b838a;
+    font-family:var(--mono);
+    font-size:6.8px;
+    line-height:1;
+    font-weight:900;
+    letter-spacing:.055em;
+    text-transform:uppercase;
+    cursor:pointer;
+  }
+  .ffn-filter-reset:hover:not(:disabled){background:rgba(20,50,79,.06);color:var(--navy)}
+  .ffn-filter-reset:focus-visible{outline:2px solid rgba(185,138,46,.55);outline-offset:1px}
+  .ffn-filter-reset:disabled{opacity:.28;cursor:default}
 
   .ffn-scroll{
     display:flex;
@@ -5796,12 +5867,50 @@
   .ffn-loading-dots i:nth-child(2){animation-delay:.15s}
   .ffn-loading-dots i:nth-child(3){animation-delay:.30s}
   @keyframes ffnDot{0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-3px);opacity:1}}
+  .ffn-loading-state{
+    flex:1 0 100%;
+    min-height:230px;
+    display:grid;
+    place-items:center;
+    padding:24px;
+    border:1px dashed rgba(20,50,79,.18);
+    border-radius:9px;
+    background:linear-gradient(135deg,rgba(255,255,255,.62),rgba(239,233,216,.52));
+    color:var(--navy-ink);
+    text-align:center;
+  }
+  .ffn-loading-inner{display:grid;justify-items:center;gap:9px}
+  .ffn-loading-inner strong{
+    font-family:var(--mono);
+    font-size:8px;
+    line-height:1.35;
+    font-weight:900;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--navy);
+  }
+  .ffn-loading-inner span{
+    max-width:260px;
+    font-family:var(--mono);
+    font-size:6.5px;
+    line-height:1.45;
+    font-weight:700;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    opacity:.48;
+  }
+  .ffn-loading-state.is-error{border-style:solid;background:rgba(255,255,255,.58)}
+  .ffn-loading-state.is-error strong{color:var(--verdict-red)}
 
   @media(max-width:640px){
-    .ffn-wrap{padding-bottom:22px}
+    .ffn-wrap{padding-bottom:12px}
     .ffn-head{margin-bottom:7px}
     .ffn-title{font-size:9.2px;letter-spacing:.14em}
     .ffn-status{font-size:6px}
+    .ffn-filters{grid-template-columns:minmax(86px,1fr) 64px 64px auto;gap:4px;margin-bottom:7px}
+    .ffn-filter-control{height:26px;padding-inline:6px;font-size:6.9px}
+    .ffn-filter-reset{height:26px;padding-inline:5px;font-size:6.1px}
+    .ffn-loading-state{min-height:215px;padding:20px}
     .ffn-card,.ffn-loading-card,.ffn-empty{
       flex-basis:min(82vw,248px);
       width:min(82vw,248px);
@@ -6579,6 +6688,53 @@
       font-size:11.7px !important;
     }
   }
+
+  /* v100: consolidate manager-profile header and kill duplicate-name banner */
+  .profile-badge-strip{
+    display:block !important;
+    min-height:0 !important;
+    padding:7px 9px !important;
+    margin-bottom:11px !important;
+    border-radius:9px !important;
+    overflow:hidden !important;
+  }
+  .profile-badge-strip .champ-years{
+    display:flex !important;
+    flex-wrap:nowrap !important;
+    align-items:center !important;
+    gap:6px !important;
+    width:100%;
+    max-width:100%;
+    overflow-x:auto;
+    overflow-y:hidden;
+    padding:1px 0 3px;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-inline:contain;
+  }
+  .profile-badge-strip .champ-years::-webkit-scrollbar{display:none}
+  .profile-badge-strip .profile-chip{
+    flex:0 0 auto;
+    padding:5px 8px !important;
+    font-size:8.5px !important;
+    line-height:1 !important;
+    white-space:nowrap;
+  }
+
+  @media(max-width:620px){
+    .manager-modal-head{
+      padding-top:10px !important;
+      padding-bottom:10px !important;
+    }
+    .profile-badge-strip{
+      padding:6px 7px !important;
+      margin-bottom:9px !important;
+    }
+    .profile-badge-strip .profile-chip{
+      padding:5px 7px !important;
+      font-size:8px !important;
+    }
+  }
 </style>
 </head>
 <body>
@@ -6639,9 +6795,16 @@
       <div class="ffn-head">
         <span class="ffn-title">Fantasy Football News</span>
         <div class="ffn-head-right">
-          <button type="button" class="ffn-new" id="ffn-new" hidden></button>
           <span class="ffn-status" id="ffn-status"><span class="ffn-live-dot"></span>Loading</span>
+          <button type="button" class="ffn-refresh" id="ffn-refresh" aria-label="Refresh news and return to newest" title="Refresh news and return to newest"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66L20 8"></path><path d="M20 3v5h-5"></path></svg></button>
         </div>
+      </div>
+      <div class="ffn-filters" role="search" aria-label="Filter fantasy football news">
+        <input class="ffn-filter-control" id="ffn-player-filter" type="search" list="ffn-player-options" placeholder="Player name" autocomplete="off" aria-label="Search news by player name">
+        <datalist id="ffn-player-options"></datalist>
+        <select class="ffn-filter-control" id="ffn-team-filter" aria-label="Filter news by team"><option value="">Team</option></select>
+        <select class="ffn-filter-control" id="ffn-position-filter" aria-label="Filter news by position"><option value="">Position</option><option value="QB">QB</option><option value="RB">RB</option><option value="WR">WR</option><option value="TE">TE</option><option value="K">K</option></select>
+        <button type="button" class="ffn-filter-reset" id="ffn-filter-reset" disabled>Reset</button>
       </div>
       <div class="ffn-scroll" id="ffn-scroll" tabindex="0" aria-label="Fantasy football news feed"></div>
     </div>
@@ -7642,8 +7805,10 @@ const FFN_SEED=[{"id":"seed-puka-20260831","published_at":"2026-08-31","time_pre
 const FFN_BATCH=10;
 const FFN_PLAYER_NEWS_LIMIT=50;
 const FFN_HISTORY_CONCURRENCY=10;
+const FFN_REFRESH_LIMIT=5;
+const FFN_REFRESH_CONCURRENCY=16;
 
-let ffnItems=FFN_SEED.map(x=>({...x,related:[...(x.related||[])]}));
+let ffnItems=[];
 let ffnRendered=0;
 let ffnKnown=new Set();
 let ffnDeepItems=[];
@@ -7657,6 +7822,11 @@ let ffnRosterByTeam=new Map();
 let ffnNextGameCache=new Map();
 let ffnLoadingOlder=false;
 let ffnBufferTimer=0;
+let ffnRefreshPromise=null;
+let ffnLiveReady=false;
+let ffnFilteredItems=[];
+let ffnFilterState={player:'',team:'',position:''};
+let ffnStatusBase='Loading';
 
 function ffnNorm(v=''){
   return String(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
@@ -7696,12 +7866,104 @@ function ffnPhoto(item){
 function ffnImageFallback(img){
   if(img)img.style.display='none';
 }
-function ffnSetStatus(label){
+function ffnFiltersActive(){
+  return Boolean(ffnFilterState.player||ffnFilterState.team||ffnFilterState.position);
+}
+function ffnCurrentItems(){
+  return ffnFiltersActive()?ffnFilteredItems:ffnItems;
+}
+function ffnSyncFilteredItems(){
+  if(!ffnFiltersActive()){
+    ffnFilteredItems=[];
+    return;
+  }
+  const player=ffnNorm(ffnFilterState.player);
+  const team=String(ffnFilterState.team||'').toUpperCase();
+  const position=String(ffnFilterState.position||'').toUpperCase();
+  ffnFilteredItems=ffnItems.filter(item=>{
+    if(player&&!ffnNorm(item?.player||'').includes(player))return false;
+    if(team&&String(item?.team||'').toUpperCase()!==team)return false;
+    if(position&&String(item?.position||'').toUpperCase()!==position)return false;
+    return true;
+  });
+}
+function ffnUpdateFilterOptions(){
+  const list=$('#ffn-player-options');
+  if(list){
+    const names=[...new Set([...ffnItems.map(x=>x?.player),...ffnRosterPlayers.map(x=>x?.name)].filter(Boolean))]
+      .sort((a,b)=>String(a).localeCompare(String(b)));
+    list.innerHTML=names.map(name=>`<option value="${esc(name)}"></option>`).join('');
+  }
+  const teamSelect=$('#ffn-team-filter');
+  if(teamSelect&&!teamSelect.dataset.ready){
+    const teams=[...new Set(Object.keys(NFL_TEAM_IDS).map(x=>x.toUpperCase().replace(/^WSH$/,'WAS')))];
+    teams.push('FA');
+    teams.sort();
+    teamSelect.insertAdjacentHTML('beforeend',teams.map(team=>`<option value="${esc(team)}">${esc(team)}</option>`).join(''));
+    teamSelect.dataset.ready='true';
+  }
+}
+function ffnRenderStatus(){
   const el=$('#ffn-status');if(!el)return;
+  const label=ffnFiltersActive()?`${ffnFilteredItems.length.toLocaleString()} ${ffnFilteredItems.length===1?'result':'results'}`:ffnStatusBase;
   el.innerHTML=`<span class="ffn-live-dot"></span>${esc(label)}`;
 }
+function ffnSetStatus(label){
+  ffnStatusBase=label;
+  ffnRenderStatus();
+}
+function ffnSetFilterControlsDisabled(disabled){
+  ['#ffn-player-filter','#ffn-team-filter','#ffn-position-filter'].forEach(selector=>{
+    const control=$(selector);
+    if(control)control.disabled=disabled;
+  });
+  const reset=$('#ffn-filter-reset');
+  if(reset)reset.disabled=disabled||!ffnFiltersActive();
+}
+function ffnShowLoading(){
+  const rail=$('#ffn-scroll');if(!rail)return;
+  rail.setAttribute('aria-busy','true');
+  rail.innerHTML=`<div class="ffn-loading-state" role="status">
+    <div class="ffn-loading-inner">
+      <div class="ffn-loading-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+      <strong>Loading live ESPN news</strong>
+      <span>Checking current player updates before showing the feed.</span>
+    </div>
+  </div>`;
+}
+function ffnShowLoadError(){
+  const rail=$('#ffn-scroll');if(!rail)return;
+  rail.removeAttribute('aria-busy');
+  rail.innerHTML=`<div class="ffn-loading-state is-error" role="alert">
+    <div class="ffn-loading-inner">
+      <strong>Live news could not load</strong>
+      <span>Use the refresh button above to try ESPN again.</span>
+    </div>
+  </div>`;
+}
+function ffnApplyFilters(){
+  ffnFilterState={
+    player:$('#ffn-player-filter')?.value?.trim()||'',
+    team:$('#ffn-team-filter')?.value||'',
+    position:$('#ffn-position-filter')?.value||''
+  };
+  ffnSyncFilteredItems();
+  const reset=$('#ffn-filter-reset');
+  if(reset)reset.disabled=!ffnFiltersActive();
+  ffnRebuildRail();
+  $('#ffn-scroll')?.scrollTo({left:0,behavior:'auto'});
+}
+function ffnResetFilters(){
+  const player=$('#ffn-player-filter');
+  const team=$('#ffn-team-filter');
+  const position=$('#ffn-position-filter');
+  if(player)player.value='';
+  if(team)team.value='';
+  if(position)position.value='';
+  ffnApplyFilters();
+}
 function ffnRelatedHTML(item){
-  const related=(item.related||[]).slice(0,3);
+  const related=(item.related||[]).slice(0,4);
   if(!related.length)return `<span class="ffn-related-empty">Loading…</span>`;
   return related.map(p=>{
     const photo=p.photo||(p.espn_id?nflHeadshot(p.espn_id):'');
@@ -7712,7 +7974,7 @@ function ffnCardHTML(item){
   const photo=ffnPhoto(item);
   const logo=ffnTeamLogo(item.team);
   const tag=String(item.category||'update').toLowerCase();
-  return `<article class="ffn-card" data-news-id="${esc(item.id||'')}">
+  return `<article class="ffn-card${item.is_fresh?' is-fresh':''}" data-news-id="${esc(item.id||'')}">
     <div class="ffn-player">
       <div class="ffn-photo"><span>${esc(ffnInitials(item.player))}</span>${photo?`<img class="ffn-headshot" src="${esc(photo)}" alt="" loading="lazy" onerror="ffnImageFallback(this)">`:''}${logo?`<img class="ffn-team-logo" src="${esc(logo)}" alt="" onerror="ffnImageFallback(this)">`:''}</div>
       <div class="ffn-player-copy">
@@ -7731,7 +7993,8 @@ function ffnCardHTML(item){
 function ffnAppendBatch(){
   const rail=$('#ffn-scroll');if(!rail)return;
   rail.querySelector('.ffn-end-sentinel')?.remove();
-  const batch=ffnItems.slice(ffnRendered,ffnRendered+FFN_BATCH);
+  const source=ffnCurrentItems();
+  const batch=source.slice(ffnRendered,ffnRendered+FFN_BATCH);
   if(batch.length){
     const fresh=batch.filter(x=>x?.id&&!ffnKnown.has(String(x.id)));
     fresh.forEach(x=>ffnKnown.add(String(x.id)));
@@ -7748,8 +8011,99 @@ function ffnRefreshVisible(item){
   shell.innerHTML=ffnCardHTML(item);
   if(shell.firstElementChild)old.replaceWith(shell.firstElementChild);
 }
-function ffnRosterRows(data,team){
+function ffnOffenseSlotPos(slotKey,slot,entry,athlete){
+  const clean=value=>String(value||'').toUpperCase().replace(/[^A-Z]/g,'');
+  const explicit=clean(slot?.position?.abbreviation||slot?.position?.name||slot?.position?.displayName);
+  if(['KR','PR','P','LS','H'].includes(explicit)||/KICKRETURN|PUNTRETURN|LONGSNAP|PUNTER|HOLDER|DEFENSE|SPECIALTEAM/.test(explicit))return '';
+  if(['QB','RB','WR','TE','K','PK'].includes(explicit))return explicit==='PK'?'K':explicit;
+  if(explicit.includes('QUARTERBACK'))return 'QB';
+  if(explicit.includes('RUNNINGBACK')||explicit.includes('HALFBACK'))return 'RB';
+  if(explicit.includes('WIDERECEIVER'))return 'WR';
+  if(explicit.includes('TIGHTEND'))return 'TE';
+  if(explicit.includes('PLACEKICKER'))return 'K';
+  if(explicit)return '';
+
+  const key=clean(`${slotKey||''} ${slot?.name||''} ${slot?.displayName||''}`);
+  if(['KR','PR','P','LS','H'].includes(key)||/KICKRETURN|PUNTRETURN|LONGSNAP|PUNTER|HOLDER|DEFENSE|SPECIALTEAM/.test(key))return '';
+  if(key==='QB'||key.includes('QUARTERBACK'))return 'QB';
+  if(key==='RB'||key==='HB'||key.includes('RUNNINGBACK')||key.includes('HALFBACK'))return 'RB';
+  if(['WR','LWR','RWR','SWR','SLOTWR'].includes(key)||key.includes('WIDERECEIVER'))return 'WR';
+  if(key==='TE'||key.includes('TIGHTEND'))return 'TE';
+  if(['K','PK'].includes(key)||key.includes('PLACEKICKER'))return 'K';
+
+  let fallback=clean(entry?.position?.abbreviation||athlete?.position?.abbreviation);
+  if(fallback==='PK')fallback='K';
+  return ['QB','RB','WR','TE','K'].includes(fallback)?fallback:'';
+}
+function ffnRosterPositions(data){
+  const positions=new Map();
+  for(const group of depthList(data?.athletes)){
+    for(const player of depthList(group?.items)){
+      const id=String(player?.id||athleteIdFromRef(player?.$ref)||'');
+      let position=String(player?.position?.abbreviation||'').toUpperCase();
+      if(position==='PK')position='K';
+      if(id&&['QB','RB','WR','TE','K'].includes(position))positions.set(id,position);
+    }
+  }
+  return positions;
+}
+function ffnDepthRanks(data,rosterData){
+  const byId=new Map(),byName=new Map();
+  const positions=new Set();
+  const charts=depthList(data?.depthCharts??data?.depthcharts??data?.depthChart??data?.items??[]);
+  const rosterPositions=ffnRosterPositions(rosterData);
+  const slotOrder={QB:0,RB:0,WR:0,TE:0,K:0};
+  const keepBest=(map,key,value)=>{
+    if(!key)return;
+    const old=map.get(key);
+    if(!old||value.tier<old.tier||(value.tier===old.tier&&value.slotOrder<old.slotOrder))map.set(key,value);
+  };
+  for(const chart of charts){
+    for(const [slotKey,slot] of Object.entries(chart?.positions||{})){
+      const entries=depthList(slot?.athletes??slot?.items);
+      const sample=entries[0]||{};
+      let sampleAthlete=sample?.athlete||sample?.player||sample||{};
+      const sampleId=String(sampleAthlete?.id||sample?.athleteId||sample?.playerId||athleteIdFromRef(sampleAthlete?.$ref||sample?.$ref)||'');
+      if(!sampleAthlete?.position?.abbreviation&&rosterPositions.has(sampleId)){
+        sampleAthlete={...sampleAthlete,position:{abbreviation:rosterPositions.get(sampleId)}};
+      }
+      const position=ffnOffenseSlotPos(slotKey,slot,sample,sampleAthlete);
+      if(!position)continue;
+      if(entries.length)positions.add(position);
+      const thisSlot=slotOrder[position]++;
+      entries.forEach((entry,index)=>{
+        const athlete=entry?.athlete||entry?.player||entry||{};
+        const id=String(athlete?.id||entry?.athleteId||entry?.playerId||athleteIdFromRef(athlete?.$ref||entry?.$ref)||'');
+        const name=athlete?.displayName||athlete?.fullName||athlete?.shortName||entry?.displayName||entry?.fullName||'';
+        const tier=Number(entry?.rank??entry?.depth??entry?.order??athlete?.rank)||(index+1);
+        const value={position,tier,slotOrder:thisSlot,slot:String(slotKey||'')};
+        keepBest(byId,id?`${position}:${id}`:'',value);
+        keepBest(byName,name?`${position}:${ffnNorm(name)}`:'',value);
+      });
+    }
+  }
+  return {byId,byName,positions,count:byId.size+byName.size};
+}
+function ffnRawDepthCompare(a,b){
+  return (a.depthTier-b.depthTier)||(a.depthSlot-b.depthSlot)||(a.rosterOrder-b.rosterOrder)||a.name.localeCompare(b.name);
+}
+function ffnDepthCompare(a,b){
+  const positionOrder={QB:0,RB:1,WR:2,TE:3,K:4};
+  return ((positionOrder[a.position]??99)-(positionOrder[b.position]??99))||
+    ((a.positionRank??999)-(b.positionRank??999))||ffnRawDepthCompare(a,b);
+}
+function ffnAssignPositionRanks(rows){
+  for(const position of ['QB','RB','WR','TE','K']){
+    rows.filter(p=>p.position===position).sort(ffnRawDepthCompare).forEach((p,index)=>{
+      p.positionRank=index+1;
+    });
+  }
+  return rows;
+}
+function ffnRosterRows(data,team,depthData){
   const rows=[];
+  const depth=ffnDepthRanks(depthData,data);
+  let rosterOrder=0;
   for(const group of depthList(data?.athletes)){
     for(const p of depthList(group?.items)){
       let pos=String(p?.position?.abbreviation||'').toUpperCase();
@@ -7758,13 +8112,17 @@ function ffnRosterRows(data,team){
       const id=String(p?.id||'');
       const name=p?.displayName||p?.fullName||p?.shortName||'';
       if(!id||!name)continue;
+      const depthRank=depth.byId.get(`${pos}:${id}`)||depth.byName.get(`${pos}:${ffnNorm(name)}`);
       rows.push({
         id,name,norm:ffnNorm(name),team,position:pos,
-        photo:p?.headshot?.href||nflHeadshot(id)
+        photo:p?.headshot?.href||nflHeadshot(id),
+        depthTier:depthRank?.tier??99,
+        depthSlot:depthRank?.slotOrder??99,
+        rosterOrder:rosterOrder++
       });
     }
   }
-  return rows;
+  return ffnAssignPositionRanks(rows);
 }
 async function ffnMapLimit(items,limit,worker){
   const out=new Array(items.length);
@@ -7779,13 +8137,32 @@ async function ffnMapLimit(items,limit,worker){
   await Promise.all(Array.from({length:Math.min(limit,items.length)},run));
   return out;
 }
-async function ffnBuildRoster(){
+async function ffnBuildRoster(force=false){
+  if(force){
+    ffnRosterPromise=null;
+    ffnRosterPlayers=[];
+    ffnRosterByTeam=new Map();
+  }
   if(ffnRosterPromise)return ffnRosterPromise;
   ffnRosterPromise=(async()=>{
     const teams=Object.entries(NFL_TEAM_IDS).map(([abbr,id])=>({abbr:abbr.toUpperCase()==='WSH'?'WAS':abbr.toUpperCase(),id}));
     const chunks=await ffnMapLimit(teams,8,async t=>{
-      const data=await fetchEspnJson(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${t.id}/roster`);
-      return ffnRosterRows(data,t.abbr);
+      const [rosterResult,siteDepthResult]=await Promise.allSettled([
+        fetchEspnJson(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${t.id}/roster`),
+        fetchEspnJson(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${t.id}/depthcharts`)
+      ]);
+      if(rosterResult.status!=='fulfilled')return [];
+      let depthData=siteDepthResult.status==='fulfilled'?siteDepthResult.value:null;
+      let depthSummary=ffnDepthRanks(depthData,rosterResult.value);
+      const skillPositions=['QB','RB','WR','TE'];
+      if(!depthSummary.count||!skillPositions.every(position=>depthSummary.positions.has(position))){
+        try{
+          const coreDepth=await fetchEspnJson(`https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/teams/${t.id}/depthcharts`);
+          const coreSummary=ffnDepthRanks(coreDepth,rosterResult.value);
+          if(coreSummary.positions.size>depthSummary.positions.size||coreSummary.count>depthSummary.count)depthData=coreDepth;
+        }catch(_){}
+      }
+      return ffnRosterRows(rosterResult.value,t.abbr,depthData);
     });
     const byId=new Map();
     chunks.flat().filter(Boolean).forEach(p=>byId.set(p.id,p));
@@ -7795,6 +8172,7 @@ async function ffnBuildRoster(){
       if(!ffnRosterByTeam.has(p.team))ffnRosterByTeam.set(p.team,[]);
       ffnRosterByTeam.get(p.team).push(p);
     }
+    for(const players of ffnRosterByTeam.values())players.sort(ffnDepthCompare);
     return ffnRosterPlayers;
   })();
   return ffnRosterPromise;
@@ -7803,18 +8181,25 @@ function ffnRelatedFor(playerLike){
   const team=String(playerLike?.team||'').toUpperCase();
   const pos=String(playerLike?.position||'').toUpperCase();
   const name=ffnNorm(playerLike?.player||playerLike?.name||'');
-  const pool=(ffnRosterByTeam.get(team)||[]).filter(p=>p.norm!==name);
-  const same=pool.filter(p=>p.position===pos);
+  const ranked=position=>(ffnRosterByTeam.get(team)||[])
+    .filter(p=>p.position===position&&p.norm!==name)
+    .sort((a,b)=>((a.positionRank??999)-(b.positionRank??999))||ffnRawDepthCompare(a,b));
   const chosen=[];
-  for(const group of [same,pool]){
-    for(const p of group){
-      if(chosen.some(x=>x.id===p.id))continue;
-      chosen.push(p);
-      if(chosen.length>=3)break;
+  const add=players=>{
+    for(const p of players){
+      if(!chosen.some(x=>x.id===p.id))chosen.push(p);
     }
-    if(chosen.length>=3)break;
+  };
+  if(pos==='WR'){
+    add(ranked('WR').slice(0,3));
+    add(ranked('TE').slice(0,1));
+  }else if(pos==='TE'){
+    add(ranked('TE').slice(0,3));
+    add(ranked('WR').slice(0,1));
+  }else{
+    add(ranked(pos).slice(0,3));
   }
-  return chosen.slice(0,3).map(p=>({id:p.id,name:p.name,team:p.team,position:p.position,espn_id:p.id,photo:p.photo}));
+  return chosen.slice(0,4).map(p=>({id:p.id,name:p.name,team:p.team,position:p.position,espn_id:p.id,photo:p.photo}));
 }
 async function ffnNextGame(team){
   team=String(team||'').toUpperCase();
@@ -7914,6 +8299,132 @@ function ffnFeedToItem(feed,player,nextGame){
     next_game:nextGame
   };
 }
+function ffnNewsSignature(item){
+  const body=String(item?.text||item?.headline||'').replace(/\s+/g,' ').trim().toLowerCase().slice(0,120);
+  return `${ffnNorm(item?.player||'')}|${body}`;
+}
+async function ffnPlayerLatest(player){
+  const nextGame=await ffnNextGame(player.team);
+  const url=`https://site.api.espn.com/apis/fantasy/v2/games/ffl/news/players?limit=${FFN_REFRESH_LIMIT}&offset=0&playerId=${encodeURIComponent(player.id)}&_=${Date.now()}`;
+  const data=await fetchEspnJson(url);
+  const feed=Array.isArray(data?.feed)?data.feed:[];
+  return feed.map(raw=>ffnFeedToItem(raw,player,nextGame)).filter(Boolean);
+}
+function ffnRebuildRail(){
+  const rail=$('#ffn-scroll');if(!rail)return;
+  rail.removeAttribute('aria-busy');
+  ffnSyncFilteredItems();
+  rail.innerHTML='';
+  ffnRendered=0;
+  ffnKnown=new Set();
+  if(!ffnCurrentItems().length){
+    rail.innerHTML='<div class="ffn-empty">No fantasy news matches these filters.</div>';
+    ffnRenderStatus();
+    return;
+  }
+  ffnAppendBatch();
+  ffnAppendBatch();
+  ffnRenderStatus();
+}
+async function ffnRefreshLatest({returnToStart=false,initial=false}={}){
+  const rail=$('#ffn-scroll');
+  const button=$('#ffn-refresh');
+  if(!rail)return [];
+  if(returnToStart)rail.scrollTo({left:0,behavior:'smooth'});
+  if(ffnRefreshPromise)return ffnRefreshPromise;
+  const bootstrap=initial||!ffnLiveReady;
+
+  button?.setAttribute('aria-busy','true');
+  if(button)button.disabled=true;
+  if(bootstrap){
+    ffnShowLoading();
+    ffnSetFilterControlsDisabled(true);
+    ffnSetStatus('Loading live news…');
+  }else{
+    ffnSetStatus('Checking ESPN…');
+  }
+
+  ffnRefreshPromise=(async()=>{
+    try{
+      const refreshDepth=returnToStart&&!bootstrap;
+      await ffnBuildRoster(refreshDepth);
+      if(refreshDepth)await ffnEnrichBootstrap();
+      ffnUpdateFilterOptions();
+      const pages=await ffnMapLimit(ffnRosterPlayers,FFN_REFRESH_CONCURRENCY,ffnPlayerLatest);
+      const completed=pages.filter(Array.isArray);
+      if(!completed.length)throw new Error('ESPN returned no player-news responses');
+      const fetched=[];
+      const fetchedIds=new Set();
+      const fetchedSignatures=new Set();
+
+      for(const item of completed.flat().filter(Boolean)){
+        const id=String(item.id||'');
+        const signature=ffnNewsSignature(item);
+        if((id&&fetchedIds.has(id))||fetchedSignatures.has(signature))continue;
+        if(id)fetchedIds.add(id);
+        fetchedSignatures.add(signature);
+        fetched.push(item);
+      }
+      if(!fetched.length)throw new Error('ESPN returned no live player news');
+      fetched.sort((a,b)=>new Date(b.published_at)-new Date(a.published_at));
+
+      let fresh=[];
+      if(bootstrap){
+        fetched.forEach(item=>item.is_fresh=false);
+        ffnItems=fetched;
+        ffnLiveReady=true;
+        ffnSetFilterControlsDisabled(false);
+        ffnRebuildRail();
+        rail.scrollTo({left:0,behavior:'auto'});
+      }else{
+        const existingIds=new Set(ffnItems.map(x=>String(x?.id||'')).filter(Boolean));
+        const existingSignatures=new Set(ffnItems.map(ffnNewsSignature));
+        fresh=fetched.filter(item=>{
+          const id=String(item.id||'');
+          const signature=ffnNewsSignature(item);
+          if((id&&existingIds.has(id))||existingSignatures.has(signature))return false;
+          if(id)existingIds.add(id);
+          existingSignatures.add(signature);
+          item.is_fresh=true;
+          return true;
+        });
+
+        if(fresh.length){
+          ffnItems=[...fresh,...ffnItems].sort((a,b)=>new Date(b.published_at)-new Date(a.published_at));
+          ffnRebuildRail();
+          rail.scrollTo({left:0,behavior:returnToStart?'smooth':'auto'});
+        }
+      }
+
+      const checked=new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit'}).format(new Date());
+      ffnSetStatus(bootstrap?`Live · checked ${checked}`:(fresh.length?`${fresh.length} new · checked ${checked}`:`Up to date · checked ${checked}`));
+      if(bootstrap&&!ffnDeepPromise){
+        setTimeout(()=>{
+          if(!ffnLiveReady)return;
+          ffnBuildDeepArchive();
+          ffnEnsureBuffer();
+        },0);
+      }
+      return bootstrap?fetched:fresh;
+    }catch(err){
+      console.warn('Fantasy news refresh failed',err);
+      if(bootstrap){
+        ffnItems=[];
+        ffnLiveReady=false;
+        ffnShowLoadError();
+        ffnSetFilterControlsDisabled(true);
+      }
+      ffnSetStatus('Refresh unavailable');
+      return [];
+    }finally{
+      button?.removeAttribute('aria-busy');
+      if(button)button.disabled=false;
+      ffnRefreshPromise=null;
+    }
+  })();
+
+  return ffnRefreshPromise;
+}
 async function ffnPlayerHistory(player){
   const nextGame=await ffnNextGame(player.team);
   const rows=[];
@@ -7976,15 +8487,18 @@ function ffnMergeDeep(){
   if(ffnDeepMerged||!ffnDeepReady)return;
   ffnDeepMerged=true;
   ffnItems.push(...ffnDeepItems);
+  ffnSyncFilteredItems();
+  ffnUpdateFilterOptions();
 }
 async function ffnEnsureBuffer(){
   clearTimeout(ffnBufferTimer);
   ffnBufferTimer=setTimeout(async()=>{
     const rail=$('#ffn-scroll');if(!rail)return;
+    if(!ffnLiveReady)return;
     const remaining=rail.scrollWidth-rail.clientWidth-rail.scrollLeft;
     if(remaining>rail.clientWidth*2)return;
 
-    if(ffnRendered<ffnItems.length){
+    if(ffnRendered<ffnCurrentItems().length){
       ffnAppendBatch();
       return;
     }
@@ -7994,22 +8508,28 @@ async function ffnEnsureBuffer(){
       await ffnBuildDeepArchive();
     }
     ffnMergeDeep();
-    if(ffnRendered<ffnItems.length)ffnAppendBatch();
+    if(rail.querySelector('.ffn-empty')&&ffnCurrentItems().length){
+      ffnRebuildRail();
+      return;
+    }
+    if(ffnRendered<ffnCurrentItems().length)ffnAppendBatch();
+    ffnRenderStatus();
   },35);
 }
 async function ffnInit(){
   const rail=$('#ffn-scroll');if(!rail)return;
-  rail.innerHTML='';
-  ffnSetStatus('Live player news');
-  ffnAppendBatch();
-  ffnAppendBatch();
-
-  /* Start the expensive work immediately, while the reader still has dozens
-     of bootstrap cards ahead of them. */
-  ffnBuildDeepArchive();
+  ffnSetStatus('Loading live news…');
+  ffnUpdateFilterOptions();
+  ffnSetFilterControlsDisabled(true);
+  ffnShowLoading();
 
   rail.addEventListener('scroll',ffnEnsureBuffer,{passive:true});
   window.addEventListener('resize',ffnEnsureBuffer,{passive:true});
+  $('#ffn-refresh')?.addEventListener('click',()=>ffnRefreshLatest({returnToStart:true}));
+  $('#ffn-player-filter')?.addEventListener('input',ffnApplyFilters);
+  $('#ffn-team-filter')?.addEventListener('change',ffnApplyFilters);
+  $('#ffn-position-filter')?.addEventListener('change',ffnApplyFilters);
+  $('#ffn-filter-reset')?.addEventListener('click',ffnResetFilters);
 
   if('IntersectionObserver' in window){
     const observer=new IntersectionObserver(entries=>{
@@ -8030,7 +8550,9 @@ async function ffnInit(){
     });
   },60000);
 
-  ffnEnsureBuffer();
+  /* Do not expose the bundled seed while ESPN is loading. The refresh control
+     repeats this live check and returns the rail to the newest card. */
+  ffnRefreshLatest({initial:true});
 }
 ffnInit();
 
@@ -9988,7 +10510,7 @@ const AWARD24_VIEWS = {
     if(name==='MISBA') badges.push('<span class="profile-chip">Commissioner</span>');
     if(c.championships) badges.push(`<span class="profile-chip gold">👑 ${c.championships}× Champion</span>`);
     if(c.playoff_appearances) badges.push(`<span class="profile-chip navy">${c.playoff_appearances}× Playoffs</span>`);
-    if(current) badges.push('<span class="profile-chip green">2026 Manager</span>');
+
 
     const seasonList=seasons.map(r=>{
       const post=postseasonLabel(name,r.year);
@@ -10014,7 +10536,7 @@ const AWARD24_VIEWS = {
     })():'';
 
     return `<div class="manager-profile">
-      <div class="profile-highlight"><div><div class="manager-modal-kicker">${current?'Current Manager':'League Alum'}</div><div style="font-family:var(--serif);font-weight:900;font-size:23px;color:var(--navy)">${esc(name)}</div></div><div class="champ-years">${badges.join('')}</div></div>
+      ${badges.length?`<div class="profile-highlight profile-badge-strip"><div class="champ-years">${badges.join('')}</div></div>`:''}
       <div class="profile-stats">
         <div class="profile-stat"><div class="k">Seasons</div><div class="v">${c.seasons}</div><div class="s">${c.years_active[0]}–${c.years_active[c.years_active.length-1]} archive</div></div>
         <div class="profile-stat"><div class="k">Career Record</div><div class="v">${c.wins}–${c.losses}</div><div class="s">${pct(c.win_pct)} win rate</div></div>
@@ -10148,7 +10670,7 @@ const AWARD24_VIEWS = {
     const flip=document.createElement('div');flip.className='manager-modal-flip';
     const front=document.createElement('div');front.className='manager-modal-face manager-modal-front';front.innerHTML=av(name);
     const back=document.createElement('div');back.className='manager-modal-face manager-modal-back';
-    const head=document.createElement('div');head.className='manager-modal-head';head.innerHTML=`${av(name)}<div class="manager-modal-heading"><div class="manager-modal-kicker">Manager Profile</div><h2 class="manager-modal-title">${esc(name)}</h2></div>`;
+    const head=document.createElement('div');head.className='manager-modal-head';head.innerHTML=`${av(name)}<div class="manager-modal-heading"><div class="manager-modal-kicker">${currentManagers.has(name)?'Current Manager':'League Alum'}</div><h2 class="manager-modal-title">${esc(name)}</h2></div>`;
     const close=document.createElement('button');close.type='button';close.className='manager-modal-close';close.setAttribute('aria-label','Close manager profile');close.textContent='×';head.appendChild(close);
     const scroll=document.createElement('div');scroll.className='manager-modal-scroll';scroll.innerHTML=managerProfileHTML(name);back.append(head,scroll);flip.append(front,back);stage.appendChild(flip);overlay.appendChild(stage);document.body.appendChild(overlay);
     const onKey=e=>{if(e.key==='Escape'){e.stopImmediatePropagation();closeManagerModal();}};
