@@ -5931,6 +5931,654 @@
     .ffn-player-name{font-size:11.9px !important}
     .ffn-meta{font-size:8.6px !important}
   }
+
+
+  /* ---------- v94 DESKTOP SCHEDULE BOARD ----------
+     Keep each matchup visually self-contained instead of stretching two
+     managers across the entire desktop. Mobile rules below 900px stay intact. */
+  @media(min-width:900px){
+    #schedule-out .league-schedule{
+      width:min(100%,1180px);
+      margin-inline:auto;
+    }
+    #schedule-out .schedule-week-pane{
+      padding:12px 14px 14px;
+    }
+    #schedule-out .schedule-matchups{
+      width:min(100%,1080px);
+      margin-inline:auto;
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:9px;
+    }
+    #schedule-out .schedule-matchup,
+    #schedule-out .schedule-matchup:last-child{
+      grid-column:span 2;
+      border-radius:8px;
+      background:rgba(255,255,255,.052);
+    }
+    #schedule-out .schedule-matchup:last-child{
+      grid-column:2 / span 2;
+    }
+    #schedule-out .schedule-matchup-main{
+      grid-template-columns:minmax(0,1fr) 62px minmax(0,1fr);
+      gap:8px;
+      min-height:78px;
+      padding:8px 10px;
+    }
+    #schedule-out .schedule-matchup-person,
+    #schedule-out .schedule-matchup-person:last-child{
+      grid-template-columns:40px minmax(0,1fr) auto;
+      grid-template-areas:"avatar name score";
+      gap:7px;
+      align-items:center;
+      text-align:left;
+    }
+    #schedule-out .schedule-matchup-person.right{
+      grid-template-columns:auto minmax(0,1fr) 40px;
+      grid-template-areas:"score name avatar";
+      text-align:right;
+    }
+    #schedule-out .schedule-matchup-person .av,
+    #schedule-out .schedule-matchup-person:last-child .av{
+      width:39px !important;
+      height:39px !important;
+      flex-basis:39px !important;
+    }
+    #schedule-out .schedule-matchup-name,
+    #schedule-out .schedule-matchup-person:last-child .schedule-matchup-name{
+      font-size:10.5px;
+      line-height:1.1;
+      overflow:visible;
+      text-overflow:clip;
+    }
+    #schedule-out .schedule-matchup-score,
+    #schedule-out .schedule-matchup-person:last-child .schedule-matchup-score{
+      font-size:14px;
+    }
+    #schedule-out .schedule-vs{
+      font-size:14px;
+      color:rgba(255,255,255,.46);
+    }
+    #schedule-out .schedule-matchup-meta{
+      margin-top:4px;
+      font-size:6.2px;
+      line-height:1.18;
+      white-space:normal;
+      color:rgba(255,255,255,.50);
+    }
+    #schedule-out .schedule-matchup-detail{
+      padding:7px 10px 8px;
+    }
+  }
+
+  @media(min-width:1200px){
+    #schedule-out .schedule-matchups{
+      grid-template-columns:repeat(6,minmax(0,1fr));
+      gap:9px;
+    }
+    #schedule-out .schedule-matchup,
+    #schedule-out .schedule-matchup:last-child{
+      grid-column:span 2;
+    }
+    #schedule-out .schedule-matchup:nth-child(4){
+      grid-column:2 / span 2;
+    }
+    #schedule-out .schedule-matchup:nth-child(5),
+    #schedule-out .schedule-matchup:last-child{
+      grid-column:4 / span 2;
+    }
+    #schedule-out .schedule-matchup-main{
+      grid-template-columns:minmax(0,1fr) 56px minmax(0,1fr);
+      gap:7px;
+      min-height:82px;
+      padding:9px 10px;
+    }
+    #schedule-out .schedule-matchup-name,
+    #schedule-out .schedule-matchup-person:last-child .schedule-matchup-name{
+      font-size:10px;
+    }
+  }
+
+  /* v95 manager profile: compact 2026 schedule rail */
+  .profile-schedule-compact{
+    margin-top:10px;
+    overflow:hidden;
+  }
+  .profile-schedule-compact-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:7px;
+  }
+  .profile-schedule-compact-head .profile-section-title{
+    margin:0;
+    flex:1 1 auto;
+  }
+  .profile-next-opponent{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    gap:5px;
+    min-width:0;
+    padding:4px 7px 4px 5px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    background:#fff;
+    cursor:pointer;
+  }
+  .profile-next-opponent .av{
+    width:24px !important;
+    height:24px !important;
+    flex:0 0 24px !important;
+  }
+  .profile-next-k{
+    font-family:var(--mono);
+    font-size:5.8px;
+    line-height:1;
+    font-weight:900;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--brass);
+  }
+  .profile-next-opponent strong{
+    max-width:92px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-family:var(--mono);
+    font-size:7.4px;
+    line-height:1;
+    color:var(--navy);
+  }
+  .profile-schedule-strip{
+    display:flex !important;
+    grid-template-columns:none !important;
+    gap:6px !important;
+    width:100%;
+    max-width:100%;
+    overflow-x:auto;
+    overflow-y:hidden;
+    padding:1px 1px 7px;
+    scroll-snap-type:x proximity;
+    overscroll-behavior-inline:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+  .profile-schedule-strip::-webkit-scrollbar{height:5px}
+  .profile-schedule-strip::-webkit-scrollbar-track{background:var(--paper-dim);border-radius:999px}
+  .profile-schedule-strip::-webkit-scrollbar-thumb{background:rgba(185,138,46,.5);border-radius:999px}
+  .profile-schedule-compact .profile-schedule-node{
+    flex:0 0 92px !important;
+    width:92px !important;
+    min-width:92px !important;
+    min-height:64px !important;
+    height:64px !important;
+    display:grid !important;
+    grid-template-columns:30px minmax(0,1fr) !important;
+    grid-template-rows:auto 1fr auto !important;
+    grid-template-areas:
+      "avatar week"
+      "avatar opp"
+      "avatar result" !important;
+    align-items:center !important;
+    justify-items:start !important;
+    gap:1px 6px !important;
+    padding:6px !important;
+    text-align:left !important;
+    scroll-snap-align:start;
+  }
+  .profile-schedule-compact .profile-schedule-node:hover{
+    transform:none;
+  }
+  .profile-schedule-compact .profile-schedule-node .av{
+    grid-area:avatar !important;
+    width:30px !important;
+    height:30px !important;
+    flex:0 0 30px !important;
+    align-self:center !important;
+  }
+  .profile-schedule-compact .profile-schedule-week{
+    grid-area:week !important;
+    align-self:end !important;
+    font-size:5.8px !important;
+  }
+  .profile-schedule-compact .profile-schedule-opp{
+    grid-area:opp !important;
+    align-self:center !important;
+    width:100%;
+    font-size:7.1px !important;
+  }
+  .profile-schedule-compact .profile-schedule-result{
+    grid-area:result !important;
+    align-self:start !important;
+    font-size:6.2px !important;
+  }
+  @media(max-width:760px){
+    .profile-schedule-compact{
+      margin-top:9px;
+    }
+    .profile-schedule-compact-head{
+      margin-bottom:6px;
+    }
+    .profile-next-opponent{
+      padding:3px 6px 3px 4px;
+    }
+    .profile-next-opponent .av{
+      width:22px !important;
+      height:22px !important;
+      flex-basis:22px !important;
+    }
+    .profile-next-opponent strong{
+      max-width:76px;
+      font-size:7px;
+    }
+    .profile-schedule-compact .profile-schedule-node{
+      flex-basis:88px !important;
+      width:88px !important;
+      min-width:88px !important;
+      height:61px !important;
+      min-height:61px !important;
+      grid-template-columns:28px minmax(0,1fr) !important;
+      padding:5px !important;
+    }
+    .profile-schedule-compact .profile-schedule-node .av{
+      width:28px !important;
+      height:28px !important;
+      flex-basis:28px !important;
+    }
+  }
+
+  /* v96 current-manager schedule: readable H2H inside each card */
+  .profile-schedule-compact .profile-schedule-node{
+    flex:0 0 122px !important;
+    width:122px !important;
+    min-width:122px !important;
+    height:78px !important;
+    min-height:78px !important;
+    grid-template-columns:34px minmax(0,1fr) !important;
+    grid-template-rows:auto auto auto auto !important;
+    grid-template-areas:
+      "avatar week"
+      "avatar opp"
+      "avatar result"
+      "h2h h2h" !important;
+    gap:2px 7px !important;
+    padding:7px 8px !important;
+  }
+  .profile-schedule-compact .profile-schedule-node .av{
+    width:34px !important;
+    height:34px !important;
+    flex-basis:34px !important;
+  }
+  .profile-schedule-compact .profile-schedule-week{
+    font-size:6.8px !important;
+    letter-spacing:.05em !important;
+  }
+  .profile-schedule-compact .profile-schedule-opp{
+    font-size:8.7px !important;
+    line-height:1.08 !important;
+  }
+  .profile-schedule-compact .profile-schedule-result{
+    font-size:7.4px !important;
+    line-height:1.05 !important;
+    opacity:.70 !important;
+  }
+  .profile-schedule-h2h{
+    grid-area:h2h !important;
+    width:100%;
+    min-width:0;
+    padding-top:4px;
+    border-top:1px solid rgba(20,50,79,.08);
+    font-family:var(--mono);
+    font-size:6.8px;
+    line-height:1.15;
+    font-weight:900;
+    letter-spacing:.025em;
+    color:var(--navy-ink);
+    opacity:.72;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .profile-next-k{
+    font-size:6.5px !important;
+  }
+  .profile-next-opponent strong{
+    font-size:8.2px !important;
+  }
+  .profile-next-opponent .av{
+    width:26px !important;
+    height:26px !important;
+    flex-basis:26px !important;
+  }
+  @media(max-width:760px){
+    .profile-schedule-compact .profile-schedule-node{
+      flex-basis:116px !important;
+      width:116px !important;
+      min-width:116px !important;
+      height:75px !important;
+      min-height:75px !important;
+      grid-template-columns:32px minmax(0,1fr) !important;
+      padding:7px !important;
+    }
+    .profile-schedule-compact .profile-schedule-node .av{
+      width:32px !important;
+      height:32px !important;
+      flex-basis:32px !important;
+    }
+    .profile-schedule-compact .profile-schedule-week{
+      font-size:6.6px !important;
+    }
+    .profile-schedule-compact .profile-schedule-opp{
+      font-size:8.4px !important;
+    }
+    .profile-schedule-compact .profile-schedule-result{
+      font-size:7.2px !important;
+    }
+    .profile-schedule-h2h{
+      font-size:6.5px !important;
+    }
+    .profile-next-opponent strong{
+      font-size:7.8px !important;
+    }
+  }
+
+  /* v97: manager schedule cards — actually readable */
+  .profile-schedule-compact .profile-schedule-node{
+    flex:0 0 154px !important;
+    width:154px !important;
+    min-width:154px !important;
+    height:92px !important;
+    min-height:92px !important;
+    grid-template-columns:44px minmax(0,1fr) auto !important;
+    grid-template-rows:auto 1fr auto !important;
+    grid-template-areas:
+      "avatar opp week"
+      "avatar h2h h2h"
+      "avatar result result" !important;
+    column-gap:9px !important;
+    row-gap:4px !important;
+    padding:10px !important;
+  }
+  .profile-schedule-compact .profile-schedule-node .av{
+    grid-area:avatar !important;
+    width:42px !important;
+    height:42px !important;
+    flex-basis:42px !important;
+    align-self:center !important;
+  }
+  .profile-schedule-compact .profile-schedule-week{
+    grid-area:week !important;
+    justify-self:end !important;
+    align-self:start !important;
+    font-size:9px !important;
+    line-height:1 !important;
+    letter-spacing:.035em !important;
+    color:var(--brass) !important;
+  }
+  .profile-schedule-compact .profile-schedule-opp{
+    grid-area:opp !important;
+    align-self:start !important;
+    font-size:12px !important;
+    line-height:1.08 !important;
+    font-weight:950 !important;
+    letter-spacing:.015em !important;
+    white-space:normal !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+  }
+  .profile-schedule-h2h{
+    grid-area:h2h !important;
+    align-self:center !important;
+    width:100% !important;
+    min-width:0;
+    padding:5px 0 0 !important;
+    border-top:1px solid rgba(20,50,79,.10) !important;
+    font-size:9.4px !important;
+    line-height:1.2 !important;
+    font-weight:950 !important;
+    letter-spacing:.015em !important;
+    color:var(--navy) !important;
+    opacity:.86 !important;
+    white-space:normal !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+  }
+  .profile-schedule-compact .profile-schedule-result{
+    grid-area:result !important;
+    align-self:end !important;
+    justify-self:start !important;
+    padding:3px 6px !important;
+    border-radius:999px !important;
+    background:var(--paper-dim) !important;
+    font-size:8.6px !important;
+    line-height:1 !important;
+    font-weight:950 !important;
+    opacity:.82 !important;
+  }
+  @media(max-width:760px){
+    .profile-schedule-compact .profile-schedule-node{
+      flex-basis:146px !important;
+      width:146px !important;
+      min-width:146px !important;
+      height:88px !important;
+      min-height:88px !important;
+      grid-template-columns:41px minmax(0,1fr) auto !important;
+      padding:9px !important;
+      column-gap:8px !important;
+    }
+    .profile-schedule-compact .profile-schedule-node .av{
+      width:39px !important;
+      height:39px !important;
+      flex-basis:39px !important;
+    }
+    .profile-schedule-compact .profile-schedule-week{
+      font-size:8.6px !important;
+    }
+    .profile-schedule-compact .profile-schedule-opp{
+      font-size:11.5px !important;
+    }
+    .profile-schedule-h2h{
+      font-size:9px !important;
+      line-height:1.18 !important;
+    }
+    .profile-schedule-compact .profile-schedule-result{
+      font-size:8.2px !important;
+    }
+  }
+
+  /* v98: restore clean compact schedule-card formatting, keep readable type */
+  .profile-schedule-compact .profile-schedule-node{
+    flex:0 0 132px !important;
+    width:132px !important;
+    min-width:132px !important;
+    height:82px !important;
+    min-height:82px !important;
+    grid-template-columns:40px minmax(0,1fr) !important;
+    grid-template-rows:auto 1fr auto auto !important;
+    grid-template-areas:
+      "avatar week"
+      "avatar opp"
+      "avatar result"
+      "h2h h2h" !important;
+    column-gap:9px !important;
+    row-gap:2px !important;
+    padding:8px 9px !important;
+  }
+  .profile-schedule-compact .profile-schedule-node .av{
+    grid-area:avatar !important;
+    width:38px !important;
+    height:38px !important;
+    flex-basis:38px !important;
+    align-self:center !important;
+  }
+  .profile-schedule-compact .profile-schedule-week{
+    grid-area:week !important;
+    justify-self:end !important;
+    align-self:end !important;
+    font-size:9px !important;
+    line-height:1 !important;
+    letter-spacing:.035em !important;
+  }
+  .profile-schedule-compact .profile-schedule-opp{
+    grid-area:opp !important;
+    align-self:center !important;
+    width:100% !important;
+    font-size:12px !important;
+    line-height:1.08 !important;
+    font-weight:950 !important;
+    letter-spacing:.01em !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+  }
+  .profile-schedule-vs{
+    color:var(--navy-ink);
+    opacity:.58;
+    font-size:.78em;
+    font-weight:950;
+    letter-spacing:.04em;
+  }
+  .profile-schedule-compact .profile-schedule-result{
+    grid-area:result !important;
+    align-self:start !important;
+    justify-self:start !important;
+    padding:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    font-size:8.6px !important;
+    line-height:1.05 !important;
+    font-weight:950 !important;
+    opacity:.78 !important;
+  }
+  .profile-schedule-h2h{
+    grid-area:h2h !important;
+    width:100% !important;
+    min-width:0;
+    padding-top:5px !important;
+    border-top:1px solid rgba(20,50,79,.10) !important;
+    font-size:9.4px !important;
+    line-height:1.15 !important;
+    font-weight:950 !important;
+    letter-spacing:.01em !important;
+    color:var(--navy) !important;
+    opacity:.84 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+
+  @media(max-width:760px){
+    .profile-schedule-compact .profile-schedule-node{
+      flex-basis:128px !important;
+      width:128px !important;
+      min-width:128px !important;
+      height:80px !important;
+      min-height:80px !important;
+      grid-template-columns:38px minmax(0,1fr) !important;
+      padding:8px !important;
+      column-gap:8px !important;
+    }
+    .profile-schedule-compact .profile-schedule-node .av{
+      width:36px !important;
+      height:36px !important;
+      flex-basis:36px !important;
+    }
+    .profile-schedule-compact .profile-schedule-week{
+      font-size:8.8px !important;
+    }
+    .profile-schedule-compact .profile-schedule-opp{
+      font-size:11.7px !important;
+    }
+    .profile-schedule-h2h{
+      font-size:9.1px !important;
+    }
+  }
+
+  /* v99: stack VS over opponent name, guaranteed inside schedule card */
+  .profile-schedule-compact .profile-schedule-node{
+    flex:0 0 136px !important;
+    width:136px !important;
+    min-width:136px !important;
+    height:84px !important;
+    min-height:84px !important;
+    grid-template-columns:40px minmax(0,1fr) !important;
+    grid-template-rows:auto 1fr auto auto !important;
+    grid-template-areas:
+      "avatar week"
+      "avatar opp"
+      "avatar result"
+      "h2h h2h" !important;
+    padding:8px 9px !important;
+    column-gap:9px !important;
+    row-gap:2px !important;
+    overflow:hidden !important;
+  }
+  .profile-schedule-compact .profile-schedule-opp{
+    grid-area:opp !important;
+    align-self:center !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    justify-content:center !important;
+    gap:2px !important;
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    white-space:normal !important;
+    overflow:hidden !important;
+    text-overflow:clip !important;
+  }
+  .profile-schedule-vs{
+    display:block !important;
+    width:100% !important;
+    font-size:8.4px !important;
+    line-height:1 !important;
+    font-weight:950 !important;
+    letter-spacing:.06em !important;
+    color:var(--navy-ink) !important;
+    opacity:.58 !important;
+  }
+  .profile-schedule-opp-name{
+    display:block !important;
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    font-size:12px !important;
+    line-height:1.05 !important;
+    font-weight:950 !important;
+    letter-spacing:.01em !important;
+    color:var(--navy) !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+  .profile-schedule-h2h{
+    max-width:100% !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+
+  @media(max-width:760px){
+    .profile-schedule-compact .profile-schedule-node{
+      flex-basis:132px !important;
+      width:132px !important;
+      min-width:132px !important;
+      height:82px !important;
+      min-height:82px !important;
+      grid-template-columns:38px minmax(0,1fr) !important;
+      padding:8px !important;
+      column-gap:8px !important;
+    }
+    .profile-schedule-vs{
+      font-size:8.1px !important;
+    }
+    .profile-schedule-opp-name{
+      font-size:11.7px !important;
+    }
+  }
 </style>
 </head>
 <body>
@@ -5954,7 +6602,6 @@
     <a href="#dues">Dues</a>
     <a href="#payouts">Payouts</a>
     <a href="#standings">Standings</a>
-    <a href="#schedule">Schedule</a>
     <a href="#challenges" id="challenge-nav-link" aria-haspopup="true" aria-expanded="false">Season Challenges <span class="nav-caret">▼</span></a>
     <a href="#trophy">The Trophy</a>
     <a href="#history">League History</a>
@@ -6059,13 +6706,8 @@
   </section>
 
   <section id="standings">
-    <div class="sec-head"><h3>2026 Standings</h3><span class="pot">10 Teams · Top 4 Advance</span></div>
+    <div class="sec-head"><h3>2026 Standings</h3></div>
     <div id="standings-out"></div>
-  </section>
-
-  <section id="schedule">
-    <div class="sec-head"><h3>2026 Schedule</h3></div>
-    <div id="schedule-out"></div>
   </section>
 
   <section id="challenges">
@@ -7178,28 +7820,65 @@ async function ffnNextGame(team){
   team=String(team||'').toUpperCase();
   if(!team||team==='FA')return 'Next game TBD';
   if(ffnNextGameCache.has(team))return ffnNextGameCache.get(team);
+
   const promise=(async()=>{
     const key=team==='WAS'?'wsh':team.toLowerCase();
     const id=NFL_TEAM_IDS[key];
     if(!id)return 'Next game TBD';
+
+    /* ESPN's team schedule can default to the current season phase.
+       Force regular season so preseason doesn't leave every player at TBD. */
     try{
-      const data=await fetchEspnJson(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${id}/schedule?season=2026`);
+      const data=await fetchEspnJson(
+        `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${id}/schedule?season=2026&seasontype=2`
+      );
       const now=Date.now()-4*36e5;
       const events=(data?.events||[]).map(e=>{
         const d=new Date(e?.date);
         const c=e?.competitions?.[0]?.competitors||[];
-        const me=c.find(x=>String(x?.team?.id)===String(id));
+        const me=c.find(x=>
+          String(x?.team?.id)===String(id) ||
+          String(x?.team?.abbreviation||'').toUpperCase()===team ||
+          (team==='WAS' && String(x?.team?.abbreviation||'').toUpperCase()==='WSH')
+        );
         const opp=c.find(x=>x!==me);
         return {d,me,opp};
-      }).filter(x=>Number.isFinite(x.d.getTime())&&x.d.getTime()>=now&&x.me&&x.opp).sort((a,b)=>a.d-b.d);
-      if(!events.length)return 'Next game TBD';
-      const g=events[0];
-      const day=new Intl.DateTimeFormat('en-US',{weekday:'short',timeZone:'America/Chicago'}).format(g.d);
-      const time=new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/Chicago'}).format(g.d);
-      const opp=String(g.opp?.team?.abbreviation||'').toUpperCase();
-      return `${day} ${time} ${String(g.me?.homeAway).toLowerCase()==='away'?'@':'vs'} ${opp}`;
-    }catch(_){return 'Next game TBD'}
+      }).filter(x=>Number.isFinite(x.d.getTime())&&x.d.getTime()>=now&&x.me&&x.opp)
+        .sort((a,b)=>a.d-b.d);
+
+      if(events.length){
+        const g=events[0];
+        const day=new Intl.DateTimeFormat('en-US',{
+          weekday:'short',
+          timeZone:'America/Chicago'
+        }).format(g.d);
+        const time=new Intl.DateTimeFormat('en-US',{
+          hour:'numeric',
+          minute:'2-digit',
+          timeZone:'America/Chicago'
+        }).format(g.d);
+        const opp=String(g.opp?.team?.abbreviation||'').toUpperCase().replace(/^WSH$/,'WAS');
+        return `${day} ${time} ${String(g.me?.homeAway).toLowerCase()==='away'?'@':'vs'} ${opp}`;
+      }
+    }catch(_){}
+
+    /* Bulletproof Week 1 fallback from the schedule already embedded in this
+       site. This changes only the next-game label and touches none of the
+       working deep-news loading architecture. */
+    const i=NFL_WEEK1.findIndex(g=>g.a?.[1]===key||g.b?.[1]===key);
+    if(i>=0){
+      const g=NFL_WEEK1[i];
+      const kickoff=new Date(NFL_GAME_META?.[i]?.kickoff||'');
+      if(!Number.isFinite(kickoff.getTime()) || kickoff.getTime()>=Date.now()-4*36e5){
+        const away=g.a[1]===key;
+        const opp=(away?g.b[1]:g.a[1]).toUpperCase().replace(/^WSH$/,'WAS');
+        return `${g.day} ${g.time} ${away?'@':'vs'} ${opp}`;
+      }
+    }
+
+    return 'Next game TBD';
   })();
+
   ffnNextGameCache.set(team,promise);
   return promise;
 }
@@ -7946,7 +8625,7 @@ function renderStandingsDashboard(animate=false){
 
   if(!hasSeasonData){
     out.innerHTML=`<div class="standings-dashboard">
-      <div class="standings-dashboard-head"><span class="standings-dashboard-kicker">2026 Race Board</span><span class="standings-dashboard-status">Preseason</span></div>
+      
       <div class="standings-modes">${modeButtons}</div>
       <div class="standings-mode-note">${STANDINGS_MODES[standingsMode].note} · Preview mode until Week 1 data arrives.</div>
       <div class="standings-board">${standingsPreseasonHTML()}</div>
@@ -7960,7 +8639,7 @@ function renderStandingsDashboard(animate=false){
   const oldRects=animate?Object.fromEntries([...out.querySelectorAll('[data-standing-entry]')].map(el=>[el.dataset.standingEntry,el.getBoundingClientRect()])):{};
 
   out.innerHTML=`<div class="standings-dashboard">
-    <div class="standings-dashboard-head"><span class="standings-dashboard-kicker">2026 Race Board</span><span class="standings-dashboard-status">${data.weeks.length?`Through Week ${data.weeks[data.weeks.length-1].week}`:'Current'}</span></div>
+    
     <div class="standings-modes">${modeButtons}</div>
     <div class="standings-mode-note">${STANDINGS_MODES[standingsMode].note}</div>
     <div class="standings-board">${ordered.map((p,i)=>standingsEntryHTML(p,i,standingsMode,officialSeed[p.short])).join('')}</div>
@@ -9271,18 +9950,22 @@ const AWARD24_VIEWS = {
     if(!currentManagers.has(name)) return '';
     const current=scheduleCurrentWeek();
     const games=scheduleGamesForManager(name);
-    const repeats=scheduleRepeatOpponents(name);
+    const nextOpponent=scheduleOpponent(name,current);
     const nodes=games.map(g=>{
       const result=scheduleResultLabel(name,g.week);
-      return `<div class="profile-schedule-node manager-profile-trigger${g.week>=10?' rematch':''}${g.week===current?' current':''}" data-manager="${esc(g.opponent)}" tabindex="0" role="button" aria-label="Open ${esc(g.opponent)} profile"><span class="profile-schedule-week">W${g.week}${g.week>=10?' ↻':''}</span>${av(g.opponent)}<span class="profile-schedule-opp">${esc(g.opponent)}</span><span class="profile-schedule-result">${result||'VS'}</span></div>`;
+      const series=scheduleAllTimeSeries(name,g.opponent);
+      const diff=series.aPF-series.bPF;
+      const h2h=series.games
+        ? `H2H ${series.aWins}–${series.bWins}${series.ties?`–${series.ties}`:''} · ${diff>=0?'+':''}${num(diff,1)} PTS`
+        : 'H2H · NO PRIOR MEETINGS';
+      return `<div class="profile-schedule-node manager-profile-trigger${g.week>=10?' rematch':''}${g.week===current?' current':''}" data-manager="${esc(g.opponent)}" tabindex="0" role="button" aria-label="Open ${esc(g.opponent)} profile"><span class="profile-schedule-week">W${g.week}${g.week>=10?' ↻':''}</span>${av(g.opponent,'mini')}<span class="profile-schedule-opp"><span class="profile-schedule-vs">VS</span><span class="profile-schedule-opp-name">${esc(g.opponent)}</span></span>${result?`<span class="profile-schedule-result">${esc(result)}</span>`:''}<span class="profile-schedule-h2h">${esc(h2h)}</span></div>`;
     }).join('');
-    return `<div class="profile-section"><div class="profile-section-title">2026 Schedule</div>
-      <div class="profile-schedule-summary">
-        <div class="profile-schedule-summary-card"><div class="k">Unique Opponents</div><div class="v">9</div></div>
-        <div class="profile-schedule-summary-card"><div class="k">Rematches</div><div class="v">5</div></div>
-        <div class="profile-schedule-summary-card"><div class="k">Next Opponent</div><div class="v">${esc(scheduleOpponent(name,current))}</div></div>
+    return `<div class="profile-section profile-schedule-compact">
+      <div class="profile-schedule-compact-head">
+        <div class="profile-section-title">2026 Schedule</div>
+        <div class="profile-next-opponent manager-profile-trigger" data-manager="${esc(nextOpponent)}" tabindex="0" role="button" aria-label="Open ${esc(nextOpponent)} profile"><span class="profile-next-k">Next</span>${av(nextOpponent,'mini')}<strong>${esc(nextOpponent)}</strong></div>
       </div>
-      <div class="profile-schedule-path">${nodes}</div>
+      <div class="profile-schedule-strip" aria-label="${esc(name)} 2026 schedule">${nodes}</div>
     </div>`;
   };
 
@@ -9342,12 +10025,12 @@ const AWARD24_VIEWS = {
         <div class="profile-stat"><div class="k">Playoff Record</div><div class="v">${c.postseason_wins}–${c.postseason_losses}</div><div class="s">official championship bracket games</div></div>
         <div class="profile-stat"><div class="k">Weekly Scoring</div><div class="v">${pct(c.all_play_pct)}</div><div class="s">of league scores outscored</div></div>
       </div>
-      ${managerScheduleHTML(name)}
       <div class="profile-winnings-card"><div class="profile-winnings-head"><span class="profile-winnings-label">Career Winnings</span><strong class="profile-winnings-total">$${winnings.total.toLocaleString()}</strong></div>${winningsItems?`<div class="profile-winnings-items">${winningsItems}</div>`:'<div class="profile-winnings-empty">No recorded prize winnings.</div>'}</div>
       ${weeklyBest?`<div class="profile-callout"><div class="profile-callout-k">Best Weekly Scoring Season</div><div class="profile-callout-v">${weeklyBest.year} · Outscored ${pct(weeklyBest.all_play_pct)} of the league week-to-week</div></div>`:''}
+      ${managerScheduleHTML(name)}
       <div class="profile-section"><div class="profile-section-title">Season History</div>${seasonList?`<div class="profile-season-list">${seasonList}</div>`:'<div class="profile-empty">No documented season results.</div>'}</div>
       ${rosterHTML}
-      <div class="profile-section"><div class="profile-section-title">Head-to-Head</div>${rivalRows?`<div class="profile-rivals">${rivalRows}</div>`:'<div class="profile-empty">No historical head-to-head matchups recorded.</div>'}</div>
+      ${current?'':`<div class="profile-section"><div class="profile-section-title">Head-to-Head</div>${rivalRows?`<div class="profile-rivals">${rivalRows}</div>`:'<div class="profile-empty">No historical head-to-head matchups recorded.</div>'}</div>`}
       <div class="profile-section"><div class="profile-section-title">Draft DNA</div>${dna?`<div class="profile-dna">
         <div class="profile-dna-card"><div class="k">Drafts Tracked</div><div class="v">${dna.drafts}</div><div class="s">complete historical drafts</div></div>
         <div class="profile-dna-card"><div class="k">Round 1 Habit</div><div class="v">${frV}</div><div class="s">${frS}</div></div>
