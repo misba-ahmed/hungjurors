@@ -1564,6 +1564,45 @@
     .standings-mode-stat{min-width:76px}
   }
 
+  /* Compact standings layout */
+  .standings-dashboard-head{padding:12px 14px 11px}
+  .standings-dashboard-kicker{font-size:10px}
+  .standings-dashboard-status{font-size:8px}
+  .standings-dashboard-status::before{width:6px;height:6px;flex-basis:6px}
+  .standings-modes{gap:6px;padding:8px}
+  .standings-mode{min-height:38px;padding:9px 6px;font-size:9px}
+  .standings-mode-note{min-height:0;padding:8px 12px;font-size:9.5px}
+  .standings-board{padding:9px 11px 11px}
+  .standings-preseason{padding:14px 12px 15px}
+  .standings-preseason-head{margin:2px auto 14px}
+  .standings-preseason-head b{font-size:28px}
+  .standings-preseason-head span{margin-top:6px;font-size:8px}
+  .standings-start-grid{gap:8px;padding:17px 0 5px}
+  .standings-start-grid::before{height:4px}
+  .standings-start-person{min-height:86px;gap:7px;padding:10px 7px 8px;border-radius:8px}
+  .standings-start-person .av{width:46px;height:46px}
+  .standings-start-person b{font-size:9px}
+  .standings-lane{grid-template-columns:50px minmax(190px,1.45fr) minmax(150px,.72fr) minmax(145px,.72fr) 50px;gap:12px;min-height:76px;padding:9px 10px}
+  .standings-rank{width:42px;height:42px;font-size:21px}
+  .standings-person{gap:10px}.standings-person .av{width:48px;height:48px;flex-basis:48px}
+  .standings-manager{font-size:14px}.standings-team{font-size:9px;margin-top:4px}
+  .standings-core{gap:10px}.standings-core-stat b,.standings-mode-stat b{font-size:20px}
+  .standings-core-stat small,.standings-mode-stat small{font-size:8px;margin-top:4px}
+  .standings-mode-stat{padding-left:12px}.standings-mode-stat b{font-size:23px}
+  .standings-move{min-width:42px;font-size:9px}.standings-chevron{font-size:10px}
+  .standings-tray{margin:0 8px 11px 60px;padding:12px}
+  .standings-history{padding:14px 15px 15px}.standings-history-title{font-size:10px}.standings-history-focus{font-size:8.5px}
+  .standings-history-focus .av{width:26px;height:26px;flex-basis:26px}.standings-history-axis{font-size:10px}
+
+  @media(max-width:760px){
+    .standings-modes{gap:4px;padding:6px}.standings-mode{min-height:36px;padding:8px 3px;font-size:7.7px}
+    .standings-mode-note{font-size:9px;padding:8px 9px}.standings-board{padding:7px}
+    .standings-preseason{padding:13px 9px 14px}.standings-preseason-head{margin-bottom:12px}.standings-preseason-head b{font-size:25px}.standings-preseason-head span{font-size:7.5px}
+    .standings-start-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding-top:14px}
+    .standings-start-person{min-height:0;flex-direction:row;justify-content:flex-start;padding:7px 8px;gap:8px}
+    .standings-start-person .av{width:36px;height:36px;flex-basis:36px}.standings-start-person b{font-size:8.5px}
+  }
+
   /* ---------- MANAGER PROFILES + LEAGUE RECORD BOOK ---------- */
   .record-book-note{font-family:var(--sans);font-size:12px;line-height:1.45;color:#496176;margin:0 0 14px}
   .record-book-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch}
@@ -3885,79 +3924,79 @@
   /* Final standings avatar sizing. Kept at the end of the stylesheet so the
      global avatar utility can never shrink these back to 16–30px. */
   .standings-start-person > .av.manager-profile-avatar{
-    width:96px !important;
-    height:96px !important;
-    flex:0 0 96px !important;
+    width:46px !important;
+    height:46px !important;
+    flex:0 0 46px !important;
     border-width:2px;
     border-color:rgba(217,169,63,.62);
     box-shadow:0 6px 18px rgba(0,0,0,.20);
   }
   .standings-person > .av.manager-profile-avatar{
-    width:62px !important;
-    height:62px !important;
-    flex:0 0 62px !important;
+    width:48px !important;
+    height:48px !important;
+    flex:0 0 48px !important;
     border-width:2px;
   }
   .standings-history-focus > .av.manager-profile-avatar{
-    width:36px !important;
-    height:36px !important;
-    flex:0 0 36px !important;
+    width:26px !important;
+    height:26px !important;
+    flex:0 0 26px !important;
   }
   .standings-start-person{
-    min-height:176px;
+    min-height:86px;
   }
   .standings-start-person b{
-    font-size:17px;
+    font-size:9px;
   }
 
   @media(max-width:900px){
     .standings-start-person > .av.manager-profile-avatar{
-      width:68px !important;
-      height:68px !important;
-      flex-basis:68px !important;
+      width:40px !important;
+      height:40px !important;
+      flex-basis:40px !important;
     }
     .standings-start-person{
-      min-height:96px;
+      min-height:72px;
     }
     .standings-start-person b{
-      font-size:13px;
+      font-size:9px;
     }
   }
 
   @media(max-width:760px){
     .standings-start-person > .av.manager-profile-avatar{
-      width:58px !important;
-      height:58px !important;
-      flex-basis:58px !important;
+      width:36px !important;
+      height:36px !important;
+      flex-basis:36px !important;
     }
     .standings-person > .av.manager-profile-avatar{
-      width:48px !important;
-      height:48px !important;
-      flex-basis:48px !important;
+      width:43px !important;
+      height:43px !important;
+      flex-basis:43px !important;
     }
     .standings-history-focus > .av.manager-profile-avatar{
-      width:30px !important;
-      height:30px !important;
-      flex-basis:30px !important;
+      width:26px !important;
+      height:26px !important;
+      flex-basis:26px !important;
     }
     .standings-start-person{
-      min-height:82px;
+      min-height:0;
     }
     .standings-start-person b{
-      font-size:12px;
+      font-size:8.5px;
     }
   }
 
   @media(max-width:390px){
     .standings-start-person > .av.manager-profile-avatar{
-      width:54px !important;
-      height:54px !important;
-      flex-basis:54px !important;
+      width:34px !important;
+      height:34px !important;
+      flex-basis:34px !important;
     }
     .standings-person > .av.manager-profile-avatar{
-      width:45px !important;
-      height:45px !important;
-      flex-basis:45px !important;
+      width:40px !important;
+      height:40px !important;
+      flex-basis:40px !important;
     }
   }
 
@@ -5152,7 +5191,7 @@
     }
     .standings-start-person{
       display:grid !important;
-      grid-template-columns:58px minmax(0,1fr);
+      grid-template-columns:36px minmax(0,1fr);
       grid-template-areas:
         "avatar name"
         "avatar next";
@@ -5160,15 +5199,15 @@
       justify-content:stretch;
       column-gap:10px;
       row-gap:5px;
-      min-height:88px;
-      padding:10px 11px;
+      min-height:58px;
+      padding:7px 8px;
       text-align:left;
     }
     .standings-start-person > .av.manager-profile-avatar{
       grid-area:avatar;
-      width:58px !important;
-      height:58px !important;
-      flex:0 0 58px !important;
+      width:36px !important;
+      height:36px !important;
+      flex:0 0 36px !important;
       align-self:center;
     }
     .standings-start-person > b{
@@ -5176,7 +5215,7 @@
       align-self:end;
       max-width:none !important;
       min-width:0;
-      font-size:12px !important;
+      font-size:8.5px !important;
       line-height:1.12;
       white-space:normal !important;
       overflow:visible !important;
@@ -5188,7 +5227,7 @@
       align-self:start;
       min-width:0;
       margin-top:0;
-      font-size:8px;
+      font-size:7px;
       line-height:1.2;
       white-space:normal;
       overflow:visible;
@@ -5198,21 +5237,21 @@
 
   @media(max-width:430px){
     .standings-start-person{
-      grid-template-columns:54px minmax(0,1fr);
-      column-gap:9px;
-      min-height:84px;
-      padding:9px 9px;
+      grid-template-columns:34px minmax(0,1fr);
+      column-gap:7px;
+      min-height:54px;
+      padding:6px 7px;
     }
     .standings-start-person > .av.manager-profile-avatar{
-      width:54px !important;
-      height:54px !important;
-      flex-basis:54px !important;
+      width:34px !important;
+      height:34px !important;
+      flex-basis:34px !important;
     }
     .standings-start-person > b{
-      font-size:11px !important;
+      font-size:8px !important;
     }
     .standings-start-person > .standings-start-next{
-      font-size:7.5px;
+      font-size:6.7px;
     }
   }
 
@@ -5222,8 +5261,8 @@
       grid-template-columns:1fr;
     }
     .standings-start-person{
-      grid-template-columns:58px minmax(0,1fr);
-      min-height:78px;
+      grid-template-columns:36px minmax(0,1fr);
+      min-height:56px;
     }
   }
 
@@ -6784,6 +6823,7 @@
   .pc-modal-head{position:relative;flex:0 0 auto;display:grid;grid-template-columns:58px minmax(0,1fr) auto;align-items:center;gap:14px;padding:16px 20px;overflow:hidden;color:#fff;border-bottom:3px solid var(--brass);background:linear-gradient(135deg,var(--navy-deep),var(--navy) 64%,#244968)}
   .pc-modal-photo{position:relative;width:58px;height:58px;display:grid;place-items:center;border:2px solid var(--brass-bright);border-radius:50%;background:#fff;color:var(--navy);font:900 11px/1 var(--mono);box-shadow:0 5px 16px rgba(0,0,0,.22)}
   .pc-modal-photo .pc-headshot{width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%}
+  .pc-modal-photo.is-defense{padding:7px}.pc-modal-photo .pc-dst-logo{object-fit:contain;object-position:center}
   .pc-modal-photo .pc-team-badge{position:absolute;right:-4px;bottom:-2px;width:21px;height:21px;object-fit:contain;padding:2px;border:1px solid rgba(20,50,79,.16);border-radius:50%;background:#fff}
   .pc-modal-heading{min-width:0}
   .pc-modal-kicker{margin-bottom:2px;color:var(--brass-bright);font:700 9px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase}
@@ -6836,6 +6876,7 @@
   .pc-dvp-empty{margin:9px 0 0;padding:10px 11px;border:1px dashed var(--line);border-radius:8px;background:var(--paper-dim);color:var(--navy-ink);font:700 9.5px/1.4 var(--sans);opacity:.7}
   .pc-table-wrap{width:100%;overflow:auto;border:1px solid rgba(20,50,79,.11);border-radius:8px;background:#fff;scrollbar-color:var(--brass) var(--paper-dim)}
   .pc-table{width:100%;min-width:900px;border-collapse:separate;border-spacing:0;background:#fff;font-variant-numeric:tabular-nums}
+  .pc-dst-table{min-width:720px}
   .pc-table th,.pc-table td{box-sizing:border-box;padding:7px 8px;border-bottom:1px solid rgba(20,50,79,.075);text-align:right;vertical-align:middle;white-space:nowrap}
   .pc-table th{position:sticky;z-index:2;color:#fff;font:800 8px/1.1 var(--mono);letter-spacing:.075em;text-transform:uppercase}
   .pc-table .pc-group-head th{top:0;height:27px;background:var(--navy-deep);color:#fff;text-align:center;letter-spacing:.1em;border-bottom:1px solid rgba(255,255,255,.2)}
@@ -6945,6 +6986,121 @@
     .pc-split-grid{grid-template-columns:1fr}.pc-news-item{grid-template-columns:1fr}.pc-news-item .ffn-tag{justify-self:start}.pc-depth-summary{display:grid;grid-template-columns:auto 1fr}.pc-depth-summary small{grid-column:1/-1;margin:3px 0 0}.pc-next-context-grid{grid-template-columns:1fr 1fr}
     .pc-vegas-lines{grid-template-columns:repeat(2,minmax(0,1fr))}
   }
+  /* ---------- LIVE ESPN LEAGUE HQ ---------- */
+  .league-sync-shell{border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:0 10px 26px rgba(12,34,56,.08);overflow:hidden}
+  .league-sync-top{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:17px 18px;background:linear-gradient(135deg,var(--navy-deep),var(--navy));color:#fff;border-bottom:3px solid var(--brass)}
+  .league-sync-brand{display:flex;align-items:center;gap:12px;min-width:0}
+  .league-sync-mark{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.2);color:var(--brass-bright);font:900 18px/1 var(--serif)}
+  .league-sync-kicker{font:800 9px/1.2 var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--brass-bright)}
+  .league-sync-title{margin-top:4px;font:900 22px/1.05 var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .league-sync-state{display:flex;align-items:center;justify-content:flex-end;gap:11px;min-width:0}
+  .league-sync-copy{text-align:right;min-width:0}
+  .league-sync-status{display:flex;align-items:center;justify-content:flex-end;gap:7px;font:800 9px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+  .league-sync-status-dot{width:8px;height:8px;border-radius:50%;background:#8bd0a2;box-shadow:0 0 0 4px rgba(139,208,162,.13)}
+  .league-sync-status.is-syncing .league-sync-status-dot{background:var(--brass-bright);animation:leagueSyncPulse 1s ease-in-out infinite}
+  .league-sync-status.is-error .league-sync-status-dot{background:#df8078}
+  @keyframes leagueSyncPulse{50%{opacity:.38;transform:scale(.72)}}
+  .league-sync-time{display:block;margin-top:5px;color:rgba(255,255,255,.62);font:700 8px/1.2 var(--mono);letter-spacing:.04em;white-space:nowrap}
+  .league-sync-button{appearance:none;border:1px solid rgba(255,255,255,.28);width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.08);color:#fff;display:grid;place-items:center;cursor:pointer;transition:transform .18s ease,background .18s ease}
+  .league-sync-button:hover{background:rgba(255,255,255,.16);transform:rotate(25deg)}
+  .league-sync-button:focus-visible{outline:3px solid var(--brass-bright);outline-offset:3px}
+  .league-sync-button:disabled{cursor:wait;opacity:.58;transform:none}
+  .league-sync-button svg{width:19px;height:19px}
+  .league-team-rail{display:flex;gap:8px;overflow-x:auto;padding:12px 14px;background:#fff;border-bottom:1px solid var(--line);scrollbar-width:thin;scrollbar-color:var(--brass) var(--paper-dim)}
+  .league-team-tab{appearance:none;flex:0 0 158px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:9px 10px;display:flex;align-items:center;gap:9px;text-align:left;color:var(--navy);cursor:pointer;transition:border-color .16s ease,background .16s ease,transform .16s ease}
+  .league-team-tab:hover{border-color:rgba(185,138,46,.7);transform:translateY(-1px)}
+  .league-team-tab.active{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:inset 0 -3px 0 var(--brass)}
+  .league-team-tab:focus-visible{outline:3px solid rgba(217,169,63,.55);outline-offset:2px}
+  .league-team-logo{width:34px;height:34px;border-radius:50%;object-fit:cover;background:var(--paper);border:1px solid rgba(20,50,79,.12);flex:0 0 auto}
+  .league-team-initials{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--paper);border:1px solid rgba(20,50,79,.12);color:var(--navy);font:900 10px/1 var(--mono);flex:0 0 auto}
+  .league-team-tab.active .league-team-initials{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#fff}
+  .league-team-tab-copy{min-width:0}
+  .league-team-tab-copy b,.league-team-tab-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .league-team-tab-copy b{font:850 10px/1.2 var(--mono);letter-spacing:.02em}
+  .league-team-tab-copy small{margin-top:4px;font:700 7px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;opacity:.62}
+  .league-team-tab>.av{width:34px;height:34px;flex:0 0 34px}
+  .league-team-view{padding:15px;background:linear-gradient(180deg,#fff,var(--paper-dim))}
+  .league-roster-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:15px 16px;border-radius:11px;background:var(--navy);color:#fff;box-shadow:inset 0 -3px 0 var(--brass)}
+  .league-roster-identity{display:flex;align-items:center;gap:12px;min-width:0}.league-roster-identity>.av{width:48px;height:48px;flex:0 0 48px;border-color:var(--brass)}
+  .league-roster-manager{font:800 9px/1.2 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--brass-bright)}
+  .league-roster-name{font:900 25px/1.05 var(--serif)}
+  .league-roster-record{margin-top:6px;font:750 9px/1.25 var(--mono);letter-spacing:.04em;color:rgba(255,255,255,.7)}
+  .league-matchup-score{appearance:none;border:0;background:transparent;color:inherit;display:flex;align-items:center;gap:10px;text-align:right;padding:7px;border-radius:8px;cursor:pointer}
+  .league-matchup-score:hover{background:rgba(255,255,255,.09)}.league-matchup-score:focus-visible{outline:2px solid var(--brass-bright);outline-offset:2px}
+  .league-matchup-team{max-width:150px;font:800 8px/1.25 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.68)}
+  .league-matchup-team b{display:block;margin-top:5px;color:#fff;font:900 18px/1 var(--serif);letter-spacing:0;text-transform:none}
+  .league-roster-groups{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.8fr);gap:12px;margin-top:12px;align-items:start}
+  .league-roster-group{border:1px solid var(--line);border-radius:11px;background:#fff;overflow:hidden}
+  .league-roster-group-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--paper-dim);color:var(--navy);font:850 9px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+  .league-player-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:5px}
+  .league-roster-group.is-bench .league-player-list{grid-template-columns:1fr}
+  .league-player{appearance:none;width:100%;border:0;border-bottom:1px solid rgba(20,50,79,.08);background:#fff;display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:9px;align-items:center;text-align:left;padding:8px;color:var(--navy);cursor:pointer;min-width:0}
+  .league-player:nth-last-child(-n+2){border-bottom-color:transparent}
+  .league-roster-group.is-bench .league-player:last-child{border-bottom-color:transparent}
+  .league-player:hover{background:#fffaf0}
+  .league-player:focus-visible{outline:3px solid rgba(217,169,63,.5);outline-offset:-3px}
+  .league-player-photo{width:38px;height:38px;border-radius:50%;object-fit:cover;background:#edf1f4;border:1px solid rgba(20,50,79,.1)}
+  .league-player-photo.is-defense{object-fit:contain;padding:5px;background:#fff}
+  .league-player-copy{min-width:0}
+  .league-player-name{display:block;font:850 11px/1.2 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .league-player-meta{display:flex;gap:6px;align-items:center;margin-top:4px;color:#718092;font:750 7px/1.2 var(--mono);letter-spacing:.055em;text-transform:uppercase;white-space:nowrap}
+  .league-player-slot{color:var(--brass);font-weight:900}
+  .league-player-status{color:#c65c55}
+  .league-player-points{text-align:right;min-width:43px}
+  .league-player-points strong,.league-player-points small{display:block}
+  .league-player-points strong{font:900 15px/1 var(--serif);color:var(--navy)}
+  .league-player-points small{margin-top:4px;font:800 6px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#8a97a5}
+  .league-ir-wrap{margin-top:10px}
+  .league-sync-empty,.league-sync-error{padding:30px 18px;text-align:center;color:var(--navy)}
+  .league-sync-empty strong,.league-sync-error strong{display:block;font:900 21px/1.15 var(--serif)}
+  .league-sync-empty span,.league-sync-error span{display:block;max-width:520px;margin:8px auto 0;color:#718092;font-size:12px}
+  .league-sync-error button{margin-top:13px;border:0;border-radius:7px;background:var(--navy);color:#fff;padding:9px 14px;font:800 9px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+  .league-sync-skeleton{padding:16px;display:grid;gap:10px}
+  .league-sync-skeleton span{display:block;height:54px;border-radius:9px;background:linear-gradient(90deg,#eef1f3 25%,#fafafa 50%,#eef1f3 75%);background-size:220% 100%;animation:leagueSkeleton 1.2s ease-in-out infinite}
+  @keyframes leagueSkeleton{to{background-position:-220% 0}}
+  .hq-tabs{display:flex;gap:6px;overflow-x:auto;padding:9px 11px;background:#fff;border-bottom:1px solid var(--line);scrollbar-width:thin;scrollbar-color:var(--brass) var(--paper-dim)}
+  .hq-tab{appearance:none;flex:0 0 auto;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--navy);padding:9px 13px;font:850 9px/1 var(--mono);letter-spacing:.045em;cursor:pointer;white-space:nowrap}
+  .hq-tab:hover{border-color:var(--brass)}.hq-tab[aria-selected="true"]{background:var(--navy);border-color:var(--navy);box-shadow:inset 0 -3px 0 var(--brass);color:#fff}.hq-tab:focus-visible{outline:3px solid rgba(217,169,63,.5);outline-offset:2px}
+  .hq-tab-panel[hidden]{display:none!important}.league-hq-tools{margin:0}.league-hq-tools>.hq-tab-panel{padding:12px;background:linear-gradient(180deg,#fff,var(--paper-dim))}
+  .hq-module{padding-top:0!important;border:1px solid var(--line);border-radius:11px;background:#fff;box-shadow:0 5px 16px rgba(12,34,56,.055);overflow:hidden}
+  .hq-module-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 15px;border-bottom:1px solid var(--line);background:var(--paper-dim)}
+  .hq-module-title{margin:0;color:var(--navy);font:900 18px/1.05 var(--serif)}
+  .hq-module-note{color:#7a8797;font:800 8px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;text-align:right}
+  .hq-module-body{padding:13px 14px}
+  .hq-bottom-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+  .hq-empty{padding:22px 15px;text-align:center;color:#758395;font-size:13px;line-height:1.45}
+  .hq-loading{display:grid;gap:8px;padding:14px}.hq-loading span{display:block;height:42px;border-radius:8px;background:linear-gradient(90deg,#eef1f3 25%,#fafafa 50%,#eef1f3 75%);background-size:220% 100%;animation:leagueSkeleton 1.2s ease-in-out infinite}
+  .hq-matchup{padding-top:0!important;margin-top:12px;border:1px solid var(--line);border-radius:11px;background:#fff;overflow:hidden}
+  .hq-matchup-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.hq-matchup-list .hq-matchup{margin:0}.hq-matchup.is-focused{border-color:var(--brass);box-shadow:0 0 0 3px rgba(217,169,63,.18)}
+  .hq-matchup-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:var(--paper-dim);border-bottom:1px solid var(--line)}
+  .hq-matchup-head h4{margin:0;color:var(--navy);font:900 15px/1.05 var(--serif)}
+  .hq-matchup-head span{color:#7f8c9b;font:800 8px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+  .hq-matchup-main{display:grid;grid-template-columns:minmax(0,1fr) 130px minmax(0,1fr);align-items:center;gap:12px;padding:13px}
+  .hq-matchup-manager{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:9px;align-items:center;min-width:0}.hq-matchup-manager.is-away{text-align:right;grid-template-columns:auto minmax(0,1fr) 40px}.hq-matchup-manager>.av{width:40px;height:40px;flex:0 0 40px}.hq-matchup-manager-name{display:block;color:var(--navy);font:850 11px/1.2 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hq-matchup-manager small{display:block;margin-top:4px;color:#8793a1;font:750 7px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase}.hq-matchup-points{color:var(--navy);font:900 20px/1 var(--serif)}
+  .hq-matchup-middle{text-align:center}.hq-win-bar{height:7px;border-radius:999px;background:#dfe5e9;overflow:hidden}.hq-win-bar span{display:block;height:100%;background:var(--brass);border-radius:inherit}.hq-win-copy{display:flex;justify-content:space-between;margin-top:6px;color:#677688;font:800 7px/1.2 var(--mono);letter-spacing:.04em;text-transform:uppercase}.hq-matchup-vs{color:#8a96a5;font:900 8px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase}
+  .hq-edge-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;padding:0 13px 12px}.hq-edge{min-width:0;padding:8px 5px;border:1px solid rgba(20,50,79,.1);border-radius:8px;background:#fffaf0;text-align:center}.hq-edge span,.hq-edge strong{display:block}.hq-edge span{color:#8793a1;font:800 7px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}.hq-edge strong{min-height:2.25em;margin-top:5px;color:var(--navy);font:850 9px/1.2 var(--mono);display:grid;place-items:center;white-space:normal;overflow:visible;text-overflow:clip}.hq-edge.is-even strong{color:#8793a1}
+  .hq-swing{display:flex;align-items:center;gap:8px;overflow-x:auto;padding:10px 13px;border-top:1px solid var(--line);background:#fff}.hq-swing-label{flex:0 0 auto;color:#8a96a5;font:850 7px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase}.hq-swing-player{appearance:none;display:grid;grid-template-columns:27px minmax(74px,1fr) auto;align-items:center;gap:7px;flex:0 0 auto;max-width:210px;border:1px solid var(--line);border-radius:999px;background:var(--paper);padding:3px 8px 3px 3px;color:var(--navy);cursor:pointer;text-align:left}.hq-swing-player:hover{border-color:var(--brass)}.hq-swing-player img{width:27px;height:27px;border-radius:50%;object-fit:cover;background:#edf1f4}.hq-swing-player b{font:850 8px/1.15 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hq-swing-player strong{font:900 10px/1 var(--serif)}
+  .hq-predraft{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px;color:#687789;font-size:13px}.hq-predraft b{display:block;color:var(--navy);font:900 15px/1.15 var(--serif);margin-bottom:3px}
+  .hq-strength-wrap{overflow-x:auto}.hq-strength-table{width:100%;min-width:830px;border-collapse:separate;border-spacing:0;table-layout:fixed}.hq-strength-table th{padding:8px;background:var(--navy);color:#fff;font:850 8px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;text-align:center}.hq-strength-table th:first-child,.hq-strength-table td:first-child{width:170px;text-align:left}.hq-strength-table td{height:48px;padding:5px 8px;border-bottom:1px solid rgba(20,50,79,.09);text-align:center;vertical-align:middle}.hq-strength-table tbody tr:last-child td{border-bottom:0}.hq-strength-table tbody tr{cursor:pointer}.hq-strength-table tbody tr:hover td{background:#fffaf0}.hq-strength-manager{display:flex;align-items:center;gap:8px;min-width:0;text-align:left}.hq-strength-manager>.av{width:29px;height:29px;flex:0 0 29px}.hq-strength-manager b{min-width:0;overflow:hidden;text-overflow:ellipsis;font:850 10px/1.2 var(--mono);color:var(--navy);white-space:nowrap}.hq-strength-cell strong,.hq-strength-cell small{display:block}.hq-strength-cell strong{font:900 13px/1 var(--serif);color:var(--navy)}.hq-strength-cell small{margin-top:3px;color:#8995a2;font:750 7px/1 var(--mono)}.hq-strength-cell.is-top strong{color:#2d7a52}.hq-strength-cell.is-overall{background:var(--paper-dim)}
+  .hq-fa-controls{display:grid;grid-template-columns:minmax(180px,1fr) 130px 150px auto;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);background:#fff}.hq-fa-control{appearance:none;width:100%;height:38px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--navy);padding:0 11px;font:800 10px/1 var(--mono)}.hq-fa-control:focus{outline:2px solid rgba(217,169,63,.45);outline-offset:1px}.hq-fa-reset{appearance:none;border:0;border-radius:8px;background:var(--navy);color:#fff;padding:0 14px;font:850 8px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}.hq-fa-reset:disabled{opacity:.35;cursor:default}
+  .hq-fa-wrap{max-height:430px;overflow:auto}.hq-fa-table{width:100%;min-width:760px;border-collapse:separate;border-spacing:0;table-layout:fixed}.hq-fa-table th{position:sticky;top:0;z-index:2;padding:8px 9px;background:var(--paper-dim);color:#7a8797;font:850 7px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;text-align:left;border-bottom:1px solid var(--line)}.hq-fa-table th:first-child{width:220px}.hq-fa-table th:nth-child(2){width:100px}.hq-fa-table th:nth-child(3){width:82px}.hq-fa-table th:nth-child(4){width:116px}.hq-fa-table th:nth-child(5){width:auto}.hq-fa-table th:nth-child(n+2):nth-child(-n+4){text-align:center}.hq-fa-table td{height:54px;padding:6px 9px;border-bottom:1px solid rgba(20,50,79,.08);color:var(--navy);font-size:12px;vertical-align:middle;overflow:hidden}.hq-fa-player{appearance:none;width:100%;border:0;background:transparent;display:grid;grid-template-columns:36px minmax(0,1fr);gap:9px;align-items:center;color:var(--navy);text-align:left;cursor:pointer}.hq-fa-player img{width:36px;height:36px;border-radius:50%;object-fit:cover;background:#edf1f4;border:1px solid rgba(20,50,79,.1)}.hq-fa-player img.is-defense{object-fit:contain;padding:5px;background:#fff}.hq-fa-player b{display:block;font:850 10px/1.2 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hq-fa-player small{display:block;margin-top:4px;color:#8491a0;font:750 7px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase}.hq-fa-center{text-align:center}.hq-fa-fpts{color:#2d7a52!important;font:900 14px/1 var(--serif)!important}.hq-fa-fit{display:inline-flex;align-items:center;gap:5px}.hq-fa-fit>.av{width:24px;height:24px;flex:0 0 24px}.hq-fa-fit b{font:850 8px/1 var(--mono)}.hq-fa-news{width:auto;max-width:none;color:#687789!important;font-size:10px!important;line-height:1.25!important}.hq-fa-news-copy{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2}.hq-fa-tag{display:inline-block;margin-bottom:3px;border-radius:999px;padding:3px 6px;background:#f5ecea;color:#b75952;font:850 6px/1 var(--mono);letter-spacing:.07em;text-transform:uppercase}
+  .hq-activity-list,.hq-recap-list{display:grid}.hq-activity-item{appearance:none;width:100%;display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:9px;align-items:center;padding:9px 0;border:0;border-bottom:1px solid rgba(20,50,79,.08);background:transparent;text-align:left;cursor:pointer}.hq-activity-item:hover{background:#fffaf0}.hq-activity-item:last-child{border-bottom:0}.hq-activity-item img{width:34px;height:34px;border-radius:50%;object-fit:cover;background:#edf1f4}.hq-activity-copy{min-width:0;color:#667587;font-size:11px;line-height:1.35}.hq-activity-copy b{color:var(--navy);font-weight:850}.hq-activity-time{color:#909ba8;font:750 7px/1.2 var(--mono);text-align:right}.hq-activity-type{display:inline-block;margin-right:5px;color:var(--brass);font:900 7px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+  .hq-recap-story{margin:0 0 10px;color:#5f7082;font-size:13px;line-height:1.5}.hq-recap-award{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:9px;align-items:center;padding:9px 0;border-top:1px solid rgba(20,50,79,.08)}.hq-recap-award>.av{width:34px;height:34px;flex:0 0 34px}.hq-recap-award span,.hq-recap-award b{display:block}.hq-recap-award span{color:#8a96a4;font:800 7px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase}.hq-recap-award b{margin-top:3px;color:var(--navy);font:850 10px/1.2 var(--mono)}.hq-recap-score{color:var(--navy);font:900 16px/1 var(--serif);text-align:right}.hq-recap-score small{display:block;margin-top:4px;color:#8a96a4;font:750 7px/1 var(--mono)}
+  .profile-live-roster{margin-top:12px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+  .profile-live-roster-head{padding:11px 12px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px}.profile-live-roster-person{display:flex;align-items:center;gap:8px;min-width:0}.profile-live-roster-person>.av{width:30px;height:30px;flex:0 0 30px}
+  .profile-live-roster-head b{font:850 10px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+  .profile-live-roster-head span{color:var(--brass-bright);font:800 8px/1.2 var(--mono)}
+  .profile-live-roster .league-player-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+  @media(max-width:760px){
+    .league-sync-top{padding:14px 13px}.league-sync-title{font-size:19px}.league-sync-mark{width:38px;height:38px}
+    .league-roster-groups{grid-template-columns:1fr}.league-player-list,.profile-live-roster .league-player-list{grid-template-columns:1fr}.league-player:nth-last-child(2){border-bottom-color:rgba(20,50,79,.08)}
+    .hq-bottom-grid,.hq-matchup-list{grid-template-columns:1fr}.hq-matchup-main{grid-template-columns:1fr 94px 1fr}.hq-matchup-manager{grid-template-columns:34px minmax(0,1fr);}.hq-matchup-manager.is-away{grid-template-columns:minmax(0,1fr) 34px}.hq-matchup-manager>.av{width:34px;height:34px}.hq-matchup-points{grid-column:1/-1;font-size:17px}.hq-matchup-manager.is-away .hq-matchup-points{grid-column:1/-1;grid-row:2}.hq-edge-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.hq-fa-controls{grid-template-columns:1fr 1fr}.hq-fa-controls input{grid-column:1/-1}
+  }
+  @media(max-width:480px){
+    .league-sync-copy{display:none}.league-sync-top{gap:8px}.league-sync-state{margin-left:auto}.league-team-tab{flex-basis:145px}
+    .league-team-view{padding:9px}.league-roster-head{grid-template-columns:1fr;padding:13px}.league-roster-name{font-size:22px}.league-matchup-score{justify-content:flex-start;text-align:left}.league-matchup-team{max-width:none}
+    .hq-module-head{padding:11px 12px}.hq-module-title{font-size:17px}.hq-module-note{font-size:7px}.hq-matchup-main{grid-template-columns:1fr 48px 1fr;padding:11px 8px;gap:6px}.hq-matchup-manager{display:flex;flex-direction:column;align-items:flex-start;gap:5px}.hq-matchup-manager.is-away{align-items:flex-end}.hq-matchup-manager>.av{width:36px;height:36px}.hq-matchup-manager-name{max-width:100px}.hq-win-copy{display:none}.hq-matchup-vs{margin-top:7px}.hq-edge-grid{grid-template-columns:repeat(3,minmax(0,1fr));padding:0 8px 10px}.hq-fa-controls{padding:10px}.hq-fa-reset{height:38px}.hq-predraft{align-items:flex-start}
+  }
 </style>
 </head>
 <body>
@@ -6967,6 +7123,7 @@
     <a href="#draft">Draft</a>
     <a href="#dues">Dues</a>
     <a href="#payouts">Payouts</a>
+    <a href="#league-hq">League HQ</a>
     <a href="#standings">Standings</a>
     <a href="#challenges" id="challenge-nav-link" aria-haspopup="true" aria-expanded="false">Season Challenges <span class="nav-caret">▼</span></a>
     <a href="#trophy">The Trophy</a>
@@ -7076,6 +7233,30 @@
   <section id="payouts">
     <div class="sec-head"><h3>Payouts</h3></div>
     <div class="cards" id="purse-cards"></div>
+  </section>
+
+  <section id="league-hq">
+    <div class="sec-head"><h3>League HQ</h3></div>
+    <div class="league-sync-shell" id="league-sync-shell">
+      <div class="league-sync-top">
+        <div class="league-sync-brand">
+          <div class="league-sync-mark">HJ</div>
+          <div><div class="league-sync-kicker">2026</div><div class="league-sync-title">The Hung Jurors</div></div>
+        </div>
+        <div class="league-sync-state">
+          <div class="league-sync-copy">
+            <div class="league-sync-status is-syncing" id="league-sync-status"><span class="league-sync-status-dot"></span><span data-league-status-copy>Connecting to ESPN</span></div>
+            <span class="league-sync-time" id="league-sync-time">Checking for the latest league data…</span>
+          </div>
+          <button class="league-sync-button" id="league-sync-button" type="button" aria-label="Sync league now" title="Sync league now">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66L20 8"></path><path d="M20 3v5h-5"></path></svg>
+          </button>
+        </div>
+      </div>
+      <div class="hq-tabs" id="league-hq-tabs" role="tablist" aria-label="League HQ"></div>
+      <div class="hq-tab-panel" id="league-sync-content" data-hq-panel="rosters" role="tabpanel"><div class="league-sync-skeleton" aria-label="Loading league"><span></span><span></span><span></span></div></div>
+      <div class="league-hq-tools" id="league-hq-tools" aria-live="polite"></div>
+    </div>
   </section>
 
   <section id="standings">
@@ -7194,7 +7375,7 @@ const DATA = {
     { short:"TYLER",    paid:true,  payVia:"venmo" },
     { short:"NATHAN T", paid:false },
     { short:"KAT",      paid:false },
-    { short:"JARRETT",  paid:false },
+    { short:"JARRETT",  paid:true,  payVia:"venmo" },
     { short:"NATHAN M", paid:false },
     { short:"WASI",     paid:true,  payVia:"venmo" }
   ],
@@ -9212,9 +9393,11 @@ const PC_FIELDS=['player_id','player_display_name','position','position_group','
 const PC_SNAP_FIELDS=['game_id','season','game_type','week','player','position','team','opponent','offense_snaps','offense_pct'];
 const PC_SCHEDULE_FIELDS=['game_id','season','game_type','week','gameday','weekday','gametime','away_team','away_score','home_team','home_score','away_moneyline','home_moneyline','roof','surface','temp','wind','espn','stadium'];
 const PC_TEAM_NAMES={ARI:'Cardinals',ATL:'Falcons',BAL:'Ravens',BUF:'Bills',CAR:'Panthers',CHI:'Bears',CIN:'Bengals',CLE:'Browns',DAL:'Cowboys',DEN:'Broncos',DET:'Lions',GB:'Packers',HOU:'Texans',IND:'Colts',JAX:'Jaguars',KC:'Chiefs',LV:'Raiders',LAC:'Chargers',LAR:'Rams',MIA:'Dolphins',MIN:'Vikings',NE:'Patriots',NO:'Saints',NYG:'Giants',NYJ:'Jets',PHI:'Eagles',PIT:'Steelers',SEA:'Seahawks',SF:'49ers',TB:'Buccaneers',TEN:'Titans',WAS:'Commanders'};
-const pcSeasonCache=new Map(),pcSnapCache=new Map(),pcVegasCache=new Map(),pcPlayerNewsCache=new Map();
+const pcSeasonCache=new Map(),pcSnapCache=new Map(),pcDstCache=new Map(),pcVegasCache=new Map(),pcPlayerNewsCache=new Map();
 let pcSchedulePromise=null,pcActive=null,pcPrefetchTimer=0,pcStatPopover=null;
 const PC_VEGAS_TTL=10*60*1000;
+const PC_VEGAS_STORAGE_KEY='hungJurors:vegasProjections:v2';
+const PC_VEGAS_EMBEDDED={weekly:'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',season:'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'};
 
 function pcNumber(value){const n=Number(String(value??'').replace(/,/g,''));return Number.isFinite(n)?n:0}
 function pcFmt(value,digits=1){return Number.isFinite(Number(value))?Number(value).toFixed(digits):'—'}
@@ -9274,6 +9457,35 @@ function pcLoadSeason(season){
     const promise=source.then(text=>pcParseCsv(text,PC_FIELDS,row=>String(row.season_type||'REG').toUpperCase()==='REG'&&PC_POSITIONS.has(String(row.position||row.position_group||'').toUpperCase()))).then(rows=>rows.map(row=>({...row,position:String(row.position||row.position_group||'').toUpperCase(),team:pcTeam(row.team),opponent_team:pcTeam(row.opponent_team)})));
     pcSeasonCache.set(season,promise);promise.catch(()=>pcSeasonCache.delete(season));
   }return pcSeasonCache.get(season);
+}
+function pcLoadDstSeason(season){
+  season=Number(season);if(!pcDstCache.has(season)){
+    const url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=0&view=kona_player_info`,filter={players:{filterSlotIds:{value:[16]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${season}`,`10${season}`]},filterStatsForSplitTypeIds:{value:[1]},filterStatsForSourceIds:{value:[0]},limit:100,offset:0,sortAppliedStatTotal:{sortAsc:false,sortPriority:1,value:`00${season}`}}};
+    const promise=fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}}).then(response=>{if(!response.ok)throw new Error(`Defense data returned ${response.status}`);return response.json()}).then(data=>{const entries=Array.isArray(data?.players)?data.players:[];if(!entries.length&&season<NFL_SEASON)throw new Error('Defense data was empty.');return entries});
+    pcDstCache.set(season,promise);promise.catch(()=>pcDstCache.delete(season));
+  }return pcDstCache.get(season);
+}
+function pcDstStats(entry){return (entry?.player?.stats||[]).filter(stat=>Number(stat?.scoringPeriodId)>0&&Number(stat?.statSourceId)===0&&Number(stat?.statSplitTypeId)===1).sort((a,b)=>Number(a.scoringPeriodId)-Number(b.scoringPeriodId))}
+function pcDstTotal(entry){return pcDstStats(entry).reduce((sum,stat)=>sum+pcNumber(stat.appliedTotal),0)}
+function pcDstTeam(entry){const id=String(entry?.player?.proTeamId||'');return Object.entries(NFL_TEAM_IDS).find(([,teamId])=>String(teamId)===id)?.[0]?.toUpperCase().replace(/^WSH$/,'WAS')||''}
+function pcDstFind(entries,player){return entries.find(entry=>String(entry?.player?.id||entry?.id)===String(player.id))||entries.find(entry=>pcTeam(pcDstTeam(entry))===pcTeam(player.team))||entries.find(entry=>pcNameMatch(entry?.player?.fullName,player.name))}
+function pcDstSeasonRank(entries,entry){if(!entry)return null;const total=pcDstTotal(entry);return 1+entries.filter(item=>pcDstTotal(item)>total).length}
+function pcDstWeekRank(entries,week,value){return 1+entries.filter(entry=>{const stat=pcDstStats(entry).find(item=>Number(item.scoringPeriodId)===Number(week));return stat&&pcNumber(stat.appliedTotal)>pcNumber(value)}).length}
+function pcDstScheduleGame(team,season,week,schedule){return [...(schedule?.values?.()||[])].find(game=>Number(game.season)===Number(season)&&Number(game.week)===Number(week)&&(pcTeam(game.home_team)===pcTeam(team)||pcTeam(game.away_team)===pcTeam(team)))||null}
+function pcDstTimeline(entry,player,season,schedule,entries){
+  const team=pcDstTeam(entry)||pcTeam(player.team),actual=new Map(pcDstStats(entry).map(stat=>[Number(stat.scoringPeriodId),stat]));
+  return Array.from({length:18},(_,index)=>index+1).map(week=>{const stat=actual.get(week),game=pcDstScheduleGame(team,season,week,schedule),home=game&&pcTeam(game.home_team)===pcTeam(team),opponent=game?(home?pcTeam(game.away_team):pcTeam(game.home_team)):'BYE';if(!stat)return {week,team,opponent,venue:game?(home?'vs':'@'):'',status:game?'NO DATA':'BYE'};return {week,team,opponent,venue:game?(home?'vs':'@'):'',points:pcNumber(stat.appliedTotal),rank:pcDstWeekRank(entries,week,stat.appliedTotal),stats:stat.stats||{},status:''}}).reverse();
+}
+function pcDstTable(rows){
+  const h=(label,group)=>pcStatHeader(label,group,'D/ST'),body=rows.map(row=>{const s=row.stats||{},status=row.status||'',takeaways=pcNumber(s['95'])+pcNumber(s['96']);return `<tr class="${status==='BYE'?'pc-bye-row':status?'pc-missed-row':''}"><td>${esc(row.week)}</td><td class="pc-opponent-cell">${status==='BYE'?'BYE':`${esc(row.venue||'')}${esc(row.opponent||'—')}`}</td><td class="pc-points-cell pc-group-start">${status==='BYE'?'—':status?esc(status):pcFpts(row.points)}</td><td class="pc-rank-cell">${row.rank?`#${row.rank}`:'—'}</td><td class="pc-group-start">${status?'—':esc(s['99']||0)}</td><td>${status?'—':esc(takeaways)}</td><td>${status?'—':esc(s['105']||0)}</td><td class="pc-group-start">${status?'—':esc(s['120']??'—')}</td><td>${status?'—':esc(s['127']??'—')}</td></tr>`}).join('');
+  return `<div class="pc-table-wrap"><table class="pc-table pc-dst-table"><thead><tr class="pc-group-head"><th class="pc-id-head" rowspan="2">${h('WK','Identity')}</th><th class="pc-id-head" rowspan="2">${h('OPP','Identity')}</th><th class="pc-category-head" colspan="2">Fantasy</th><th class="pc-category-head" colspan="3">Defense</th><th class="pc-category-head" colspan="2">Allowed</th></tr><tr class="pc-column-head"><th class="pc-group-start">${h('FPTS','Fantasy')}</th><th>${h('RANK','Fantasy')}</th><th class="pc-group-start">${h('SACK','Defense')}</th><th>${h('TAKE','Defense')}</th><th>${h('TD','Defense')}</th><th class="pc-group-start">${h('PA','Allowed')}</th><th>${h('YA','Allowed')}</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+function pcDstMatchupHTML(player){const upcoming=pcUpcoming(player.team);if(!upcoming)return '';const name=PC_TEAM_NAMES[upcoming.abbr]||upcoming.name,dateLine=[upcoming.day,upcoming.date,upcoming.time,upcoming.network].filter(Boolean).join(' · ')||upcoming.detail||'Kickoff TBD',logo=upcoming.logo?`<span class="pc-matchup-logo-shell"><img class="pc-matchup-logo" src="${esc(upcoming.logo)}" alt=""></span>`:'';return `<section class="pc-section"><div class="pc-section-head"><h3 class="pc-section-title">Upcoming matchup</h3></div><div class="pc-matchup"><div><div class="pc-matchup-label">${esc(player.team)} ${esc(upcoming.location)} ${esc(upcoming.abbr)}</div><div class="pc-matchup-title">${esc(name)}</div><div class="pc-matchup-time">${esc(dateLine)}</div></div>${logo}</div></section>`}
+function pcDstProfileHTML(player,season,entries,schedule){
+  const entry=pcDstFind(entries,player),stats=entry?pcDstStats(entry):[],upcoming=pcDstMatchupHTML(player);if(!entry||!stats.length)return `<div class="pc-empty"><strong>No ${esc(season)} defense results yet</strong><span>Weekly results will appear after this defense plays.</span></div>${upcoming}`;
+  const total=pcDstTotal(entry),rank=pcDstSeasonRank(entries,entry),games=stats.length,sacks=stats.reduce((sum,stat)=>sum+pcNumber(stat?.stats?.['99']),0),team=pcDstTeam(entry)||player.team;player.team=team;
+  const timeline=pcDstTimeline(entry,player,season,schedule,entries);
+  return `<div class="pc-summary"><div class="pc-metric"><span class="pc-metric-label">D/ST rank</span><strong class="pc-metric-value">${rank?`#${rank}`:'—'}</strong><span class="pc-metric-sub">Total FPTS</span></div><div class="pc-metric"><span class="pc-metric-label">FPTS / game</span><strong class="pc-metric-value">${pcFpts(total/games)}</strong><span class="pc-metric-sub">${games} games played</span></div><div class="pc-metric"><span class="pc-metric-label">Total FPTS</span><strong class="pc-metric-value">${pcFpts(total)}</strong><span class="pc-metric-sub">${esc(season)} regular season</span></div><div class="pc-metric"><span class="pc-metric-label">Sacks</span><strong class="pc-metric-value">${esc(sacks)}</strong><span class="pc-metric-sub">${esc(season)} regular season</span></div></div>${upcoming}<section class="pc-section"><div class="pc-section-head"><h3 class="pc-section-title">Game log</h3><span class="pc-section-note">${esc(season)}</span></div>${pcDstTable(timeline)}</section>`;
 }
 function pcLoadSnaps(season){
   season=Number(season);if(!pcSnapCache.has(season)){
@@ -9341,6 +9553,10 @@ function pcDvp(rows,position){
 function pcVenue(row,schedule){const game=schedule?.get(row.game_id);if(!game)return '';return game.home_team===row.team?'vs':'@'}
 function pcStatExplanation(label,group,position){
   const exact={WK:'NFL week.',OPP:'Opponent. “@” means away and “vs” means home. The number in parentheses is that defense’s season rank against this player’s position; #1 allows the fewest fantasy points.',PLAYER:'Player who faced this defense that week.',FPTS:'Fantasy points scored.',RANK:'Weekly finish among players at the same position. Lower is better.','SNP%':'Percentage of the team’s offensive snaps played.',CMP:'Pass completions.',ATT:'Pass attempts.','CMP%':'Completion percentage.','TD%':'Touchdown passes divided by pass attempts.','INT%':'Interceptions divided by pass attempts.',INT:'Interceptions thrown.','Y/A':'Passing yards per attempt.',EPA:'Expected points added by the player’s passing plays.',CAR:'Rushing attempts.',TGT:'Pass targets.',REC:'Receptions.','CATCH%':'Receptions divided by targets.','Y/T':'Receiving yards per target.',aDOT:'Average depth of target.','RACR':'Receiving yards divided by air yards.','YAC':'Receiving yards after the catch.','AIR YD':'Air yards on passes thrown to the player.','AIR%':'Share of the team’s air yards.','TGT%':'Share of the team’s pass targets.',WOPR:'Weighted Opportunity Rating, combining target share and air-yard share.','FPTS/OPP':'Fantasy points scored per opportunity.','EXP FPTS':'Expected fantasy points based on opportunity volume.','+/- EXP':'Actual fantasy points minus expected fantasy points.',TOUCH:'Carries plus receptions.','Y/TOUCH':'Rushing and receiving yards per touch.','FUM':'Fumbles lost.',FGM:'Field goals made.',FGA:'Field goals attempted.','FG%':'Field-goal percentage.',LONG:'Longest field goal made.','40–49':'Field goals made from 40–49 yards.','50–59':'Field goals made from 50–59 yards.','60+':'Field goals made from at least 60 yards.',PAT:'Extra points made.',PATA:'Extra points attempted.','MISS FG':'Missed field goals.','MISS PAT':'Missed extra points.'};
+  if(label==='SACK')return 'Sacks recorded by the defense.';
+  if(label==='TAKE')return 'Interceptions plus fumble recoveries.';
+  if(label==='PA')return 'Points allowed by the defense.';
+  if(label==='YA')return 'Total yards allowed by the defense.';
   if(label==='YD')return `${group} yards.`;
   if(label==='TD')return `${group} touchdowns.`;
   if(label==='Y/C')return group==='Receiving'?'Receiving yards per catch.':'Rushing yards per carry.';
@@ -9471,11 +9687,28 @@ async function pcVegasFetchText(url){
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),10000);
   try{const response=await fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',signal:controller.signal});if(!response.ok)throw new Error(`Projection source returned ${response.status}`);const text=await response.text();if(text.length<500)throw new Error('Projection source returned an empty page.');return text}finally{clearTimeout(timeout)}
 }
+function pcVegasValid(data){return data&&Array.isArray(data.rows)&&data.rows.length>=10}
+function pcVegasRemember(kind,data){
+  if(!pcVegasValid(data))return data;
+  try{const saved=JSON.parse(localStorage.getItem(PC_VEGAS_STORAGE_KEY)||'{}');saved[kind]={savedAt:Date.now(),data:{rows:data.rows,updated:data.updated||''}};localStorage.setItem(PC_VEGAS_STORAGE_KEY,JSON.stringify(saved))}catch(_){}
+  return data;
+}
+function pcVegasStored(kind){
+  try{const saved=JSON.parse(localStorage.getItem(PC_VEGAS_STORAGE_KEY)||'{}')?.[kind]?.data;if(pcVegasValid(saved))return {...saved,fallback:true}}catch(_){}
+  return null;
+}
+async function pcVegasBuiltIn(kind){
+  const packed=PC_VEGAS_EMBEDDED[kind];if(!packed)throw new Error('Built-in projection snapshot was unavailable.');
+  const snapshot=JSON.parse(await pcEmbeddedCsv(packed));if(!Array.isArray(snapshot.headers)||!Array.isArray(snapshot.rows))throw new Error('Built-in projection snapshot was invalid.');
+  const data={rows:snapshot.rows.map(cells=>pcVegasRow(snapshot.headers,cells)).filter(row=>row.name&&row.position),updated:snapshot.updated||'',fallback:true};if(!pcVegasValid(data))throw new Error('Built-in projection snapshot was empty.');return data;
+}
 function pcLoadVegas(kind){
   const cached=pcVegasCache.get(kind);if(cached&&cached.expires>Date.now())return cached.promise;
-  const paths=kind==='season'?['season_long_full_stats']:['weekly_full_stats/.5tep','weekly_full_stats'],bucket=Math.floor(Date.now()/300000),sources=paths.flatMap(path=>{const target=`https://www.winwithodds.com/${path}?hj=${bucket}`;return [target,`https://r.jina.ai/https://www.winwithodds.com/${path}?hj=${bucket}`,`https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`]});
-  const loadPath=async pathSources=>{let lastError;for(const url of pathSources){try{return pcVegasParse(await pcVegasFetchText(url))}catch(error){lastError=error}}throw lastError||new Error('Vegas projections were unavailable.')},pathSources=paths.map((path,index)=>sources.slice(index*3,index*3+3));
-  const promise=Promise.any(pathSources.map(loadPath));pcVegasCache.set(kind,{promise,expires:Date.now()+PC_VEGAS_TTL});promise.catch(()=>pcVegasCache.delete(kind));return promise;
+  const path=kind==='season'?'season_long_full_stats':'weekly_full_stats',target=`https://www.winwithodds.com/${path}`,bucket=Math.floor(Date.now()/300000),liveSources=[`${target}?hj=${bucket}`,`https://r.jina.ai/https://www.winwithodds.com/${path}`,`https://r.jina.ai/http://www.winwithodds.com/${path}`,`https://api.allorigins.win/raw?url=${encodeURIComponent(`${target}?hj=${bucket}`)}`];
+  const live=Promise.any(liveSources.map(url=>pcVegasFetchText(url).then(pcVegasParse))).then(data=>{pcVegasRemember(kind,data);pcVegasCache.set(kind,{promise:Promise.resolve(data),expires:Date.now()+PC_VEGAS_TTL});return data});
+  const fallback=Promise.resolve(pcVegasStored(kind)).then(saved=>saved||pcVegasBuiltIn(kind));
+  const delayedFallback=new Promise((resolve,reject)=>setTimeout(()=>fallback.then(resolve,reject),900));
+  const promise=Promise.any([live,delayedFallback]);pcVegasCache.set(kind,{promise,expires:Date.now()+PC_VEGAS_TTL});promise.catch(()=>pcVegasCache.delete(kind));live.catch(()=>{});return promise;
 }
 function pcVegasValue(value){const number=Number(value);if(!Number.isFinite(number))return esc(value||'—');const digits=Number.isInteger(number)?0:Math.abs(number)>=100?1:2;return pcFmt(number,digits).replace(/(\.\d*?[1-9])0+$/,'$1').replace(/\.0+$/,'')}
 function pcVegasPoints(row,position){
@@ -9508,7 +9741,12 @@ function pcProfileHTML(player,season,allRows,snaps,schedule){
 }
 async function pcRenderSeason(season){
   pcHideStatHelp();if(!pcActive)return;const active=pcActive,token=++active.token,scroll=active.overlay.querySelector('.pc-modal-scroll');scroll.innerHTML='<div class="pc-loading" aria-label="Loading player profile"><div class="pc-shimmer"></div><div class="pc-shimmer"></div><div class="pc-shimmer"></div></div>';
-  try{const [allRows,snapsResult,scheduleResult]=await Promise.all([pcLoadSeason(season),pcLoadSnaps(season).catch(()=>new Map()),pcLoadSchedules().catch(()=>new Map())]);if(!pcActive||token!==pcActive.token)return;scroll.innerHTML=pcProfileHTML(active.player,Number(season),allRows,snapsResult,scheduleResult);scroll.scrollTop=0;const playerRows=pcPlayerRows(allRows,active.player),rates=pcExpectedRates(allRows);pcRenderVegas(active.player,scroll,token).catch(()=>{const target=scroll.querySelector('[data-pc-vegas]');if(target)target.innerHTML='<div class="pc-vegas-state">Vegas projections are temporarily unavailable.</div>'});pcRenderNextContext(active.player,playerRows,allRows,scheduleResult,rates,scroll,token).catch(()=>{});pcRenderPlayerNews(active.player,scroll,token).catch(()=>{})}
+  try{
+    if(active.player.position==='D/ST'){
+      const [entries,scheduleResult]=await Promise.all([pcLoadDstSeason(season),pcLoadSchedules().catch(()=>new Map())]);if(!pcActive||token!==pcActive.token)return;scroll.innerHTML=pcDstProfileHTML(active.player,Number(season),entries,scheduleResult);scroll.scrollTop=0;return;
+    }
+    const [allRows,snapsResult,scheduleResult]=await Promise.all([pcLoadSeason(season),pcLoadSnaps(season).catch(()=>new Map()),pcLoadSchedules().catch(()=>new Map())]);if(!pcActive||token!==pcActive.token)return;scroll.innerHTML=pcProfileHTML(active.player,Number(season),allRows,snapsResult,scheduleResult);scroll.scrollTop=0;const playerRows=pcPlayerRows(allRows,active.player),rates=pcExpectedRates(allRows);pcRenderVegas(active.player,scroll,token).catch(()=>{const target=scroll.querySelector('[data-pc-vegas]');if(target)target.innerHTML='<div class="pc-vegas-state">Vegas projections are temporarily unavailable.</div>'});pcRenderNextContext(active.player,playerRows,allRows,scheduleResult,rates,scroll,token).catch(()=>{});pcRenderPlayerNews(active.player,scroll,token).catch(()=>{})
+  }
   catch(error){if(!pcActive||token!==pcActive.token)return;scroll.innerHTML=`<div class="pc-empty"><strong>Player stats did not load</strong><span>The weekly data source did not answer this request. The news feed is unaffected.</span><button class="pc-retry" type="button">Retry</button></div>`;scroll.querySelector('.pc-retry')?.addEventListener('click',()=>pcRenderSeason(season))}
 }
 function pcHideStatHelp(){
@@ -9551,15 +9789,15 @@ function pcOpen(trigger){
   if(!player.id)return;
   pcClose();
   const teamLogo=ffnTeamLogo(player.team);
-  const photo=player.photo||nflHeadshot(player.id);
+  const isDefense=player.position==='D/ST',photo=isDefense?teamLogo:(player.photo||nflHeadshot(player.id));
   const season=2025;
   const overlay=document.createElement('div');
   overlay.className='pc-modal-overlay';
   overlay.setAttribute('role','presentation');
   overlay.innerHTML=`<article class="pc-modal" role="dialog" aria-modal="true" aria-label="${esc(player.name)} player profile">
     <header class="pc-modal-head">
-      <div class="pc-modal-photo">${photo?`<img class="pc-headshot" src="${esc(photo)}" alt="">`:`<span>${esc(ffnInitials(player.name))}</span>`}${teamLogo?`<img class="pc-team-badge" src="${esc(teamLogo)}" alt="">`:''}</div>
-      <div class="pc-modal-heading"><div class="pc-modal-kicker">Player profile</div><h2 class="pc-modal-title">${esc(player.name)}</h2><div class="pc-modal-meta">${esc(player.team||'FA')} · ${esc(player.position||'—')}</div></div>
+      <div class="pc-modal-photo${isDefense?' is-defense':''}">${photo?`<img class="pc-headshot${isDefense?' pc-dst-logo':''}" src="${esc(photo)}" alt="">`:`<span>${esc(ffnInitials(player.name))}</span>`}${teamLogo&&!isDefense?`<img class="pc-team-badge" src="${esc(teamLogo)}" alt="">`:''}</div>
+      <div class="pc-modal-heading"><div class="pc-modal-kicker">${isDefense?'Defense profile':'Player profile'}</div><h2 class="pc-modal-title">${esc(player.name)}</h2><div class="pc-modal-meta">${esc(player.team||'FA')} · ${esc(player.position||'—')}</div></div>
       <div class="pc-head-actions"><select class="pc-season-select" aria-label="Season"><option value="2026">2026</option><option value="2025" selected>2025</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option></select><button class="pc-modal-close" type="button" aria-label="Close player profile">×</button></div>
     </header>
     <div class="pc-modal-scroll"></div>
@@ -9590,7 +9828,7 @@ document.addEventListener('pointerover',event=>{
   clearTimeout(pcPrefetchTimer);
   pcPrefetchTimer=setTimeout(()=>{
     const player=pcPlayerFromTrigger(trigger);
-    if(player.id)Promise.allSettled([pcLoadSeason(2025),pcLoadSnaps(2025),pcLoadSchedules(),pcLoadVegas('weekly'),pcLoadVegas('season')]);
+    if(player.id)Promise.allSettled(player.position==='D/ST'?[pcLoadDstSeason(2025),pcLoadSchedules()]:[pcLoadSeason(2025),pcLoadSnaps(2025),pcLoadSchedules(),pcLoadVegas('weekly'),pcLoadVegas('season')]);
   },250);
 });
 document.addEventListener('pointerout',event=>{
@@ -9600,6 +9838,304 @@ document.addEventListener('pointerout',event=>{
 document.addEventListener('keydown',event=>{if(event.key==='Escape'){if(pcStatPopover)pcHideStatHelp();else if(pcActive)pcClose()}});
 const pcWarmData=()=>setTimeout(()=>Promise.allSettled([pcLoadSeason(2025),pcLoadSnaps(2025),pcLoadSchedules()]),1200);
 if(document.readyState==='complete')pcWarmData();else window.addEventListener('load',pcWarmData,{once:true});
+
+/* ---- The Hung Jurors live ESPN league sync ---- */
+const HJ_LEAGUE_SEASON=2026;
+const HJ_LEAGUE_PREVIOUS_SEASON=HJ_LEAGUE_SEASON-1;
+const HJ_LEAGUE_CACHE_KEY=`hungJurors:espnLeague:${ESPN_FANTASY_LEAGUE_ID}:${HJ_LEAGUE_SEASON}:v3`;
+const HJ_LEAGUE_TEAM_KEY=`hungJurors:espnLeague:selectedTeam:v1`;
+const HJ_ACTIVITY_CACHE_KEY=`hungJurors:leagueActivity:${ESPN_FANTASY_LEAGUE_ID}:${HJ_LEAGUE_SEASON}:v1`;
+const HJ_LEAGUE_REFRESH_MS=5*60*1000;
+const HJ_POSITION_IDS={1:'QB',2:'RB',3:'WR',4:'TE',5:'K',16:'D/ST'};
+const HJ_LINEUP_SLOTS={0:'QB',1:'TQB',2:'RB',3:'RB/WR',4:'WR',5:'WR/TE',6:'TE',7:'OP',16:'D/ST',17:'K',20:'Bench',21:'IR',23:'Flex',24:'ER'};
+const HJ_STARTER_ORDER={0:0,1:0,2:10,4:20,6:30,3:40,5:40,23:40,7:45,24:45,16:50,17:60};
+const HJ_POSITION_ORDER={QB:0,RB:10,WR:20,TE:30,'D/ST':40,K:50};
+const HJ_PRO_TEAM_BY_ID=Object.fromEntries(Object.entries(NFL_TEAM_IDS).map(([abbr,id])=>[String(id),pcTeam(abbr)]));
+let HJ_LEAGUE_STATE={data:null,previousData:null,selectedTeamId:null,syncedAt:0,serverTime:'',syncing:false,error:''};
+let HJ_HQ_STATE={activeTab:'rosters',focusTeamId:null,query:'',position:'ALL',sort:'week',freeAgents:[],freeAgentToken:0};
+
+function hjLeagueUrl(season=HJ_LEAGUE_SEASON){
+  const url=new URL(`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}`);
+  ['mTeam','mRoster','mSettings','mMatchup','mStandings','mStatus'].forEach(view=>url.searchParams.append('view',view));
+  return url.toString();
+}
+function hjNorm(value=''){return String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
+function hjInitials(value=''){return String(value).split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'HJ'}
+function hjMembers(data=HJ_LEAGUE_STATE.data){return new Map((data?.members||[]).map(member=>[String(member.id),member]))}
+function hjOwner(team,data=HJ_LEAGUE_STATE.data){
+  const members=hjMembers(data),ownerIds=[team?.primaryOwner,...(team?.owners||[])].filter(Boolean).map(String);
+  return ownerIds.map(id=>members.get(id)).filter(Boolean)[0]||null;
+}
+function hjOwnerName(team,data=HJ_LEAGUE_STATE.data){
+  const owner=hjOwner(team,data);
+  return owner?.displayName||[owner?.firstName,owner?.lastName].filter(Boolean).join(' ')||owner?.name||'';
+}
+function hjTeamName(team){return team?.name||[team?.location,team?.nickname].filter(Boolean).join(' ')||team?.nickname||team?.abbrev||`Team ${team?.id||''}`}
+function hjTeamLogo(team){
+  const raw=Array.isArray(team?.logo)?team.logo[0]:team?.logo;
+  return /^https?:\/\//i.test(String(raw||''))?String(raw):'';
+}
+function hjMatchManager(team,data=HJ_LEAGUE_STATE.data){
+  const owner=hjOwner(team,data),ownerName=hjOwnerName(team,data),candidateText=hjNorm([ownerName,owner?.firstName,owner?.lastName,hjTeamName(team),team?.abbrev].filter(Boolean).join(' '));
+  if(!candidateText)return '';
+  const managers=DATA.managers.map(manager=>manager.short);
+  const historical=(HIST.manager_seasons||[]).filter(row=>Number(row.year)===2025).find(row=>hjNorm(row.team)===hjNorm(hjTeamName(team))&&managers.includes(row.manager));
+  if(historical)return historical.manager;
+  const direct=managers.find(name=>candidateText.includes(hjNorm(name)));
+  if(direct)return direct;
+  const first=hjNorm(owner?.firstName||ownerName).split(' ')[0];
+  if(!first)return '';
+  const matches=managers.filter(name=>hjNorm(name).split(' ')[0]===first);
+  if(matches.length===1)return matches[0];
+  const lastInitial=hjNorm(owner?.lastName||'')[0]||'';
+  return matches.find(name=>hjNorm(name).split(' ')[1]?.[0]===lastInitial)||'';
+}
+function hjTeamRecord(team){
+  const record=team?.record?.overall||team?.record||{};
+  const wins=Number(record.wins)||0,losses=Number(record.losses)||0,ties=Number(record.ties)||0;
+  return `${wins}-${losses}${ties?`-${ties}`:''}`;
+}
+function hjTeamRecordIfPlayed(team){
+  const record=team?.record?.overall||team?.record||{};
+  return (Number(record.wins)||0)+(Number(record.losses)||0)+(Number(record.ties)||0)>0?hjTeamRecord(team):'';
+}
+function hjRosterEntries(team){return Array.isArray(team?.roster?.entries)?team.roster.entries:[]}
+function hjPlayer(entry){return entry?.playerPoolEntry?.player||entry?.player||{}}
+function hjPlayerPosition(entry){const player=hjPlayer(entry);return HJ_POSITION_IDS[player?.defaultPositionId]||player?.defaultPositionId||''}
+function hjPlayerTeam(entry){return HJ_PRO_TEAM_BY_ID[String(hjPlayer(entry)?.proTeamId||'')]||'FA'}
+function hjPlayerPhoto(entry){const player=hjPlayer(entry),id=player?.id||entry?.playerId;return hjPlayerPosition(entry)==='D/ST'?ffnTeamLogo(hjPlayerTeam(entry)):(player?.headshot?.href||(id&&!String(id).startsWith('-')?nflHeadshot(id):''))}
+function hjPlayerSlot(entry){return HJ_LINEUP_SLOTS[Number(entry?.lineupSlotId)]||`Slot ${entry?.lineupSlotId??'—'}`}
+function hjPlayerRank(entry){const rank=Number(entry?.playerPoolEntry?.ratings?.['0']?.positionalRanking);return Number.isFinite(rank)&&rank>0?rank:null}
+function hjLineupCompare(a,b){const aSlot=Number(a?.lineupSlotId),bSlot=Number(b?.lineupSlotId),aOrder=HJ_STARTER_ORDER[aSlot]??90,bOrder=HJ_STARTER_ORDER[bSlot]??90;return aOrder-bOrder||(HJ_POSITION_ORDER[hjPlayerPosition(a)]??90)-(HJ_POSITION_ORDER[hjPlayerPosition(b)]??90)||String(hjPlayer(a)?.fullName||'').localeCompare(String(hjPlayer(b)?.fullName||''))}
+function hjBenchCompare(a,b){return (HJ_POSITION_ORDER[hjPlayerPosition(a)]??90)-(HJ_POSITION_ORDER[hjPlayerPosition(b)]??90)||String(hjPlayer(a)?.fullName||'').localeCompare(String(hjPlayer(b)?.fullName||''))}
+function hjAllRosterCompare(a,b){const group=entry=>Number(entry?.lineupSlotId)===20?1:Number(entry?.lineupSlotId)===21?2:0,aGroup=group(a),bGroup=group(b);return aGroup-bGroup||(aGroup===0?hjLineupCompare(a,b):hjBenchCompare(a,b))}
+function hjPlayerWeekValue(entry,week,season=HJ_LEAGUE_SEASON){
+  const player=hjPlayer(entry),stats=Array.isArray(player?.stats)?player.stats:[];
+  if(Number(season)<HJ_LEAGUE_SEASON){
+    const seasonTotal=stats.find(stat=>Number(stat?.scoringPeriodId)===0&&Number(stat?.statSourceId)===0&&Number(stat?.statSplitTypeId)===0&&Number.isFinite(Number(stat?.appliedTotal)));
+    return {value:seasonTotal?Number(seasonTotal.appliedTotal):null,label:'FPTS'};
+  }
+  const exact=source=>stats.find(stat=>Number(stat?.scoringPeriodId)===Number(week)&&Number(stat?.statSourceId)===source&&Number.isFinite(Number(stat?.appliedTotal)));
+  const actual=exact(0),projection=exact(1);
+  if(actual&&Number(actual.appliedTotal)!==0)return {value:Number(actual.appliedTotal),label:'FPTS'};
+  if(Number.isFinite(Number(entry?.playerPoolEntry?.appliedStatTotal))&&Number(entry.playerPoolEntry.appliedStatTotal)!==0)return {value:Number(entry.playerPoolEntry.appliedStatTotal),label:'FPTS'};
+  if(projection)return {value:Number(projection.appliedTotal),label:'PROJ'};
+  return {value:null,label:'PROJ'};
+}
+function hjCurrentWeek(data=HJ_LEAGUE_STATE.data){return Number(data?.status?.currentMatchupPeriod||data?.scoringPeriodId||1)||1}
+function hjCurrentMatchup(teamId,data=HJ_LEAGUE_STATE.data){
+  const week=hjCurrentWeek(data),schedule=Array.isArray(data?.schedule)?data.schedule:[];
+  const matchup=schedule.find(game=>Number(game?.matchupPeriodId)===week&&(Number(game?.home?.teamId)===Number(teamId)||Number(game?.away?.teamId)===Number(teamId)));
+  if(!matchup)return null;
+  const homeIsTeam=Number(matchup?.home?.teamId)===Number(teamId),side=homeIsTeam?matchup.home:matchup.away,opponent=homeIsTeam?matchup.away:matchup.home;
+  return {week,matchup,side,opponent,opponentTeam:(data?.teams||[]).find(team=>Number(team.id)===Number(opponent?.teamId))||null};
+}
+function hjPlayerHTML(entry,week,season=HJ_LEAGUE_SEASON){
+  const player=hjPlayer(entry),id=player?.id||entry?.playerId||'',name=player?.fullName||player?.displayName||player?.name||'Player',position=hjPlayerPosition(entry),positionRank=hjPlayerRank(entry),team=hjPlayerTeam(entry),photo=hjPlayerPhoto(entry),slot=hjPlayerSlot(entry),status=Number(season)===HJ_LEAGUE_SEASON?String(entry?.injuryStatus||player?.injuryStatus||'').replace(/^NORMAL$/i,''):'',points=hjPlayerWeekValue(entry,week,season),rankedPosition=`${position||'—'}${positionRank||''}`;
+  return `<button class="league-player pc-player-trigger" type="button" ${ffnPlayerDataAttrs({id,name,team,position,photo})} aria-label="Open ${esc(name)} player profile">${photo?`<img class="league-player-photo${position==='D/ST'?' is-defense':''}" src="${esc(photo)}" alt="" loading="lazy" onerror="ffnImageFallback(this)">`:`<span class="league-team-initials">${esc(hjInitials(name))}</span>`}<span class="league-player-copy"><span class="league-player-name">${esc(name)}</span><span class="league-player-meta"><span class="league-player-slot">${esc(slot)}</span><span>${esc(team)} · ${esc(rankedPosition)}</span>${status?`<span class="league-player-status">${esc(status)}</span>`:''}</span></span><span class="league-player-points"><strong>${points.value==null?'—':pcFpts(points.value)}</strong><small>${points.label}</small></span></button>`;
+}
+function hjRosterGroupHTML(label,entries,week,extraClass='',season=HJ_LEAGUE_SEASON){
+  if(!entries.length)return '';
+  return `<div class="league-roster-group ${extraClass}"><div class="league-roster-group-head"><span>${esc(label)}</span></div><div class="league-player-list">${entries.map(entry=>hjPlayerHTML(entry,week,season)).join('')}</div></div>`;
+}
+function hjTeamTabHTML(team,data){
+  const active=Number(team.id)===Number(HJ_LEAGUE_STATE.selectedTeamId),manager=hjMatchManager(team,data),owner=manager||hjOwnerName(team,data)||`Manager ${team.id}`,record=hjTeamRecordIfPlayed(team);
+  return `<button class="league-team-tab${active?' active':''}" type="button" data-league-team="${esc(team.id)}" aria-pressed="${active}">${manager?av(manager):`<span class="league-team-initials">${esc(hjInitials(owner))}</span>`}<span class="league-team-tab-copy"><b>${esc(owner)}</b>${record?`<small>${esc(record)}</small>`:''}</span></button>`;
+}
+function hjEffectiveRoster(team,data=HJ_LEAGUE_STATE.data){
+  const manager=team?hjMatchManager(team,data):'',current=hjRosterEntries(team),previousData=HJ_LEAGUE_STATE.previousData,previousTeam=(previousData?.teams||[]).find(item=>(manager&&hjMatchManager(item,previousData)===manager)||Number(item.id)===Number(team?.id)),previous=hjRosterEntries(previousTeam),usingPrevious=!current.length&&previous.length>0;
+  return {entries:usingPrevious?previous:current,season:usingPrevious?HJ_LEAGUE_PREVIOUS_SEASON:HJ_LEAGUE_SEASON,usingPrevious,previousTeam};
+}
+function hjEntrySeasonValue(entry,season=HJ_LEAGUE_SEASON,week=hjCurrentWeek()){
+  const stats=Array.isArray(hjPlayer(entry)?.stats)?hjPlayer(entry).stats:[],find=(period,source)=>stats.find(stat=>Number(stat?.scoringPeriodId)===Number(period)&&Number(stat?.statSourceId)===Number(source)&&Number.isFinite(Number(stat?.appliedTotal)));
+  const preferred=Number(season)<HJ_LEAGUE_SEASON?find(0,0):(find(0,1)||find(week,1)||find(0,0)||find(week,0));
+  if(preferred)return Number(preferred.appliedTotal);
+  const pool=Number(entry?.playerPoolEntry?.appliedStatTotal);return Number.isFinite(pool)?pool:0;
+}
+function hjBuildLineup(entries,season=HJ_LEAGUE_SEASON,week=hjCurrentWeek()){
+  const pool=entries.filter(entry=>Number(entry?.lineupSlotId)!==21).map(entry=>({entry,position:hjPlayerPosition(entry),score:hjEntrySeasonValue(entry,season,week)})).filter(item=>HJ_POSITION_ORDER[item.position]!=null).sort((a,b)=>b.score-a.score),used=new Set(),take=(position,count)=>{const found=pool.filter(item=>item.position===position&&!used.has(item.entry)).slice(0,count);found.forEach(item=>used.add(item.entry));return found},groups={};
+  groups.QB=take('QB',1);groups.RB=take('RB',2);groups.WR=take('WR',2);groups.TE=take('TE',1);groups.FLEX=pool.filter(item=>['RB','WR','TE'].includes(item.position)&&!used.has(item.entry)).slice(0,1);groups.FLEX.forEach(item=>used.add(item.entry));groups['D/ST']=take('D/ST',1);groups.K=take('K',1);
+  const values=Object.fromEntries(Object.entries(groups).map(([key,items])=>[key,items.reduce((sum,item)=>sum+item.score,0)]));values.OVERALL=Object.values(values).reduce((sum,value)=>sum+value,0);return {groups,values};
+}
+function hjStrengthRows(data=HJ_LEAGUE_STATE.data){
+  const rows=(data?.teams||[]).map(team=>{const manager=hjMatchManager(team,data)||hjOwnerName(team,data)||`Manager ${team.id}`,effective=hjEffectiveRoster(team,data),lineup=hjBuildLineup(effective.entries,effective.season,hjCurrentWeek(data));return {team,manager,...effective,...lineup,ranks:{}}}),keys=['QB','RB','WR','TE','FLEX','D/ST','K','OVERALL'];
+  keys.forEach(key=>{[...rows].sort((a,b)=>b.values[key]-a.values[key]||a.manager.localeCompare(b.manager)).forEach((row,index,list)=>{row.ranks[key]=index&&Math.abs(row.values[key]-list[index-1].values[key])<.005?list[index-1].ranks[key]:index+1})});return rows;
+}
+function hjMatchupUnits(entries,week,season){
+  const keys=['QB','RB','WR','TE','FLEX','D/ST','K'],values=Object.fromEntries(keys.map(key=>[key,0])),players=[];
+  entries.filter(entry=>![20,21].includes(Number(entry?.lineupSlotId))).forEach(entry=>{const slot=Number(entry?.lineupSlotId),position=hjPlayerPosition(entry),group=slot===0||slot===1?'QB':slot===2?'RB':slot===4?'WR':slot===6?'TE':[3,5,7,23,24].includes(slot)?'FLEX':slot===16?'D/ST':slot===17?'K':position,value=hjPlayerWeekValue(entry,week,season).value??0;if(values[group]!=null)values[group]+=value;players.push({entry,value})});
+  return {values,players,total:Object.values(values).reduce((sum,value)=>sum+value,0)};
+}
+function hjPlayersLeft(entries){
+  return entries.filter(entry=>![20,21].includes(Number(entry?.lineupSlotId))).reduce((count,entry)=>{const team=pcTeam(hjPlayerTeam(entry)).toLowerCase().replace(/^was$/,'wsh'),game=NFL_WEEK1.find(item=>item?.a?.[1]===team||item?.b?.[1]===team);return count+(!game||game.state!=='post'?1:0)},0);
+}
+function hjMiniPlayerHTML(item){
+  const entry=item.entry,player=hjPlayer(entry),id=player?.id||entry?.playerId||'',name=player?.fullName||player?.displayName||'Player',position=hjPlayerPosition(entry),team=hjPlayerTeam(entry),photo=hjPlayerPhoto(entry);
+  return `<button class="hq-swing-player pc-player-trigger" type="button" ${ffnPlayerDataAttrs({id,name,team,position,photo})} aria-label="Open ${esc(name)} player profile">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="ffnImageFallback(this)">`:`<span class="league-team-initials">${esc(hjInitials(name))}</span>`}<b>${esc(name)}</b><strong>${pcFpts(item.value)}</strong></button>`;
+}
+function hjPlaceholderUnits(effective){
+  const lineup=hjBuildLineup(effective.entries,effective.season,1),divisor=17,values=Object.fromEntries(['QB','RB','WR','TE','FLEX','D/ST','K'].map(key=>[key,(lineup.values[key]||0)/divisor])),players=Object.values(lineup.groups).flat().map(item=>({entry:item.entry,value:item.score/divisor}));return {values,players,total:(lineup.values.OVERALL||0)/divisor};
+}
+function hjMatchupCardHTML(game,sourceData,data,placeholder){
+  const sourceHome=(sourceData?.teams||[]).find(team=>Number(team.id)===Number(game?.home?.teamId)),sourceAway=(sourceData?.teams||[]).find(team=>Number(team.id)===Number(game?.away?.teamId));if(!sourceHome||!sourceAway)return '';
+  const managerA=hjMatchManager(sourceHome,sourceData)||hjOwnerName(sourceHome,sourceData)||`Manager ${sourceHome.id}`,managerB=hjMatchManager(sourceAway,sourceData)||hjOwnerName(sourceAway,sourceData)||`Manager ${sourceAway.id}`,findCurrent=(name,fallback)=>(data?.teams||[]).find(team=>hjMatchManager(team,data)===name)||(data?.teams||[]).find(team=>Number(team.id)===Number(fallback.id))||fallback,teamA=findCurrent(managerA,sourceHome),teamB=findCurrent(managerB,sourceAway),rosterA=hjEffectiveRoster(teamA,data),rosterB=hjEffectiveRoster(teamB,data),week=Number(game?.matchupPeriodId)||hjCurrentWeek(data),usePlaceholder=placeholder||rosterA.usingPrevious||rosterB.usingPrevious,unitsA=usePlaceholder?hjPlaceholderUnits(rosterA):hjMatchupUnits(rosterA.entries,week,rosterA.season),unitsB=usePlaceholder?hjPlaceholderUnits(rosterB):hjMatchupUnits(rosterB.entries,week,rosterB.season),actualA=Number(game?.home?.totalPoints)||0,actualB=Number(game?.away?.totalPoints)||0,live=!usePlaceholder&&(actualA!==0||actualB!==0),projectionA=usePlaceholder?unitsA.total:(Number(game?.home?.totalProjectedPoints)||unitsA.total),projectionB=usePlaceholder?unitsB.total:(Number(game?.away?.totalProjectedPoints)||unitsB.total),displayA=live?actualA:projectionA,displayB=live?actualB:projectionB,winChance=Math.max(1,Math.min(99,Math.round(100/(1+Math.exp(-(projectionA-projectionB)/15))))),leftA=usePlaceholder?'2025 lineup average':`${hjPlayersLeft(rosterA.entries)} players left`,leftB=usePlaceholder?'2025 lineup average':`${hjPlayersLeft(rosterB.entries)} players left`,edges=['QB','RB','WR','TE','FLEX','D/ST','K'].map(key=>{const delta=unitsA.values[key]-unitsB.values[key],winner=Math.abs(delta)<.005?'Even':`${delta>0?managerA:managerB} +${pcFpts(Math.abs(delta))}`;return `<div class="hq-edge${Math.abs(delta)<.005?' is-even':''}"><span>${esc(key)}</span><strong title="${esc(winner)}">${esc(winner)}</strong></div>`}).join(''),swing=[...unitsA.players,...unitsB.players].sort((a,b)=>b.value-a.value).slice(0,3).map(hjMiniPlayerHTML).join(''),focused=String(HJ_HQ_STATE.focusTeamId||'')==String(teamA.id)||String(HJ_HQ_STATE.focusTeamId||'')==String(teamB.id);
+  return `<section class="hq-matchup${focused?' is-focused':''}" data-hq-matchup data-hq-team-a="${esc(teamA.id)}" data-hq-team-b="${esc(teamB.id)}"><div class="hq-matchup-head"><h4>Week ${week} matchup</h4><span>${usePlaceholder?'2025 rosters':live?'Live score':'Projected'}</span></div><div class="hq-matchup-main"><div class="hq-matchup-manager">${av(managerA)}<div><b class="hq-matchup-manager-name">${esc(managerA)}</b><small>${esc(leftA)}</small></div><strong class="hq-matchup-points">${pcFpts(displayA)}</strong></div><div class="hq-matchup-middle"><div class="hq-win-bar" aria-label="${esc(managerA)} ${winChance}% win chance"><span style="width:${winChance}%"></span></div><div class="hq-win-copy"><span>${winChance}%</span><span>${100-winChance}%</span></div><div class="hq-matchup-vs">Win chance</div></div><div class="hq-matchup-manager is-away"><strong class="hq-matchup-points">${pcFpts(displayB)}</strong><div><b class="hq-matchup-manager-name">${esc(managerB)}</b><small>${esc(leftB)}</small></div>${av(managerB)}</div></div><div class="hq-edge-grid">${edges}</div>${swing?`<div class="hq-swing"><span class="hq-swing-label">Swing players</span>${swing}</div>`:''}</section>`;
+}
+function hjMatchupCenterPanelHTML(data){
+  const week=hjCurrentWeek(data),currentGames=(data?.schedule||[]).filter(game=>Number(game?.matchupPeriodId)===week&&Number(game?.home?.teamId)&&Number(game?.away?.teamId)),previousData=HJ_LEAGUE_STATE.previousData,previousGames=(previousData?.schedule||[]).filter(game=>Number(game?.matchupPeriodId)===1&&Number(game?.home?.teamId)&&Number(game?.away?.teamId)),useCurrent=currentGames.length>0,games=useCurrent?currentGames:previousGames,sourceData=useCurrent?data:previousData,placeholder=!useCurrent||(data?.teams||[]).every(team=>!hjRosterEntries(team).length);
+  if(!games.length)return `<div class="hq-empty">Matchups will appear when the schedule loads.</div>`;return `<div class="hq-matchup-list">${games.map(game=>hjMatchupCardHTML(game,sourceData,data,placeholder)).join('')}</div>`;
+}
+function hjStrengthHTML(data){
+  const rows=hjStrengthRows(data),usingPrevious=rows.some(row=>row.usingPrevious),keys=['QB','RB','WR','TE','FLEX','D/ST','K','OVERALL'];
+  const body=[...rows].sort((a,b)=>a.ranks.OVERALL-b.ranks.OVERALL).map(row=>`<tr data-hq-manager="${esc(row.team.id)}" tabindex="0" role="button" aria-label="Open ${esc(row.manager)} roster"><td><div class="hq-strength-manager">${av(row.manager)}<b>${esc(row.manager)}</b></div></td>${keys.map(key=>`<td class="hq-strength-cell${row.ranks[key]<=3?' is-top':''}${key==='OVERALL'?' is-overall':''}"><strong>#${row.ranks[key]}</strong><small>${pcFpts(row.values[key])}</small></td>`).join('')}</tr>`).join('');
+  return `<section class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength Matrix</h3><span class="hq-module-note">${usingPrevious?`${HJ_LEAGUE_PREVIOUS_SEASON} final rosters`:`${HJ_LEAGUE_SEASON} projections`}</span></div><div class="hq-strength-wrap"><table class="hq-strength-table"><thead><tr><th>Manager</th>${keys.map(key=>`<th>${key==='OVERALL'?'Overall':esc(key)}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div></section>`;
+}
+function hjRosteredKeys(data){
+  const ids=new Set(),names=new Set();(data?.teams||[]).forEach(team=>hjEffectiveRoster(team,data).entries.forEach(entry=>{const player=hjPlayer(entry),id=String(player?.id||entry?.playerId||'');if(id)ids.add(id);const name=hjNorm(player?.fullName||player?.displayName||'');if(name)names.add(name)}));return {ids,names};
+}
+function hjFreeAgentBase(data){
+  const rostered=hjRosteredKeys(data),seen=new Set(),pool=[];
+  FFN_BOOTSTRAP_ROSTER.forEach(player=>{const position=String(player.position||'').toUpperCase(),id=String(player.id||''),nameKey=hjNorm(player.name);if(!['QB','RB','WR','TE','K'].includes(position)||Number(player.depthTier)>6||rostered.ids.has(id)||rostered.names.has(nameKey))return;const key=id||nameKey;if(seen.has(key))return;seen.add(key);pool.push({...player,position})});
+  const defenseTeams=[...new Set(Object.keys(NFL_TEAM_IDS).map(key=>pcTeam(key)))];defenseTeams.forEach(team=>{const id=String(-16000-Number(NFL_TEAM_IDS[team.toLowerCase().replace(/^was$/,'wsh')]||0)),name=`${PC_TEAM_NAMES[team]||team} D/ST`;if(rostered.ids.has(id)||rostered.names.has(hjNorm(name)))return;pool.push({id,name,norm:hjNorm(name),team,position:'D/ST',photo:ffnTeamLogo(team),depthTier:1,positionRank:1})});return pool;
+}
+function hjVegasRanks(data){
+  const output=new Map();if(!data?.rows)return output;['QB','RB','WR','TE'].forEach(position=>data.rows.filter(row=>String(row.position||'').toUpperCase()===position).map(row=>({row,points:pcVegasPoints(row,position)})).sort((a,b)=>b.points-a.points).forEach((item,index)=>output.set(`${position}|${hjNorm(item.row.name)}`,index+1)));return output;
+}
+function hjFreeAgentControlsHTML(){
+  return `<div class="hq-fa-controls"><input class="hq-fa-control" id="hq-fa-search" type="search" list="hq-fa-names" placeholder="Search player" value="${esc(HJ_HQ_STATE.query)}" aria-label="Search free agents"><datalist id="hq-fa-names"></datalist><select class="hq-fa-control" id="hq-fa-position" aria-label="Filter free agents by position"><option value="ALL">All positions</option>${['QB','RB','WR','TE','K','D/ST'].map(pos=>`<option value="${pos}"${HJ_HQ_STATE.position===pos?' selected':''}>${pos}</option>`).join('')}</select><select class="hq-fa-control" id="hq-fa-sort" aria-label="Sort free agents"><option value="week"${HJ_HQ_STATE.sort==='week'?' selected':''}>This week</option><option value="season"${HJ_HQ_STATE.sort==='season'?' selected':''}>Season</option><option value="depth"${HJ_HQ_STATE.sort==='depth'?' selected':''}>Depth chart</option></select><button class="hq-fa-reset" id="hq-fa-reset" type="button"${!HJ_HQ_STATE.query&&HJ_HQ_STATE.position==='ALL'&&HJ_HQ_STATE.sort==='week'?' disabled':''}>Reset</button></div>`;
+}
+function hjFreeAgentRowsHTML(){
+  const query=hjNorm(HJ_HQ_STATE.query),filtered=HJ_HQ_STATE.freeAgents.filter(player=>(HJ_HQ_STATE.position==='ALL'||player.position===HJ_HQ_STATE.position)&&(!query||hjNorm(player.name).includes(query)||hjNorm(player.team).includes(query))).sort((a,b)=>{if(HJ_HQ_STATE.sort==='season')return (b.seasonFpts??-1)-(a.seasonFpts??-1)||a.depthTier-b.depthTier;if(HJ_HQ_STATE.sort==='depth')return a.depthTier-b.depthTier||(b.weekFpts??-1)-(a.weekFpts??-1);return (b.weekFpts??-1)-(a.weekFpts??-1)||(b.seasonFpts??-1)-(a.seasonFpts??-1)||a.depthTier-b.depthTier}).slice(0,30);
+  if(!filtered.length)return `<div class="hq-empty">No available players match that search.</div>`;
+  const rows=filtered.map(player=>{const upcoming=pcUpcoming(player.team),next=upcoming?`${upcoming.location==='at'?'@':'vs'} ${upcoming.abbr}`:'—',rank=player.weekRank?`${player.position}${player.weekRank}`:player.position,news=player.news,fit=player.bestFit;return `<tr><td><button class="hq-fa-player pc-player-trigger" type="button" ${ffnPlayerDataAttrs(player)} aria-label="Open ${esc(player.name)} player profile">${player.photo?`<img class="${player.position==='D/ST'?'is-defense':''}" src="${esc(player.photo)}" alt="" loading="lazy" onerror="ffnImageFallback(this)">`:`<span class="league-team-initials">${esc(hjInitials(player.name))}</span>`}<span><b>${esc(player.name)}</b><small>${esc(player.team)} · ${esc(rank)}</small></span></button></td><td class="hq-fa-center hq-fa-fpts">${player.weekFpts==null?'—':pcFpts(player.weekFpts)}</td><td class="hq-fa-center">${esc(next)}</td><td class="hq-fa-center">${fit?`<span class="hq-fa-fit">${av(fit)}<b>${esc(fit)}</b></span>`:'—'}</td><td class="hq-fa-news">${news?`<span class="hq-fa-news-copy"><span class="hq-fa-tag">${esc(news.category||'Update')}</span> ${esc(news.headline||news.text||'')}</span>`:'—'}</td></tr>`}).join('');
+  return `<div class="hq-fa-wrap"><table class="hq-fa-table"><thead><tr><th>Player</th><th>Proj FPTS</th><th>Next</th><th>Best fit</th><th>Latest</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function hjRenderFreeAgentResults(){
+  const target=$('#hq-fa-results'),names=$('#hq-fa-names'),note=$('#hq-fa-count'),reset=$('#hq-fa-reset');if(!target)return;target.innerHTML=hjFreeAgentRowsHTML();if(names)names.innerHTML=HJ_HQ_STATE.freeAgents.map(player=>`<option value="${esc(player.name)}"></option>`).join('');if(note)note.textContent=`${HJ_HQ_STATE.freeAgents.length} available`;if(reset)reset.disabled=!HJ_HQ_STATE.query&&HJ_HQ_STATE.position==='ALL'&&HJ_HQ_STATE.sort==='week';
+}
+async function hjHydrateFreeAgents(data){
+  const token=++HJ_HQ_STATE.freeAgentToken,base=hjFreeAgentBase(data),strength=hjStrengthRows(data),weakest={};['QB','RB','WR','TE','K','D/ST'].forEach(position=>{weakest[position]=[...strength].sort((a,b)=>a.values[position]-b.values[position])[0]?.manager||''});
+  const [weekResult,seasonResult]=await Promise.allSettled([pcLoadVegas('weekly'),pcLoadVegas('season')]);if(token!==HJ_HQ_STATE.freeAgentToken)return;const weekly=weekResult.status==='fulfilled'?weekResult.value:null,season=seasonResult.status==='fulfilled'?seasonResult.value:null,weeklyRows=new Map((weekly?.rows||[]).map(row=>[`${String(row.position||'').toUpperCase()}|${hjNorm(row.name)}`,row])),seasonRows=new Map((season?.rows||[]).map(row=>[`${String(row.position||'').toUpperCase()}|${hjNorm(row.name)}`,row])),ranks=hjVegasRanks(weekly);
+  HJ_HQ_STATE.freeAgents=base.map(player=>{const key=`${player.position}|${hjNorm(player.name)}`,weekRow=weeklyRows.get(key),seasonRow=seasonRows.get(key),weekFpts=weekRow?pcVegasPoints(weekRow,player.position):null,seasonFpts=seasonRow?pcVegasPoints(seasonRow,player.position):null;return {...player,weekFpts:Number.isFinite(weekFpts)?weekFpts:null,seasonFpts:Number.isFinite(seasonFpts)?seasonFpts:null,weekRank:ranks.get(key)||null,bestFit:weakest[player.position]||'',news:pcNewsForPlayer(player)?.[0]||null}});hjRenderFreeAgentResults();
+}
+function hjReadActivity(){try{const rows=JSON.parse(localStorage.getItem(HJ_ACTIVITY_CACHE_KEY)||'[]');return Array.isArray(rows)?rows:[]}catch(_){return []}}
+function hjRosterMap(data){const map=new Map();(data?.teams||[]).forEach(team=>{const manager=hjMatchManager(team,data)||hjOwnerName(team,data)||`Manager ${team.id}`;hjRosterEntries(team).forEach(entry=>{const player=hjPlayer(entry),id=String(player?.id||entry?.playerId||''),name=player?.fullName||player?.displayName||'Player',key=id||hjNorm(name);if(key)map.set(key,{id,name,manager,team:hjPlayerTeam(entry),position:hjPlayerPosition(entry),photo:hjPlayerPhoto(entry)})})});return map}
+function hjTrackActivity(before,after){
+  const oldMap=hjRosterMap(before),newMap=hjRosterMap(after);if(oldMap.size<5||newMap.size<5)return;const at=Date.now(),changes=[];newMap.forEach((player,key)=>{const old=oldMap.get(key);if(!old)changes.push({at,type:'Add',player,to:player.manager});else if(old.manager!==player.manager)changes.push({at,type:'Trade',player,from:old.manager,to:player.manager})});oldMap.forEach((player,key)=>{if(!newMap.has(key))changes.push({at,type:'Drop',player,from:player.manager})});if(!changes.length)return;try{localStorage.setItem(HJ_ACTIVITY_CACHE_KEY,JSON.stringify([...changes,...hjReadActivity()].slice(0,60)))}catch(_){}
+}
+function hjActivityHTML(){
+  const activity=hjReadActivity().slice(0,10);if(!activity.length)return `<div class="hq-empty">Completed adds, drops and trades will appear after the next roster change.</div>`;
+  return `<div class="hq-module-body hq-activity-list">${activity.map(item=>{const player=item.player||{},copy=item.type==='Add'?`<b>${esc(item.to)}</b> added <b>${esc(player.name)}</b>`:item.type==='Drop'?`<b>${esc(item.from)}</b> dropped <b>${esc(player.name)}</b>`:`<b>${esc(player.name)}</b> moved from <b>${esc(item.from)}</b> to <b>${esc(item.to)}</b>`;return `<button class="hq-activity-item pc-player-trigger" type="button" ${ffnPlayerDataAttrs(player)} aria-label="Open ${esc(player.name)} player profile">${player.photo?`<img src="${esc(player.photo)}" alt="" loading="lazy" onerror="ffnImageFallback(this)">`:`<span class="league-team-initials">${esc(hjInitials(player.name))}</span>`}<span class="hq-activity-copy"><span class="hq-activity-type">${esc(item.type)}</span>${copy}</span><time class="hq-activity-time">${esc(new Date(item.at).toLocaleDateString([],{month:'short',day:'numeric'}))}<br>${esc(new Date(item.at).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}))}</time></button>`}).join('')}</div>`;
+}
+function hjWeeklyRecapHTML(data){
+  const current=hjCurrentWeek(data),complete=(data?.schedule||[]).filter(game=>Number(game?.matchupPeriodId)<current&&Number(game?.home?.teamId)&&Number(game?.away?.teamId)&&((Number(game?.home?.totalPoints)||0)!==0||(Number(game?.away?.totalPoints)||0)!==0)),latestWeek=Math.max(0,...complete.map(game=>Number(game.matchupPeriodId))),games=complete.filter(game=>Number(game.matchupPeriodId)===latestWeek);
+  if(!games.length)return `<div class="hq-empty">Week 1 recap appears after Monday night.</div>`;
+  const teamById=new Map((data?.teams||[]).map(team=>[Number(team.id),team])),manager=id=>{const team=teamById.get(Number(id));return team?(hjMatchManager(team,data)||hjOwnerName(team,data)||`Manager ${id}`):`Manager ${id}`},results=games.map(game=>{const home={name:manager(game.home.teamId),score:Number(game.home.totalPoints)||0,projected:Number(game.home.totalProjectedPoints)||0},away={name:manager(game.away.teamId),score:Number(game.away.totalPoints)||0,projected:Number(game.away.totalProjectedPoints)||0},winner=home.score>=away.score?home:away,loser=winner===home?away:home;return {home,away,winner,loser,margin:Math.abs(home.score-away.score)}}),sides=results.flatMap(result=>[result.home,result.away]),high=[...sides].sort((a,b)=>b.score-a.score)[0],close=[...results].sort((a,b)=>a.margin-b.margin)[0],blowout=[...results].sort((a,b)=>b.margin-a.margin)[0],upset=results.find(result=>result.winner.projected&&result.loser.projected&&result.winner.projected<result.loser.projected),story=`${high.name} led Week ${latestWeek} with ${pcFpts(high.score)} points. ${close.winner.name} survived the closest matchup by ${pcFpts(close.margin)}.${upset?` ${upset.winner.name} also beat the projection and pulled off the upset.`:''}`,award=(label,name,score,sub)=>`<div class="hq-recap-award">${av(name)}<div><span>${esc(label)}</span><b>${esc(name)}</b></div><strong class="hq-recap-score">${pcFpts(score)}<small>${esc(sub)}</small></strong></div>`;
+  return `<div class="hq-module-body"><p class="hq-recap-story">${esc(story)}</p><div class="hq-recap-list">${award('High score',high.name,high.score,'FPTS')}${award('Closest finish',close.winner.name,close.margin,'point margin')}${award('Biggest win',blowout.winner.name,blowout.margin,'point margin')}</div></div>`;
+}
+const HJ_HQ_TABS=[['rosters','Rosters'],['matchups','Matchup Center'],['free-agents','Free Agents'],['strength','Roster Strength'],['activity','League Activity'],['recap','Weekly Recap']];
+function hjRenderHQTabs(){
+  const tabs=$('#league-hq-tabs'),rosters=$('#league-sync-content'),tools=$('#league-hq-tools'),active=HJ_HQ_STATE.activeTab;if(!HJ_LEAGUE_STATE.data){if(tabs)tabs.innerHTML='';if(rosters)rosters.hidden=false;return}if(tabs)tabs.innerHTML=HJ_HQ_TABS.map(([key,label])=>`<button class="hq-tab" type="button" role="tab" data-hq-tab="${key}" aria-selected="${active===key}" aria-controls="${key==='rosters'?'league-sync-content':`hq-panel-${key}`}">${esc(label)}</button>`).join('');if(rosters)rosters.hidden=active!=='rosters';tools?.querySelectorAll('[data-hq-panel]').forEach(panel=>panel.hidden=panel.dataset.hqPanel!==active);
+}
+function hjSetHQTab(tab,focusTeamId=null){
+  if(!HJ_HQ_TABS.some(item=>item[0]===tab))return;HJ_HQ_STATE.activeTab=tab;HJ_HQ_STATE.focusTeamId=focusTeamId;hjRenderHQTabs();if(tab==='matchups'){const cards=[...document.querySelectorAll('[data-hq-matchup]')],target=focusTeamId?cards.find(card=>String(card.dataset.hqTeamA)===String(focusTeamId)||String(card.dataset.hqTeamB)===String(focusTeamId)):null;cards.forEach(card=>card.classList.toggle('is-focused',card===target));if(target)requestAnimationFrame(()=>target.scrollIntoView({behavior:'smooth',block:'nearest'}))}
+}
+function hjRenderLeagueTools(data){
+  const root=$('#league-hq-tools');if(!root)return;if(!data){root.innerHTML='';hjRenderHQTabs();return}const strength=hjStrengthHTML(data),placeholder=(data?.teams||[]).every(team=>!hjRosterEntries(team).length);root.innerHTML=`<div class="hq-tab-panel" id="hq-panel-matchups" data-hq-panel="matchups" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Matchup Center</h3><span class="hq-module-note">${placeholder?'2025 rosters until the draft':`Week ${hjCurrentWeek(data)}`}</span></div><div class="hq-module-body">${hjMatchupCenterPanelHTML(data)}</div></div></div><div class="hq-tab-panel" id="hq-panel-free-agents" data-hq-panel="free-agents" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Free Agents</h3><span class="hq-module-note" id="hq-fa-count">Loading projections</span></div>${hjFreeAgentControlsHTML()}<div id="hq-fa-results"><div class="hq-loading"><span></span><span></span><span></span></div></div></div></div><div class="hq-tab-panel" id="hq-panel-strength" data-hq-panel="strength" role="tabpanel">${strength}</div><div class="hq-tab-panel" id="hq-panel-activity" data-hq-panel="activity" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">League Activity</h3><span class="hq-module-note">Completed moves</span></div>${hjActivityHTML()}</div></div><div class="hq-tab-panel" id="hq-panel-recap" data-hq-panel="recap" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Weekly Recap</h3><span class="hq-module-note">${hjCurrentWeek(data)>1?`Week ${hjCurrentWeek(data)-1}`:'After Week 1'}</span></div>${hjWeeklyRecapHTML(data)}</div></div>`;hjRenderHQTabs();hjHydrateFreeAgents(data).catch(()=>{const target=$('#hq-fa-results');if(target){HJ_HQ_STATE.freeAgents=hjFreeAgentBase(data).map(player=>({...player,bestFit:'',news:pcNewsForPlayer(player)?.[0]||null}));hjRenderFreeAgentResults()}});
+}
+function hjTeamViewHTML(team,data){
+  const week=hjCurrentWeek(data),manager=hjMatchManager(team,data),owner=manager||hjOwnerName(team,data)||`Manager ${team.id}`,currentEntries=hjRosterEntries(team),previousData=HJ_LEAGUE_STATE.previousData;
+  const previousTeam=(previousData?.teams||[]).find(item=>(manager&&hjMatchManager(item,previousData)===manager)||Number(item.id)===Number(team.id)),previousEntries=hjRosterEntries(previousTeam),usingPrevious=!currentEntries.length&&previousEntries.length>0,rosterSeason=usingPrevious?HJ_LEAGUE_PREVIOUS_SEASON:HJ_LEAGUE_SEASON,entries=usingPrevious?previousEntries:currentEntries;
+  const starters=entries.filter(entry=>![20,21].includes(Number(entry.lineupSlotId))).sort(hjLineupCompare),bench=entries.filter(entry=>Number(entry.lineupSlotId)===20).sort(hjBenchCompare),ir=entries.filter(entry=>Number(entry.lineupSlotId)===21).sort(hjBenchCompare),matchup=hjCurrentMatchup(team.id,data),opponent=matchup?.opponentTeam;
+  const ownScore=Number(matchup?.side?.totalPoints),oppScore=Number(matchup?.opponent?.totalPoints),ownProjected=Number(matchup?.side?.totalProjectedPoints),oppProjected=Number(matchup?.opponent?.totalProjectedPoints),hasScore=(Number.isFinite(ownScore)&&ownScore!==0)||(Number.isFinite(oppScore)&&oppScore!==0),hasProjection=(Number.isFinite(ownProjected)&&ownProjected!==0)||(Number.isFinite(oppProjected)&&oppProjected!==0),opponentName=opponent?(hjMatchManager(opponent,data)||hjOwnerName(opponent,data)||`Manager ${opponent.id}`):'',scoreLine=hasScore?`${pcFpts(ownScore)} – ${pcFpts(oppScore)}`:hasProjection?`${pcFpts(ownProjected)} – ${pcFpts(oppProjected)} projected`:'';
+  const matchupHTML=matchup?`<button class="league-matchup-score" type="button" data-hq-open-matchup="${esc(team.id)}" aria-label="Open Week ${matchup.week} matchup in Matchup Center"><span class="league-matchup-team">Week ${matchup.week} matchup<b>${scoreLine||`vs ${esc(opponentName||'TBD')}`}</b>${scoreLine&&opponentName?`<span>vs ${esc(opponentName)}</span>`:''}</span></button>`:'';
+  const record=hjTeamRecordIfPlayed(team),identity=`<div class="league-roster-identity">${manager?av(manager):`<span class="league-team-initials">${esc(hjInitials(owner))}</span>`}<div>${usingPrevious?`<div class="league-roster-manager">${HJ_LEAGUE_PREVIOUS_SEASON} final roster</div>`:''}<div class="league-roster-name">${esc(owner)}</div>${record?`<div class="league-roster-record">${esc(record)}</div>`:''}</div></div>`;
+  if(!entries.length)return `<div class="league-roster-head">${identity}${matchupHTML}</div><div class="league-sync-empty"><strong>Rosters appear after the draft</strong><span>The site will switch to the 2026 rosters automatically when ESPN posts them.</span></div>`;
+  return `<div class="league-roster-head">${identity}${matchupHTML}</div><div class="league-roster-groups">${hjRosterGroupHTML(usingPrevious?'Final lineup':'Starting lineup',starters,week,'',rosterSeason)}${hjRosterGroupHTML('Bench',bench,week,'is-bench',rosterSeason)}</div>${ir.length?`<div class="league-ir-wrap">${hjRosterGroupHTML('Injured reserve',ir,week,'',rosterSeason)}</div>`:''}`;
+}
+function hjApplyLiveSeason(data){
+  const teams=Array.isArray(data?.teams)?data.teams:[],mapped=teams.map(team=>({team,short:hjMatchManager(team,data)}));
+  const usable=mapped.length===DATA.managers.length&&mapped.every(item=>item.short)&&new Set(mapped.map(item=>item.short)).size===mapped.length;
+  if(!usable)return;
+  const allById=new Map(mapped.map(item=>[Number(item.team.id),item.short])),completed=[];
+  for(const game of (data?.schedule||[])){
+    const week=Number(game?.matchupPeriodId),home=allById.get(Number(game?.home?.teamId)),away=allById.get(Number(game?.away?.teamId)),homePts=Number(game?.home?.totalPoints),awayPts=Number(game?.away?.totalPoints);
+    if(!week||!home||!away||(!homePts&&!awayPts))continue;
+    let item=completed.find(row=>row.week===week);if(!item){item={week,scores:[]};completed.push(item)}
+    item.scores.push({short:home,pts:homePts,opp:away,oppPts:awayPts},{short:away,pts:awayPts,opp:home,oppPts:homePts});
+  }
+  completed.sort((a,b)=>a.week-b.week);
+  if(!completed.length)return;
+  DATA.standings=mapped.map(({team,short})=>{const overall=team?.record?.overall||team?.record||{};return {short,w:Number(overall.wins)||0,l:Number(overall.losses)||0,pf:Number(overall.pointsFor)||0,team:''};});
+  const alive=new Set(DATA.managers.map(manager=>manager.short));
+  for(const week of completed){
+    const ordered=[...week.scores].sort((a,b)=>b.pts-a.pts);week.high={short:ordered[0].short,pts:ordered[0].pts};week.low={short:ordered.at(-1).short,pts:ordered.at(-1).pts};
+    if(week.week>=5&&alive.size>1){const eligible=week.scores.filter(row=>alive.has(row.short)).sort((a,b)=>a.pts-b.pts);if(eligible[0]){week.eliminated={short:eligible[0].short,pts:eligible[0].pts};alive.delete(eligible[0].short)}}
+  }
+  DATA.weeks=completed;
+  try{renderStandingsDashboard(true);renderLeagueSchedule(true);const selected=document.querySelector('#challenge-strip [aria-selected="true"]');if(selected)selectChallenge(selected.dataset.challenge)}catch(error){console.warn('Live league panels will update on the next render.',error)}
+}
+function hjRenderLeague(){
+  const content=$('#league-sync-content'),data=HJ_LEAGUE_STATE.data;if(!content)return;
+  if(!data){content.innerHTML=HJ_LEAGUE_STATE.error?`<div class="league-sync-error"><strong>ESPN did not answer</strong><span>The saved site still works. Try the league sync again in a moment.</span><button type="button" data-league-retry>Try again</button></div>`:`<div class="league-sync-skeleton" aria-label="Loading league"><span></span><span></span><span></span></div>`;hjRenderLeagueTools(null);return}
+  const teams=[...(data.teams||[])].sort((a,b)=>(Number(a.draftDayProjectedRank)||99)-(Number(b.draftDayProjectedRank)||99)||Number(a.id)-Number(b.id));
+  if(!teams.length){content.innerHTML=`<div class="league-sync-empty"><strong>The league is connected</strong><span>ESPN has not published the 2026 teams yet.</span></div>`;return}
+  if(!teams.some(team=>Number(team.id)===Number(HJ_LEAGUE_STATE.selectedTeamId)))HJ_LEAGUE_STATE.selectedTeamId=teams[0].id;
+  const selected=teams.find(team=>Number(team.id)===Number(HJ_LEAGUE_STATE.selectedTeamId));
+  content.innerHTML=`<div class="league-team-rail" aria-label="League managers">${teams.map(team=>hjTeamTabHTML(team,data)).join('')}</div><div class="league-team-view">${hjTeamViewHTML(selected,data)}</div>`;
+  hjRenderLeagueTools(data);
+}
+function hjSetSyncState(kind,message,detail=''){
+  const status=$('#league-sync-status'),copy=status?.querySelector('[data-league-status-copy]'),time=$('#league-sync-time'),button=$('#league-sync-button');
+  status?.classList.toggle('is-syncing',kind==='syncing');status?.classList.toggle('is-error',kind==='error');if(copy)copy.textContent=message;if(time)time.textContent=detail;if(button)button.disabled=kind==='syncing';
+}
+function hjReadLeagueCache(){try{const cached=JSON.parse(localStorage.getItem(HJ_LEAGUE_CACHE_KEY)||'null');if(cached?.data?.id&&Array.isArray(cached.data.teams))return cached}catch(_){return null}}
+function hjWriteLeagueCache(){try{localStorage.setItem(HJ_LEAGUE_CACHE_KEY,JSON.stringify({data:HJ_LEAGUE_STATE.data,previousData:HJ_LEAGUE_STATE.previousData,syncedAt:HJ_LEAGUE_STATE.syncedAt,serverTime:HJ_LEAGUE_STATE.serverTime}))}catch(_){}}
+function hjSyncTime(value){if(!value)return 'League data ready';const date=new Date(value);return Number.isFinite(date.getTime())?`Updated ${date.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`:'League data ready'}
+async function hjFetchLeagueSeason(season,force=false){
+  const response=await fetch(hjLeagueUrl(season),{method:'GET',mode:'cors',credentials:'omit',cache:force?'reload':'no-store'});if(!response.ok)throw new Error(`ESPN ${season}: ${response.status}`);
+  const data=await response.json();if(String(data?.id)!==String(ESPN_FANTASY_LEAGUE_ID)||!Array.isArray(data?.teams))throw new Error(`ESPN returned incomplete ${season} league data`);
+  return {data,serverTime:response.headers.get('X-Fantasy-Server-Time')||new Date().toISOString()};
+}
+async function hjSyncLeague(force=false){
+  if(HJ_LEAGUE_STATE.syncing)return;HJ_LEAGUE_STATE.syncing=true;HJ_LEAGUE_STATE.error='';hjSetSyncState('syncing','Syncing league',HJ_LEAGUE_STATE.syncedAt?'Checking ESPN for changes…':'Loading teams and rosters…');
+  try{
+    const previousRequest=HJ_LEAGUE_STATE.previousData?Promise.resolve(null):hjFetchLeagueSeason(HJ_LEAGUE_PREVIOUS_SEASON,false).catch(error=>{console.warn('Previous-season roster sync failed',error);return null});
+    const [current,previous]=await Promise.all([hjFetchLeagueSeason(HJ_LEAGUE_SEASON,force),previousRequest]);
+    const prior=HJ_LEAGUE_STATE.data;if(prior)hjTrackActivity(prior,current.data);HJ_LEAGUE_STATE.data=current.data;if(previous?.data)HJ_LEAGUE_STATE.previousData=previous.data;HJ_LEAGUE_STATE.syncedAt=Date.now();HJ_LEAGUE_STATE.serverTime=current.serverTime;HJ_LEAGUE_STATE.syncing=false;hjWriteLeagueCache();hjApplyLiveSeason(current.data);hjRenderLeague();hjSetSyncState('ready','ESPN connected',hjSyncTime(HJ_LEAGUE_STATE.serverTime));
+  }catch(error){
+    console.warn('League sync failed',error);HJ_LEAGUE_STATE.syncing=false;HJ_LEAGUE_STATE.error=String(error?.message||error);
+    if(HJ_LEAGUE_STATE.data){hjRenderLeague();hjSetSyncState('error','Saved league snapshot',`${hjSyncTime(HJ_LEAGUE_STATE.serverTime)} · tap to retry`)}else{hjRenderLeague();hjSetSyncState('error','Sync unavailable','Tap refresh to try again')}
+  }
+}
+function hjManagerRosterHTML(name){
+  const data=HJ_LEAGUE_STATE.data;if(!data)return '';
+  const team=(data.teams||[]).find(item=>hjMatchManager(item,data)===name);if(!team)return '';
+  const currentEntries=hjRosterEntries(team),previousData=HJ_LEAGUE_STATE.previousData,previousTeam=(previousData?.teams||[]).find(item=>hjMatchManager(item,previousData)===name),previousEntries=hjRosterEntries(previousTeam),usingPrevious=!currentEntries.length&&previousEntries.length>0,entries=usingPrevious?previousEntries:currentEntries,season=usingPrevious?HJ_LEAGUE_PREVIOUS_SEASON:HJ_LEAGUE_SEASON,week=hjCurrentWeek(data),record=hjTeamRecordIfPlayed(team);if(!entries.length)return '';
+  return `<div class="profile-section"><div class="profile-section-title">${usingPrevious?`${HJ_LEAGUE_PREVIOUS_SEASON} Final Roster`:`${HJ_LEAGUE_SEASON} Roster`}</div><div class="profile-live-roster"><div class="profile-live-roster-head"><div class="profile-live-roster-person">${av(name)}<b>${esc(name)}</b></div>${record?`<span>${esc(record)}</span>`:''}</div><div class="league-player-list">${[...entries].sort(hjAllRosterCompare).map(entry=>hjPlayerHTML(entry,week,season)).join('')}</div></div></div>`;
+}
+function hjInitLeague(){
+  try{HJ_LEAGUE_STATE.selectedTeamId=localStorage.getItem(HJ_LEAGUE_TEAM_KEY)||null}catch(_){}
+  const cached=hjReadLeagueCache();if(cached){HJ_LEAGUE_STATE.data=cached.data;HJ_LEAGUE_STATE.previousData=cached.previousData||null;HJ_LEAGUE_STATE.syncedAt=Number(cached.syncedAt)||0;HJ_LEAGUE_STATE.serverTime=cached.serverTime||'';hjApplyLiveSeason(cached.data);hjRenderLeague();hjSetSyncState('ready','ESPN connected',`${hjSyncTime(HJ_LEAGUE_STATE.serverTime)} · refreshing…`)}
+  hjSyncLeague(false);
+  setInterval(()=>{if(!document.hidden)hjSyncLeague(false)},HJ_LEAGUE_REFRESH_MS);
+}
+$('#league-sync-button')?.addEventListener('click',()=>hjSyncLeague(true));
+$('#league-sync-content')?.addEventListener('click',event=>{
+  const retry=event.target.closest('[data-league-retry]');if(retry){hjSyncLeague(true);return}
+  const matchup=event.target.closest('[data-hq-open-matchup]');if(matchup){hjSetHQTab('matchups',matchup.dataset.hqOpenMatchup);return}
+  const tab=event.target.closest('[data-league-team]');if(!tab)return;HJ_LEAGUE_STATE.selectedTeamId=tab.dataset.leagueTeam;try{localStorage.setItem(HJ_LEAGUE_TEAM_KEY,String(HJ_LEAGUE_STATE.selectedTeamId))}catch(_){}hjRenderLeague();
+});
+$('#league-hq-tabs')?.addEventListener('click',event=>{const tab=event.target.closest('[data-hq-tab]');if(tab)hjSetHQTab(tab.dataset.hqTab)});
+$('#league-hq-tools')?.addEventListener('click',event=>{
+  const manager=event.target.closest('[data-hq-manager]');if(manager&&!event.target.closest('.manager-profile-avatar')){HJ_LEAGUE_STATE.selectedTeamId=manager.dataset.hqManager;HJ_HQ_STATE.activeTab='rosters';try{localStorage.setItem(HJ_LEAGUE_TEAM_KEY,String(HJ_LEAGUE_STATE.selectedTeamId))}catch(_){}hjRenderLeague();$('#league-sync-shell')?.scrollIntoView({behavior:'smooth',block:'start'});return}
+  if(event.target.closest('#hq-fa-reset')){HJ_HQ_STATE.query='';HJ_HQ_STATE.position='ALL';HJ_HQ_STATE.sort='week';const search=$('#hq-fa-search'),position=$('#hq-fa-position'),sort=$('#hq-fa-sort');if(search)search.value='';if(position)position.value='ALL';if(sort)sort.value='week';hjRenderFreeAgentResults()}
+});
+$('#league-hq-tools')?.addEventListener('input',event=>{if(event.target.id!=='hq-fa-search')return;HJ_HQ_STATE.query=event.target.value;hjRenderFreeAgentResults()});
+$('#league-hq-tools')?.addEventListener('change',event=>{if(event.target.id==='hq-fa-position')HJ_HQ_STATE.position=event.target.value;else if(event.target.id==='hq-fa-sort')HJ_HQ_STATE.sort=event.target.value;else return;hjRenderFreeAgentResults()});
+$('#league-hq-tools')?.addEventListener('keydown',event=>{const row=event.target.closest('[data-hq-manager]');if(row&&(event.key==='Enter'||event.key===' ')){event.preventDefault();row.click()}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-HJ_LEAGUE_STATE.syncedAt>HJ_LEAGUE_REFRESH_MS)hjSyncLeague(false)});
+hjInitLeague();
 
 /* ---- draft cards ---- */
 const draftCards = [
@@ -11595,6 +12131,7 @@ const AWARD24_VIEWS = {
       <div class="profile-winnings-card"><div class="profile-winnings-head"><span class="profile-winnings-label">Career Winnings</span><strong class="profile-winnings-total">$${winnings.total.toLocaleString()}</strong></div>${winningsItems?`<div class="profile-winnings-items">${winningsItems}</div>`:'<div class="profile-winnings-empty">No recorded prize winnings.</div>'}</div>
       ${weeklyBest?`<div class="profile-callout"><div class="profile-callout-k">Best Weekly Scoring Season</div><div class="profile-callout-v">${weeklyBest.year} · Outscored ${pct(weeklyBest.all_play_pct)} of the league week-to-week</div></div>`:''}
       ${managerScheduleHTML(name)}
+      ${hjManagerRosterHTML(name)}
       <div class="profile-section"><div class="profile-section-title">Season History</div>${seasonList?`<div class="profile-season-list">${seasonList}</div>`:'<div class="profile-empty">No documented season results.</div>'}</div>
       ${rosterHTML}
       ${current?'':`<div class="profile-section"><div class="profile-section-title">Head-to-Head</div>${rivalRows?`<div class="profile-rivals">${rivalRows}</div>`:'<div class="profile-empty">No historical head-to-head matchups recorded.</div>'}</div>`}
