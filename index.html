@@ -8494,7 +8494,7 @@ const FFN_HISTORY_CONCURRENCY=10;
 const FFN_LATEST_BATCH_SIZE=80;
 const FFN_LATEST_BATCH_LIMIT=40;
 const FFN_REFRESH_CONCURRENCY=12;
-const FFN_ROSTER_CACHE_KEY='hungjurors.ffn.roster.v2';
+const FFN_ROSTER_CACHE_KEY='hungjurors.ffn.roster.v3';
 const FFN_ROSTER_CACHE_MS=30*60*1000;
 const FFN_NEWS_CACHE_KEY='hungjurors.ffn.news.v1';
 const FFN_NEWS_CACHE_MS=10*60*1000;
@@ -8852,9 +8852,17 @@ async function ffnMapLimit(items,limit,worker){
   return out;
 }
 function ffnInstallRoster(players){
+  /* ESPN's team endpoints can succeed for only part of the league. Never let
+     a partial refresh replace the complete built-in roster. Complete live
+     position groups replace the snapshot; incomplete groups keep the snapshot
+     as a fallback. */
+  const normalize=player=>{const position=String(player?.position||'').toUpperCase().replace(/^PK$/,'K'),rawTeam=String(player?.team||'').toUpperCase(),team=rawTeam==='WSH'?'WAS':rawTeam;return {...player,team,position,norm:player?.norm||ffnNorm(player?.name||'')}};
+  const valid=player=>player?.id&&player?.name&&player?.team&&['QB','RB','WR','TE','K'].includes(player?.position);
+  const incoming=depthList(players).filter(Boolean).map(normalize).filter(valid),incomingIds=new Set(incoming.map(player=>String(player.id))),fallback=FFN_BOOTSTRAP_ROSTER.map(normalize).filter(valid).filter(player=>!incomingIds.has(String(player.id))),minimum={QB:1,RB:2,WR:3,TE:1,K:1},positions=Object.keys(minimum),teams=new Set([...fallback,...incoming].map(player=>player.team)),source=[];
+  teams.forEach(team=>positions.forEach(position=>{const live=incoming.filter(player=>player.team===team&&player.position===position),saved=fallback.filter(player=>player.team===team&&player.position===position),chosen=live.length>=minimum[position]?live:[...saved,...live],unique=new Map();chosen.forEach(player=>unique.set(String(player.id),player));source.push(...unique.values())}));
   const byId=new Map();
-  depthList(players).filter(Boolean).forEach(player=>{
-    if(player?.id&&player?.name&&player?.team&&player?.position)byId.set(String(player.id),player);
+  source.forEach(player=>{
+    byId.set(String(player.id),player);
   });
   ffnRosterPlayers=[...byId.values()];
   ffnRosterByTeam=new Map();
@@ -8862,7 +8870,7 @@ function ffnInstallRoster(players){
     if(!ffnRosterByTeam.has(player.team))ffnRosterByTeam.set(player.team,[]);
     ffnRosterByTeam.get(player.team).push(player);
   }
-  for(const playersForTeam of ffnRosterByTeam.values())playersForTeam.sort(ffnDepthCompare);
+  for(const playersForTeam of ffnRosterByTeam.values())ffnAssignPositionRanks(playersForTeam).sort(ffnDepthCompare);
   return ffnRosterPlayers;
 }
 function ffnReadRosterCache(){
@@ -9605,10 +9613,10 @@ function pcDstMatchupHTML(player,season,entries,schedule){
   return `<section class="pc-section" data-pc-section="matchup"><div class="pc-section-head"><h3 class="pc-section-title">Upcoming matchup</h3></div><div class="pc-matchup"><div><div class="pc-matchup-label">${esc(player.team)} ${esc(upcoming.location)} ${esc(offense)}</div><div class="pc-matchup-title">${esc(name)}</div><div class="pc-matchup-time">${esc(dateLine)}</div></div>${logo}</div><div class="pc-vegas" data-pc-special-week><div class="pc-vegas-state">Loading weekly projection…</div></div>${context}<details class="pc-expand"><summary>${esc(name)} vs D/ST - week by week</summary><div class="pc-expand-body">${detail}</div></details></section>`;
 }
 function pcDstProfileHTML(player,season,entries,schedule,allRows=[]){
-  const entry=pcDstFind(entries,player),stats=entry?pcDstStats(entry):[],upcoming=pcDstMatchupHTML(player,season,entries,schedule),teamSection=pcTeamHTML(player,allRows,season);if(!entry||!stats.length)return `<div class="pc-summary-section" data-pc-section="summary"><div class="pc-empty"><strong>No ${esc(season)} defense results yet</strong><span>Weekly results will appear after this defense plays.</span></div><div class="pc-vegas pc-vegas-summary" data-pc-special-season><div class="pc-vegas-state">Loading season projection…</div></div></div>${teamSection}${upcoming}`;
+  const entry=pcDstFind(entries,player),stats=entry?pcDstStats(entry):[],upcoming=pcDstMatchupHTML(player,season,entries,schedule),teamSection=pcTeamHTML(player,allRows,season);if(!entry||!stats.length)return `<div class="pc-summary-section" data-pc-section="summary"><div class="pc-empty"><strong>No ${esc(season)} defense results yet</strong><span>Weekly results will appear after this defense plays.</span></div><div class="pc-vegas pc-vegas-summary" data-pc-special-season><div class="pc-vegas-state">Loading season projection…</div></div></div>${teamSection}${upcoming}${pcLatestNews(player)}`;
   const total=pcDstTotal(entry),rank=pcDstSeasonRank(entries,entry),games=stats.length,team=pcDstTeam(entry)||player.team;player.team=team;
   const sacks=pcDstCategoryTotal(entry,['99']),interceptions=pcDstCategoryTotal(entry,['95']),fumbleRecoveries=pcDstCategoryTotal(entry,['96']),takeaways=interceptions+fumbleRecoveries,defensiveTds=pcDstCategoryTotal(entry,['105']),sackRank=pcDstCategoryRank(entries,entry,['99']),takeawayRank=pcDstCategoryRank(entries,entry,['95','96']),tdRank=pcDstCategoryRank(entries,entry,['105']),offenseRanks=pcDstOffenseRanks(entries,season,schedule),timeline=pcDstTimeline(entry,player,season,schedule,entries,offenseRanks);
-  return `<div class="pc-summary-section" data-pc-section="summary"><div class="pc-summary pc-dst-summary"><div class="pc-metric"><span class="pc-metric-label">D/ST rank</span><strong class="pc-metric-value">${rank?`#${rank}`:'—'}</strong><span class="pc-metric-sub">Total FPTS</span></div><div class="pc-metric"><span class="pc-metric-label">FPTS / game</span><strong class="pc-metric-value">${pcFpts(total/games)}</strong><span class="pc-metric-sub">${games} games played</span></div><div class="pc-metric"><span class="pc-metric-label">Total FPTS</span><strong class="pc-metric-value">${pcFpts(total)}</strong><span class="pc-metric-sub">${esc(season)} regular season</span></div><div class="pc-metric"><span class="pc-metric-label">Sacks</span><strong class="pc-metric-value">${esc(sacks)}</strong><span class="pc-metric-sub">#${esc(sackRank)} among D/STs</span></div><div class="pc-metric"><span class="pc-metric-label">Takeaways</span><strong class="pc-metric-value">${esc(takeaways)}</strong><span class="pc-metric-sub">${esc(interceptions)} INT · ${esc(fumbleRecoveries)} FUM · #${esc(takeawayRank)}</span></div><div class="pc-metric"><span class="pc-metric-label">Defensive TDs</span><strong class="pc-metric-value">${esc(defensiveTds)}</strong><span class="pc-metric-sub">#${esc(tdRank)} among D/STs</span></div></div><div class="pc-vegas pc-vegas-summary" data-pc-special-season><div class="pc-vegas-state">Loading season projection…</div></div></div>${teamSection}${upcoming}<section class="pc-section" data-pc-section="game-log"><div class="pc-section-head"><h3 class="pc-section-title">Game log</h3><span class="pc-section-note">${esc(season)}</span></div>${pcDstTable(timeline)}</section>`;
+  return `<div class="pc-summary-section" data-pc-section="summary"><div class="pc-summary pc-dst-summary"><div class="pc-metric"><span class="pc-metric-label">D/ST rank</span><strong class="pc-metric-value">${rank?`#${rank}`:'—'}</strong><span class="pc-metric-sub">Total FPTS</span></div><div class="pc-metric"><span class="pc-metric-label">FPTS / game</span><strong class="pc-metric-value">${pcFpts(total/games)}</strong><span class="pc-metric-sub">${games} games played</span></div><div class="pc-metric"><span class="pc-metric-label">Total FPTS</span><strong class="pc-metric-value">${pcFpts(total)}</strong><span class="pc-metric-sub">${esc(season)} regular season</span></div><div class="pc-metric"><span class="pc-metric-label">Sacks</span><strong class="pc-metric-value">${esc(sacks)}</strong><span class="pc-metric-sub">#${esc(sackRank)} among D/STs</span></div><div class="pc-metric"><span class="pc-metric-label">Takeaways</span><strong class="pc-metric-value">${esc(takeaways)}</strong><span class="pc-metric-sub">${esc(interceptions)} INT · ${esc(fumbleRecoveries)} FUM · #${esc(takeawayRank)}</span></div><div class="pc-metric"><span class="pc-metric-label">Defensive TDs</span><strong class="pc-metric-value">${esc(defensiveTds)}</strong><span class="pc-metric-sub">#${esc(tdRank)} among D/STs</span></div></div><div class="pc-vegas pc-vegas-summary" data-pc-special-season><div class="pc-vegas-state">Loading season projection…</div></div></div>${teamSection}${upcoming}<section class="pc-section" data-pc-section="game-log"><div class="pc-section-head"><h3 class="pc-section-title">Game log</h3><span class="pc-section-note">${esc(season)}</span></div>${pcDstTable(timeline)}</section>${pcLatestNews(player)}`;
 }
 function pcLoadSnaps(season){
   season=Number(season);if(!pcSnapCache.has(season)){
@@ -9663,6 +9671,7 @@ function pcTeamRankCard(metric,item){
   const value=item?.[metric.key],rank=item?.[`${metric.key}Rank`],formatted=Number.isFinite(value)?Number(value).toLocaleString(undefined,{maximumFractionDigits:0}):'—';return `<div class="pc-team-rank-card"><span>${esc(metric.label)}</span><strong>${rank?`#${esc(rank)}`:'—'}</strong><small>${esc(formatted)} ${esc(metric.suffix)}</small></div>`;
 }
 function pcTeamHTML(player,allRows,season){
+  if(!ffnRosterByTeam.size&&FFN_BOOTSTRAP_ROSTER.length)ffnInstallRoster(FFN_BOOTSTRAP_ROSTER);
   const position=String(player.position||'').toUpperCase(),team=pcTeam(player.team),roster=(ffnRosterByTeam.get(team)||[]),allPeers=roster.filter(item=>item.position===position).sort(ffnDepthCompare),current=allPeers.find(item=>String(item.id)===String(player.id))||allPeers.find(item=>pcNameMatch(item.name,player.name)),peers=allPeers.slice(0,7);if(current&&!peers.includes(current)){peers.pop();peers.push(current)}
   const rank=current?.positionRank||(current?allPeers.indexOf(current)+1:'—'),positionCards=peers.map((item,index)=>pcDepthPlayerHTML(item,team,`${position}${item.positionRank||index+1}`,String(item.id)===String(player.id)||pcNameMatch(item.name,player.name))).join('');
   const limits={QB:1,RB:2,WR:3,TE:1,K:1},teamCards=[];['QB','RB','WR','TE','K'].filter(group=>group!==position).forEach(group=>roster.filter(item=>item.position===group).sort(ffnDepthCompare).slice(0,limits[group]).forEach((item,index)=>teamCards.push(pcDepthPlayerHTML(item,team,`${group}${item.positionRank||index+1}`))));
@@ -9893,7 +9902,7 @@ async function pcRenderVegas(player,root,token){
 }
 function pcProfileHTML(player,season,allRows,snaps,schedule){
   const rows=pcPlayerRows(allRows,player),leaderboard=pcLeaderboard(allRows),weeklyRanks=pcWeeklyRanks(allRows),rates=pcExpectedRates(allRows);
-  if(!rows.length)return `<div class="pc-summary-section" data-pc-section="summary"><div class="pc-empty"><strong>No ${esc(season)} game log</strong><span>${esc(player.name)} does not have a regular-season player row in the selected season. Choose another year above.</span></div><div class="pc-vegas pc-vegas-summary" data-pc-vegas-season><div class="pc-vegas-state">Loading season Vegas projections…</div></div></div>${pcLatestNews(player)}`;
+  if(!rows.length)return `<div class="pc-summary-section" data-pc-section="summary"><div class="pc-empty"><strong>No ${esc(season)} game log</strong><span>${esc(player.name)} does not have a regular-season player row in the selected season. Choose another year above.</span></div><div class="pc-vegas pc-vegas-summary" data-pc-vegas-season><div class="pc-vegas-state">Loading season Vegas projections…</div></div></div>${pcTeamHTML(player,allRows,season)}${pcMatchupHTML(player,season,allRows,weeklyRanks,snaps,rates,schedule)}${pcLatestNews(player)}`;
   const latest=rows.at(-1),rank=pcPlayerRank(leaderboard,latest),total=rows.reduce((sum,row)=>sum+pcPoints(row),0),avg=total/rows.length;
   player.position=latest.position||player.position;
   const timeline=pcCompleteWeeks(rows,player,season,schedule,snaps).reverse(),dvpRanks=new Map(pcDvp(allRows,player.position).map(item=>[item.defense,item.rank]));
@@ -9908,7 +9917,7 @@ async function pcRenderSeason(season){
   pcHideStatHelp();if(!pcActive)return;const active=pcActive,token=++active.token,scroll=active.overlay.querySelector('.pc-modal-scroll');scroll.innerHTML='<div class="pc-loading" aria-label="Loading player profile"><div class="pc-shimmer"></div><div class="pc-shimmer"></div><div class="pc-shimmer"></div></div>';
   try{
     if(active.player.position==='D/ST'){
-      const [entries,scheduleResult,allRows]=await Promise.all([pcLoadDstSeason(season),pcLoadSchedules().catch(()=>new Map()),pcLoadSeason(season).catch(()=>[])]);if(!pcActive||token!==pcActive.token)return;scroll.innerHTML=pcDstProfileHTML(active.player,Number(season),entries,scheduleResult,allRows);scroll.scrollTop=0;pcBindProfileNav(scroll);pcRenderTeamRanks(active.player,Number(season),scroll,token).catch(()=>{});pcRenderSpecialProjections(active.player,scroll,token).catch(()=>{scroll.querySelectorAll('[data-pc-special-week],[data-pc-special-season]').forEach(target=>target.innerHTML='<div class="pc-vegas-state">Projection temporarily unavailable.</div>')});return;
+      const [entries,scheduleResult,allRows]=await Promise.all([pcLoadDstSeason(season),pcLoadSchedules().catch(()=>new Map()),pcLoadSeason(season).catch(()=>[])]);if(!pcActive||token!==pcActive.token)return;scroll.innerHTML=pcDstProfileHTML(active.player,Number(season),entries,scheduleResult,allRows);scroll.scrollTop=0;pcBindProfileNav(scroll);pcRenderTeamRanks(active.player,Number(season),scroll,token).catch(()=>{});pcRenderSpecialProjections(active.player,scroll,token).catch(()=>{scroll.querySelectorAll('[data-pc-special-week],[data-pc-special-season]').forEach(target=>target.innerHTML='<div class="pc-vegas-state">Projection temporarily unavailable.</div>')});pcRenderPlayerNews(active.player,scroll,token).catch(()=>{});return;
     }
     const [allRows,snapsResult,scheduleResult]=await Promise.all([pcLoadSeason(season),pcLoadSnaps(season).catch(()=>new Map()),pcLoadSchedules().catch(()=>new Map())]);if(!pcActive||token!==pcActive.token)return;scroll.innerHTML=pcProfileHTML(active.player,Number(season),allRows,snapsResult,scheduleResult);scroll.scrollTop=0;pcBindProfileNav(scroll);const playerRows=pcPlayerRows(allRows,active.player),rates=pcExpectedRates(allRows);pcRenderTeamRanks(active.player,Number(season),scroll,token).catch(()=>{});pcRenderVegas(active.player,scroll,token).catch(()=>{scroll.querySelectorAll('[data-pc-vegas-week],[data-pc-vegas-season]').forEach(target=>target.innerHTML='<div class="pc-vegas-state">Vegas projections are temporarily unavailable.</div>')});pcRenderNextContext(active.player,playerRows,allRows,scheduleResult,rates,scroll,token).catch(()=>{});pcRenderPlayerNews(active.player,scroll,token).catch(()=>{})
   }
