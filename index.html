@@ -4814,6 +4814,19 @@
   }
   .dues-status.paid{color:var(--win-green)}
   .dues-status.unpaid{color:var(--verdict-red)}
+  .dues-status-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 auto;
+    margin-left:1px;
+    font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+    font-size:11px;
+    line-height:1.35;
+    letter-spacing:0;
+    text-transform:none;
+    overflow:visible;
+  }
   .dues-status-dot{
     width:6px;height:6px;
     border-radius:50%;
@@ -7650,7 +7663,8 @@ const duesCell = m => {
   const method = m.payVia === "venmo"
     ? ` <img class="paid-logo" src="data:image/png;base64,${VENMO_V}" alt="" title="Paid by Venmo">`
     : m.payVia === "cashapp" ? ` <span class="paid-logo cashapp-mark" aria-label="Paid by Cash App" title="Paid by Cash App">$</span>` : "";
-  return `<span class="paid-wrap"><span class="paid">💵 PAID</span>${method}</span>`;
+  const badge = m.badge ? ` <span class="dues-status-badge" aria-hidden="true">${esc(m.badge)}</span>` : "";
+  return `<span class="paid-wrap"><span class="paid">💵 PAID</span>${badge}${method}</span>`;
 };
 
 function draftCalendarIcs(){
@@ -10373,8 +10387,8 @@ if(draftCalendarLink){
       : m.paid&&m.payVia==='cashapp' ? `<span class="dues-payment-logo cashapp-mark" aria-label="Paid by Cash App" title="Paid by Cash App">$</span>` : '';
     return `<button type="button" class="dues-manager manager-profile-trigger${m.paid?' is-paid':''}" data-manager="${esc(m.short)}" aria-label="Open ${esc(m.short)} profile">
       ${av(m.short)}
-      <span class="dues-manager-name">${esc(m.short)}${m.badge?` ${esc(m.badge)}`:''}</span>
-      <span class="dues-status ${m.paid?'paid':'unpaid'}"><span class="dues-status-dot"></span>${m.paid?'Paid':'Owes $30'}${method}</span>
+      <span class="dues-manager-name">${esc(m.short)}</span>
+      <span class="dues-status ${m.paid?'paid':'unpaid'}"><span class="dues-status-dot"></span>${m.paid?'Paid':'Owes $30'}${m.paid&&m.badge?`<span class="dues-status-badge" aria-hidden="true">${esc(m.badge)}</span>`:''}${method}</span>
     </button>`;
   }).join('');
 
