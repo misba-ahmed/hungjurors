@@ -7454,10 +7454,10 @@ const DATA = {
     { short:"CESAR",    paid:true,  payVia:"cashapp" },
     { short:"BRYAN",    paid:false },
     { short:"TYLER",    paid:true,  payVia:"venmo" },
-    { short:"NATHAN T", paid:false },
+    { short:"NATHAN T", paid:true,  badge:"🍆" },
     { short:"KAT",      paid:false },
     { short:"JARRETT",  paid:true,  payVia:"venmo" },
-    { short:"NATHAN M", paid:false },
+    { short:"NATHAN M", paid:true,  payVia:"venmo" },
     { short:"WASI",     paid:true,  payVia:"venmo" }
   ],
 
@@ -10373,7 +10373,7 @@ if(draftCalendarLink){
       : m.paid&&m.payVia==='cashapp' ? `<span class="dues-payment-logo cashapp-mark" aria-label="Paid by Cash App" title="Paid by Cash App">$</span>` : '';
     return `<button type="button" class="dues-manager manager-profile-trigger${m.paid?' is-paid':''}" data-manager="${esc(m.short)}" aria-label="Open ${esc(m.short)} profile">
       ${av(m.short)}
-      <span class="dues-manager-name">${esc(m.short)}</span>
+      <span class="dues-manager-name">${esc(m.short)}${m.badge?` ${esc(m.badge)}`:''}</span>
       <span class="dues-status ${m.paid?'paid':'unpaid'}"><span class="dues-status-dot"></span>${m.paid?'Paid':'Owes $30'}${method}</span>
     </button>`;
   }).join('');
