@@ -15450,8 +15450,10 @@ function hjRosterSelectedGroupHTML(label,selection,plan,week,season,mode){
     rows.push(hjPlayerHTML({...entry,lineupSlotId:Number.isFinite(slotId)?slotId:entry.lineupSlotId},week,season));
   });
   if(!rows.length)return '';
-  const modeLabel=mode==='actual'?'Current':mode==='espn'?'ESPN':mode==='vegas'?'Vegas':'Combo';
-  return `<div class="league-roster-group"><div class="league-roster-group-head"><span>${esc(label)}</span><span class="league-roster-mode-label">${esc(modeLabel)}</span></div><div class="league-player-list">${rows.join('')}</div></div>`;
+  const totals=Number(season)===HJ_LEAGUE_SEASON?hjSelectionTotals(selection,week):null;
+  const total=totals?(mode==='vegas'?totals.vegas:mode==='combo'?totals.combo:totals.espn):null;
+  const totalHTML=Number.isFinite(total)?`<span class="league-roster-lineup-head-total"><span>Total</span><b>${pcFpts(total)}</b></span>`:'';
+  return `<div class="league-roster-group"><div class="league-roster-group-head"><span>${esc(label)}</span>${totalHTML}</div><div class="league-player-list">${rows.join('')}</div></div>`;
 }
 function hjRosterBenchGroupHTML(entries,week,season){
   if(!entries.length)return '';
@@ -19401,6 +19403,331 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)hjRefreshL
     column-gap:6px!important;
   }
   .pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-line{flex-basis:110px!important;min-width:110px!important}
+}
+</style>
+
+
+<script id="hj-manager-transactions-live-v27">
+/* ======================================================================
+   Manager Roster Management V27 — use the same direct ESPN transaction
+   source as League Activity.  team.transactionCounter remains a fallback
+   / cross-check, never a reason to discard newer executed transactions.
+   ====================================================================== */
+const HJ_MANAGER_TX_CACHE_KEY=`hungJurors:managerTransactions:${ESPN_FANTASY_LEAGUE_ID}:${HJ_LEAGUE_SEASON}:v1`;
+const HJ_MANAGER_TX_STATE={rows:[],syncedThroughWeek:0,syncedAt:0,loading:null};
+
+function hjManagerTxReadCache(){
+  try{
+    const x=JSON.parse(localStorage.getItem(HJ_MANAGER_TX_CACHE_KEY)||'null');
+    if(x&&Array.isArray(x.rows))return x;
+  }catch(_){}
+  return null;
+}
+function hjManagerTxWriteCache(){
+  const payload={rows:HJ_MANAGER_TX_STATE.rows.slice(0,1600),syncedThroughWeek:HJ_MANAGER_TX_STATE.syncedThroughWeek,syncedAt:Date.now()};
+  HJ_MANAGER_TX_STATE.syncedAt=payload.syncedAt;
+  try{localStorage.setItem(HJ_MANAGER_TX_CACHE_KEY,JSON.stringify(payload))}catch(_){}
+  return payload;
+}
+function hjManagerTxMergeRows(...groups){
+  const out=[],seen=new Set();
+  for(const row of groups.flat()){
+    if(!row||!row.type)continue;
+    const p=String(row?.player?.id||hjNorm(row?.player?.name||''));
+    const key=row.id||`${row.type}|${p}|${row.from||''}|${row.to||''}|${Math.floor((Number(row.at)||0)/60000)}`;
+    if(!p||seen.has(key))continue;
+    seen.add(key);out.push(row);
+  }
+  return out.sort((a,b)=>(Number(b?.at)||0)-(Number(a?.at)||0));
+}
+function hjManagerTxObservedCounts(manager,rows){
+  let adds=0,drops=0;const tradeKeys=new Set();
+  for(const row of rows||[]){
+    if(row?.type==='Add'&&row?.to===manager)adds++;
+    else if(row?.type==='Drop'&&row?.from===manager)drops++;
+    else if(row?.type==='Trade'&&(row?.to===manager||row?.from===manager)){
+      const pair=[row?.from||'',row?.to||''].sort().join('|');
+      tradeKeys.add(`${Number(row?.at)||0}|${row?.source||'TRADE'}|${pair}`);
+    }
+  }
+  return {adds,drops,trades:tradeKeys.size};
+}
+function hjManagerTxCounter(team){
+  const tc=team?.transactionCounter||team?.transactions||{};
+  return {
+    adds:hjNumAny(tc,['acquisitions','adds','acquisitionCount']),
+    drops:hjNumAny(tc,['drops','dropCount']),
+    trades:hjNumAny(tc,['trades','tradeCount']),
+    activate:hjNumAny(tc,['moveToActive','movesToActive','activations']),
+    ir:hjNumAny(tc,['moveToIR','movesToIR','irMoves'])
+  };
+}
+
+/* Replace the old counter-first updater.  Executed ESPN transaction rows and
+   mTeam counters are cumulative signals; taking the higher observed total
+   prevents a stale zero counter from erasing a transaction we can see. */
+hjRefreshLiveTransactions=function(data=HJ_LEAGUE_STATE?.data){
+  if(!data||typeof TX_HISTORY==='undefined'||typeof txYears==='undefined')return;
+  const year=hjManagerSeasonId(data);
+  const direct=HJ_MANAGER_TX_STATE.rows.length?HJ_MANAGER_TX_STATE.rows:(typeof hjReadActivity==='function'?hjReadActivity():[]);
+  const rows=(data.teams||[]).map(team=>{
+    const manager=hjMatchManager(team,data)||hjOwnerName(team,data)||`Manager ${team.id}`;
+    const observed=hjManagerTxObservedCounts(manager,direct),counter=hjManagerTxCounter(team);
+    return {
+      manager,
+      trades:Math.max(counter.trades,observed.trades),
+      adds:Math.max(counter.adds,observed.adds),
+      drops:Math.max(counter.drops,observed.drops),
+      activate:counter.activate,
+      ir:counter.ir,
+      live:true
+    };
+  }).filter(r=>r.manager);
+  if(!rows.length)return;
+  TX_HISTORY[year]=rows;
+  if(!txYears.includes(year)){txYears.push(year);txYears.sort((a,b)=>a-b)}
+  if(typeof txLeagueAdds!=='undefined')txLeagueAdds[year]=rows.reduce((n,r)=>n+Number(r.adds||0),0);
+};
+
+function hjPatchManagerRosterManagement(back,name){
+  if(!back||!name)return;
+  const profile=back.querySelector('.manager-profile');if(!profile)return;
+  const section=[...profile.querySelectorAll('.profile-section')].find(x=>x.querySelector(':scope > .profile-section-title')?.textContent?.trim()==='Roster Management');
+  if(!section)return;
+  const tx=txCareerStats(name);if(!tx)return;
+  const cards=[...section.querySelectorAll('.profile-roster-card')];
+  const card=label=>cards.find(x=>x.querySelector('.k')?.textContent?.trim()===label);
+  const set=(label,value,sub)=>{const c=card(label);if(!c)return;const v=c.querySelector('.v'),s=c.querySelector('.s');if(v)v.textContent=String(value);if(s&&sub!=null)s.textContent=String(sub)};
+  set('Career Player Adds',tx.totalAdds,`across ${tx.rows.length} tracked season${tx.rows.length===1?'':'s'}`);
+  set('Career Trades',tx.totalTrades,'completed trades');
+  set('Avg Adds / Season',num(tx.avgAdds,1),null);
+  set('Busiest Season',tx.busiest.year,`${tx.busiest.adds} player adds`);
+  const chart=section.querySelector('.profile-roster-years');
+  if(chart){
+    const maxAdds=Math.max(1,...tx.rows.map(r=>Number(r.adds)||0)),rowMap=Object.fromEntries(tx.rows.map(r=>[Number(r.year),r]));
+    chart.innerHTML=txYears.map(year=>{const r=rowMap[Number(year)];if(!r)return `<div class="profile-roster-year"><span class="profile-roster-n">—</span><span class="profile-roster-barbox"></span><span class="profile-roster-y">${year}</span></div>`;const adds=Number(r.adds)||0;return `<div class="profile-roster-year" title="${year}: ${adds} player adds"><span class="profile-roster-n">${adds}</span><span class="profile-roster-barbox"><span class="profile-roster-bar" style="height:${Math.max(adds?7:0,(adds/maxAdds)*100).toFixed(1)}%"></span></span><span class="profile-roster-y">${year}</span></div>`}).join('');
+  }
+}
+function hjPatchOpenManagerRosterManagement(){
+  document.querySelectorAll('.manager-modal-back').forEach(back=>{
+    const name=back.querySelector('.manager-modal-title')?.textContent?.trim()||'';
+    if(name)hjPatchManagerRosterManagement(back,name);
+  });
+}
+
+/* Existing manager-profile open patch now includes the live Roster Management
+   numbers, so a modal opened before or after a transaction uses the same data. */
+if(typeof hjPatchManagerLiveSeason==='function'){
+  const hjPatchManagerLiveSeasonV27Base=hjPatchManagerLiveSeason;
+  hjPatchManagerLiveSeason=function(back,name){
+    hjPatchManagerLiveSeasonV27Base(back,name);
+    hjPatchManagerRosterManagement(back,name);
+  };
+}
+
+async function hjManagerTxFetchPeriod(period,data=HJ_LEAGUE_STATE?.data){
+  const url=new URL(`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${HJ_LEAGUE_SEASON}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}`);
+  url.searchParams.set('view','mTransactions2');url.searchParams.set('scoringPeriodId',String(period));
+  const response=await fetch(url.toString(),{method:'GET',mode:'cors',credentials:'omit',cache:'no-store'});
+  if(!response.ok)throw new Error(`ESPN manager transactions ${response.status}`);
+  return hjActivityTransactionRows(await response.json(),data);
+}
+async function hjRefreshManagerSeasonTransactions(force=false){
+  const data=HJ_LEAGUE_STATE?.data;if(!data)return [];
+  if(HJ_MANAGER_TX_STATE.loading)return HJ_MANAGER_TX_STATE.loading;
+  const week=Math.max(1,Number(hjCurrentWeek(data))||1),now=Date.now();
+  if(!force&&HJ_MANAGER_TX_STATE.syncedAt&&now-HJ_MANAGER_TX_STATE.syncedAt<30*1000)return HJ_MANAGER_TX_STATE.rows;
+  const periods=new Set();
+  /* Backfill every scoring period that has not been synced at least once. */
+  for(let p=Math.max(1,HJ_MANAGER_TX_STATE.syncedThroughWeek+1);p<=week;p++)periods.add(p);
+  /* Recheck the active and previous period because waivers/trades can process
+     after the first request for that scoring period. */
+  periods.add(week);if(week>1)periods.add(week-1);
+  HJ_MANAGER_TX_STATE.loading=(async()=>{
+    const fetched=[];let highest=HJ_MANAGER_TX_STATE.syncedThroughWeek;
+    const list=[...periods].sort((a,b)=>a-b);
+    for(let i=0;i<list.length;i+=4){
+      const batch=list.slice(i,i+4),results=await Promise.allSettled(batch.map(p=>hjManagerTxFetchPeriod(p,data)));
+      results.forEach((result,index)=>{if(result.status==='fulfilled'){fetched.push(...result.value);highest=Math.max(highest,batch[index])}else console.warn(`Manager transaction period ${batch[index]} unavailable`,result.reason)});
+    }
+    const live=(typeof HJ_LIVE_ACTIVITY!=='undefined'&&Array.isArray(HJ_LIVE_ACTIVITY.rows))?HJ_LIVE_ACTIVITY.rows:[];
+    HJ_MANAGER_TX_STATE.rows=hjManagerTxMergeRows(fetched,live,HJ_MANAGER_TX_STATE.rows);
+    HJ_MANAGER_TX_STATE.syncedThroughWeek=Math.max(HJ_MANAGER_TX_STATE.syncedThroughWeek,highest);
+    hjManagerTxWriteCache();
+    hjRefreshLiveTransactions(data);hjPatchOpenManagerRosterManagement();
+    return HJ_MANAGER_TX_STATE.rows;
+  })().finally(()=>{HJ_MANAGER_TX_STATE.loading=null});
+  return HJ_MANAGER_TX_STATE.loading;
+}
+
+const hjManagerTxCached=hjManagerTxReadCache();
+if(hjManagerTxCached){
+  HJ_MANAGER_TX_STATE.rows=hjManagerTxCached.rows||[];
+  HJ_MANAGER_TX_STATE.syncedThroughWeek=Number(hjManagerTxCached.syncedThroughWeek)||0;
+  HJ_MANAGER_TX_STATE.syncedAt=Number(hjManagerTxCached.syncedAt)||0;
+}
+/* Seed immediately from the League Activity cache if it already loaded. */
+if(typeof HJ_LIVE_ACTIVITY!=='undefined'&&Array.isArray(HJ_LIVE_ACTIVITY.rows)&&HJ_LIVE_ACTIVITY.rows.length){
+  HJ_MANAGER_TX_STATE.rows=hjManagerTxMergeRows(HJ_LIVE_ACTIVITY.rows,HJ_MANAGER_TX_STATE.rows);
+}
+try{hjRefreshLiveTransactions(HJ_LEAGUE_STATE?.data);hjPatchOpenManagerRosterManagement()}catch(_){}
+
+/* Every successful League Activity sync immediately updates the manager stats. */
+if(typeof hjRefreshLiveActivityV24==='function'){
+  const hjRefreshLiveActivityV27Base=hjRefreshLiveActivityV24;
+  hjRefreshLiveActivityV24=async function(force=false){
+    const rows=await hjRefreshLiveActivityV27Base(force);
+    if(typeof HJ_LIVE_ACTIVITY!=='undefined'&&Array.isArray(HJ_LIVE_ACTIVITY.rows))HJ_MANAGER_TX_STATE.rows=hjManagerTxMergeRows(HJ_LIVE_ACTIVITY.rows,HJ_MANAGER_TX_STATE.rows);
+    try{hjRefreshLiveTransactions(HJ_LEAGUE_STATE?.data);hjPatchOpenManagerRosterManagement()}catch(_){}
+    hjRefreshManagerSeasonTransactions(force).catch(()=>{});
+    return rows;
+  };
+}
+
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>hjRefreshManagerSeasonTransactions(false),2600),{once:true});
+else setTimeout(()=>hjRefreshManagerSeasonTransactions(false),600);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)hjRefreshManagerSeasonTransactions(false).catch(()=>{})});
+</script>
+
+
+
+<style id="hj-manager-activity-draft-archive-v28-styles">
+/* V28: manager Roster Management latest activity rail + resilient draft archive. */
+.profile-manager-activity-wrap{margin-top:14px;padding-top:11px;border-top:1px solid rgba(20,50,79,.10);min-width:0}
+.profile-manager-activity-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
+.profile-manager-activity-title{color:var(--navy);font:900 9px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.profile-manager-activity-note{color:#8796a5;font:750 7px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.profile-manager-activity-rail{display:flex;gap:8px;width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;padding:1px 1px 7px;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-inline:contain;scroll-snap-type:x proximity}
+.profile-manager-activity-rail::-webkit-scrollbar{display:none}
+.profile-manager-activity-card{flex:0 0 226px;scroll-snap-align:start;display:grid;grid-template-rows:auto 1fr;gap:7px;min-height:91px;padding:9px 10px;border:1px solid rgba(20,50,79,.13);border-radius:10px;background:#fff;box-shadow:0 1px 0 rgba(20,50,79,.03);min-width:0}
+.profile-manager-activity-time{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#7a8a99;font:750 7.2px/1 var(--mono);letter-spacing:.04em;text-transform:uppercase}
+.profile-manager-activity-time b{color:var(--navy);font-weight:850;white-space:nowrap}
+.profile-manager-activity-moves{display:grid;gap:5px;align-content:start}
+.profile-manager-activity-move{display:grid;grid-template-columns:auto 25px minmax(0,1fr);align-items:center;gap:6px;min-width:0}
+.profile-manager-activity-tag{min-width:31px;padding:3px 4px;border-radius:999px;background:#eef3f6;color:#6c7e8f;text-align:center;font:900 6.4px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.profile-manager-activity-tag.is-add{background:rgba(217,169,63,.15);color:#9c6b11}
+.profile-manager-activity-tag.is-drop{background:rgba(111,168,216,.18);color:#4f83b0}
+.profile-manager-activity-tag.is-trade{background:rgba(20,50,79,.09);color:var(--navy)}
+.profile-manager-activity-avatar{width:25px;height:25px;border-radius:50%;object-fit:cover;background:#edf2f5;border:1px solid rgba(20,50,79,.10)}
+.profile-manager-activity-player{min-width:0;color:var(--navy);font:760 9.4px/1.12 var(--sans);white-space:normal;overflow-wrap:anywhere}
+.profile-manager-activity-player small{display:block;margin-top:2px;color:#7b8b99;font:700 6.8px/1.05 var(--mono);letter-spacing:.03em;text-transform:uppercase}
+.profile-manager-activity-empty{padding:10px;border:1px dashed rgba(20,50,79,.14);border-radius:9px;color:#7d8b98;font:700 8px/1.3 var(--mono)}
+/* Archive is a permanent visual element, not a one-shot transient patch. */
+.profile-draft-years-wrap{display:block!important;visibility:visible!important;opacity:1!important;min-height:0!important}
+.profile-draft-years{display:flex!important;visibility:visible!important;opacity:1!important}
+@media(max-width:620px){
+  .profile-manager-activity-wrap{margin-top:12px;padding-top:9px}
+  .profile-manager-activity-card{flex-basis:205px;min-height:86px;padding:8px 9px}
+  .profile-manager-activity-player{font-size:9px}
+  .profile-manager-activity-note{font-size:6.5px}
+}
+</style>
+
+<script id="hj-manager-activity-draft-archive-v28">
+/* ======================================================================
+   V28 — Keep the manager yearly draft archive authoritative and add a
+   current-season activity rail from the same ESPN mTransactions2 rows used
+   by League Activity / manager transaction totals.
+   ====================================================================== */
+function hjManagerActivitySourceRows(){
+  const live=(typeof HJ_LIVE_ACTIVITY!=='undefined'&&Array.isArray(HJ_LIVE_ACTIVITY.rows))?HJ_LIVE_ACTIVITY.rows:[];
+  const manager=(typeof HJ_MANAGER_TX_STATE!=='undefined'&&Array.isArray(HJ_MANAGER_TX_STATE.rows))?HJ_MANAGER_TX_STATE.rows:[];
+  if(typeof hjManagerTxMergeRows==='function')return hjManagerTxMergeRows(live,manager);
+  return [...live,...manager].sort((a,b)=>(Number(b?.at)||0)-(Number(a?.at)||0));
+}
+function hjManagerActivityGroups(name){
+  const groups=new Map();
+  for(const row of hjManagerActivitySourceRows()){
+    const involved=(row?.type==='Add'&&row?.to===name)||(row?.type==='Drop'&&row?.from===name)||(row?.type==='Trade'&&(row?.to===name||row?.from===name));
+    if(!involved)continue;
+    const at=Number(row?.at)||0,source=String(row?.source||row?.type||'MOVE'),key=`${at}|${source}`;
+    if(!groups.has(key))groups.set(key,{at,source,rows:[]});
+    groups.get(key).rows.push(row);
+  }
+  return [...groups.values()].sort((a,b)=>b.at-a.at);
+}
+function hjManagerActivityPlayerMeta(row,name){
+  const player=row?.player||{},parts=[player.team,player.position].filter(Boolean);
+  if(row?.type==='Trade'){
+    const other=row?.from===name?row?.to:row?.from;if(other)parts.push(row?.from===name?`to ${other}`:`from ${other}`);
+  }
+  return parts.join(' · ');
+}
+function hjManagerActivityMoveHTML(row,name){
+  const player=row?.player||{},type=String(row?.type||'Move'),cls=type==='Add'?'is-add':type==='Drop'?'is-drop':type==='Trade'?'is-trade':'',photo=player.photo?`<img class="profile-manager-activity-avatar" src="${esc(player.photo)}" alt="" loading="lazy" onerror="ffnImageFallback(this)">`:`<span class="profile-manager-activity-avatar league-team-initials">${esc(hjInitials(player.name||'?'))}</span>`,meta=hjManagerActivityPlayerMeta(row,name);
+  return `<div class="profile-manager-activity-move"><span class="profile-manager-activity-tag ${cls}">${esc(type)}</span>${photo}<span class="profile-manager-activity-player">${esc(player.name||'Player')}${meta?`<small>${esc(meta)}</small>`:''}</span></div>`;
+}
+function hjManagerActivityCardHTML(group,name){
+  const d=new Date(Number(group.at)||Date.now()),date=Number.isFinite(d.getTime())?d.toLocaleDateString([],{month:'short',day:'numeric'}):'',time=Number.isFinite(d.getTime())?d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
+  /* All add/drop items sharing the ESPN execution timestamp/source stay in one
+     card, so a waiver add + corresponding drop is presented as one move. */
+  return `<article class="profile-manager-activity-card"><time class="profile-manager-activity-time" datetime="${Number.isFinite(d.getTime())?d.toISOString():''}"><span>${esc(date)}</span><b>${esc(time)}</b></time><div class="profile-manager-activity-moves">${group.rows.map(row=>hjManagerActivityMoveHTML(row,name)).join('')}</div></article>`;
+}
+function hjPatchManagerLatestActivity(back,name){
+  if(!back||!name)return;const profile=back.querySelector('.manager-profile');if(!profile)return;
+  const section=[...profile.querySelectorAll('.profile-section')].find(x=>x.querySelector(':scope > .profile-section-title')?.textContent?.trim()==='Roster Management');if(!section)return;
+  let wrap=section.querySelector('.profile-manager-activity-wrap');if(!wrap){wrap=document.createElement('div');wrap.className='profile-manager-activity-wrap';section.appendChild(wrap)}
+  const groups=hjManagerActivityGroups(name),note=groups.length?`${groups.length} move${groups.length===1?'':'s'} · ESPN live`:'ESPN live';
+  wrap.innerHTML=`<div class="profile-manager-activity-head"><span class="profile-manager-activity-title">Latest Activity</span><span class="profile-manager-activity-note">${esc(note)}</span></div>${groups.length?`<div class="profile-manager-activity-rail" aria-label="${esc(name)} latest league activity">${groups.map(group=>hjManagerActivityCardHTML(group,name)).join('')}</div>`:'<div class="profile-manager-activity-empty">No completed 2026 adds, drops, or trades yet.</div>'}`;
+}
+
+/* The old archive helper was a one-shot append. Make it idempotent and
+   self-healing so later live DOM patches cannot make the year rail disappear. */
+hjPatchDraftDNA=function(back,name){
+  if(!back||!name)return;const section=[...back.querySelectorAll('.profile-section')].find(s=>/Draft DNA/i.test(s.querySelector(':scope > .profile-section-title')?.textContent||''));if(!section)return;
+  const years=typeof hjManagerDraftYears==='function'?hjManagerDraftYears(name):[];if(!years.length)return;
+  let wrap=section.querySelector('.profile-draft-years-wrap');
+  if(!wrap){wrap=document.createElement('div');wrap.className='profile-draft-years-wrap';section.appendChild(wrap)}
+  const expected=years.join('|'),existing=wrap.dataset.hjDraftYears||'';
+  if(existing!==expected||!wrap.querySelector('[data-manager-draft-year]')){
+    wrap.dataset.hjDraftYears=expected;
+    wrap.innerHTML=`<span class="profile-draft-years-label">Draft archive</span><div class="profile-draft-years">${years.map((y,i)=>`<button type="button" class="profile-draft-year${i===0?' current':''}" data-manager-draft-year="${y}">${y}</button>`).join('')}</div>`;
+  }
+  if(wrap.dataset.hjDraftBound!=='1'){
+    wrap.dataset.hjDraftBound='1';wrap.addEventListener('click',e=>{const b=e.target.closest('[data-manager-draft-year]');if(b)hjOpenManagerDraftDetail(back,name,Number(b.dataset.managerDraftYear))});
+  }
+};
+function hjPatchOpenManagerV28(){
+  document.querySelectorAll('.manager-modal-back').forEach(back=>{const name=back.querySelector('.manager-modal-title')?.textContent?.trim()||'';if(!name)return;try{hjPatchDraftDNA(back,name);hjPatchManagerLatestActivity(back,name)}catch(error){console.warn('Manager V28 live patch failed',error)}});
+}
+
+/* Extend, do not replace, the v27 Roster Management patch. */
+if(typeof hjPatchManagerRosterManagement==='function'){
+  const hjPatchManagerRosterManagementV28Base=hjPatchManagerRosterManagement;
+  hjPatchManagerRosterManagement=function(back,name){hjPatchManagerRosterManagementV28Base(back,name);hjPatchManagerLatestActivity(back,name);hjPatchDraftDNA(back,name)};
+}
+/* Any ESPN manager-transaction refresh now refreshes the visible rail too. */
+if(typeof hjRefreshManagerSeasonTransactions==='function'){
+  const hjRefreshManagerSeasonTransactionsV28Base=hjRefreshManagerSeasonTransactions;
+  hjRefreshManagerSeasonTransactions=async function(force=false){const rows=await hjRefreshManagerSeasonTransactionsV28Base(force);hjPatchOpenManagerV28();return rows};
+}
+/* The League Activity refresh can arrive before the season backfill completes. */
+if(typeof hjRefreshLiveActivityV24==='function'){
+  const hjRefreshLiveActivityV28Base=hjRefreshLiveActivityV24;
+  hjRefreshLiveActivityV24=async function(force=false){const rows=await hjRefreshLiveActivityV28Base(force);hjPatchOpenManagerV28();return rows};
+}
+
+/* Initial modal creation + any later manager-card DOM rebuild. */
+const hjManagerArchiveActivityObserverV28=new MutationObserver(mutations=>{for(const m of mutations)for(const node of m.addedNodes){if(!(node instanceof Element))continue;const back=node.matches?.('.manager-modal-back')?node:node.querySelector?.('.manager-modal-back');if(back)setTimeout(()=>{const name=back.querySelector('.manager-modal-title')?.textContent?.trim()||'';if(name){hjPatchDraftDNA(back,name);hjPatchManagerLatestActivity(back,name)}},45)}});
+hjManagerArchiveActivityObserverV28.observe(document.body,{childList:true,subtree:true});
+setTimeout(hjPatchOpenManagerV28,250);
+</script>
+
+
+<style id="hj-roster-lineup-total-v30">
+/* One active-lineup total, aligned opposite the Starting lineup label. */
+.league-roster-group-head .league-roster-lineup-head-total{
+  margin-left:auto;display:inline-flex;align-items:baseline;justify-content:flex-end;gap:5px;white-space:nowrap;
+  color:#7a8997;font:800 7px/1 var(--mono);letter-spacing:.07em;text-transform:uppercase;
+}
+.league-roster-group-head .league-roster-lineup-head-total b{
+  color:var(--navy);font:900 13px/1 var(--serif);letter-spacing:0;text-transform:none;
+}
+.manager-modal-back .league-roster-group-head .league-roster-lineup-head-total{gap:4px;font-size:6.8px}
+.manager-modal-back .league-roster-group-head .league-roster-lineup-head-total b{font-size:12px}
+@media(max-width:620px){
+  .league-roster-group-head .league-roster-lineup-head-total{gap:4px;font-size:6.7px;letter-spacing:.055em}
+  .league-roster-group-head .league-roster-lineup-head-total b{font-size:12px}
 }
 </style>
 
