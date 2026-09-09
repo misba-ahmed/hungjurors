@@ -11230,12 +11230,71 @@ function pcLoadEspnProjection(player,season=NFL_SEASON){
   const url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=0&view=kona_player_info`,filter={players:{filterIds:{value:[id]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${season}`,`10${season}`]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForSourceIds:{value:[1]},limit:5,offset:0}};
   const promise=fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}}).then(response=>{if(!response.ok)throw new Error(`ESPN projection returned ${response.status}`);return Promise.all([response.json(),Promise.resolve(response.headers.get('X-Fantasy-Server-Time')||'')])}).then(([data,updated])=>({entry:Array.isArray(data?.players)?data.players[0]||null:null,updated}));pcEspnProjectionCache.set(key,promise);promise.catch(()=>pcEspnProjectionCache.delete(key));return promise;
 }
+async function pcLoadProfileEspnPair(player,season=NFL_SEASON,week=(typeof hjCurrentWeek==='function'?hjCurrentWeek():1)){
+  const position=String(player?.position||'').toUpperCase();
+  if(['K','D/ST'].includes(position)){
+    const data=await pcLoadSpecialProjections(season),entry=pcSpecialProjectionFind(data,player),w=pcSpecialProjectionStat(entry,'week',week),s=pcSpecialProjectionStat(entry,'season',week);
+    return {week:w?pcNumber(w.appliedTotal):null,season:s?pcNumber(s.appliedTotal):null,updated:data?.updated||''};
+  }
+  const id=Number(player?.id),idKey=String(player?.id||''),name=String(player?.name||'');
+  let weekValue=null,seasonValue=null,updated='';
+  const takeNumber=(kind,value)=>{if(!Number.isFinite(value))return;const n=Number(value);if(kind==='week'&&!Number.isFinite(weekValue))weekValue=n;if(kind==='season'&&!Number.isFinite(seasonValue))seasonValue=n};
+  const takeEntry=entry=>{if(!entry)return;takeNumber('week',pcEspnProjectionStat(entry,'week',week));takeNumber('season',pcEspnProjectionStat(entry,'season',week));};
+  const samePlayer=item=>item&&(idKey&&String(item.id||'')===idKey||pcNameMatch(item.name||'',name));
+
+  /* First consume every already-loaded source. Free-agent directory rows store
+     the resolved numeric projections directly, while owned-player caches often
+     carry the full ESPN entry. Treat those as independent sources. */
+  const local=typeof pcFindLeagueProjectionEntry==='function'?pcFindLeagueProjectionEntry(player):null;
+  takeEntry(local);
+  const directoryCandidates=[];
+  if(typeof HJ_PLAYER_DIRECTORY!=='undefined'){
+    const row=HJ_PLAYER_DIRECTORY?.rows?.find(samePlayer);if(row)directoryCandidates.push(row);
+    if(idKey&&HJ_PLAYER_DIRECTORY?.espnCache?.has(idKey))takeEntry(HJ_PLAYER_DIRECTORY.espnCache.get(idKey));
+  }
+  if(typeof HJ_HQ_STATE!=='undefined'){
+    const fa=HJ_HQ_STATE?.freeAgents?.find(samePlayer);if(fa&&!directoryCandidates.includes(fa))directoryCandidates.push(fa);
+  }
+  directoryCandidates.forEach(item=>{takeNumber('week',item?.espnWeekFpts);takeNumber('season',item?.espnSeasonFpts)});
+  if(typeof HJ_ESPN_HQ_POOL!=='undefined'&&idKey&&HJ_ESPN_HQ_POOL?.byId?.has(idKey))takeEntry(HJ_ESPN_HQ_POOL.byId.get(idKey));
+  if(typeof HJ_MATH_SEASON!=='undefined'&&idKey&&HJ_MATH_SEASON?.byId?.has(idKey))takeEntry(HJ_MATH_SEASON.byId.get(idKey));
+
+  if(!Number.isFinite(id)||id<=0||Number.isFinite(weekValue)&&Number.isFinite(seasonValue))return {week:weekValue,season:seasonValue,updated};
+
+  /* Weekly and season projections are separate ESPN slices for free agents.
+     Fetch them independently instead of requiring one response to contain both. */
+  if(!Number.isFinite(weekValue)&&typeof hjFetchEspnHqIds==='function'&&Number(season)===Number(HJ_LEAGUE_SEASON)){
+    try{
+      const entries=await hjFetchEspnHqIds([id],week),entry=(entries||[]).find(item=>String(hjEspnPoolEntryId(item))===idKey)||(entries||[])[0]||null;
+      if(entry){takeEntry(entry);if(typeof hjMergeEspnHqEntries==='function')hjMergeEspnHqEntries([entry],week,false);if(typeof HJ_PLAYER_DIRECTORY!=='undefined')HJ_PLAYER_DIRECTORY?.espnCache?.set?.(idKey,entry)}
+    }catch(error){console.warn('Profile weekly ESPN projection unavailable',error)}
+  }
+
+  if(!Number.isFinite(seasonValue)||!Number.isFinite(weekValue)){
+    try{
+      const scoringPeriodId=0,url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=${scoringPeriodId}&view=kona_player_info`,filter={players:{filterIds:{value:[id]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${season}`,`10${season}`]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForSourceIds:{value:[1]},limit:8,offset:0}};
+      const response=await fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}});if(!response.ok)throw new Error(`ESPN profile season projection returned ${response.status}`);
+      const payload=await response.json();updated=response.headers.get('X-Fantasy-Server-Time')||updated;const entries=Array.isArray(payload?.players)?payload.players:[],entry=entries.find(item=>String(hjEspnPoolEntryId(item))===idKey)||entries[0]||null;
+      if(entry){takeEntry(entry);if(typeof HJ_PLAYER_DIRECTORY!=='undefined')HJ_PLAYER_DIRECTORY?.espnCache?.set?.(idKey,entry);if(typeof hjMergeEspnHqEntries==='function'&&Number(season)===Number(HJ_LEAGUE_SEASON))hjMergeEspnHqEntries([entry],week,false)}
+    }catch(error){console.warn('Profile season ESPN projection unavailable',error)}
+  }
+
+  /* Re-read numeric directory state because its visible-row hydration may have
+     completed while the profile requests were in flight. */
+  if(typeof HJ_PLAYER_DIRECTORY!=='undefined'){
+    const row=HJ_PLAYER_DIRECTORY?.rows?.find(samePlayer);if(row){takeNumber('week',row.espnWeekFpts);takeNumber('season',row.espnSeasonFpts)}
+  }
+  if(typeof HJ_HQ_STATE!=='undefined'){
+    const row=HJ_HQ_STATE?.freeAgents?.find(samePlayer);if(row){takeNumber('week',row.espnWeekFpts);takeNumber('season',row.espnSeasonFpts)}
+  }
+  return {week:Number.isFinite(weekValue)?weekValue:null,season:Number.isFinite(seasonValue)?seasonValue:null,updated};
+}
 async function pcRenderVegas(player,root,token){
   const weeklyTarget=root.querySelector('[data-pc-vegas-week]'),seasonTarget=root.querySelector('[data-pc-vegas-season]');if(!weeklyTarget&&!seasonTarget)return;
   if(['K','D/ST'].includes(player.position))return pcRenderSpecialProjections(player,root,token);
-  const week=typeof hjCurrentWeek==='function'?hjCurrentWeek():Number(NFL_WEEK1[0]?.week||1),[weeklyResult,seasonResult,espnResult]=await Promise.allSettled([pcLoadVegas('weekly'),pcLoadVegas('season'),pcLoadEspnProjection(player,NFL_SEASON)]);if(!pcActive||token!==pcActive.token)return;
-  const weekly=weeklyResult.status==='fulfilled'?weeklyResult.value:null,season=seasonResult.status==='fulfilled'?seasonResult.value:null,espn=espnResult.status==='fulfilled'?espnResult.value:null,find=data=>data?.rows.find(row=>pcNameMatch(row.name,player.name)),weeklyRow=find(weekly),seasonRow=find(season),espnWeek=espn?.entry?pcEspnProjectionStat(espn.entry,'week',week):null,espnSeason=espn?.entry?pcEspnProjectionStat(espn.entry,'season',week):null,render=(target,label,data,row,espnValue)=>{if(!target)return;const panel=pcVegasPanel(label,row,player.position,pcVegasRank(data,row,player.position),espnValue);if(!panel){target.innerHTML='<div class="pc-vegas-state">No current Vegas projection is available for this player.</div>';return}const title=label==='Season'?'Vegas season projections':'Vegas projections';target.innerHTML=`<div class="pc-vegas-head"><span class="pc-vegas-title">${title}</span><span class="pc-vegas-updated">${data?.updated?`Updated ${esc(data.updated)}`:''}</span></div><div class="pc-vegas-grid is-single">${panel}</div>`};
-  render(weeklyTarget,'This week',weekly,weeklyRow,espnWeek);render(seasonTarget,'Season',season,seasonRow,espnSeason);
+  const week=typeof hjCurrentWeek==='function'?hjCurrentWeek():Number(NFL_WEEK1[0]?.week||1),[weeklyResult,seasonResult,espnResult]=await Promise.allSettled([pcLoadVegas('weekly'),pcLoadVegas('season'),pcLoadProfileEspnPair(player,NFL_SEASON,week)]);if(!pcActive||token!==pcActive.token)return;
+  const weekly=weeklyResult.status==='fulfilled'?weeklyResult.value:null,season=seasonResult.status==='fulfilled'?seasonResult.value:null,espn=espnResult.status==='fulfilled'?espnResult.value:{week:null,season:null},find=data=>data?.rows.find(row=>pcNameMatch(row.name,player.name)),weeklyRow=find(weekly),seasonRow=find(season),render=(target,label,data,row,espnValue)=>{if(!target)return;const panel=pcVegasPanel(label,row,player.position,pcVegasRank(data,row,player.position),espnValue);if(!panel){target.innerHTML='<div class="pc-vegas-state">No current Vegas projection is available for this player.</div>';return}const title=label==='Season'?'Vegas season projections':'Vegas projections';target.innerHTML=`<div class="pc-vegas-head"><span class="pc-vegas-title">${title}</span><span class="pc-vegas-updated">${data?.updated?`Updated ${esc(data.updated)}`:''}</span></div><div class="pc-vegas-grid is-single">${panel}</div>`};
+  render(weeklyTarget,'This week',weekly,weeklyRow,espn.week);render(seasonTarget,'Season',season,seasonRow,espn.season);
 }
 function pcProfileHTML(player,season,allRows,snaps,schedule){
   const rows=pcPlayerRows(allRows,player),leaderboard=pcLeaderboard(allRows),weeklyRanks=pcWeeklyRanks(allRows),rates=pcExpectedRates(allRows);
@@ -11610,18 +11669,35 @@ function hjLineupGameInfo(team){
   const opponent=String(upcoming.abbr||'').toUpperCase().replace(/^WSH$/,'WAS'),venue=upcoming.location==='at'?'@':'vs';
   return `${String(upcoming.day||'').slice(0,3)} ${upcoming.time||''} ${venue} ${opponent}`.replace(/\s+/g,' ').trim();
 }
+function hjLineupDisplayName(name,position=''){
+  const raw=String(name||'').trim();
+  if(!raw)return 'Player';
+  /* Team defenses display as the team name only in matchup rows. */
+  if(String(position||'').toUpperCase()==='D/ST'||/\bD\/ST\b/i.test(raw))return raw.replace(/\s+D\/ST.*$/i,'').trim()||raw;
+  const parts=raw.split(/\s+/).filter(Boolean);
+  if(parts.length<2)return raw;
+  const suffix=/^(jr\.?|sr\.?|ii|iii|iv|v)$/i;
+  const first=parts.shift();
+  let tail=parts;
+  /* Keep a suffix only when it materially disambiguates the player. */
+  const lastSuffix=tail.length>1&&suffix.test(tail[tail.length-1])?tail.pop():'';
+  const surname=tail.join(' ');
+  return `${first.charAt(0).toUpperCase()}. ${surname}${lastSuffix?` ${lastSuffix}`:''}`.trim();
+}
 function hjLineupPlayerHTML(entry,week,right=false){
   if(!entry)return '<div class="hq-lineup-empty" aria-hidden="true"></div>';
-  const player=hjPlayer(entry),id=player?.id||entry?.playerId||'',name=player?.fullName||player?.displayName||player?.name||'Player',position=hjPlayerPosition(entry),rank=hjPlayerRank(entry),team=hjPlayerTeam(entry),photo=hjPlayerPhoto(entry),p=hjProjectionPair(entry,week),actual=hjPlayerActualScore(entry,week),gameState=hjPlayerGameState(team),fmt=value=>Number.isFinite(value)?pcFpts(value):'—',rankedPosition=`${position||'—'}${rank||''}`,gameInfo=hjLineupGameInfo(team),hasActual=Number.isFinite(actual),mainValue=hasActual?actual:p.espn;
-  const status=hasActual?`<small class="hq-lineup-live-label">${gameState==='post'?'FINAL':'LIVE'}</small>`:'',compare=hasActual?`<span class="hq-lineup-score-sub"><span>ESPN <b>${fmt(p.espn)}</b></span><span>Vegas <b>${fmt(p.vegas)}</b></span></span>`:`<span class="hq-lineup-score-sub"><span>Vegas <b>${fmt(p.vegas)}</b></span></span>`;
-  return `<button class="hq-lineup-player${right?' is-right':''} pc-player-trigger" type="button" ${ffnPlayerDataAttrs({id,name,team,position,photo})} aria-label="Open ${esc(name)} player profile">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="ffnImageFallback(this)">`:`<span class="league-team-initials">${esc(hjInitials(name))}</span>`}<span class="hq-lineup-player-copy"><span class="hq-lineup-player-name">${esc(name)}</span><span class="hq-lineup-player-bio">${esc(team)} · ${esc(rankedPosition)}</span></span><span class="hq-lineup-score${hasActual?' has-actual':''}">${status}<strong>${fmt(mainValue)}</strong>${compare}</span><span class="hq-lineup-player-game">${esc(gameInfo)}</span></button>`;
+  const player=hjPlayer(entry),id=player?.id||entry?.playerId||'',name=player?.fullName||player?.displayName||player?.name||'Player',position=hjPlayerPosition(entry),rank=hjPlayerRank(entry),team=hjPlayerTeam(entry),photo=hjPlayerPhoto(entry),p=hjProjectionPair(entry,week),actual=hjPlayerActualScore(entry,week),gameState=hjPlayerGameState(team),fmt=value=>Number.isFinite(value)?pcFpts(value):'—',rankedPosition=`${position||'—'}${rank||''}`,displayName=hjLineupDisplayName(name,position),hasActual=Number.isFinite(actual),mainValue=hasActual?actual:p.espn;
+  const compactGame=hjLineupGameInfo(team).replace(/:00 ([AP])M\b/g,'$1').replace(/ ([AP])M\b/g,'$1');
+  const scoreSub = `<span class="hq-lineup-score-sub"><span class="is-espn" aria-label="ESPN projection ${esc(fmt(p.espn))}" title="ESPN projection">E ${fmt(p.espn)}</span><span class="is-vegas" aria-label="Vegas projection ${esc(fmt(p.vegas))}" title="Vegas projection">V ${fmt(p.vegas)}</span></span>`;
+  const liveBadge=hasActual?`<small class="hq-lineup-live-label">${gameState==='post'?'FINAL':'LIVE'}</small>`:'';
+  return `<button class="hq-lineup-player${right?' is-right':''} pc-player-trigger" type="button" ${ffnPlayerDataAttrs({id,name,team,position,photo})} aria-label="Open ${esc(name)} player profile">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="ffnImageFallback(this)">`:`<span class="league-team-initials">${esc(hjInitials(name))}</span>`}<span class="hq-lineup-player-copy"><span class="hq-lineup-player-name" title="${esc(name)}">${esc(displayName)}</span><span class="hq-lineup-player-meta"><span class="hq-lineup-team-code">${esc(team)}</span><span class="hq-lineup-meta-dot">•</span><span class="hq-lineup-rank">${esc(rankedPosition)}</span></span></span><span class="hq-lineup-score${hasActual?' has-actual':''}">${liveBadge}<strong>${fmt(mainValue)}</strong>${scoreSub}</span><span class="hq-lineup-player-game">${esc(compactGame)}</span></button>`;
 }
 function hjMatchupLineupHTML(teamA,teamB,managerA,managerB,rosterA,rosterB,week,key){
   const mode=HJ_HQ_STATE.lineupModes.get(key)||'actual',plan=hjLineupPlan(HJ_LEAGUE_STATE.data),selectedA=hjSelectionForMode(rosterA.entries,plan,week,mode),selectedB=hjSelectionForMode(rosterB.entries,plan,week,mode),totalsA=hjSelectionTotals(selectedA,week),totalsB=hjSelectionTotals(selectedB,week),benchRows=hjBenchRows(hjRemainingBench(rosterA.entries,selectedA),hjRemainingBench(rosterB.entries,selectedB)),fmt=value=>Number.isFinite(value)?pcFpts(value):'—',modeLabel=mode==='actual'?'Actual lineup':mode==='espn'?'ESPN optimal':mode==='vegas'?'Vegas optimal':'Combo optimal';
   const rows=plan.map((slot,index)=>`<div class="hq-lineup-row"><div>${hjLineupPlayerHTML(selectedA[index],week,false)}</div><div class="hq-lineup-slot">${esc(slot.label)}</div><div>${hjLineupPlayerHTML(selectedB[index],week,true)}</div></div>`).join('');
   const bench=benchRows.length?`<div class="hq-lineup-bench-divider"><span>Bench</span></div>${benchRows.map(row=>`<div class="hq-lineup-row is-bench-row"><div>${hjLineupPlayerHTML(row.a,week,false)}</div><div class="hq-lineup-slot hq-lineup-slot-bench" aria-hidden="true"></div><div>${hjLineupPlayerHTML(row.b,week,true)}</div></div>`).join('')}`:'';
-  const modes=[['actual','Actual'],['espn','ESPN optimal'],['vegas','Vegas optimal'],['combo','Combo optimal']].map(([id,label])=>`<button type="button" class="hq-lineup-mode${mode===id?' active':''}" data-hq-lineup-mode="${id}" data-hq-matchup-key="${esc(key)}" aria-pressed="${mode===id}">${label}</button>`).join('');
-  return `<div class="hq-lineup-wrap"><div class="hq-lineup-clip"><div class="hq-lineup-detail"><div class="hq-lineup-toolbar"><div class="hq-lineup-toolbar-copy"><b>${modeLabel}</b><small>Combo uses the mean of ESPN + Vegas when both are available.</small></div><div class="hq-lineup-modes" aria-label="Lineup view">${modes}</div></div><div class="hq-lineup-table"><div class="hq-lineup-head"><div class="hq-lineup-team-head"><b>${esc(managerA)}</b><small>ESPN ${fmt(totalsA.espn)} · Vegas* ${fmt(totalsA.vegas)}</small></div><div class="hq-lineup-slot-head">Position</div><div class="hq-lineup-team-head right"><b>${esc(managerB)}</b><small>ESPN ${fmt(totalsB.espn)} · Vegas* ${fmt(totalsB.vegas)}</small></div></div>${rows}${bench}</div><div class="hq-lineup-foot">* Vegas lineup totals use ESPN as a fallback only where Vegas has no player projection. Player rows show a dash when Vegas has no number.</div></div></div></div>`;
+  const modes=[['actual','Actual','Actual lineup'],['espn','ESPN','ESPN optimal'],['vegas','Vegas','Vegas optimal'],['combo','Combo','Combo optimal']].map(([id,label,full])=>`<button type="button" class="hq-lineup-mode${mode===id?' active':''}" data-hq-lineup-mode="${id}" data-hq-matchup-key="${esc(key)}" aria-label="${full}" aria-pressed="${mode===id}">${label}</button>`).join('');
+  return `<div class="hq-lineup-wrap"><div class="hq-lineup-clip"><div class="hq-lineup-detail"><div class="hq-lineup-toolbar"><div class="hq-lineup-toolbar-copy"><b>${modeLabel}</b></div><div class="hq-lineup-modes" aria-label="Lineup view">${modes}</div></div><div class="hq-lineup-table"><div class="hq-lineup-head"><div class="hq-lineup-team-head"><b>${esc(managerA)}</b><small><span class="hq-proj-e">E ${fmt(totalsA.espn)}</span><span class="hq-proj-sep"> · </span><span class="hq-proj-v">V ${fmt(totalsA.vegas)}</span></small></div><div class="hq-lineup-slot-head">Position</div><div class="hq-lineup-team-head right"><b>${esc(managerB)}</b><small><span class="hq-proj-e">E ${fmt(totalsB.espn)}</span><span class="hq-proj-sep"> · </span><span class="hq-proj-v">V ${fmt(totalsB.vegas)}</span></small></div></div>${rows}${bench}</div></div></div></div>`;
 }
 
 function hjPlayerHTML(entry,week,season=HJ_LEAGUE_SEASON){
@@ -14573,20 +14649,12 @@ hjMatchupCardHTML=function(game,sourceData,data,placeholder){
   const matchupKey=`${week}:${teamA.id}:${teamB.id}`,open=HJ_HQ_STATE.openMatchups.has(matchupKey);
   const vegasA=usePlaceholder?null:hjTeamVegasProjection(teamA,week,data),vegasB=usePlaceholder?null:hjTeamVegasProjection(teamB,week,data);
   const fmt=value=>Number.isFinite(value)?pcFpts(value):'—';
-  const sub=(espn,vegas)=>usePlaceholder?'':live?`<span class="hq-match-team-sub is-live"><span>ESPN <b>${fmt(espn)}</b></span><span>Vegas <b>${fmt(vegas)}</b></span></span>`:`<span class="hq-match-team-sub"><span>Vegas <b>${fmt(vegas)}</b></span></span>`;
+  const sub=(espn,vegas)=>usePlaceholder?'':live?`<span class="hq-match-team-sub is-live"><span class="hq-match-proj-e">E <b>${fmt(espn)}</b></span><span class="hq-match-proj-v">V <b>${fmt(vegas)}</b></span></span>`:`<span class="hq-match-team-sub"><span class="hq-match-proj-v">Vegas <b>${fmt(vegas)}</b></span></span>`;
   const teamBlock=(manager,left,score,espn,vegas,away=false)=>`<div class="hq-match-team${away?' is-away':''}">${av(manager)}<div class="hq-match-team-copy"><b class="hq-match-team-name">${esc(manager)}</b>${left?`<small class="hq-match-team-left">${esc(left)}</small>`:''}<strong class="hq-match-team-score">${pcFpts(score)}</strong>${sub(espn,vegas)}</div></div>`;
   const details=!usePlaceholder?hjMatchupLineupHTML(teamA,teamB,managerA,managerB,rosterA,rosterB,week,matchupKey):'';
   return `<section class="hq-matchup${focused?' is-focused':''}${open?' is-open':''}" data-hq-matchup data-hq-matchup-key="${esc(matchupKey)}" data-hq-team-a="${esc(teamA.id)}" data-hq-team-b="${esc(teamB.id)}"><div class="hq-matchup-head"><div class="hq-matchup-head-copy"><h4>Week ${week} matchup</h4><span class="hq-matchup-head-meta">${usePlaceholder?'2025 averages':live?'Live score':'Projected'}</span></div>${!usePlaceholder?`<button type="button" class="hq-matchup-toggle" data-hq-matchup-toggle="${esc(matchupKey)}" aria-expanded="${open}">${open?'Hide lineups':'View lineups'} <span class="chev">⌄</span></button>`:''}</div><div class="hq-matchup-summary">${teamBlock(managerA,leftA,displayA,projectionA,vegasA?.vegas,false)}${teamBlock(managerB,leftB,displayB,projectionB,vegasB?.vegas,true)}</div><div class="hq-match-win"><div class="hq-match-win-inner"><div class="hq-match-win-bar" aria-label="${esc(managerA)} ${winChance}% win chance"><span style="width:${winChance}%"></span></div><div class="hq-match-win-labels"><span>${esc(managerA)} ${winChance}%</span><b>Win chance</b><span>${100-winChance}% ${esc(managerB)}</span></div></div></div><div class="hq-edge-grid">${edges}</div>${swing?`<div class="hq-swing"><span class="hq-swing-label">Swing players</span><div class="hq-swing-rail">${swing}</div></div>`:''}${details}</section>`;
 };
-/* Pre-game: the large number IS the ESPN projection, so only Vegas belongs
-   underneath. Live/final: the large number is actual points, so both
-   projections are useful comparison context. */
-hjLineupPlayerHTML=function(entry,week,right=false){
-  if(!entry)return '<div class="hq-lineup-empty" aria-hidden="true"></div>';
-  const player=hjPlayer(entry),id=player?.id||entry?.playerId||'',name=player?.fullName||player?.displayName||player?.name||'Player',position=hjPlayerPosition(entry),rank=hjPlayerRank(entry),team=hjPlayerTeam(entry),photo=hjPlayerPhoto(entry),p=hjProjectionPair(entry,week),actual=hjPlayerActualScore(entry,week),gameState=hjPlayerGameState(team),fmt=value=>Number.isFinite(value)?pcFpts(value):'—',rankedPosition=`${position||'—'}${rank||''}`,gameInfo=hjLineupGameInfo(team),hasActual=Number.isFinite(actual),mainValue=hasActual?actual:p.espn;
-  const status=hasActual?`<small class="hq-lineup-live-label">${gameState==='post'?'FINAL':'LIVE'}</small>`:'',compare=hasActual?`<span class="hq-lineup-score-sub"><span>ESPN <b>${fmt(p.espn)}</b></span><span>Vegas <b>${fmt(p.vegas)}</b></span></span>`:`<span class="hq-lineup-score-sub"><span>Vegas <b>${fmt(p.vegas)}</b></span></span>`;
-  return `<button class="hq-lineup-player${right?' is-right':''} pc-player-trigger" type="button" ${ffnPlayerDataAttrs({id,name,team,position,photo})} aria-label="Open ${esc(name)} player profile">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="ffnImageFallback(this)">`:`<span class="league-team-initials">${esc(hjInitials(name))}</span>`}<span class="hq-lineup-player-copy"><span class="hq-lineup-player-name">${esc(name)}</span><span class="hq-lineup-player-bio">${esc(team)} · ${esc(rankedPosition)}</span></span><span class="hq-lineup-score${hasActual?' has-actual':''}">${status}<strong>${fmt(mainValue)}</strong>${compare}</span><span class="hq-lineup-player-game">${esc(gameInfo)}</span></button>`;
-};
+/* v16: removed legacy hjLineupPlayerHTML runtime override. The canonical renderer above is authoritative. */
 
 /* Free Agents use the same direct ESPN projection lookup the player profile
    uses. Hydrate only visible rows, in small batches, then cache them. */
@@ -15887,11 +15955,40 @@ async function hjMathLoadRosterSeasonProjections(data=HJ_LEAGUE_STATE.data,force
    contains the requested season split. Otherwise fetch the player's full projection. */
 pcLoadEspnProjection=function(player,season=NFL_SEASON){
   if(['K','D/ST'].includes(String(player.position||'').toUpperCase()))return pcLoadSpecialProjections(season).then(data=>({entry:pcSpecialProjectionFind(data,player),updated:data.updated||''}));
-  const local=typeof pcFindLeagueProjectionEntry==='function'?pcFindLeagueProjectionEntry(player):null,week=typeof hjCurrentWeek==='function'?hjCurrentWeek():1;
-  if(local&&Number.isFinite(pcEspnProjectionStat(local,'week',week))&&Number.isFinite(pcEspnProjectionStat(local,'season',week)))return Promise.resolve({entry:local,updated:HJ_LEAGUE_STATE?.serverTime||''});
-  const id=Number(player.id);if(!Number.isFinite(id)||id<=0)return Promise.resolve({entry:local||null,updated:''});const key=`audited:${season}:${id}`;if(pcEspnProjectionCache.has(key))return pcEspnProjectionCache.get(key);
-  const url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=0&view=kona_player_info`,filter={players:{filterIds:{value:[id]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${season}`,`10${season}`]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForSourceIds:{value:[1]},limit:8,offset:0}};
-  const promise=fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}}).then(response=>{if(!response.ok)throw new Error(`ESPN projection returned ${response.status}`);return Promise.all([response.json(),Promise.resolve(response.headers.get('X-Fantasy-Server-Time')||'')])}).then(([payload,updated])=>({entry:Array.isArray(payload?.players)?payload.players[0]||local||null:local||null,updated})).catch(error=>{if(local)return {entry:local,updated:HJ_LEAGUE_STATE?.serverTime||''};throw error});
+  const week=typeof hjCurrentWeek==='function'?hjCurrentWeek():1,id=Number(player.id),idKey=String(player.id||'');
+  const complete=entry=>entry&&Number.isFinite(pcEspnProjectionStat(entry,'week',week))&&Number.isFinite(pcEspnProjectionStat(entry,'season',week));
+  const local=typeof pcFindLeagueProjectionEntry==='function'?pcFindLeagueProjectionEntry(player):null;
+  if(complete(local))return Promise.resolve({entry:local,updated:HJ_LEAGUE_STATE?.serverTime||''});
+  const shared=[
+    (typeof HJ_ESPN_HQ_POOL!=='undefined'&&idKey)?HJ_ESPN_HQ_POOL?.byId?.get(idKey):null,
+    (typeof HJ_PLAYER_DIRECTORY!=='undefined'&&idKey)?HJ_PLAYER_DIRECTORY?.espnCache?.get(idKey):null,
+    (typeof HJ_MATH_SEASON!=='undefined'&&idKey)?HJ_MATH_SEASON?.byId?.get(idKey):null
+  ].find(complete);
+  if(shared)return Promise.resolve({entry:shared,updated:HJ_LEAGUE_STATE?.serverTime||''});
+  if(!Number.isFinite(id)||id<=0)return Promise.resolve({entry:local||shared||null,updated:''});
+  const key=`profile-v2:${season}:${week}:${id}`;if(pcEspnProjectionCache.has(key))return pcEspnProjectionCache.get(key);
+  const promise=(async()=>{
+    /* Free agents use the same current-week ID lookup that already powers the
+       working Players / Free Agents directory. This keeps the profile on the
+       league-scoring projection source instead of a separate request shape. */
+    if(typeof hjFetchEspnHqIds==='function'&&Number(season)===Number(HJ_LEAGUE_SEASON)){
+      try{
+        const entries=await hjFetchEspnHqIds([id],week),entry=(entries||[]).find(item=>String(hjEspnPoolEntryId(item))===String(id))||(entries||[])[0]||null;
+        if(entry){
+          if(typeof hjMergeEspnHqEntries==='function')hjMergeEspnHqEntries([entry],week,false);
+          if(typeof HJ_PLAYER_DIRECTORY!=='undefined')HJ_PLAYER_DIRECTORY?.espnCache?.set?.(String(id),entry);
+          if(complete(entry))return {entry,updated:HJ_LEAGUE_STATE?.serverTime||''};
+        }
+      }catch(error){console.warn('Profile ESPN shared free-agent lookup unavailable',error)}
+    }
+    /* Final fallback uses the same Kona fields, but keeps the current scoring
+       period in the URL so ESPN applies this league's scoring to free agents. */
+    const url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=${week}&view=kona_player_info`,filter={players:{filterIds:{value:[id]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${season}`,`10${season}`]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForSourceIds:{value:[1]},filterRanksForScoringPeriodIds:{value:[week]},limit:8,offset:0}};
+    const response=await fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}});if(!response.ok)throw new Error(`ESPN projection returned ${response.status}`);
+    const payload=await response.json(),updated=response.headers.get('X-Fantasy-Server-Time')||'',entry=Array.isArray(payload?.players)?payload.players.find(item=>String(hjEspnPoolEntryId(item))===String(id))||payload.players[0]||local||null:local||null;
+    if(entry&&typeof hjMergeEspnHqEntries==='function'&&Number(season)===Number(HJ_LEAGUE_SEASON))hjMergeEspnHqEntries([entry],week,false);
+    return {entry,updated};
+  })().catch(error=>{if(local)return {entry:local,updated:HJ_LEAGUE_STATE?.serverTime||''};throw error});
   pcEspnProjectionCache.set(key,promise);promise.catch(()=>pcEspnProjectionCache.delete(key));return promise;
 };
 
@@ -18788,474 +18885,77 @@ window.addEventListener('focus',()=>{
   ensureOwnedSources();
 })();
 </script>
-<style id="hj-matchup-responsive-design-v10">
+<style id="hj-matchup-responsive-design-v18">
 /* ======================================================================
-   MATCHUP CENTER — RESPONSIVE COMPACT / READABLE + LIVE DESIGN
-   Presentation only. This is the single final density layer for matchup
-   cards and expanded lineups. It intentionally replaces the prior v7/v8
-   density overrides so the cascade has one owner instead of several. v10 also
-   aligns desktop game text with player identity and hardens live scoring.
+   MATCHUP CENTER — RESPONSIVE REDESIGN V18
+   One composition system at every width. Player rows use three protected
+   zones: avatar | identity | score. Full names and game info never ellipsize.
    ====================================================================== */
 
-/* ---------- Collapsed matchup cards ---------- */
-.hq-matchup-list{
-  gap:10px!important;
-}
-.hq-matchup{
-  border-radius:11px!important;
-  box-shadow:0 5px 14px rgba(20,50,79,.075)!important;
-}
-.hq-matchup-head{
-  min-height:0!important;
-  padding:8px 12px!important;
-  gap:9px!important;
-}
-.hq-matchup-head-copy{gap:7px!important}
-.hq-matchup-head h4{
-  font-size:16px!important;
-  line-height:1.02!important;
-}
-.hq-matchup-head-meta{
-  font-size:7.2px!important;
-  line-height:1!important;
-}
-.hq-matchup-toggle{
-  padding:6px 9px!important;
-  gap:5px!important;
-  font-size:7.2px!important;
-  line-height:1!important;
-}
-.hq-matchup-summary{
-  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
-  gap:22px!important;
-  padding:10px 14px 7px!important;
-}
-.hq-match-team{
-  grid-template-columns:40px minmax(0,1fr)!important;
-  gap:8px!important;
-}
-.hq-match-team.is-away{
-  grid-template-columns:minmax(0,1fr) 40px!important;
-}
-.hq-match-team>.av{
-  width:40px!important;
-  height:40px!important;
-  flex-basis:40px!important;
-}
-.hq-match-team-name{
-  font-size:11px!important;
-  line-height:1.05!important;
-}
-.hq-match-team-left{
-  margin-top:2px!important;
-  font-size:7px!important;
-  line-height:1.05!important;
-}
-.hq-match-team-score{
-  margin-top:3px!important;
-  font-size:26px!important;
-  line-height:.96!important;
-}
-.hq-match-team-sub{
-  margin-top:3px!important;
-  gap:3px 6px!important;
-  font-size:7.8px!important;
-  line-height:1.05!important;
-}
-.hq-match-team-sub b{font-size:9.2px!important}
-.hq-match-team-sub.is-live{gap:5px 8px!important}
-.hq-match-win{
-  padding:0 14px 8px!important;
-}
-.hq-match-win-inner{max-width:560px!important}
-.hq-match-win-bar{height:6px!important}
-.hq-match-win-labels{
-  gap:7px!important;
-  margin-top:4px!important;
-  font-size:6.8px!important;
-  line-height:1!important;
-}
-.hq-match-win-labels b{font-size:6.1px!important}
-.hq-edge-grid{
-  display:grid!important;
-  grid-template-columns:repeat(7,minmax(0,1fr))!important;
-  gap:6px!important;
-  padding:0 14px 8px!important;
-  overflow:visible!important;
-}
-.hq-edge{
-  min-width:0!important;
-  flex:none!important;
-  padding:6px 4px!important;
-  border-radius:7px!important;
-}
-.hq-edge span{
-  font-size:6.8px!important;
-  line-height:1!important;
-}
-.hq-edge strong{
-  min-height:0!important;
-  margin-top:3px!important;
-  font-size:8.4px!important;
-  line-height:1.05!important;
-  white-space:nowrap!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
-}
-.hq-swing{
-  padding:6px 14px 8px!important;
-}
-.hq-swing-label{
-  margin-bottom:4px!important;
-  font-size:6.8px!important;
-  line-height:1!important;
-}
-.hq-swing-rail{gap:6px!important}
-.hq-swing-player{
-  flex-basis:186px!important;
-  width:186px!important;
-  min-height:32px!important;
-  grid-template-columns:25px minmax(0,1fr) auto!important;
-  gap:6px!important;
-  padding:2px 7px 2px 2px!important;
-}
-.hq-swing-player img{
-  width:24px!important;
-  height:24px!important;
-}
-.hq-swing-player b{
-  font-size:8.5px!important;
-  line-height:1.05!important;
-}
-.hq-swing-player strong{
-  font-size:11px!important;
-  line-height:1!important;
-}
+/* ---------- Collapsed matchup card ---------- */
+.hq-matchup-list{gap:10px!important}
+.hq-matchup{border-radius:11px!important;box-shadow:0 5px 14px rgba(20,50,79,.075)!important}
+.hq-matchup-head{min-height:0!important;padding:8px 12px!important;gap:9px!important}
+.hq-matchup-head-copy{gap:7px!important}.hq-matchup-head h4{font-size:16px!important;line-height:1.05!important}.hq-matchup-head-meta{font-size:8.5px!important;line-height:1!important;font-weight:600!important}.hq-matchup-toggle{padding:6px 9px!important;gap:5px!important;font-size:8.8px!important;line-height:1!important;font-weight:600!important}
+.hq-matchup-summary{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:20px!important;padding:10px 14px 7px!important}
+.hq-match-team{grid-template-columns:40px minmax(0,1fr)!important;gap:8px!important}.hq-match-team.is-away{grid-template-columns:minmax(0,1fr) 40px!important}.hq-match-team>.av{width:40px!important;height:40px!important;flex-basis:40px!important}
+.hq-match-team-name{font-size:11.5px!important;line-height:1.05!important;font-weight:700!important}.hq-match-team-left{margin-top:2px!important;font-size:8.5px!important;line-height:1.05!important;font-weight:550!important}.hq-match-team-score{margin-top:3px!important;font-size:22px!important;line-height:.96!important;font-weight:800!important}.hq-match-team-sub{margin-top:3px!important;gap:3px 6px!important;font-size:9px!important;line-height:1.05!important;font-weight:550!important}.hq-match-team-sub b{font-size:9.8px!important;font-weight:700!important}
+.hq-match-win{padding:0 14px 8px!important}.hq-match-win-inner{max-width:560px!important}.hq-match-win-bar{height:6px!important}.hq-match-win-labels{gap:7px!important;margin-top:4px!important;font-size:8px!important;line-height:1!important;font-weight:550!important}.hq-match-win-labels b{font-size:7.5px!important;font-weight:650!important}
+.hq-edge-grid{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:6px!important;padding:0 14px 8px!important;overflow:visible!important}.hq-edge{min-width:0!important;flex:none!important;padding:6px 4px!important;border-radius:7px!important}.hq-edge span{font-size:8px!important;line-height:1!important;font-weight:600!important}.hq-edge strong{min-height:0!important;margin-top:3px!important;font-size:9.3px!important;line-height:1.05!important;font-weight:650!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.hq-swing{padding:6px 14px 8px!important}.hq-swing-label{margin-bottom:4px!important;font-size:7.7px!important}.hq-swing-rail{gap:6px!important}.hq-swing-player{flex:0 0 188px!important;width:188px!important;min-height:32px!important;grid-template-columns:25px minmax(0,1fr) auto!important;gap:5px!important;padding:3px 6px 3px 3px!important}.hq-swing-player img{width:24px!important;height:24px!important}.hq-swing-player b{font-size:9.4px!important}.hq-swing-copy small{font-size:7.8px!important}.hq-swing-player strong{font-size:10px!important}
 
-/* ---------- Expanded lineup, desktop / wide tablet ---------- */
-.hq-matchup.is-open .hq-lineup-detail{
-  width:min(100%,960px)!important;
-  max-width:960px!important;
-  margin:0 auto!important;
-}
-.hq-matchup.is-open .hq-lineup-toolbar{
-  min-height:0!important;
-  padding:7px 12px!important;
-  gap:9px!important;
-}
-.hq-matchup.is-open .hq-lineup-toolbar-copy b{
-  font-size:14px!important;
-  line-height:1.05!important;
-}
-.hq-matchup.is-open .hq-lineup-toolbar-copy small{
-  margin-top:2px!important;
-  font-size:7.2px!important;
-  line-height:1.15!important;
-}
-.hq-matchup.is-open .hq-lineup-modes{
-  display:flex!important;
-  width:auto!important;
-  gap:4px!important;
-  overflow:visible!important;
-}
-.hq-matchup.is-open .hq-lineup-mode{
-  width:auto!important;
-  padding:5px 8px!important;
-  font-size:7px!important;
-  line-height:1!important;
-}
-.hq-matchup.is-open .hq-lineup-table{
-  width:100%!important;
-  max-width:930px!important;
-  margin:0 auto!important;
-  padding:4px 10px 6px!important;
-}
-.hq-matchup.is-open .hq-lineup-head,
-.hq-matchup.is-open .hq-lineup-row{
-  grid-template-columns:minmax(0,1fr) 40px minmax(0,1fr)!important;
-  gap:8px!important;
-}
-.hq-matchup.is-open .hq-lineup-head{
-  min-height:34px!important;
-  padding:3px 4px 5px!important;
-  align-items:end!important;
-}
-.hq-matchup.is-open .hq-lineup-team-head{gap:1px!important}
-.hq-matchup.is-open .hq-lineup-team-head b{
-  font-size:10.4px!important;
-  line-height:1.05!important;
-}
-.hq-matchup.is-open .hq-lineup-team-head small{
-  margin:0!important;
-  font-size:6.7px!important;
-  line-height:1.05!important;
-  white-space:nowrap!important;
-}
-.hq-matchup.is-open .hq-lineup-slot-head::after{
-  content:"POS"!important;
-  font-size:6.2px!important;
-  line-height:1!important;
-}
-.hq-matchup.is-open .hq-lineup-row{
-  min-height:44px!important;
-  padding:2px 3px!important;
-}
-.hq-matchup.is-open .hq-lineup-slot{
-  font-size:6.2px!important;
-  line-height:1!important;
-  letter-spacing:.025em!important;
-}
-.hq-matchup.is-open .hq-lineup-player{
-  grid-template-columns:30px minmax(0,1fr) 64px!important;
-  grid-template-rows:minmax(28px,auto) 9px!important;
-  grid-template-areas:
-    "avatar copy score"
-    ". game ."!important;
-  column-gap:7px!important;
-  row-gap:1px!important;
-  align-items:center!important;
-  padding:2px 3px!important;
-  border-radius:6px!important;
-}
-.hq-matchup.is-open .hq-lineup-player.is-right{
-  grid-template-columns:64px minmax(0,1fr) 30px!important;
-  grid-template-areas:
-    "score copy avatar"
-    ". game ."!important;
-}
-.hq-matchup.is-open .hq-lineup-player>img,
-.hq-matchup.is-open .hq-lineup-player>.league-team-initials{
-  width:29px!important;
-  height:29px!important;
-}
-.hq-matchup.is-open .hq-lineup-player-name{
-  font-size:10.5px!important;
-  line-height:1.05!important;
-  white-space:nowrap!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
-}
-.hq-matchup.is-open .hq-lineup-player-bio{
-  margin-top:2px!important;
-  font-size:6.7px!important;
-  line-height:1!important;
-  white-space:nowrap!important;
-}
-.hq-matchup.is-open .hq-lineup-score,
-.hq-matchup.is-open .hq-lineup-player>.hq-lineup-score,
-.hq-matchup.is-open .hq-lineup-player.is-right>.hq-lineup-score{
-  display:block!important;
-  width:auto!important;
-}
-.hq-matchup.is-open .hq-lineup-score>strong{
-  font-size:15.5px!important;
-  line-height:1!important;
-}
-.hq-matchup.is-open .hq-lineup-live-label{
-  margin:0 0 1px!important;
-  font-size:5.7px!important;
-  line-height:1!important;
-}
-.hq-matchup.is-open .hq-lineup-score-sub,
-.hq-matchup.is-open .hq-lineup-player.is-right .hq-lineup-score-sub{
-  display:flex!important;
-  flex-direction:column!important;
-  align-items:flex-end!important;
-  gap:0!important;
-  margin-top:2px!important;
-  font-size:5.9px!important;
-  line-height:1!important;
-  white-space:nowrap!important;
-}
-.hq-matchup.is-open .hq-lineup-player.is-right .hq-lineup-score-sub{align-items:flex-start!important}
-.hq-matchup.is-open .hq-lineup-score-sub span{gap:2px!important}
-.hq-matchup.is-open .hq-lineup-score-sub b{
-  font-size:7px!important;
-  line-height:1!important;
-}
-.hq-matchup.is-open .hq-lineup-player-game,
-.hq-matchup.is-open .hq-lineup-player>.hq-lineup-player-game,
-.hq-matchup.is-open .hq-lineup-player.is-right>.hq-lineup-player-game{
-  margin:0!important;
-  font-size:7px!important;
-  line-height:1!important;
-  white-space:nowrap!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
-}
-.hq-matchup.is-open .hq-lineup-empty{height:35px!important}
-.hq-matchup.is-open .hq-lineup-bench-divider{
-  margin:3px 3px 1px!important;
-  gap:6px!important;
-  font-size:6.4px!important;
-  line-height:1!important;
-}
-.hq-matchup.is-open .hq-lineup-foot{
-  padding:4px 10px 5px!important;
-  font-size:6.2px!important;
-  line-height:1.15!important;
-}
+/* ---------- Expanded lineup shared ---------- */
+.hq-matchup.is-open .hq-lineup-detail{width:min(100%,880px)!important;max-width:880px!important;margin:0 auto!important}
+.hq-matchup.is-open .hq-lineup-toolbar{min-height:0!important;padding:6px 10px!important;gap:8px!important}
+.hq-matchup.is-open .hq-lineup-toolbar-copy b{font-size:13.5px!important;line-height:1.05!important;font-weight:700!important}
+.hq-matchup.is-open .hq-lineup-toolbar-copy small{margin-top:2px!important;font-size:8.7px!important;line-height:1.15!important;font-weight:450!important;color:#667a8e!important}
+.hq-lineup-legend-vegas{color:#a97820!important;font-weight:650!important}
+.hq-matchup.is-open .hq-lineup-modes{display:flex!important;width:auto!important;gap:4px!important;overflow:visible!important}.hq-matchup.is-open .hq-lineup-mode{width:auto!important;min-width:58px!important;padding:5px 7px!important;font-size:8.2px!important;line-height:1!important;font-weight:600!important}
+.hq-matchup.is-open .hq-lineup-table{width:100%!important;max-width:860px!important;margin:0 auto!important;padding:3px 8px 5px!important}
+.hq-matchup.is-open .hq-lineup-head,.hq-matchup.is-open .hq-lineup-row{grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr)!important;gap:6px!important}
+.hq-matchup.is-open .hq-lineup-head{min-height:31px!important;padding:2px 3px 4px!important;align-items:end!important}.hq-matchup.is-open .hq-lineup-team-head{gap:1px!important}.hq-matchup.is-open .hq-lineup-team-head b{font-size:10.5px!important;line-height:1!important;font-weight:650!important}.hq-matchup.is-open .hq-lineup-team-head small{margin:0!important;font-size:8px!important;line-height:1.05!important;font-weight:500!important;white-space:nowrap!important}.hq-matchup.is-open .hq-lineup-slot-head::after{content:"POS"!important;font-size:7px!important;line-height:1!important;font-weight:650!important}
+.hq-matchup.is-open .hq-lineup-row{min-height:46px!important;padding:2px 2px!important;align-items:center!important}.hq-matchup.is-open .hq-lineup-slot{font-size:7.4px!important;line-height:1!important;letter-spacing:0!important;font-weight:650!important;color:#738397!important}
+
+/* Three protected player zones. The game line spans identity + score. */
+.hq-matchup.is-open .hq-lineup-player{display:grid!important;grid-template-columns:30px minmax(0,1fr) 48px!important;grid-template-rows:auto auto auto!important;grid-template-areas:"avatar copy score" "avatar copy score" ". game game"!important;column-gap:7px!important;row-gap:1px!important;align-items:center!important;min-width:0!important;padding:2px 3px!important;border-radius:6px!important;overflow:visible!important;text-align:left!important}
+.hq-matchup.is-open .hq-lineup-player.is-right{grid-template-columns:48px minmax(0,1fr) 30px!important;grid-template-areas:"score copy avatar" "score copy avatar" "game game ."!important;text-align:right!important}
+.hq-matchup.is-open .hq-lineup-player>img,.hq-matchup.is-open .hq-lineup-player>.league-team-initials{grid-area:avatar!important;width:29px!important;height:29px!important;align-self:center!important}
+.hq-matchup.is-open .hq-lineup-player-copy{grid-area:copy!important;display:grid!important;align-content:center!important;gap:2px!important;min-width:0!important;overflow:visible!important}
+.hq-matchup.is-open .hq-lineup-player-name{font-family:var(--sans)!important;font-size:12.4px!important;line-height:1.03!important;font-weight:620!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;display:block!important;overflow-wrap:normal!important;word-break:normal!important}
+.hq-matchup.is-open .hq-lineup-player-meta{display:inline-flex!important;align-items:baseline!important;justify-content:flex-start!important;gap:3px!important;min-width:0!important;font-size:9px!important;line-height:1!important;white-space:nowrap!important}.hq-matchup.is-open .hq-lineup-player.is-right .hq-lineup-player-meta{justify-content:flex-end!important}
+.hq-lineup-team-code{color:#647b91!important;font-weight:650!important}.hq-lineup-meta-dot{color:#c28d28!important;font-size:7px!important;font-weight:900!important}.hq-lineup-rank{color:#a87419!important;font-weight:700!important}
+.hq-matchup.is-open .hq-lineup-score{grid-area:score!important;display:flex!important;flex-direction:column!important;align-items:flex-end!important;justify-content:center!important;gap:2px!important;width:100%!important;min-width:0!important;margin:0!important;overflow:visible!important;text-align:right!important;white-space:nowrap!important}.hq-matchup.is-open .hq-lineup-player.is-right .hq-lineup-score{align-items:flex-start!important;text-align:left!important}
+.hq-matchup.is-open .hq-lineup-score>strong{font-size:13.2px!important;line-height:1!important;font-weight:720!important;color:var(--navy)!important}.hq-matchup.is-open .hq-lineup-score.has-actual>strong{color:#1f7a52!important}
+.hq-matchup.is-open .hq-lineup-live-label{margin:0!important;padding:1px 3px!important;border-radius:999px!important;background:rgba(31,122,82,.1)!important;color:#1f7a52!important;font-size:6.3px!important;line-height:1!important;font-weight:750!important}
+.hq-matchup.is-open .hq-lineup-score-sub{display:flex!important;align-items:baseline!important;gap:4px!important;margin:0!important;font-size:8.5px!important;line-height:1!important;font-weight:650!important;white-space:nowrap!important}.hq-lineup-score-sub .is-espn{color:#718397!important}.hq-lineup-score-sub .is-vegas{color:#a87419!important}
+.hq-matchup.is-open .hq-lineup-player-game{grid-area:game!important;margin:0!important;font-size:9.2px!important;line-height:1.05!important;font-weight:470!important;color:#61778d!important;white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;text-align:left!important}.hq-matchup.is-open .hq-lineup-player.is-right .hq-lineup-player-game{text-align:right!important}
+.hq-matchup.is-open .hq-lineup-empty{height:42px!important}.hq-matchup.is-open .hq-lineup-bench-divider{margin:2px 3px 1px!important;gap:6px!important;font-size:7.5px!important;line-height:1!important;font-weight:650!important}.hq-matchup.is-open .hq-lineup-foot{padding:3px 8px 4px!important;font-size:7.8px!important;line-height:1.15!important;font-weight:450!important;color:#697b8d!important}
 
 /* ---------- Narrow desktop / tablet ---------- */
 @media (max-width:900px){
-  .hq-matchup-head{padding:7px 10px!important}
-  .hq-matchup-head h4{font-size:15px!important}
-  .hq-matchup-summary{gap:14px!important;padding:8px 10px 5px!important}
-  .hq-match-team{grid-template-columns:34px minmax(0,1fr)!important;gap:7px!important}
-  .hq-match-team.is-away{grid-template-columns:minmax(0,1fr) 34px!important}
-  .hq-match-team>.av{width:34px!important;height:34px!important;flex-basis:34px!important}
-  .hq-match-team-score{font-size:23px!important}
-  .hq-match-team-name{font-size:10px!important}
-  .hq-match-team-left{font-size:6.5px!important}
-  .hq-match-team-sub{font-size:7.1px!important}
-  .hq-match-team-sub b{font-size:8.3px!important}
-  .hq-edge-grid{padding-left:10px!important;padding-right:10px!important}
-  .hq-swing{padding-left:10px!important;padding-right:10px!important}
-
-  .hq-matchup.is-open .hq-lineup-detail{width:100%!important;max-width:100%!important}
-  .hq-matchup.is-open .hq-lineup-table{max-width:100%!important;padding-left:7px!important;padding-right:7px!important}
-  .hq-matchup.is-open .hq-lineup-head,
-  .hq-matchup.is-open .hq-lineup-row{grid-template-columns:minmax(0,1fr) 32px minmax(0,1fr)!important;gap:5px!important}
-  .hq-matchup.is-open .hq-lineup-row{min-height:43px!important}
-  .hq-matchup.is-open .hq-lineup-player{grid-template-columns:28px minmax(0,1fr) 58px!important;column-gap:5px!important}
-  .hq-matchup.is-open .hq-lineup-player.is-right{grid-template-columns:58px minmax(0,1fr) 28px!important}
-  .hq-matchup.is-open .hq-lineup-player>img,
-  .hq-matchup.is-open .hq-lineup-player>.league-team-initials{width:27px!important;height:27px!important}
-  .hq-matchup.is-open .hq-lineup-player-name{font-size:10px!important}
-  .hq-matchup.is-open .hq-lineup-player-bio{font-size:6.4px!important}
-  .hq-matchup.is-open .hq-lineup-score>strong{font-size:14.5px!important}
-  .hq-matchup.is-open .hq-lineup-player-game,
-  .hq-matchup.is-open .hq-lineup-player>.hq-lineup-player-game,
-  .hq-matchup.is-open .hq-lineup-player.is-right>.hq-lineup-player-game{font-size:6.7px!important}
+  .hq-matchup-head{padding:7px 10px!important}.hq-matchup-head h4{font-size:15px!important}.hq-matchup-summary{gap:14px!important;padding:8px 10px 6px!important}.hq-match-team{grid-template-columns:35px minmax(0,1fr)!important;gap:7px!important}.hq-match-team.is-away{grid-template-columns:minmax(0,1fr) 35px!important}.hq-match-team>.av{width:35px!important;height:35px!important;flex-basis:35px!important}.hq-match-team-score{font-size:20px!important}.hq-match-team-name{font-size:10.8px!important}.hq-edge-grid{padding-left:10px!important;padding-right:10px!important}.hq-swing{padding-left:10px!important;padding-right:10px!important}
+  .hq-matchup.is-open .hq-lineup-detail{width:100%!important;max-width:100%!important}.hq-matchup.is-open .hq-lineup-table{max-width:100%!important;padding-left:6px!important;padding-right:6px!important}.hq-matchup.is-open .hq-lineup-head,.hq-matchup.is-open .hq-lineup-row{grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr)!important;gap:4px!important}.hq-matchup.is-open .hq-lineup-player{grid-template-columns:28px minmax(0,1fr) 44px!important;column-gap:5px!important}.hq-matchup.is-open .hq-lineup-player.is-right{grid-template-columns:44px minmax(0,1fr) 28px!important}.hq-matchup.is-open .hq-lineup-player>img,.hq-matchup.is-open .hq-lineup-player>.league-team-initials{width:27px!important;height:27px!important}.hq-matchup.is-open .hq-lineup-player-name{font-size:11.8px!important}.hq-matchup.is-open .hq-lineup-score>strong{font-size:12.6px!important}.hq-matchup.is-open .hq-lineup-player-game{font-size:8.8px!important}
 }
 
-/* ---------- Phones / small CSS viewports ---------- */
+/* ---------- Phones: compact but fully readable ---------- */
 @media (max-width:620px){
-  .hq-matchup-list{gap:8px!important}
-  .hq-matchup{border-radius:9px!important}
-  .hq-matchup-head{padding:6px 8px!important;gap:6px!important}
-  .hq-matchup-head h4{font-size:14px!important}
-  .hq-matchup-head-meta{font-size:6.2px!important}
-  .hq-matchup-toggle{padding:5px 7px!important;font-size:6.2px!important}
+  .hq-matchup-list{gap:8px!important}.hq-matchup{border-radius:9px!important}.hq-matchup-head{padding:7px 8px!important;gap:6px!important}.hq-matchup-head h4{font-size:14px!important}.hq-matchup-head-meta{font-size:8px!important}.hq-matchup-toggle{padding:5px 7px!important;font-size:8px!important}
+  .hq-matchup-summary{gap:8px!important;padding:8px 8px 6px!important}.hq-match-team{grid-template-columns:31px minmax(0,1fr)!important;gap:6px!important}.hq-match-team.is-away{grid-template-columns:minmax(0,1fr) 31px!important}.hq-match-team>.av{width:31px!important;height:31px!important;flex-basis:31px!important}.hq-match-team-name{font-size:10.3px!important}.hq-match-team-left{font-size:8.2px!important}.hq-match-team-score{font-size:18px!important}.hq-match-team-sub{font-size:8.2px!important}.hq-match-team-sub b{font-size:9px!important}.hq-match-win{padding:0 8px 6px!important}.hq-match-win-labels{font-size:7.5px!important}
+  .hq-edge-grid{display:flex!important;grid-template-columns:none!important;gap:5px!important;padding:0 8px 6px!important;overflow-x:auto!important;scroll-snap-type:x proximity!important}.hq-edge{flex:0 0 88px!important;scroll-snap-align:start!important;padding:5px 4px!important}.hq-edge span{font-size:7.8px!important}.hq-edge strong{font-size:8.8px!important}.hq-swing{padding:6px 8px 7px!important}.hq-swing-label{font-size:7.8px!important}.hq-swing-player{flex-basis:164px!important;width:164px!important;min-height:31px!important}.hq-swing-player b{font-size:9.4px!important}.hq-swing-copy small{font-size:8px!important}
 
-  .hq-matchup-summary{gap:8px!important;padding:7px 8px 5px!important}
-  .hq-match-team{grid-template-columns:30px minmax(0,1fr)!important;gap:5px!important}
-  .hq-match-team.is-away{grid-template-columns:minmax(0,1fr) 30px!important}
-  .hq-match-team>.av{width:30px!important;height:30px!important;flex-basis:30px!important}
-  .hq-match-team-name{font-size:9.2px!important;line-height:1!important}
-  .hq-match-team-left{font-size:5.9px!important;margin-top:1px!important}
-  .hq-match-team-score{font-size:21px!important;margin-top:2px!important}
-  .hq-match-team-sub{font-size:6.5px!important;margin-top:2px!important;gap:2px 4px!important}
-  .hq-match-team-sub b{font-size:7.6px!important}
-  .hq-match-win{padding:0 8px 5px!important}
-  .hq-match-win-bar{height:4px!important}
-  .hq-match-win-labels{margin-top:2px!important;font-size:5.7px!important;gap:4px!important}
-  .hq-match-win-labels b{font-size:5.2px!important}
+  /* One concise legend + one mode row. */
+  .hq-matchup.is-open .hq-lineup-toolbar{display:grid!important;grid-template-columns:1fr!important;padding:4px 6px!important;gap:4px!important}.hq-matchup.is-open .hq-lineup-toolbar-copy{display:flex!important;align-items:baseline!important;justify-content:space-between!important;gap:6px!important}.hq-matchup.is-open .hq-lineup-toolbar-copy b{font-size:11.2px!important;white-space:nowrap!important}.hq-matchup.is-open .hq-lineup-toolbar-copy small{margin:0!important;font-size:7.8px!important;line-height:1.05!important;text-align:right!important;white-space:normal!important}.hq-matchup.is-open .hq-lineup-modes{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;width:100%!important;gap:4px!important}.hq-matchup.is-open .hq-lineup-mode{width:100%!important;min-width:0!important;padding:4px 2px!important;font-size:8px!important;text-align:center!important}
 
-  .hq-edge-grid{
-    display:flex!important;
-    grid-template-columns:none!important;
-    gap:4px!important;
-    padding:0 8px 5px!important;
-    overflow-x:auto!important;
-    scroll-snap-type:x proximity!important;
-  }
-  .hq-edge{flex:0 0 82px!important;scroll-snap-align:start!important;padding:4px 3px!important}
-  .hq-edge span{font-size:5.9px!important}
-  .hq-edge strong{font-size:7.4px!important;margin-top:2px!important}
-  .hq-swing{padding:5px 8px 6px!important}
-  .hq-swing-label{font-size:6px!important;margin-bottom:3px!important}
-  .hq-swing-rail{gap:5px!important}
-  .hq-swing-player{flex-basis:150px!important;width:150px!important;min-height:28px!important;grid-template-columns:22px minmax(0,1fr) auto!important;gap:4px!important;padding:2px 5px 2px 2px!important}
-  .hq-swing-player img{width:21px!important;height:21px!important}
-  .hq-swing-player b{font-size:7.6px!important}
-  .hq-swing-player strong{font-size:9.5px!important}
+  .hq-matchup.is-open .hq-lineup-table{padding:2px 4px 4px!important}.hq-matchup.is-open .hq-lineup-head,.hq-matchup.is-open .hq-lineup-row{grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr)!important;gap:2px!important}.hq-matchup.is-open .hq-lineup-head{min-height:28px!important;padding:1px 1px 3px!important}.hq-matchup.is-open .hq-lineup-team-head b{font-size:9.8px!important}.hq-matchup.is-open .hq-lineup-team-head small{font-size:7.7px!important;line-height:1.05!important;white-space:normal!important}.hq-matchup.is-open .hq-lineup-slot-head::after{font-size:6.5px!important}.hq-matchup.is-open .hq-lineup-row{min-height:44px!important;padding:1px 0!important;align-items:center!important}.hq-matchup.is-open .hq-lineup-slot{font-size:7px!important}
 
-  /* Controls get two readable rows rather than four microscopic buttons. */
-  .hq-matchup.is-open .hq-lineup-toolbar{display:grid!important;grid-template-columns:1fr!important;padding:6px 7px!important;gap:5px!important}
-  .hq-matchup.is-open .hq-lineup-toolbar-copy b{font-size:11px!important}
-  .hq-matchup.is-open .hq-lineup-toolbar-copy small{font-size:6.2px!important;line-height:1.1!important}
-  .hq-matchup.is-open .hq-lineup-modes{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;width:100%!important;gap:4px!important}
-  .hq-matchup.is-open .hq-lineup-mode{width:100%!important;padding:5px 3px!important;font-size:6.3px!important;text-align:center!important}
-
-  .hq-matchup.is-open .hq-lineup-table{padding:3px 5px 5px!important}
-  .hq-matchup.is-open .hq-lineup-head,
-  .hq-matchup.is-open .hq-lineup-row{grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr)!important;gap:3px!important}
-  .hq-matchup.is-open .hq-lineup-head{min-height:30px!important;padding:2px 2px 4px!important}
-  .hq-matchup.is-open .hq-lineup-team-head b{font-size:8.8px!important}
-  .hq-matchup.is-open .hq-lineup-team-head small{font-size:5.7px!important;line-height:1.05!important;white-space:normal!important}
-  .hq-matchup.is-open .hq-lineup-slot-head::after{font-size:5.2px!important}
-  .hq-matchup.is-open .hq-lineup-row{min-height:48px!important;padding:2px 0!important;align-items:center!important}
-  .hq-matchup.is-open .hq-lineup-slot{font-size:5.5px!important;letter-spacing:0!important}
-
-  /* Each side retains avatar / identity / score, but the identity is allowed
-     two lines so real player names are readable instead of ellipsized. */
-  .hq-matchup.is-open .hq-lineup-player{
-    grid-template-columns:24px minmax(0,1fr) 44px!important;
-    grid-template-rows:minmax(31px,auto) 9px!important;
-    grid-template-areas:
-      "avatar copy score"
-      "game game game"!important;
-    column-gap:4px!important;
-    row-gap:1px!important;
-    padding:2px!important;
-  }
-  .hq-matchup.is-open .hq-lineup-player.is-right{
-    grid-template-columns:44px minmax(0,1fr) 24px!important;
-    grid-template-areas:
-      "score copy avatar"
-      "game game game"!important;
-  }
-  .hq-matchup.is-open .hq-lineup-player>img,
-  .hq-matchup.is-open .hq-lineup-player>.league-team-initials{width:23px!important;height:23px!important}
-  .hq-matchup.is-open .hq-lineup-player-name{
-    font-size:9px!important;
-    line-height:1.02!important;
-    white-space:normal!important;
-    overflow:hidden!important;
-    text-overflow:clip!important;
-    display:-webkit-box!important;
-    -webkit-line-clamp:2!important;
-    -webkit-box-orient:vertical!important;
-  }
-  .hq-matchup.is-open .hq-lineup-player-bio{font-size:5.8px!important;line-height:1!important;margin-top:2px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-  .hq-matchup.is-open .hq-lineup-score>strong{font-size:12.7px!important}
-  .hq-matchup.is-open .hq-lineup-live-label{font-size:5px!important}
-  .hq-matchup.is-open .hq-lineup-score-sub,
-  .hq-matchup.is-open .hq-lineup-player.is-right .hq-lineup-score-sub{display:flex!important;flex-direction:column!important;gap:0!important;margin-top:1px!important;font-size:5.1px!important;line-height:1!important}
-  .hq-matchup.is-open .hq-lineup-score-sub b{font-size:6px!important}
-  .hq-matchup.is-open .hq-lineup-player-game,
-  .hq-matchup.is-open .hq-lineup-player>.hq-lineup-player-game,
-  .hq-matchup.is-open .hq-lineup-player.is-right>.hq-lineup-player-game{font-size:6px!important;line-height:1!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-  .hq-matchup.is-open .hq-lineup-bench-divider{margin:2px 2px 1px!important;font-size:5.5px!important}
-  .hq-matchup.is-open .hq-lineup-foot{padding:3px 6px 4px!important;font-size:5.5px!important;line-height:1.15!important}
+  .hq-matchup.is-open .hq-lineup-player{grid-template-columns:25px minmax(0,1fr) 39px!important;grid-template-areas:"avatar copy score" "avatar copy score" ". game game"!important;column-gap:4px!important;row-gap:1px!important;padding:1px!important}.hq-matchup.is-open .hq-lineup-player.is-right{grid-template-columns:39px minmax(0,1fr) 25px!important;grid-template-areas:"score copy avatar" "score copy avatar" "game game ."!important}.hq-matchup.is-open .hq-lineup-player>img,.hq-matchup.is-open .hq-lineup-player>.league-team-initials{width:24px!important;height:24px!important}
+  .hq-matchup.is-open .hq-lineup-player-name{font-size:11.2px!important;line-height:1.03!important;font-weight:600!important}.hq-matchup.is-open .hq-lineup-player-meta{gap:2.5px!important;font-size:8.4px!important}.hq-lineup-meta-dot{font-size:6.5px!important}
+  .hq-matchup.is-open .hq-lineup-score{gap:1px!important}.hq-matchup.is-open .hq-lineup-score>strong{font-size:11.4px!important}.hq-matchup.is-open .hq-lineup-live-label{font-size:5.9px!important}.hq-matchup.is-open .hq-lineup-score-sub{gap:3px!important;font-size:7.7px!important}
+  .hq-matchup.is-open .hq-lineup-player-game{font-size:8.4px!important;line-height:1!important;white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important}.hq-matchup.is-open .hq-lineup-bench-divider{margin:1px 2px!important;font-size:7px!important}.hq-matchup.is-open .hq-lineup-foot{padding:2px 5px 3px!important;font-size:7.2px!important;line-height:1.08!important}
 }
 
-@media (max-width:420px){
-  .hq-matchup-head h4{font-size:13px!important}
-  .hq-matchup-head-meta{font-size:5.7px!important}
-  .hq-matchup-summary{gap:5px!important;padding-left:6px!important;padding-right:6px!important}
-  .hq-match-team{grid-template-columns:27px minmax(0,1fr)!important;gap:4px!important}
-  .hq-match-team.is-away{grid-template-columns:minmax(0,1fr) 27px!important}
-  .hq-match-team>.av{width:27px!important;height:27px!important;flex-basis:27px!important}
-  .hq-match-team-name{font-size:8.8px!important}
-  .hq-match-team-score{font-size:20px!important}
-  .hq-edge{flex-basis:76px!important}
-  .hq-swing-player{flex-basis:142px!important;width:142px!important}
-
-  .hq-matchup.is-open .hq-lineup-head,
-  .hq-matchup.is-open .hq-lineup-row{grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr)!important;gap:2px!important}
-  .hq-matchup.is-open .hq-lineup-row{min-height:47px!important}
-  .hq-matchup.is-open .hq-lineup-player{grid-template-columns:22px minmax(0,1fr) 41px!important;grid-template-rows:minmax(30px,auto) 8px!important;column-gap:3px!important;padding:1px!important}
-  .hq-matchup.is-open .hq-lineup-player.is-right{grid-template-columns:41px minmax(0,1fr) 22px!important}
-  .hq-matchup.is-open .hq-lineup-player>img,
-  .hq-matchup.is-open .hq-lineup-player>.league-team-initials{width:21px!important;height:21px!important}
-  .hq-matchup.is-open .hq-lineup-player-name{font-size:8.6px!important}
-  .hq-matchup.is-open .hq-lineup-player-bio{font-size:5.5px!important}
-  .hq-matchup.is-open .hq-lineup-score>strong{font-size:12px!important}
-  .hq-matchup.is-open .hq-lineup-player-game,
-  .hq-matchup.is-open .hq-lineup-player>.hq-lineup-player-game,
-  .hq-matchup.is-open .hq-lineup-player.is-right>.hq-lineup-player-game{font-size:5.7px!important}
+@media (max-width:390px){
+  .hq-matchup.is-open .hq-lineup-head,.hq-matchup.is-open .hq-lineup-row{grid-template-columns:minmax(0,1fr) 16px minmax(0,1fr)!important;gap:1px!important}.hq-matchup.is-open .hq-lineup-player{grid-template-columns:24px minmax(0,1fr) 37px!important;column-gap:3px!important}.hq-matchup.is-open .hq-lineup-player.is-right{grid-template-columns:37px minmax(0,1fr) 24px!important}.hq-matchup.is-open .hq-lineup-player>img,.hq-matchup.is-open .hq-lineup-player>.league-team-initials{width:23px!important;height:23px!important}.hq-matchup.is-open .hq-lineup-player-name{font-size:11px!important}.hq-matchup.is-open .hq-lineup-player-meta{font-size:8.2px!important}.hq-matchup.is-open .hq-lineup-score>strong{font-size:11.1px!important}.hq-matchup.is-open .hq-lineup-score-sub{font-size:7.6px!important}.hq-matchup.is-open .hq-lineup-player-game{font-size:8.2px!important}
 }
 </style>
 
@@ -19291,6 +18991,416 @@ window.addEventListener('focus',()=>{
   .wire-kickoff-logo{width:49px;height:49px}
   .wire-kickoff-team b{font-size:8.3px}
   .wire-kickoff-center>small{display:none}
+}
+</style>
+
+
+<style id="hj-matchup-v19-final-tune">
+/* Final matchup center tune: tighter meta, no legend, stacked E/V, game line on outer edge */
+.hq-matchup.is-open .hq-lineup-toolbar{display:flex!important;align-items:center!important;justify-content:space-between!important;min-height:0!important;padding:5px 8px!important;gap:8px!important}
+.hq-matchup.is-open .hq-lineup-toolbar-copy{min-width:0!important;display:block!important}.hq-matchup.is-open .hq-lineup-toolbar-copy small,.hq-matchup.is-open .hq-lineup-foot{display:none!important}
+.hq-matchup.is-open .hq-lineup-toolbar-copy b{font-size:12.8px!important;line-height:1.05!important;font-weight:700!important}
+.hq-matchup.is-open .hq-lineup-modes{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px!important;flex:1 1 auto!important;max-width:395px!important}.hq-matchup.is-open .hq-lineup-mode{min-width:0!important;padding:5px 4px!important;font-size:8px!important;line-height:1!important}
+.hq-matchup.is-open .hq-lineup-table{padding:2px 6px 4px!important}
+.hq-matchup.is-open .hq-lineup-head,.hq-matchup.is-open .hq-lineup-row{grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr)!important;gap:4px!important}
+.hq-matchup.is-open .hq-lineup-head{min-height:28px!important;padding:1px 2px 3px!important}.hq-matchup.is-open .hq-lineup-team-head b{font-size:10px!important}.hq-matchup.is-open .hq-lineup-team-head small{font-size:7.8px!important;line-height:1.05!important}
+.hq-matchup.is-open .hq-lineup-row{min-height:48px!important;padding:1px 0!important;align-items:center!important}
+.hq-matchup.is-open .hq-lineup-slot{font-size:7px!important;font-weight:650!important;color:#778697!important}
+.hq-matchup.is-open .hq-lineup-player{display:grid!important;grid-template-columns:28px minmax(0,1fr) 44px!important;grid-template-rows:auto auto!important;grid-template-areas:"avatar copy score" "game game game"!important;column-gap:5px!important;row-gap:1px!important;padding:2px 2px 1px!important;align-items:center!important;text-align:left!important;overflow:visible!important}
+.hq-matchup.is-open .hq-lineup-player.is-right{grid-template-columns:44px minmax(0,1fr) 28px!important;grid-template-areas:"score copy avatar" "game game game"!important;text-align:right!important}
+.hq-matchup.is-open .hq-lineup-player>img,.hq-matchup.is-open .hq-lineup-player>.league-team-initials{grid-area:avatar!important;width:26px!important;height:26px!important;align-self:start!important}
+.hq-matchup.is-open .hq-lineup-player-copy{grid-area:copy!important;display:flex!important;flex-direction:column!important;justify-content:flex-start!important;gap:0!important;min-width:0!important}
+.hq-matchup.is-open .hq-lineup-player-name{display:block!important;font-family:var(--sans)!important;font-size:11.3px!important;line-height:1.02!important;font-weight:620!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;word-break:normal!important;overflow-wrap:normal!important}
+.hq-matchup.is-open .hq-lineup-player-meta{display:inline-flex!important;align-items:center!important;justify-content:flex-start!important;gap:2px!important;margin-top:-1px!important;min-width:0!important;font-size:8.2px!important;line-height:1!important;white-space:nowrap!important}.hq-matchup.is-open .hq-lineup-player.is-right .hq-lineup-player-meta{justify-content:flex-end!important}
+.hq-matchup.is-open .hq-lineup-team-code{color:#647f98!important;font-weight:650!important}.hq-matchup.is-open .hq-lineup-meta-dot{color:#c4902b!important;font-size:6.5px!important;font-weight:900!important;line-height:1!important}.hq-matchup.is-open .hq-lineup-rank{color:#b07a1c!important;font-weight:700!important}
+.hq-matchup.is-open .hq-lineup-score{grid-area:score!important;display:flex!important;flex-direction:column!important;align-items:flex-end!important;justify-content:flex-start!important;gap:1px!important;min-width:0!important;margin:0!important;text-align:right!important;white-space:nowrap!important}.hq-matchup.is-open .hq-lineup-player.is-right .hq-lineup-score{align-items:flex-start!important;text-align:left!important}
+.hq-matchup.is-open .hq-lineup-live-label{order:-1!important;align-self:flex-end!important;margin:0 0 1px!important;padding:1px 3px!important;border-radius:999px!important;background:rgba(31,122,82,.1)!important;color:#1f7a52!important;font-size:5.7px!important;line-height:1!important;font-weight:750!important}.hq-matchup.is-open .hq-lineup-player.is-right .hq-lineup-live-label{align-self:flex-start!important}
+.hq-matchup.is-open .hq-lineup-score>strong{font-size:10.8px!important;line-height:1!important;font-weight:730!important;color:var(--navy)!important}.hq-matchup.is-open .hq-lineup-score.has-actual>strong{color:#1f7a52!important}
+.hq-matchup.is-open .hq-lineup-score-sub{display:grid!important;grid-template-columns:1fr!important;justify-items:end!important;gap:1px!important;margin:0!important;font-size:7px!important;line-height:1!important;font-weight:700!important;white-space:nowrap!important;color:#b07a1c!important}.hq-matchup.is-open .hq-lineup-player.is-right .hq-lineup-score-sub{justify-items:start!important}.hq-matchup.is-open .hq-lineup-score-sub .is-proj{color:#b07a1c!important}
+.hq-matchup.is-open .hq-lineup-player-game{grid-area:game!important;display:block!important;margin-top:1px!important;font-size:7.8px!important;line-height:1.05!important;font-weight:520!important;color:#6b7d8d!important;white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;text-align:left!important}.hq-matchup.is-open .hq-lineup-player.is-right .hq-lineup-player-game{text-align:right!important}
+.hq-matchup.is-open .hq-lineup-bench-divider{margin:2px 3px 1px!important;gap:6px!important;font-size:7px!important}
+@media (min-width:901px){
+  .hq-matchup.is-open .hq-lineup-detail{width:min(100%,860px)!important;max-width:860px!important;margin:0 auto!important}
+  .hq-matchup.is-open .hq-lineup-table{max-width:840px!important;margin:0 auto!important}
+  .hq-matchup.is-open .hq-lineup-head,.hq-matchup.is-open .hq-lineup-row{grid-template-columns:minmax(0,1fr) 26px minmax(0,1fr)!important;gap:5px!important}
+  .hq-matchup.is-open .hq-lineup-row{min-height:46px!important}
+  .hq-matchup.is-open .hq-lineup-player{grid-template-columns:28px minmax(0,1fr) 48px!important;column-gap:6px!important}.hq-matchup.is-open .hq-lineup-player.is-right{grid-template-columns:48px minmax(0,1fr) 28px!important}
+  .hq-matchup.is-open .hq-lineup-player>img,.hq-matchup.is-open .hq-lineup-player>.league-team-initials{width:27px!important;height:27px!important}
+  .hq-matchup.is-open .hq-lineup-player-name{font-size:11.6px!important}.hq-matchup.is-open .hq-lineup-player-meta{font-size:8.5px!important}.hq-matchup.is-open .hq-lineup-score>strong{font-size:11.4px!important}.hq-matchup.is-open .hq-lineup-score-sub{font-size:7.2px!important}.hq-matchup.is-open .hq-lineup-player-game{font-size:8px!important}
+}
+@media (max-width:620px){
+  .hq-matchup.is-open .hq-lineup-toolbar{display:grid!important;grid-template-columns:1fr!important;padding:4px 6px!important;gap:4px!important}
+  .hq-matchup.is-open .hq-lineup-modes{max-width:none!important;width:100%!important}
+  .hq-matchup.is-open .hq-lineup-table{padding:2px 4px 4px!important}
+  .hq-matchup.is-open .hq-lineup-head,.hq-matchup.is-open .hq-lineup-row{grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr)!important;gap:2px!important}
+  .hq-matchup.is-open .hq-lineup-team-head b{font-size:9.8px!important}.hq-matchup.is-open .hq-lineup-team-head small{font-size:7.5px!important}.hq-matchup.is-open .hq-lineup-row{min-height:47px!important}
+  .hq-matchup.is-open .hq-lineup-player{grid-template-columns:24px minmax(0,1fr) 38px!important;column-gap:4px!important}.hq-matchup.is-open .hq-lineup-player.is-right{grid-template-columns:38px minmax(0,1fr) 24px!important}
+  .hq-matchup.is-open .hq-lineup-player>img,.hq-matchup.is-open .hq-lineup-player>.league-team-initials{width:23px!important;height:23px!important}
+  .hq-matchup.is-open .hq-lineup-player-name{font-size:10.9px!important}.hq-matchup.is-open .hq-lineup-player-meta{font-size:7.9px!important}.hq-matchup.is-open .hq-lineup-score>strong{font-size:10.2px!important}.hq-matchup.is-open .hq-lineup-score-sub{font-size:6.8px!important}.hq-matchup.is-open .hq-lineup-player-game{font-size:7.6px!important}
+}
+@media (max-width:390px){
+  .hq-matchup.is-open .hq-lineup-toolbar-copy b{font-size:11.6px!important}.hq-matchup.is-open .hq-lineup-mode{font-size:7.6px!important;padding:4px 1px!important}
+  .hq-matchup.is-open .hq-lineup-head,.hq-matchup.is-open .hq-lineup-row{grid-template-columns:minmax(0,1fr) 16px minmax(0,1fr)!important;gap:1px!important}
+  .hq-matchup.is-open .hq-lineup-team-head small{font-size:7.1px!important}.hq-matchup.is-open .hq-lineup-slot-head::after{font-size:6.2px!important}
+  .hq-matchup.is-open .hq-lineup-player{grid-template-columns:23px minmax(0,1fr) 36px!important;column-gap:3px!important}.hq-matchup.is-open .hq-lineup-player.is-right{grid-template-columns:36px minmax(0,1fr) 23px!important}
+  .hq-matchup.is-open .hq-lineup-player>img,.hq-matchup.is-open .hq-lineup-player>.league-team-initials{width:22px!important;height:22px!important}
+  .hq-matchup.is-open .hq-lineup-player-name{font-size:10.5px!important}.hq-matchup.is-open .hq-lineup-player-meta{font-size:7.6px!important}.hq-matchup.is-open .hq-lineup-score>strong{font-size:9.8px!important}.hq-matchup.is-open .hq-lineup-score-sub{font-size:6.5px!important}.hq-matchup.is-open .hq-lineup-player-game{font-size:7.25px!important}
+}
+</style>
+
+
+<style id="hj-matchup-v19-spacing-fix">
+/* Minimal spacing correction only: make the three text lines evenly spaced. */
+.hq-matchup.is-open .hq-lineup-player-copy{gap:1px!important}
+.hq-matchup.is-open .hq-lineup-player-meta{margin-top:0!important}
+.hq-matchup.is-open .hq-lineup-player-game{margin-top:1px!important}
+@media (max-width:620px){
+  .hq-matchup.is-open .hq-lineup-player-copy{gap:1px!important}
+  .hq-matchup.is-open .hq-lineup-player-meta{margin-top:0!important}
+  .hq-matchup.is-open .hq-lineup-player-game{margin-top:1px!important}
+}
+</style>
+
+
+<style id="hj-matchup-v20-name-cleanup">
+/* Display-name cleanup only. Preserve the v19 composition and data behavior. */
+.hq-matchup.is-open .hq-lineup-player-copy{
+  justify-content:center!important;
+  gap:2px!important;
+}
+.hq-matchup.is-open .hq-lineup-player-name{
+  font-size:11.2px!important;
+  line-height:1.05!important;
+  font-weight:620!important;
+  white-space:nowrap!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+}
+.hq-matchup.is-open .hq-lineup-player-meta{
+  margin-top:0!important;
+  gap:2px!important;
+  line-height:1.05!important;
+}
+.hq-matchup.is-open .hq-lineup-player-game{
+  margin-top:2px!important;
+  line-height:1.05!important;
+}
+.hq-matchup.is-open .hq-lineup-score{
+  justify-content:center!important;
+}
+@media (max-width:620px){
+  .hq-matchup.is-open .hq-lineup-player-name{font-size:10.7px!important}
+  .hq-matchup.is-open .hq-lineup-player-copy{gap:2px!important}
+  .hq-matchup.is-open .hq-lineup-player-meta{margin-top:0!important}
+  .hq-matchup.is-open .hq-lineup-player-game{margin-top:2px!important}
+}
+@media (max-width:390px){
+  .hq-matchup.is-open .hq-lineup-player-name{font-size:10.4px!important}
+}
+</style>
+
+
+<style id="hj-matchup-v21-overlap-fix">
+/* Minimal overlap correction. Long abbreviated names stay inside their identity column. */
+.hq-matchup.is-open .hq-lineup-player-copy{min-width:0!important;overflow:visible!important}
+.hq-matchup.is-open .hq-lineup-player-name{
+  min-width:0!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+  line-height:1.03!important;
+}
+.hq-matchup.is-open .hq-lineup-score{position:relative!important;z-index:1!important}
+.hq-matchup.is-open .hq-lineup-player.is-right .hq-lineup-player-name{text-align:right!important}
+@media (max-width:620px){
+  .hq-matchup.is-open .hq-lineup-player-name{font-size:10.5px!important;line-height:1.02!important}
+  .hq-matchup.is-open .hq-lineup-row{min-height:48px!important}
+}
+@media (max-width:390px){
+  .hq-matchup.is-open .hq-lineup-player-name{font-size:10.2px!important}
+}
+</style>
+
+
+<style id="hj-matchup-projection-colors-v22">
+/* Projection palette: ESPN = brass/gold, Vegas = site slate blue. */
+.hq-matchup{--hq-espn-proj:#B98A2E;--hq-vegas-proj:#6FA8D8}
+/* Expanded player rows */
+.hq-matchup.is-open .hq-lineup-score-sub .is-espn,
+.hq-matchup.is-open .hq-lineup-score-sub .is-espn b{color:var(--hq-espn-proj)!important}
+.hq-matchup.is-open .hq-lineup-score-sub .is-vegas,
+.hq-matchup.is-open .hq-lineup-score-sub .is-vegas b{color:var(--hq-vegas-proj)!important}
+/* Team projection totals above the lineup */
+.hq-matchup.is-open .hq-lineup-team-head .hq-proj-e{color:var(--hq-espn-proj)!important;font-weight:700!important}
+.hq-matchup.is-open .hq-lineup-team-head .hq-proj-v{color:var(--hq-vegas-proj)!important;font-weight:700!important}
+.hq-matchup.is-open .hq-lineup-team-head .hq-proj-sep{color:#91a0ad!important}
+/* Collapsed/main matchup card. While live, E + V remain under the actual score. */
+.hq-matchup .hq-match-team-sub{display:flex!important;align-items:baseline!important;gap:7px!important;flex-wrap:nowrap!important;white-space:nowrap!important}
+.hq-matchup .hq-match-proj-e,.hq-matchup .hq-match-proj-e b{color:var(--hq-espn-proj)!important}
+.hq-matchup .hq-match-proj-v,.hq-matchup .hq-match-proj-v b{color:var(--hq-vegas-proj)!important}
+.hq-matchup .hq-match-team-sub.is-live{gap:8px!important;flex-wrap:nowrap!important}
+.hq-matchup .hq-match-proj-e,.hq-matchup .hq-match-proj-v{display:inline-flex!important;align-items:baseline!important;gap:3px!important;font-weight:700!important}
+@media(max-width:620px){
+  .hq-matchup .hq-match-team-sub{gap:5px!important;font-size:7.8px!important}
+  .hq-matchup .hq-match-team-sub b{font-size:8.7px!important}
+  .hq-matchup .hq-match-team-sub.is-live{gap:6px!important}
+}
+</style>
+
+
+<script id="hj-live-league-activity-v24">
+/* ======================================================================
+   League Activity V24 — direct ESPN transaction feed.
+   mTransactions2 is authoritative. Roster-diff local activity remains a
+   fallback only if the direct ESPN request is unavailable.
+   ====================================================================== */
+const HJ_LIVE_ACTIVITY_CACHE_KEY=`hungJurors:leagueActivity:${ESPN_FANTASY_LEAGUE_ID}:${HJ_LEAGUE_SEASON}:espn:v2`;
+const HJ_LIVE_ACTIVITY_REFRESH_ACTIVE_MS=30*1000;
+const HJ_LIVE_ACTIVITY_REFRESH_IDLE_MS=90*1000;
+const HJ_LIVE_ACTIVITY={rows:[],loaded:false,loading:false,error:'',syncedAt:0,timer:0};
+const hjLegacyReadActivityV24=hjReadActivity;
+
+function hjReadLiveActivityCache(){
+  try{
+    const cached=JSON.parse(localStorage.getItem(HJ_LIVE_ACTIVITY_CACHE_KEY)||'null');
+    if(cached&&Array.isArray(cached.rows))return cached;
+  }catch(_){}
+  return null;
+}
+function hjWriteLiveActivityCache(rows){
+  const payload={rows:Array.isArray(rows)?rows.slice(0,80):[],syncedAt:Date.now()};
+  try{localStorage.setItem(HJ_LIVE_ACTIVITY_CACHE_KEY,JSON.stringify(payload))}catch(_){}
+  return payload;
+}
+function hjActivityTeamName(id,data=HJ_LEAGUE_STATE.data){
+  const n=Number(id);
+  if(!n)return 'Free agents';
+  const team=(data?.teams||[]).find(item=>Number(item?.id)===n);
+  return team?(hjMatchManager(team,data)||hjOwnerName(team,data)||`Team ${n}`):`Team ${n}`;
+}
+function hjActivityPlayerById(playerId,data=HJ_LEAGUE_STATE.data,item=null){
+  const id=String(playerId??'');
+  let hit=null;
+  (data?.teams||[]).some(team=>hjRosterEntries(team).some(entry=>{
+    const player=hjPlayer(entry),entryId=String(player?.id||entry?.playerId||'');
+    if(entryId!==id)return false;
+    hit={id,name:player?.fullName||player?.displayName||`Player ${id}`,team:hjPlayerTeam(entry),position:hjPlayerPosition(entry),photo:hjPlayerPhoto(entry)};
+    return true;
+  }));
+  if(hit)return hit;
+  const directory=(typeof HJ_PLAYER_DIRECTORY!=='undefined'&&Array.isArray(HJ_PLAYER_DIRECTORY?.rows))?HJ_PLAYER_DIRECTORY.rows:[];
+  const dirHit=directory.find(player=>String(player?.id||'')===id);
+  if(dirHit)return {id,name:dirHit.name||dirHit.fullName||`Player ${id}`,team:dirHit.team||'FA',position:dirHit.position||'',photo:dirHit.photo||''};
+  const boot=(typeof FFN_BOOTSTRAP_ROSTER!=='undefined'?FFN_BOOTSTRAP_ROSTER:[]).find(player=>String(player?.id||'')===id);
+  if(boot)return {id,name:boot.name||`Player ${id}`,team:boot.team||'FA',position:boot.position||'',photo:boot.photo||''};
+  const embedded=item?.player||item?.playerPoolEntry?.player||null;
+  if(embedded){
+    const name=embedded.fullName||embedded.displayName||embedded.name||`Player ${id}`;
+    const team=HJ_PRO_TEAM_BY_ID[String(embedded.proTeamId||'')]||'FA';
+    const position=HJ_POSITION_IDS[embedded.defaultPositionId]||'';
+    return {id,name,team,position,photo:embedded.headshot?.href||(id&&!id.startsWith('-')?nflHeadshot(id):'')};
+  }
+  return {id,name:`Player ${id}`,team:'FA',position:'',photo:id&&!id.startsWith('-')?nflHeadshot(id):''};
+}
+function hjActivityTransactionRows(payload,data=HJ_LEAGUE_STATE.data){
+  const rows=[];
+  for(const tx of (Array.isArray(payload?.transactions)?payload.transactions:[])){
+    if(String(tx?.status||'').toUpperCase()!=='EXECUTED')continue;
+    const txType=String(tx?.type||'').toUpperCase();
+    if(!['FREE_AGENT','FREEAGENT','WAIVER','TRADE'].includes(txType))continue;
+    const at=Number(tx?.processDate||tx?.executionDate||tx?.proposedDate||tx?.date)||Date.now();
+    for(const item of (Array.isArray(tx?.items)?tx.items:[])){
+      const playerId=item?.playerId??item?.player?.id??item?.playerPoolEntry?.player?.id;
+      if(playerId==null)continue;
+      const itemType=String(item?.type||'').toUpperCase();
+      const fromId=Number(item?.fromTeamId)||0,toId=Number(item?.toTeamId)||0;
+      let type='',from='',to='';
+      if(txType==='TRADE'&&fromId&&toId&&fromId!==toId){type='Trade';from=hjActivityTeamName(fromId,data);to=hjActivityTeamName(toId,data)}
+      else if(itemType==='ADD'){type='Add';to=hjActivityTeamName(toId||tx?.teamId,data)}
+      else if(itemType==='DROP'){type='Drop';from=hjActivityTeamName(fromId||tx?.teamId,data)}
+      else continue;
+      const player=hjActivityPlayerById(playerId,data,item),sourceId=String(tx?.id||`${at}:${txType}`);
+      rows.push({id:`${sourceId}:${playerId}:${itemType}:${fromId}:${toId}`,at,type,player,from,to,source:txType});
+    }
+  }
+  return rows.sort((a,b)=>b.at-a.at);
+}
+function hjMergeActivityRows(primary,secondary=[]){
+  const out=[],seen=new Set();
+  for(const row of [...(primary||[]),...(secondary||[])]){
+    const p=String(row?.player?.id||hjNorm(row?.player?.name||'')),key=row?.id||`${row?.type}|${p}|${row?.from||''}|${row?.to||''}|${Math.floor((Number(row?.at)||0)/60000)}`;
+    if(!p||seen.has(key))continue;
+    seen.add(key);out.push(row);
+  }
+  return out.sort((a,b)=>(Number(b?.at)||0)-(Number(a?.at)||0)).slice(0,80);
+}
+async function hjFetchEspnLeagueActivity(data=HJ_LEAGUE_STATE.data){
+  if(!data)return [];
+  const week=Math.max(1,Number(hjCurrentWeek(data))||1);
+  const periods=[week];
+  if(week>1)periods.push(week-1);
+  const requests=periods.map(async period=>{
+    const url=new URL(`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${HJ_LEAGUE_SEASON}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}`);
+    url.searchParams.set('view','mTransactions2');
+    url.searchParams.set('scoringPeriodId',String(period));
+    const response=await fetch(url.toString(),{method:'GET',mode:'cors',credentials:'omit',cache:'no-store'});
+    if(!response.ok)throw new Error(`ESPN transactions ${response.status}`);
+    return response.json();
+  });
+  const settled=await Promise.allSettled(requests),fulfilled=settled.filter(result=>result.status==='fulfilled').map(result=>result.value);
+  if(!fulfilled.length)throw (settled.find(result=>result.status==='rejected')?.reason||new Error('ESPN transactions unavailable'));
+  return hjMergeActivityRows(fulfilled.flatMap(payload=>hjActivityTransactionRows(payload,data)));
+}
+function hjRenderActivityPanelV24(){
+  const panel=document.querySelector('#hq-panel-activity .hq-module');
+  if(!panel)return;
+  const note=HJ_LIVE_ACTIVITY.loading?'Syncing ESPN…':HJ_LIVE_ACTIVITY.loaded?'Live ESPN transactions':HJ_LIVE_ACTIVITY.error?'Saved activity':'Completed moves';
+  panel.innerHTML=`<div class="hq-module-head"><h3 class="hq-module-title">League Activity</h3><span class="hq-module-note">${esc(note)}</span></div>${hjActivityHTML()}`;
+}
+async function hjRefreshLiveActivityV24(force=false){
+  const data=HJ_LEAGUE_STATE.data;
+  if(!data||HJ_LIVE_ACTIVITY.loading)return HJ_LIVE_ACTIVITY.rows;
+  const maxAge=HJ_HQ_STATE.activeTab==='activity'?HJ_LIVE_ACTIVITY_REFRESH_ACTIVE_MS:HJ_LIVE_ACTIVITY_REFRESH_IDLE_MS;
+  if(!force&&HJ_LIVE_ACTIVITY.loaded&&Date.now()-HJ_LIVE_ACTIVITY.syncedAt<maxAge)return HJ_LIVE_ACTIVITY.rows;
+  HJ_LIVE_ACTIVITY.loading=true;HJ_LIVE_ACTIVITY.error='';hjRenderActivityPanelV24();
+  try{
+    const direct=await hjFetchEspnLeagueActivity(data),cached=hjReadLiveActivityCache()?.rows||[],rows=hjMergeActivityRows(direct,cached);
+    HJ_LIVE_ACTIVITY.rows=rows;HJ_LIVE_ACTIVITY.loaded=true;HJ_LIVE_ACTIVITY.syncedAt=Date.now();
+    hjWriteLiveActivityCache(rows);
+  }catch(error){
+    console.warn('Live League Activity feed unavailable; using saved roster-diff activity.',error);
+    HJ_LIVE_ACTIVITY.error=String(error?.message||error);HJ_LIVE_ACTIVITY.loaded=false;
+  }finally{
+    HJ_LIVE_ACTIVITY.loading=false;hjRenderActivityPanelV24();
+  }
+  return HJ_LIVE_ACTIVITY.rows;
+}
+function hjQueueLiveActivityV24(){
+  clearTimeout(HJ_LIVE_ACTIVITY.timer);
+  const delay=HJ_HQ_STATE.activeTab==='activity'?HJ_LIVE_ACTIVITY_REFRESH_ACTIVE_MS:HJ_LIVE_ACTIVITY_REFRESH_IDLE_MS;
+  HJ_LIVE_ACTIVITY.timer=setTimeout(async()=>{
+    if(!document.hidden)await hjRefreshLiveActivityV24(false);
+    hjQueueLiveActivityV24();
+  },delay);
+}
+
+const cachedActivityV24=hjReadLiveActivityCache();
+if(cachedActivityV24){HJ_LIVE_ACTIVITY.rows=cachedActivityV24.rows||[];HJ_LIVE_ACTIVITY.syncedAt=Number(cachedActivityV24.syncedAt)||0;HJ_LIVE_ACTIVITY.loaded=true}
+hjReadActivity=function(){
+  if(HJ_LIVE_ACTIVITY.loaded)return HJ_LIVE_ACTIVITY.rows.slice();
+  const cached=hjReadLiveActivityCache();if(cached)return (cached.rows||[]).slice();
+  return hjLegacyReadActivityV24();
+};
+
+const hjSetHQTabActivityV24Base=hjSetHQTab;
+hjSetHQTab=function(tab,focusTeamId=null){
+  hjSetHQTabActivityV24Base(tab,focusTeamId);
+  if(tab==='activity')requestAnimationFrame(()=>hjRefreshLiveActivityV24(true));
+};
+
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>hjRefreshLiveActivityV24(false),2200);hjQueueLiveActivityV24()},{once:true});
+else {setTimeout(()=>hjRefreshLiveActivityV24(false),2200);hjQueueLiveActivityV24()}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)hjRefreshLiveActivityV24(false)});
+</script>
+
+
+<style id="pc-season-vegas-compact-v25">
+/* Player profile season Vegas card: one summary-tile-height module. */
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season]{
+  box-sizing:border-box!important;
+  padding:8px 10px!important;
+  margin:0 0 10px!important;
+  overflow:hidden!important;
+}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-head{
+  min-height:16px!important;
+  margin:0 0 5px!important;
+}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-title{font-size:8.6px!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-updated{font-size:7px!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-grid{display:block!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-panel{
+  box-sizing:border-box!important;
+  height:88px!important;
+  padding:7px 8px!important;
+  display:grid!important;
+  grid-template-columns:minmax(175px,.75fr) minmax(0,1.25fr)!important;
+  grid-template-rows:32px 38px!important;
+  grid-template-areas:"head context" "lines lines"!important;
+  column-gap:10px!important;
+  row-gap:4px!important;
+  align-items:center!important;
+  overflow:hidden!important;
+}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-panel-head{
+  grid-area:head!important;
+  display:block!important;
+  min-width:0!important;
+  margin:0!important;
+}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-period{display:none!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-fpts-block{
+  min-width:0!important;
+  align-items:flex-start!important;
+  gap:1px!important;
+  text-align:left!important;
+}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-fpts{font-size:20px!important;line-height:1!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-fpts small{font-size:6.7px!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-espn-sub{font-size:7.8px!important;line-height:1.05!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-espn-sub b{font-size:8.8px!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-context{
+  grid-area:context!important;
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  justify-content:flex-end!important;
+  align-items:center!important;
+  gap:5px!important;
+  min-width:0!important;
+  margin:0!important;
+  overflow-x:auto!important;
+  scrollbar-width:none!important;
+}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-context::-webkit-scrollbar,
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-lines::-webkit-scrollbar{display:none!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-context span{
+  flex:0 0 auto!important;
+  padding:4px 6px!important;
+  font-size:6.8px!important;
+  white-space:nowrap!important;
+}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-lines{
+  grid-area:lines!important;
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  gap:5px!important;
+  min-width:0!important;
+  width:100%!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  scrollbar-width:none!important;
+  overscroll-behavior-inline:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-line{
+  flex:0 0 122px!important;
+  min-width:122px!important;
+  height:36px!important;
+  box-sizing:border-box!important;
+  padding:5px 7px!important;
+}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-line strong{font-size:10.5px!important;line-height:1!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-line span{margin-top:2px!important;font-size:6.3px!important;line-height:1!important}
+@media(max-width:760px){
+  .pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-panel{
+    height:94px!important;
+    grid-template-columns:minmax(145px,.85fr) minmax(0,1.15fr)!important;
+    grid-template-rows:34px 40px!important;
+    column-gap:6px!important;
+  }
+  .pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-line{flex-basis:110px!important;min-width:110px!important}
 }
 </style>
 
