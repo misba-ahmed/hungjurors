@@ -9760,6 +9760,7 @@ async function refreshNFLWeeklySchedule(forceRender=false){
       if(title)title.textContent=`NFL Week ${period.week}${range?` · ${range}`:''}`;
     }
     nflWriteScheduleCache(period,NFL_WEEK1);
+    try{if(typeof wireRender==='function'&&document.querySelector('#wire'))wireRender(true)}catch(error){console.warn('Wire kickoff refresh failed',error)}
     nflQueueScheduleRefresh(nflScheduleRefreshDelay(NFL_WEEK1));
   }catch(err){
     console.warn('NFL weekly schedule refresh failed',err);
@@ -14020,7 +14021,8 @@ const AWARD24_VIEWS = {
 /* =====================================================================
    THE WIRE — hero news feed
    Modes: predraft (countdown) → draft recap → weekly preview / live /
-   recap, with a waiver-deadline countdown card whenever one is close.
+   recap, with one date-aware event card that advances from the waiver
+   deadline to the next NFL kickoff automatically.
    Data: the league sync (HJ_LEAGUE_STATE.data incl. mDraftDetail),
    plus per-week mBoxscore pulls for player-level recap stats.
    ===================================================================== */
@@ -14036,21 +14038,20 @@ function wireZoned(y,m,d,h,tz){
   }
   return guess;
 }
-function wireNextWaiver(data){
-  const acq=data?.settings?.acquisitionSettings||{};
-  const rawDays=Array.isArray(acq.waiverProcessDays)&&acq.waiverProcessDays.length?acq.waiverProcessDays:['WEDNESDAY'];
-  const days=rawDays.map(d=>WIRE_PROCESS_DAYS[String(d).toUpperCase()]).filter(d=>d!=null);
-  const tz='America/Chicago',now=Date.now();
-  const todayParts=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:tz,year:'numeric',month:'numeric',day:'numeric'}).formatToParts(new Date(now)).map(p=>[p.type,p.value]));
-  const dayIndex=t=>['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(new Intl.DateTimeFormat('en-US',{timeZone:tz,weekday:'short'}).format(new Date(t)));
-  let best=null;
-  for(let offset=0;offset<8;offset++){
-    const start=wireZoned(Number(todayParts.year),Number(todayParts.month)-1,Number(todayParts.day)+offset,2,tz);
-    const end=wireZoned(Number(todayParts.year),Number(todayParts.month)-1,Number(todayParts.day)+offset,4,tz);
-    if(end<=now||!days.includes(dayIndex(start)))continue;
-    if(!best||start<best.start)best={start,end,day:rawDays[days.indexOf(dayIndex(start))]||'WEDNESDAY'};
-  }
-  return best;
+function wireNextWaiver(data,now=Date.now()){
+  /* The Wire's waiver card is a weekly reminder for THIS league's published
+     Tuesday -> Wednesday 2:00 AM CT deadline. Do not use ESPN waiverProcessDays
+     here: that field can describe transaction-processing availability rather
+     than the user-facing claim deadline and previously resurrected the card on
+     Wednesday morning. */
+  const tz='America/Chicago';
+  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',weekday:'short',hour:'numeric',minute:'numeric'}).formatToParts(new Date(now)).map(p=>[p.type,p.value]));
+  const weekday=String(parts.weekday||'').slice(0,3),hour=Number(parts.hour)||0,minute=Number(parts.minute)||0;
+  let deadline=null;
+  if(weekday==='Tue')deadline=wireZoned(Number(parts.year),Number(parts.month)-1,Number(parts.day)+1,2,tz);
+  else if(weekday==='Wed'&&(hour<2||(hour===2&&minute===0&&now<wireZoned(Number(parts.year),Number(parts.month)-1,Number(parts.day),2,tz))))deadline=wireZoned(Number(parts.year),Number(parts.month)-1,Number(parts.day),2,tz);
+  if(!Number.isFinite(deadline)||deadline<=now)return null;
+  return {start:deadline,end:deadline,day:'WEDNESDAY'};
 }
 function wireCountdownHTML(target,label){
   return `<div class="wc-count" data-wire-countdown="${target}" aria-live="polite">${['Days','Hours','Minutes','Seconds'].map(l=>`<div class="unit"><div class="n">--</div><div class="l">${l}</div></div>`).join('')}</div>${label?`<div class="wire-hint">${esc(label)}</div>`:''}`;
@@ -14278,10 +14279,39 @@ function wirePreviewCards(data,week,results){
   return cards;
 }
 function wireWaiverCard(data){
-  const windowInfo=wireNextWaiver(data);if(!windowInfo)return null;
-  const now=Date.now(),remaining=windowInfo.start-now;if(windowInfo.end<=now||remaining>36*36e5)return null;
-  const start=new Date(windowInfo.start),day=start.toLocaleString('en-US',{timeZone:'America/Chicago',weekday:'short'}).toUpperCase(),longDay=start.toLocaleString('en-US',{timeZone:'America/Chicago',weekday:'long'});
-  return {section:'waivers',html:wireCard({kicker:'Waiver Window',tag:`${day} · 2–4 AM CT`,cls:'is-red',badge:'!Waivers',body:`<div class="wc-title">${esc(longDay)} waivers</div><div class="wc-copy"><b>Waiver processing starts at 2:00 AM CT.</b> ESPN runs waivers between 2:00 and 4:00 AM CT.</div>${remaining>0?wireCountdownHTML(windowInfo.start,'until 2:00 AM CT'):''}<div class="wc-spacer"></div><a class="wc-mgr" href="https://fantasy.espn.com/football/players/add?leagueId=${ESPN_FANTASY_LEAGUE_ID}" target="_blank" rel="noopener" style="text-decoration:none"><span>Open waivers on ESPN →</span></a>`})};
+  const now=Date.now(),windowInfo=wireNextWaiver(data,now);if(!windowInfo)return null;
+  const remaining=windowInfo.start-now;
+  /* Tuesday-only reminder plus the final pre-2:00-AM Wednesday window.
+     At 2:00 AM CT Wednesday this card is permanently gone until next Tuesday. */
+  if(remaining<=0||remaining>36*36e5)return null;
+  const start=new Date(windowInfo.start),day=start.toLocaleString('en-US',{timeZone:'America/Chicago',weekday:'short'}).toUpperCase();
+  return {section:'waivers',html:wireCard({kicker:'Waiver Window',tag:`${day} · 2 AM CT`,cls:'is-red',badge:'!Waivers',body:`<div class="wc-title">Countdown to set your waivers</div><div class="wc-copy">Set claims before ESPN begins processing at <b>2:00 AM CT Wednesday</b>.</div>${wireCountdownHTML(windowInfo.start,'to set your waivers')}<div class="wc-spacer"></div><a class="wc-mgr" href="https://fantasy.espn.com/football/players/add?leagueId=${ESPN_FANTASY_LEAGUE_ID}" target="_blank" rel="noopener" style="text-decoration:none"><span>Open waivers on ESPN →</span></a>`})};
+}
+function wireCentralDateKey(value){
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(value));
+  const get=type=>parts.find(part=>part.type===type)?.value||'';
+  return `${get('year')}-${get('month')}-${get('day')}`;
+}
+function wireNextNFLKickoff(now=Date.now()){
+  if((Array.isArray(NFL_WEEK1)?NFL_WEEK1:[]).some(game=>game?.state==='in'))return null;
+  return (Array.isArray(NFL_WEEK1)?NFL_WEEK1:[]).filter(game=>{
+    const kickoff=new Date(game?.kickoff||'').getTime();
+    return game?.state!=='post'&&game?.state!=='in'&&Number.isFinite(kickoff)&&kickoff>now;
+  }).sort((a,b)=>new Date(a.kickoff)-new Date(b.kickoff))[0]||null;
+}
+function wireKickoffTeamHTML(game,side){
+  const pair=side==='away'?game?.a:game?.b,key=String(pair?.[1]||''),name=String(pair?.[0]||'Team'),record=String(side==='away'?game?.aRecord||'':game?.bRecord||'');
+  return `<div class="wire-kickoff-team ${side==='away'?'is-away':'is-home'}"><img class="wire-kickoff-logo" src="${esc(nflLogo(key))}" alt="${esc(name)} logo" loading="lazy"><b>${esc(name)}</b>${record?`<small>${esc(record)}</small>`:''}</div>`;
+}
+function wireKickoffCard(){
+  const now=Date.now(),game=wireNextNFLKickoff(now);if(!game)return null;
+  const target=new Date(game.kickoff).getTime(),remaining=target-now;
+  /* The Wire is an immediate-news surface. Promote kickoff when it is close,
+     rather than carrying a generic countdown around for half the week. */
+  if(remaining<=0||remaining>36*36e5)return null;
+  const sameDay=wireCentralDateKey(now)===wireCentralDateKey(target),day=new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',weekday:'short'}).format(new Date(target)).toUpperCase(),time=String(game.time||new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',hour:'numeric',minute:'2-digit'}).format(new Date(target))).toUpperCase(),net=String(game.net||'NFL'),venue=String(game.venue||'');
+  const title=sameDay?'Kickoff tonight':'Next NFL kickoff';
+  return {section:'kickoff',html:wireCard({kicker:title,tag:`${day} · ${time} CT${net?` · ${net}`:''}`,cls:'is-lead is-kickoff',badge:'Kickoff',body:`<div class="wc-title">${esc(game?.a?.[0]||'Away')} at ${esc(game?.b?.[0]||'Home')}</div><div class="wire-kickoff-matchup">${wireKickoffTeamHTML(game,'away')}<div class="wire-kickoff-center"><span>@</span><small>${esc(time)} CT</small></div>${wireKickoffTeamHTML(game,'home')}</div>${venue?`<div class="wire-kickoff-meta">${esc(net)} · ${esc(venue)}</div>`:''}${wireCountdownHTML(target,'until kickoff')}`})};
 }
 function wirePredraftCards(){
   const target=new Date(DATA.draft.when).getTime(),cards=[];
@@ -14295,7 +14325,7 @@ function wirePredraftCards(){
 function wireBuild(data){
   const drafted=!!data?.draftDetail?.drafted,inProgress=!!data?.draftDetail?.inProgress,now=Date.now(),draftTime=new Date(DATA.draft.when).getTime();
   let cards=[],headline={eyebrow:'',title:'',sub:'',kicker:'The Wire',live:false};
-  const waiver=data?wireWaiverCard(data):null;
+  const waiver=data?wireWaiverCard(data):null,kickoff=data&&!waiver?wireKickoffCard():null;
   if(!data||(!drafted&&now<draftTime+6*36e5&&!inProgress)){
     cards=wirePredraftCards();headline={eyebrow:`Countdown to the ${HJ_LEAGUE_SEASON} Draft`,title:draftTime-now<864e5&&draftTime>now?"It's Draft Day!":draftTime<=now?'Draft in progress':'Draft Day Is Coming',sub:`<b>${esc(DATA.draft.display)}</b> · online`,kicker:data?'Pre-draft':'Connecting to ESPN',live:!data};
     return {cards,headline};
@@ -14314,9 +14344,10 @@ function wireBuild(data){
   else if(lastWeek){cards.push(...recap,...preview,...draftCards);const high=[...wireWeekResults(data,lastWeek).flatMap(r=>[r.home,r.away])].sort((a,b)=>b.score-a.score)[0];headline={eyebrow:`Week ${lastWeek} final`,title:`Week ${lastWeek} Recap`,sub:high?`High score: <b>${esc(high.name)}</b>, ${high.score.toFixed(1)}`:'',kicker:'Weekly recap',live:false}}
   else{cards.push(...draftCards,...preview);headline={eyebrow:`${HJ_LEAGUE_SEASON} draft complete`,title:`${HJ_LEAGUE_SEASON} Draft Recap`,sub:'',kicker:'Draft recap',live:false}}
   if(waiver)cards.splice(Math.min(1,cards.length),0,waiver);
+  else if(kickoff)cards.splice(Math.min(1,cards.length),0,kickoff);
   return {cards,headline};
 }
-const WIRE_SECTION_LABELS={waivers:'Waivers',live:'Live',recap:'Recap',preview:'Preview',draft:'Draft',hauls:'Draft Hauls'};
+const WIRE_SECTION_LABELS={waivers:'Waivers',kickoff:'Kickoff',live:'Live',recap:'Recap',preview:'Preview',draft:'Draft',hauls:'Draft Hauls'};
 function wireRender(force=false){
   const root=$('#wire');if(!root)return;
   const data=HJ_LEAGUE_STATE.data;
@@ -17618,12 +17649,6 @@ try{if(HJ_HQ_STATE?.activeTab==='strength'&&HJ_LEAGUE_STATE?.data)requestAnimati
 </style>
 
 <script id="hj-top-wire-roster-updates-script">
-/* Waiver card: one clear instruction and one clear timing sentence. */
-wireWaiverCard=function(data){
-  const windowInfo=wireNextWaiver(data);if(!windowInfo)return null;
-  const remaining=windowInfo.start-Date.now(),start=new Date(windowInfo.start),day=start.toLocaleString('en-US',{timeZone:'America/Chicago',weekday:'short'}).toUpperCase();
-  return {section:'waivers',html:wireCard({kicker:'Waiver Window',tag:`${day} · 2–4 AM CT`,cls:'is-red',badge:'!Waivers',body:`<div class="wc-title">Countdown to set your waivers</div><div class="wc-copy">ESPN runs waivers between 2 AM and 4 AM CT Wednesday mornings.</div>${remaining>0?wireCountdownHTML(windowInfo.start,'to set your waivers'):''}<div class="wc-spacer"></div><a class="wc-mgr" href="https://fantasy.espn.com/football/players/add?leagueId=${ESPN_FANTASY_LEAGUE_ID}" target="_blank" rel="noopener" style="text-decoration:none"><span>Open waivers on ESPN →</span></a>`})};
-};
 
 /* One canonical roster row everywhere: League HQ and manager profiles both get next game. */
 hjPlayerHTML=function(entry,week,season=HJ_LEAGUE_SEASON){
@@ -17738,12 +17763,6 @@ try{if(HJ_LEAGUE_STATE?.data&&typeof hjRenderLeague==='function')hjRenderLeague(
 }
 </style>
 <script id="hj-wire-screen-repair-script">
-/* Waiver card: one instruction, one timing sentence. */
-wireWaiverCard=function(data){
-  const windowInfo=wireNextWaiver(data);if(!windowInfo)return null;
-  const remaining=windowInfo.start-Date.now(),start=new Date(windowInfo.start),day=start.toLocaleString('en-US',{timeZone:'America/Chicago',weekday:'short'}).toUpperCase();
-  return {section:'waivers',html:wireCard({kicker:'Waiver Window',tag:`${day} · 2–4 AM CT`,cls:'is-red',badge:'!Waivers',body:`<div class="wc-title">Countdown to set your waivers</div><div class="wc-copy">ESPN runs waivers between 2 AM and 4 AM CT Wednesday mornings.</div>${remaining>0?wireCountdownHTML(windowInfo.start,'to set your waivers'):''}<div class="wc-spacer"></div><a class="wc-mgr" href="https://fantasy.espn.com/football/players/add?leagueId=${ESPN_FANTASY_LEAGUE_ID}" target="_blank" rel="noopener" style="text-decoration:none"><span>Open waivers on ESPN →</span></a>`})};
-};
 
 /* Player directory: game metadata stays inside the identity block. */
 hjDirectoryRowsHTML=function(){
@@ -17987,9 +18006,9 @@ const hjManagerNavObserver=new MutationObserver(mutations=>{for(const m of mutat
 hjManagerNavObserver.observe(document.body,{childList:true,subtree:true});
 
 /* ---------- Wire ordering + progress navigation ---------- */
-const HJ_WIRE_ORDER=['waivers','draft','hauls','preview','live','recap'];
+const HJ_WIRE_ORDER=['waivers','kickoff','draft','hauls','preview','live','recap'];
 function hjWireOrdered(cards){return cards.map((c,i)=>({c,i})).sort((a,b)=>{const ai=HJ_WIRE_ORDER.indexOf(a.c.section),bi=HJ_WIRE_ORDER.indexOf(b.c.section),av=ai<0?99:ai,bv=bi<0?99:bi;return av-bv||a.i-b.i}).map(x=>x.c)}
-function hjWireNavLabel(section,data){if(section==='waivers')return 'Waivers';if(section==='draft')return 'Draft Recap';if(section==='hauls')return 'Draft Hauls';if(section==='preview')return `Wk ${hjCurrentWeek(data)} Preview`;if(section==='live')return `Wk ${hjCurrentWeek(data)} Live`;if(section==='recap')return `Wk ${Math.max(1,hjCurrentWeek(data)-1)} Recap`;return WIRE_SECTION_LABELS?.[section]||section}
+function hjWireNavLabel(section,data){if(section==='waivers')return 'Waivers';if(section==='kickoff')return 'Kickoff';if(section==='draft')return 'Draft Recap';if(section==='hauls')return 'Draft Hauls';if(section==='preview')return `Wk ${hjCurrentWeek(data)} Preview`;if(section==='live')return `Wk ${hjCurrentWeek(data)} Live`;if(section==='recap')return `Wk ${Math.max(1,hjCurrentWeek(data)-1)} Recap`;return WIRE_SECTION_LABELS?.[section]||section}
 wireRender=function(force=false){
   const root=$('#wire');if(!root)return;const data=HJ_LEAGUE_STATE.data;try{hjRefreshManagerAnalytics(data)}catch(_){}
   let built;try{built=wireBuild(data)}catch(error){console.warn('Wire build failed',error);built={cards:[{section:'draft',html:wireCard({kicker:'The Wire',body:'<div class="wc-copy">Feed unavailable</div>'})}],headline:{eyebrow:'',title:'The Hung Jurors',sub:'',kicker:'The Wire',live:false}}}
@@ -19237,6 +19256,41 @@ window.addEventListener('focus',()=>{
   .hq-matchup.is-open .hq-lineup-player-game,
   .hq-matchup.is-open .hq-lineup-player>.hq-lineup-player-game,
   .hq-matchup.is-open .hq-lineup-player.is-right>.hq-lineup-player-game{font-size:5.7px!important}
+}
+</style>
+
+
+<style id="hj-wire-smart-event-v11-styles">
+/* Date-aware Wire event card: waiver deadline -> NFL kickoff. */
+.wc.is-kickoff .wc-body{display:flex!important;flex-direction:column!important;justify-content:flex-start!important;align-items:stretch!important}
+.wc.is-kickoff .wc-title{text-align:center!important;margin-top:4px!important}
+.wire-kickoff-matchup{width:min(100%,720px);margin:8px auto 2px;display:grid;grid-template-columns:minmax(0,1fr) 72px minmax(0,1fr);align-items:center;gap:16px}
+.wire-kickoff-team{min-width:0;display:grid;justify-items:center;align-content:center;gap:3px;text-align:center}
+.wire-kickoff-logo{width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 3px 7px rgba(0,0,0,.18))}
+.wire-kickoff-team b{max-width:100%;color:var(--paper);font:900 11px/1.05 var(--mono);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wire-kickoff-team small{color:rgba(247,243,232,.65);font:800 7px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.wire-kickoff-center{display:grid;justify-items:center;gap:4px;color:var(--brass-bright)}
+.wire-kickoff-center>span{font:900 23px/1 var(--serif)}
+.wire-kickoff-center>small{color:rgba(247,243,232,.72);font:850 7px/1.1 var(--mono);white-space:nowrap}
+.wire-kickoff-meta{text-align:center;margin-top:3px;color:rgba(247,243,232,.7);font:750 7px/1.2 var(--mono);letter-spacing:.04em}
+.wc.is-kickoff .wc-count{max-width:620px!important;margin-top:8px!important}
+.wc.is-kickoff .wire-hint{color:rgba(247,243,232,.7)!important;opacity:1!important}
+@media(max-width:720px){
+  .wire-kickoff-matchup{grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr);gap:8px;margin-top:7px}
+  .wire-kickoff-logo{width:56px;height:56px}
+  .wire-kickoff-team b{font-size:9px;letter-spacing:.045em}
+  .wire-kickoff-team small{font-size:6.3px}
+  .wire-kickoff-center>span{font-size:18px}
+  .wire-kickoff-center>small{font-size:6px}
+  .wire-kickoff-meta{font-size:6.5px}
+  .wc.is-kickoff .wc-count{margin-top:7px!important}
+  .wc.is-kickoff .wc-count .n{font-size:24px!important;padding-top:6px!important}
+}
+@media(max-width:390px){
+  .wire-kickoff-matchup{grid-template-columns:minmax(0,1fr) 32px minmax(0,1fr);gap:5px}
+  .wire-kickoff-logo{width:49px;height:49px}
+  .wire-kickoff-team b{font-size:8.3px}
+  .wire-kickoff-center>small{display:none}
 }
 </style>
 
