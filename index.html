@@ -9924,13 +9924,10 @@ function ffnManagerRosterIndex(){
 function ffnItemTouchesManager(item,manager,index=ffnManagerRosterIndex()){
   if(!manager)return true;
   const roster=index.get(manager);if(!roster)return false;
-  const match=player=>{
-    if(!player)return false;
-    const id=String(player?.espn_id||player?.id||''),name=ffnNorm(player?.player||player?.name||'');
-    return (id&&roster.ids.has(id))||(name&&roster.names.has(name));
-  };
-  if(match({espn_id:item?.espn_id,name:item?.player}))return true;
-  return (item?.related||[]).some(match);
+  /* Manager filtering is intentionally primary-player only. Related players
+     remain card context, but never cause an article to enter a manager feed. */
+  const id=String(item?.espn_id||item?.id||''),name=ffnNorm(item?.player||item?.name||'');
+  return (id&&roster.ids.has(id))||(name&&roster.names.has(name));
 }
 function ffnSyncFilteredItems(){
   if(!ffnFiltersActive()){
