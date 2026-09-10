@@ -8593,7 +8593,8 @@
         <input class="ffn-filter-control" id="ffn-player-filter" type="search" placeholder="Player name" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="Search news by player name">
         <select class="ffn-filter-control" id="ffn-team-filter" aria-label="Filter news by team"><option value="">Team</option></select>
         <select class="ffn-filter-control" id="ffn-position-filter" aria-label="Filter news by position"><option value="">Position</option><option value="QB">QB</option><option value="RB">RB</option><option value="WR">WR</option><option value="TE">TE</option><option value="K">K</option></select>
-        <button type="button" class="ffn-filter-reset" id="ffn-filter-reset" disabled>Reset</button>
+        <select class="ffn-filter-control" id="ffn-manager-filter" aria-label="Filter news by fantasy manager"><option value="">Manager</option></select>
+        <button type="button" class="ffn-filter-reset" id="ffn-filter-reset" aria-label="Reset news filters" title="Reset filters" disabled>↺</button>
       </div>
       <div class="ffn-scroll" id="ffn-scroll" tabindex="0" aria-label="Fantasy football news feed"></div>
     </div>
@@ -9850,7 +9851,7 @@ let ffnAutoRefreshTimer=0;
 let ffnLastCheckAt=0;
 let ffnLiveReady=false;
 let ffnFilteredItems=[];
-let ffnFilterState={player:'',team:'',position:''};
+let ffnFilterState={player:'',team:'',position:'',manager:''};
 let ffnStatusBase='Loading';
 
 function ffnNorm(v=''){
@@ -9899,10 +9900,37 @@ function ffnImageFallback(img){
   if(img)img.style.display='none';
 }
 function ffnFiltersActive(){
-  return Boolean(ffnFilterState.player||ffnFilterState.team||ffnFilterState.position);
+  return Boolean(ffnFilterState.player||ffnFilterState.team||ffnFilterState.position||ffnFilterState.manager);
 }
 function ffnCurrentItems(){
   return ffnFiltersActive()?ffnFilteredItems:ffnItems;
+}
+function ffnManagerRosterIndex(){
+  const index=new Map(),data=(typeof HJ_LEAGUE_STATE!=='undefined'?HJ_LEAGUE_STATE?.data:null);
+  if(!data||typeof hjRosterEntries!=='function')return index;
+  (data.teams||[]).forEach(team=>{
+    const manager=(typeof hjMatchManager==='function'?hjMatchManager(team,data):'')||(typeof hjOwnerName==='function'?hjOwnerName(team,data):'');
+    if(!manager)return;
+    const ids=new Set(),names=new Set();
+    hjRosterEntries(team).forEach(entry=>{
+      const p=typeof hjPlayer==='function'?hjPlayer(entry):(entry?.player||entry?.playerPoolEntry?.player||{}),id=String(p?.id||entry?.playerId||'');
+      if(id)ids.add(id);
+      const name=ffnNorm(p?.fullName||p?.displayName||p?.name||'');if(name)names.add(name);
+    });
+    index.set(manager,{ids,names});
+  });
+  return index;
+}
+function ffnItemTouchesManager(item,manager,index=ffnManagerRosterIndex()){
+  if(!manager)return true;
+  const roster=index.get(manager);if(!roster)return false;
+  const match=player=>{
+    if(!player)return false;
+    const id=String(player?.espn_id||player?.id||''),name=ffnNorm(player?.player||player?.name||'');
+    return (id&&roster.ids.has(id))||(name&&roster.names.has(name));
+  };
+  if(match({espn_id:item?.espn_id,name:item?.player}))return true;
+  return (item?.related||[]).some(match);
 }
 function ffnSyncFilteredItems(){
   if(!ffnFiltersActive()){
@@ -9912,10 +9940,13 @@ function ffnSyncFilteredItems(){
   const player=ffnNorm(ffnFilterState.player);
   const team=String(ffnFilterState.team||'').toUpperCase();
   const position=String(ffnFilterState.position||'').toUpperCase();
+  const manager=String(ffnFilterState.manager||'');
+  const managerIndex=manager?ffnManagerRosterIndex():null;
   ffnFilteredItems=ffnItems.filter(item=>{
     if(player&&!ffnNorm(item?.player||'').includes(player))return false;
     if(team&&String(item?.team||'').toUpperCase()!==team)return false;
     if(position&&String(item?.position||'').toUpperCase()!==position)return false;
+    if(manager&&!ffnItemTouchesManager(item,manager,managerIndex))return false;
     return true;
   });
 }
@@ -9929,6 +9960,21 @@ function ffnUpdateFilterOptions(){
     teamSelect.dataset.ready='true';
   }
 }
+function ffnRenderManagerFilter(){
+  const select=$('#ffn-manager-filter');if(!select)return;
+  const index=ffnManagerRosterIndex(),managers=[...index.keys()].sort((a,b)=>a.localeCompare(b));
+  const signature=managers.map(name=>`${name}:${[...index.get(name).ids].sort().join(',')}`).join('|');
+  const selected=String(ffnFilterState.manager||select.value||'');
+  if(select.dataset.signature!==signature){
+    select.dataset.signature=signature;
+    select.innerHTML=`<option value="">Manager</option>${managers.map(name=>`<option value="${esc(name)}">${esc(name)}</option>`).join('')}`;
+  }
+  if(selected&&index.has(selected))select.value=selected;
+  else{
+    select.value='';
+    if(selected){ffnFilterState.manager='';ffnSyncFilteredItems();ffnRebuildRail();ffnRenderStatus()}
+  }
+}
 function ffnRenderStatus(){
   const el=$('#ffn-status');if(!el)return;
   const label=ffnFiltersActive()?`${ffnFilteredItems.length.toLocaleString()} ${ffnFilteredItems.length===1?'result':'results'}`:ffnStatusBase;
@@ -9939,7 +9985,7 @@ function ffnSetStatus(label){
   ffnRenderStatus();
 }
 function ffnSetFilterControlsDisabled(disabled){
-  ['#ffn-player-filter','#ffn-team-filter','#ffn-position-filter'].forEach(selector=>{
+  ['#ffn-player-filter','#ffn-team-filter','#ffn-position-filter','#ffn-manager-filter'].forEach(selector=>{
     const control=$(selector);
     if(control)control.disabled=disabled;
   });
@@ -9971,7 +10017,8 @@ function ffnApplyFilters(){
   ffnFilterState={
     player:$('#ffn-player-filter')?.value?.trim()||'',
     team:$('#ffn-team-filter')?.value||'',
-    position:$('#ffn-position-filter')?.value||''
+    position:$('#ffn-position-filter')?.value||'',
+    manager:$('#ffn-manager-filter')?.value||''
   };
   ffnSyncFilteredItems();
   const reset=$('#ffn-filter-reset');
@@ -9983,9 +10030,11 @@ function ffnResetFilters(){
   const player=$('#ffn-player-filter');
   const team=$('#ffn-team-filter');
   const position=$('#ffn-position-filter');
+  const manager=$('#ffn-manager-filter');
   if(player)player.value='';
   if(team)team.value='';
   if(position)position.value='';
+  if(manager)manager.value='';
   ffnApplyFilters();
 }
 function ffnPlayerDataAttrs(player={}){
@@ -10005,17 +10054,33 @@ function ffnRelatedHTML(item){
     return `<button class="ffn-related-chip pc-player-trigger" type="button" ${ffnPlayerDataAttrs(p)} aria-label="Open ${esc(p.name||'player')} profile">${inside}</button>`;
   }).join('');
 }
+function ffnOwnershipBadgeHTML(item){
+  /* News boots before League HQ state is initialized. Never let ownership
+     decoration block the news renderer during that earlier phase. */
+  let index;
+  try{index=typeof ffnManagerRosterIndex==='function'?ffnManagerRosterIndex():new Map()}
+  catch(_){return ''}
+  if(!index.size)return '';
+  const id=String(item?.espn_id||''),name=ffnNorm(item?.player||item?.name||'');
+  let owner='';
+  for(const [manager,roster] of index){
+    if((id&&roster?.ids?.has(id))||(name&&roster?.names?.has(name))){owner=manager;break}
+  }
+  const title=owner?`Owned by ${owner}`:'Free agent';
+  return `<span class="hj-owner-chip${owner?'':' is-free'}" title="${esc(title)}">${esc(owner||'FA')}</span>`;
+}
 function ffnCardHTML(item){
   const photo=ffnPhoto(item);
   const logo=ffnTeamLogo(item.team);
   const tag=String(item.category||'update').toLowerCase();
   const playerName=esc(item.player||'Player Update');
+  const ownerBadge=ffnOwnershipBadgeHTML(item);
   return `<article class="ffn-card${item.is_fresh?' is-fresh':''}" data-news-id="${esc(item.id||'')}">
     <div class="ffn-player">
       <button class="ffn-photo pc-player-trigger" type="button" ${ffnPlayerDataAttrs(item)} aria-label="Open ${playerName} profile">${photo?`<img class="ffn-headshot" src="${esc(photo)}" alt="" loading="lazy" onerror="ffnImageFallback(this)">`:`<span>${esc(ffnInitials(item.player))}</span>`}${logo?`<img class="ffn-team-logo" src="${esc(logo)}" alt="" onerror="ffnImageFallback(this)">`:''}</button>
       <div class="ffn-player-copy">
         <button class="ffn-player-name pc-player-trigger" type="button" ${ffnPlayerDataAttrs(item)}>${playerName}</button>
-        <div class="ffn-meta"><span>${esc(item.team||'FA')}</span><span class="ffn-meta-sep">·</span><span>${esc(item.position||'—')}</span><span class="ffn-meta-sep">·</span><span class="ffn-game">${esc(item.next_game||'Next game TBD')}</span></div>
+        <div class="ffn-meta"><span>${esc(item.team||'FA')}</span><span class="ffn-meta-sep">·</span><span>${esc(item.position||'—')}</span><span class="ffn-meta-sep">·</span><span class="ffn-game">${esc(item.next_game||'Next game TBD')}</span>${ownerBadge}</div>
       </div>
     </div>
     <div class="ffn-body">
@@ -10741,6 +10806,7 @@ async function ffnInit(){
   $('#ffn-player-filter')?.addEventListener('input',ffnApplyFilters);
   $('#ffn-team-filter')?.addEventListener('change',ffnApplyFilters);
   $('#ffn-position-filter')?.addEventListener('change',ffnApplyFilters);
+  $('#ffn-manager-filter')?.addEventListener('change',ffnApplyFilters);
   $('#ffn-filter-reset')?.addEventListener('click',ffnResetFilters);
 
   if('IntersectionObserver' in window){
@@ -19731,5 +19797,2189 @@ setTimeout(hjPatchOpenManagerV28,250);
 }
 </style>
 
+
+<style id="hj-matchup-quick-switcher-v32">
+/* Week matchup quick switcher: tiny avatar-vs-avatar pills that stay reachable
+   while the user is inside a long expanded lineup. */
+#hq-panel-matchups .hq-module,
+#hq-panel-matchups .hq-matchup-schedule{overflow:visible!important}
+#hq-panel-matchups .hq-module-head{border-radius:10px 10px 0 0}
+#hq-panel-matchups .hq-module-body{border-radius:0 0 10px 10px}
+.hq-matchup-switcher-shell{
+  position:sticky;
+  top:43px;
+  z-index:39;
+  margin:0;
+  padding:6px 7px;
+  border-top:1px solid rgba(20,50,79,.08);
+  border-bottom:1px solid rgba(20,50,79,.12);
+  background:rgba(247,243,232,.96);
+  -webkit-backdrop-filter:blur(10px);
+  backdrop-filter:blur(10px);
+  box-shadow:0 5px 12px rgba(12,34,56,.06);
+}
+.hq-matchup-switcher{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding:0 1px 2px;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-inline:contain;
+  scroll-snap-type:x proximity;
+}
+.hq-matchup-switcher::-webkit-scrollbar{display:none}
+.hq-matchup-jump{
+  appearance:none;
+  -webkit-appearance:none;
+  flex:0 0 88px;
+  height:39px;
+  display:grid;
+  grid-template-columns:27px 1fr 27px;
+  align-items:center;
+  justify-items:center;
+  gap:4px;
+  padding:4px 7px;
+  border:1px solid rgba(20,50,79,.18);
+  border-radius:999px;
+  background:#fff;
+  color:var(--navy);
+  box-shadow:0 1px 3px rgba(12,34,56,.04);
+  cursor:pointer;
+  scroll-snap-align:center;
+}
+.hq-matchup-jump:hover{border-color:rgba(20,50,79,.42);background:#fffdf8}
+.hq-matchup-jump:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+.hq-matchup-jump.active{
+  border:2px solid var(--navy-deep);
+  padding:3px 6px;
+  box-shadow:inset 0 -2px 0 var(--brass),0 2px 5px rgba(12,34,56,.08);
+}
+.hq-matchup-jump-avatar{
+  width:27px;
+  height:27px;
+  border-radius:50%;
+  object-fit:cover;
+  background:#edf1f4;
+  border:1px solid rgba(20,50,79,.12);
+}
+.hq-matchup-jump-vs{
+  color:var(--navy-deep);
+  font:900 7.5px/1 var(--mono);
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.hq-matchup.is-switch-selected{box-shadow:0 0 0 2px rgba(20,50,79,.20),0 8px 20px rgba(20,50,79,.08)!important}
+.hq-matchup{scroll-margin-top:98px}
+@media(max-width:620px){
+  .hq-matchup-switcher-shell{top:42px;padding:5px 6px}
+  .hq-matchup-switcher{gap:5px}
+  .hq-matchup-jump{flex-basis:82px;height:37px;grid-template-columns:25px 1fr 25px;padding:4px 6px}
+  .hq-matchup-jump.active{padding:3px 5px}
+  .hq-matchup-jump-avatar{width:25px;height:25px}
+  .hq-matchup-jump-vs{font-size:7px}
+}
+</style>
+<script id="hj-matchup-quick-switcher-v32-script">
+/* Minimal, sticky matchup navigation for Matchup Center. */
+HJ_HQ_STATE.matchupFocusKey=HJ_HQ_STATE.matchupFocusKey||'';
+
+function hjMatchupSwitchMetaV32(game,sourceData,data){
+  const sourceHome=(sourceData?.teams||[]).find(team=>Number(team.id)===Number(game?.home?.teamId));
+  const sourceAway=(sourceData?.teams||[]).find(team=>Number(team.id)===Number(game?.away?.teamId));
+  if(!sourceHome||!sourceAway)return null;
+  const managerA=hjMatchManager(sourceHome,sourceData)||hjOwnerName(sourceHome,sourceData)||`Manager ${sourceHome.id}`;
+  const managerB=hjMatchManager(sourceAway,sourceData)||hjOwnerName(sourceAway,sourceData)||`Manager ${sourceAway.id}`;
+  const findCurrent=(name,fallback)=>(data?.teams||[]).find(team=>hjMatchManager(team,data)===name)||(data?.teams||[]).find(team=>Number(team.id)===Number(fallback.id))||fallback;
+  const teamA=findCurrent(managerA,sourceHome),teamB=findCurrent(managerB,sourceAway),week=Number(game?.matchupPeriodId)||hjCurrentWeek(data);
+  return {managerA,managerB,key:`${week}:${teamA.id}:${teamB.id}`,week};
+}
+function hjMatchupJumpAvatarV32(manager){
+  const src=`data:image/png;base64,${AV[manager]||AV_DEFAULT}`;
+  return `<img class="hq-matchup-jump-avatar" src="${src}" alt="">`;
+}
+function hjMatchupSwitcherHTMLV32(source,data,week){
+  const metas=(source?.games||[]).map(game=>hjMatchupSwitchMetaV32(game,source.sourceData,data)).filter(Boolean);
+  if(!metas.length)return '';
+  const weekPrefix=`${week}:`,openKey=[...HJ_HQ_STATE.openMatchups].find(key=>String(key).startsWith(weekPrefix))||'';
+  const selected=metas.some(meta=>meta.key===HJ_HQ_STATE.matchupFocusKey)?HJ_HQ_STATE.matchupFocusKey:openKey;
+  return `<div class="hq-matchup-switcher-shell" data-hq-matchup-switcher-shell><div class="hq-matchup-switcher" role="navigation" aria-label="Week ${week} matchup switcher">${metas.map(meta=>`<button type="button" class="hq-matchup-jump${meta.key===selected?' active':''}" data-hq-matchup-jump="${esc(meta.key)}" aria-label="${esc(meta.managerA)} versus ${esc(meta.managerB)}" aria-pressed="${meta.key===selected}">${hjMatchupJumpAvatarV32(meta.managerA)}<span class="hq-matchup-jump-vs">VS</span>${hjMatchupJumpAvatarV32(meta.managerB)}</button>`).join('')}</div></div>`;
+}
+function hjCenterMatchupJumpChipV32(key){
+  const rail=document.querySelector('#hq-matchup-content .hq-matchup-switcher');
+  if(!rail)return;
+  const chip=[...rail.querySelectorAll('[data-hq-matchup-jump]')].find(item=>item.dataset.hqMatchupJump===key);
+  if(!chip)return;
+  const left=Math.max(0,chip.offsetLeft-(rail.clientWidth-chip.offsetWidth)/2);
+  rail.scrollTo({left,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+}
+function hjScrollToMatchupV32(key){
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const target=[...document.querySelectorAll('#hq-matchup-content [data-hq-matchup-key]')].find(card=>card.dataset.hqMatchupKey===key);
+    if(!target)return;
+    document.querySelectorAll('#hq-matchup-content .hq-matchup.is-switch-selected').forEach(card=>card.classList.remove('is-switch-selected'));
+    target.classList.add('is-switch-selected');
+    hjCenterMatchupJumpChipV32(key);
+    const navH=document.querySelector('body > nav')?.getBoundingClientRect().height||43;
+    const switchH=document.querySelector('#hq-matchup-content .hq-matchup-switcher-shell')?.getBoundingClientRect().height||50;
+    const top=window.scrollY+target.getBoundingClientRect().top-navH-switchH-8;
+    window.scrollTo({top:Math.max(0,top),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+  }));
+}
+
+const hjMatchupCenterPanelHTMLV32Base=hjMatchupCenterPanelHTML;
+hjMatchupCenterPanelHTML=function(data){
+  const week=HJ_HQ_STATE.matchupWeek||hjCurrentWeek(data),view=HJ_HQ_STATE.matchupView;
+  if(view!=='week')return hjMatchupCenterPanelHTMLV32Base(data);
+  const source=hjScheduleWeekSource(data,week),placeholder=source.usingPrevious||(data?.teams||[]).every(team=>!hjRosterEntries(team).length),phase=`Week ${week}${week>=10?' · Rematch':' · Matchups'}`;
+  const cards=source.games.length?`<div class="hq-matchup-list">${source.games.map(game=>hjMatchupCardHTML(game,source.sourceData,data,placeholder)).join('')}</div>`:`<div class="hq-empty">Week ${week} matchups will appear when the schedule loads.</div>`;
+  const switcher=hjMatchupSwitcherHTMLV32(source,data,week);
+  return `<div class="hq-matchup-schedule"><div class="schedule-topbar"><div class="schedule-phase"><div class="schedule-phase-k">${esc(phase)}</div></div><div class="schedule-view-tabs"><button type="button" class="schedule-view-tab active" data-hq-schedule-view="week">Week</button><button type="button" class="schedule-view-tab" data-hq-schedule-view="matrix">Full schedule</button></div></div><div class="schedule-weeknav">${hjMatchupScheduleButtonsHTML(week)}</div>${switcher}<div class="schedule-week-panel">${cards}</div><div class="schedule-playoff-runway"><div class="schedule-playoff-label">Playoffs</div><div class="schedule-playoff-step"><b>W15 · Round 1</b></div><div class="schedule-playoff-step"><b>W16 · Round 2</b></div></div></div>`;
+};
+
+const hjMatchupToolsV32=document.querySelector('#league-hq-tools');
+if(hjMatchupToolsV32&&!window.__hjMatchupQuickSwitcherV32){
+  window.__hjMatchupQuickSwitcherV32=true;
+  hjMatchupToolsV32.addEventListener('click',event=>{
+    const jump=event.target.closest?.('[data-hq-matchup-jump]');
+    if(jump){
+      event.preventDefault();
+      event.stopPropagation();
+      const key=jump.dataset.hqMatchupJump||'',week=Number(String(key).split(':')[0])||HJ_HQ_STATE.matchupWeek||hjCurrentWeek(HJ_LEAGUE_STATE.data);
+      if(!key)return;
+      HJ_HQ_STATE.matchupFocusKey=key;
+      [...HJ_HQ_STATE.openMatchups].forEach(openKey=>{if(String(openKey).startsWith(`${week}:`))HJ_HQ_STATE.openMatchups.delete(openKey)});
+      HJ_HQ_STATE.openMatchups.add(key);
+      hjRenderMatchupCenter();
+      hjScrollToMatchupV32(key);
+      return;
+    }
+    const weekButton=event.target.closest?.('[data-hq-schedule-week]');
+    if(weekButton)HJ_HQ_STATE.matchupFocusKey='';
+    const viewButton=event.target.closest?.('[data-hq-schedule-view]');
+    if(viewButton&&viewButton.dataset.hqScheduleView!=='week')HJ_HQ_STATE.matchupFocusKey='';
+    const toggle=event.target.closest?.('[data-hq-matchup-toggle]');
+    if(toggle){
+      const key=toggle.dataset.hqMatchupToggle||'';
+      HJ_HQ_STATE.matchupFocusKey=HJ_HQ_STATE.openMatchups.has(key)?'':key;
+    }
+  },true);
+}
+
+requestAnimationFrame(()=>{if(HJ_LEAGUE_STATE?.data&&HJ_HQ_STATE?.activeTab==='matchups')try{hjRenderMatchupCenter()}catch(error){console.warn('Matchup quick switcher render failed',error)}});
+</script>
+
+
+<style id="hj-matchup-quick-switcher-v33">
+/* V33: center the rail, make the selected pill unmistakable, and fix the
+   ancestor overflow that prevented Safari from honoring position:sticky. */
+#league-sync-shell.hj-matchup-sticky-open{
+  overflow:visible!important;
+}
+#league-sync-shell.hj-matchup-sticky-open>.league-sync-top{
+  border-radius:13px 13px 0 0;
+}
+#league-sync-shell.hj-matchup-sticky-open #league-hq-tools{
+  border-radius:0 0 13px 13px;
+}
+#league-sync-shell.hj-matchup-sticky-open #hq-panel-matchups,
+#league-sync-shell.hj-matchup-sticky-open #hq-panel-matchups .hq-module,
+#league-sync-shell.hj-matchup-sticky-open #hq-panel-matchups .hq-module-body,
+#league-sync-shell.hj-matchup-sticky-open #hq-panel-matchups .hq-matchup-schedule{
+  overflow:visible!important;
+}
+.hq-matchup-switcher-shell{
+  top:var(--hj-matchup-sticky-top,42px)!important;
+  z-index:49!important;
+  background:rgba(247,243,232,.985)!important;
+}
+.hq-matchup-switcher{
+  scroll-padding-inline:calc(50% - 44px);
+}
+/* Flexible zero-width edge spacers center the pills when they fit, then
+   collapse away when they overflow so the rail remains fully scrollable. */
+.hq-matchup-switcher::before,
+.hq-matchup-switcher::after{
+  content:"";
+  flex:1 0 0;
+  min-width:0;
+}
+.hq-matchup-jump.active{
+  border:1px solid #2f6793!important;
+  padding:4px 7px!important;
+  background:#2f6793!important;
+  color:#fff!important;
+  box-shadow:0 2px 7px rgba(20,50,79,.20)!important;
+}
+.hq-matchup-jump.active .hq-matchup-jump-vs{
+  color:#fff!important;
+}
+.hq-matchup-jump.active .hq-matchup-jump-avatar{
+  border-color:rgba(255,255,255,.72)!important;
+}
+.hq-matchup-jump.active:hover{
+  background:#2f6793!important;
+  border-color:#2f6793!important;
+}
+@media(max-width:620px){
+  .hq-matchup-jump.active{padding:4px 6px!important}
+}
+</style>
+<script id="hj-matchup-quick-switcher-v33-script">
+(function(){
+  if(window.__hjMatchupQuickSwitcherV33)return;
+  window.__hjMatchupQuickSwitcherV33=true;
+
+  function hjMatchupStickyStateV33(){
+    const shell=document.getElementById('league-sync-shell');
+    const panel=document.getElementById('hq-panel-matchups');
+    if(!shell)return;
+    const active=!!panel && !panel.hidden && HJ_HQ_STATE?.activeTab==='matchups' && HJ_HQ_STATE?.matchupView==='week';
+    shell.classList.toggle('hj-matchup-sticky-open',active);
+    const nav=document.querySelector('body > nav');
+    const navHeight=Math.ceil(nav?.getBoundingClientRect().height||42);
+    document.documentElement.style.setProperty('--hj-matchup-sticky-top',`${navHeight}px`);
+  }
+
+  function hjCenterMatchupRailV33(){
+    const rail=document.querySelector('#hq-matchup-content .hq-matchup-switcher');
+    if(!rail)return;
+    const selected=rail.querySelector('.hq-matchup-jump.active');
+    const left=selected
+      ? selected.offsetLeft-(rail.clientWidth-selected.offsetWidth)/2
+      : (rail.scrollWidth-rail.clientWidth)/2;
+    rail.scrollLeft=Math.max(0,left);
+  }
+
+  if(typeof hjRenderMatchupCenter==='function'){
+    const baseRender=hjRenderMatchupCenter;
+    hjRenderMatchupCenter=function(...args){
+      const result=baseRender.apply(this,args);
+      requestAnimationFrame(()=>{
+        hjMatchupStickyStateV33();
+        hjCenterMatchupRailV33();
+      });
+      return result;
+    };
+  }
+
+  if(typeof hjRenderHQTabs==='function'){
+    const baseTabs=hjRenderHQTabs;
+    hjRenderHQTabs=function(...args){
+      const result=baseTabs.apply(this,args);
+      requestAnimationFrame(hjMatchupStickyStateV33);
+      return result;
+    };
+  }
+
+  const refreshSticky=()=>requestAnimationFrame(hjMatchupStickyStateV33);
+  window.addEventListener('resize',refreshSticky,{passive:true});
+  window.addEventListener('orientationchange',refreshSticky,{passive:true});
+  requestAnimationFrame(()=>{
+    hjMatchupStickyStateV33();
+    hjCenterMatchupRailV33();
+  });
+})();
+</script>
+
+
+<style id="hj-matchup-live-statlines-v34-style">
+/* V34: keep matchup selection + Vegas projection in the site's navy palette. */
+.hq-matchup-jump.active,
+.hq-matchup-jump.active:hover{
+  background:var(--navy)!important;
+  border-color:var(--navy)!important;
+}
+.hq-matchup{--hq-vegas-proj:var(--navy)!important}
+
+/* Live/final box-score shorthand replaces the pregame game line. It is plain
+   text by design and may wrap at commas on narrow screens. */
+.hq-lineup-player-game.is-live-stats,
+.hq-lineup-player>.hq-lineup-player-game.is-live-stats,
+.hq-lineup-player.is-right>.hq-lineup-player-game.is-live-stats{
+  color:#627589!important;
+  font-weight:500!important;
+  font-style:normal!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+}
+</style>
+<script id="hj-matchup-live-statlines-v34-script">
+(function(){
+  if(window.__hjMatchupLiveStatlinesV34)return;
+  window.__hjMatchupLiveStatlinesV34=true;
+
+  const POS_ID={QB:'1',RB:'2',WR:'3',TE:'4',K:'5','D/ST':'16'};
+  const n=value=>{const v=Number(value);return Number.isFinite(v)?v:0};
+  const fmt=value=>{
+    const v=n(value);
+    return Number.isInteger(v)?String(v):String(Math.round(v*10)/10);
+  };
+
+  function scoringItems(){
+    const items=HJ_LEAGUE_STATE?.data?.settings?.scoringSettings?.scoringItems;
+    return Array.isArray(items)?items:[];
+  }
+  function scoringValue(statId,position){
+    const item=scoringItems().find(row=>Number(row?.statId)===Number(statId));
+    if(!item)return null;
+    const pid=POS_ID[String(position||'').toUpperCase()],overrides=item?.pointsOverrides;
+    if(pid&&overrides&&Object.prototype.hasOwnProperty.call(overrides,pid)){
+      const v=Number(overrides[pid]);
+      if(Number.isFinite(v))return v;
+    }
+    const v=Number(item?.points);
+    return Number.isFinite(v)?v:null;
+  }
+  function scoringActive(statId,position,fallback=true){
+    const value=scoringValue(statId,position);
+    return value==null?fallback:Math.abs(value)>.0000001;
+  }
+  function anyScoringActive(ids,position,fallback=true){
+    const items=scoringItems();
+    if(!items.length)return fallback;
+    return ids.some(id=>scoringActive(id,position,false));
+  }
+
+  function actualStatContext(entry,week,data=HJ_LEAGUE_STATE.data){
+    const id=String(hjPlayer(entry)?.id||entry?.playerId||'');
+    const liveEntry=(id&&typeof hjLiveScoringEntries==='function'?hjLiveScoringEntries(data,week).get(id):null)||entry;
+    const player=hjPlayer(liveEntry)||{},stats=Array.isArray(player?.stats)?player.stats:[];
+    const candidates=stats.filter(stat=>Number(stat?.scoringPeriodId)===Number(week)&&Number(stat?.statSourceId)===0&&Number.isFinite(Number(stat?.appliedTotal)));
+    const row=candidates.find(stat=>Number(stat?.statSplitTypeId)===1)||candidates[0]||null;
+    return {entry:liveEntry,row,stats:row?.stats||{}};
+  }
+
+  function liveFantasyStatLine(entry,week,position,team){
+    const {row,stats:s}=actualStatContext(entry,week);
+    if(!row)return '';
+    const gameState=hjPlayerGameState(team),hasRaw=Object.values(s).some(value=>Math.abs(n(value))>.0000001),applied=n(row.appliedTotal);
+    if(gameState==='pre'&&!hasRaw&&Math.abs(applied)<.0000001)return '';
+
+    const pos=String(position||'').toUpperCase(),parts=[];
+    const raw=id=>s?.[String(id)]??s?.[id];
+    const add=(id,label,{active=true,zero=false,value=null}={})=>{
+      if(!active)return;
+      const v=value==null?n(raw(id)):n(value);
+      if(!zero&&Math.abs(v)<.0000001)return;
+      parts.push(`${fmt(v)} ${label}`);
+    };
+
+    if(pos==='QB'){
+      add(3,'PY',{active:scoringActive(3,pos,true)});
+      add(24,'RY',{active:scoringActive(24,pos,true)});
+      add(42,'REY',{active:scoringActive(42,pos,false)});
+      add(53,'REC',{active:scoringActive(53,pos,false)});
+      add(4,'PTD',{active:scoringActive(4,pos,true)});
+      add(25,'RTD',{active:scoringActive(25,pos,true)});
+      add(43,'RETD',{active:scoringActive(43,pos,false)});
+      add(19,'P2',{active:scoringActive(19,pos,true)});
+      add(26,'R2',{active:scoringActive(26,pos,true)});
+      add(44,'RE2',{active:scoringActive(44,pos,false)});
+      add(20,'INT',{active:scoringActive(20,pos,true)});
+      add(72,'FUM',{active:scoringActive(72,pos,true)});
+    }else if(pos==='RB'||pos==='WR'||pos==='TE'){
+      add(24,'RY',{active:scoringActive(24,pos,true)});
+      add(53,'REC',{active:scoringActive(53,pos,true)});
+      add(42,'REY',{active:scoringActive(42,pos,true)});
+      add(3,'PY',{active:scoringActive(3,pos,false)});
+      add(25,'RTD',{active:scoringActive(25,pos,true)});
+      add(43,'RETD',{active:scoringActive(43,pos,true)});
+      add(4,'PTD',{active:scoringActive(4,pos,false)});
+      add(26,'R2',{active:scoringActive(26,pos,true)});
+      add(44,'RE2',{active:scoringActive(44,pos,true)});
+      add(19,'P2',{active:scoringActive(19,pos,false)});
+      add(20,'INT',{active:scoringActive(20,pos,false)});
+      add(72,'FUM',{active:scoringActive(72,pos,true)});
+    }else if(pos==='K'){
+      add(80,'FG<40',{active:scoringActive(80,pos,true)});
+      add(77,'FG40',{active:scoringActive(77,pos,true)});
+      add(74,'FG50+',{active:scoringActive(74,pos,true)});
+      add(86,'XP',{active:scoringActive(86,pos,true)});
+      add(85,'MFG',{active:scoringActive(85,pos,true)});
+      add(88,'MXP',{active:scoringActive(88,pos,true)});
+    }else if(pos==='D/ST'){
+      add(99,'SACK',{active:scoringActive(99,pos,true)});
+      add(95,'INT',{active:scoringActive(95,pos,true)});
+      add(96,'FR',{active:scoringActive(96,pos,true)});
+      add(98,'SFTY',{active:scoringActive(98,pos,true)});
+      add(97,'BLK',{active:scoringActive(97,pos,true)});
+      const tdRaw=raw(105);
+      const tdFallback=n(raw(93))+n(raw(101))+n(raw(102))+n(raw(103))+n(raw(104));
+      add(105,'TD',{active:anyScoringActive([93,94,101,102,103,104,105],pos,true),value:tdRaw==null?tdFallback:n(tdRaw)});
+      if(anyScoringActive([89,90,91,92,121,122,123,124,125],pos,true)&&raw(120)!=null)add(120,'PA',{zero:true});
+      if(anyScoringActive([128,129,130,131,132,133,134,135,136],pos,false)&&raw(127)!=null)add(127,'YA',{zero:true});
+    }
+
+    if(!parts.length){
+      if(pos==='QB')return `0 PY, 0 RY`;
+      if(pos==='RB')return `0 RY, 0 REC, 0 REY`;
+      if(pos==='WR'||pos==='TE')return `0 REC, 0 REY`;
+      if(pos==='K')return `0 FG, 0 XP`;
+      if(pos==='D/ST')return `0 SACK, 0 INT, 0 FR`;
+    }
+    return parts.join(', ');
+  }
+
+  hjLineupPlayerHTML=function(entry,week,right=false){
+    if(!entry)return '<div class="hq-lineup-empty" aria-hidden="true"></div>';
+    const player=hjPlayer(entry),id=player?.id||entry?.playerId||'',name=player?.fullName||player?.displayName||player?.name||'Player',position=hjPlayerPosition(entry),rank=hjPlayerRank(entry),team=hjPlayerTeam(entry),photo=hjPlayerPhoto(entry),p=hjProjectionPair(entry,week),actual=hjPlayerActualScore(entry,week),gameState=hjPlayerGameState(team),scoreFmt=value=>Number.isFinite(value)?pcFpts(value):'—',rankedPosition=`${position||'—'}${rank||''}`,displayName=hjLineupDisplayName(name,position),hasActual=Number.isFinite(actual),mainValue=hasActual?actual:p.espn;
+    const compactGame=hjLineupGameInfo(team).replace(/:00 ([AP])M\b/g,'$1').replace(/ ([AP])M\b/g,'$1');
+    const statLine=liveFantasyStatLine(entry,week,position,team),gameCopy=statLine||compactGame;
+    const scoreSub=`<span class="hq-lineup-score-sub"><span class="is-espn" aria-label="ESPN projection ${esc(scoreFmt(p.espn))}" title="ESPN projection">E ${scoreFmt(p.espn)}</span><span class="is-vegas" aria-label="Vegas projection ${esc(scoreFmt(p.vegas))}" title="Vegas projection">V ${scoreFmt(p.vegas)}</span></span>`;
+    const liveBadge=hasActual?`<small class="hq-lineup-live-label">${gameState==='post'?'FINAL':'LIVE'}</small>`:'';
+    return `<button class="hq-lineup-player${right?' is-right':''} pc-player-trigger" type="button" ${ffnPlayerDataAttrs({id,name,team,position,photo})} aria-label="Open ${esc(name)} player profile">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="ffnImageFallback(this)">`:`<span class="league-team-initials">${esc(hjInitials(name))}</span>`}<span class="hq-lineup-player-copy"><span class="hq-lineup-player-name" title="${esc(name)}">${esc(displayName)}</span><span class="hq-lineup-player-meta"><span class="hq-lineup-team-code">${esc(team)}</span><span class="hq-lineup-meta-dot">•</span><span class="hq-lineup-rank">${esc(rankedPosition)}</span></span></span><span class="hq-lineup-score${hasActual?' has-actual':''}">${liveBadge}<strong>${scoreFmt(mainValue)}</strong>${scoreSub}</span><span class="hq-lineup-player-game${statLine?' is-live-stats':''}">${esc(gameCopy)}</span></button>`;
+  };
+})();
+</script>
+
+
+<style id="pc-dual-projection-ranks-v35-style">
+/* V35: distinguish the two projection-rank sources without changing card geometry. */
+.pc-modal .pc-vegas-context .pc-rank-source-vegas{color:var(--navy)!important}
+.pc-modal .pc-vegas-context .pc-rank-source-espn{color:var(--navy)!important}
+.pc-modal .pc-vegas-context .pc-rank-source-vegas b,
+.pc-modal .pc-vegas-context .pc-rank-source-espn b{font-weight:900!important;color:inherit!important}
+</style>
+<script id="pc-dual-projection-ranks-v35-script">
+(function(){
+  if(window.__pcDualProjectionRanksV35)return;
+  window.__pcDualProjectionRanksV35=true;
+
+  function espnPoolProjectionRank(row,position,period,week,espnValue){
+    if(!row||!Number.isFinite(Number(espnValue))||typeof HJ_ESPN_HQ_POOL==='undefined')return null;
+    const pos=String(position||'').toUpperCase(),targetName=String(row?.name||''),targetValue=Number(espnValue);
+    const pool=[];
+    HJ_ESPN_HQ_POOL.byId?.forEach?.(entry=>{
+      if(typeof hjEspnPoolPosition==='function'&&hjEspnPoolPosition(entry)!==pos)return;
+      const player=typeof hjEspnPoolEntryPlayer==='function'?hjEspnPoolEntryPlayer(entry):(entry?.player||entry?.playerPoolEntry?.player||{}),name=player?.fullName||player?.displayName||player?.name||'';
+      pool.push({entry,id:typeof hjEspnPoolEntryId==='function'?hjEspnPoolEntryId(entry):String(player?.id||entry?.id||''),name});
+    });
+    if(!pool.length)return null;
+
+    /* ESPN's current-week Kona response can expose its positionalRanking in
+       ratings even when that same pooled entry does not carry a weekly stat row.
+       V35 required the stat row, so the weekly ESPN chip vanished while the
+       player's numeric ESPN projection still rendered. Use ESPN's own weekly
+       positionalRanking first, then fall back to sorting projection values. */
+    if(period==='week'){
+      const target=pool.find(item=>targetName&&typeof pcNameMatch==='function'&&pcNameMatch(item.name,targetName));
+      const localEntry=!target&&typeof pcFindLeagueProjectionEntry==='function'?pcFindLeagueProjectionEntry({name:targetName}):null;
+      const targetEntry=target?.entry||localEntry||null,targetId=target?.id||(targetEntry&&typeof hjEspnPoolEntryId==='function'?hjEspnPoolEntryId(targetEntry):'');
+      const pooledRank=targetId?Number(HJ_ESPN_HQ_POOL.rankById?.get?.(String(targetId))):NaN;
+      const directRank=Number.isFinite(pooledRank)&&pooledRank>0?pooledRank:(targetEntry&&typeof hjEspnPoolDirectRank==='function'?Number(hjEspnPoolDirectRank(targetEntry,week)):NaN);
+      if(Number.isFinite(directRank)&&directRank>0)return {rank:directRank,total:pool.length};
+    }
+
+    const peers=[];
+    pool.forEach(item=>{
+      const value=typeof pcEspnProjectionStat==='function'?pcEspnProjectionStat(item.entry,period,week):null;
+      if(!Number.isFinite(value))return;
+      peers.push({name:item.name,value:Number(value)});
+    });
+    if(!peers.length)return null;
+    peers.sort((a,b)=>b.value-a.value||String(a.name).localeCompare(String(b.name)));
+    let index=peers.findIndex(item=>targetName&&typeof pcNameMatch==='function'&&pcNameMatch(item.name,targetName));
+    if(index<0){
+      index=peers.findIndex(item=>Math.abs(item.value-targetValue)<0.0001);
+      if(index<0){
+        const rank=1+peers.filter(item=>item.value>targetValue).length;
+        return {rank,total:peers.length+1};
+      }
+    }
+    return {rank:index+1,total:peers.length};
+  }
+
+  const baseVegasPanel=pcVegasPanel;
+  pcVegasPanel=function(label,row,position,context,espnValue=null){
+    const html=baseVegasPanel(label,row,position,context,espnValue);
+    if(!html||!context)return html;
+    const week=typeof hjCurrentWeek==='function'?hjCurrentWeek(HJ_LEAGUE_STATE?.data):1,period=label==='Season'?'season':'week',espnRank=period==='season'?espnPoolProjectionRank(row,position,period,week,espnValue):null;
+    const posLabel=`${position}s`;
+    const vegasRank=`<span class="pc-rank-source-vegas"><b>Vegas</b> #${context.rank} of ${context.total} ${esc(posLabel)}</span>`;
+    const espnRankHtml=espnRank?`<span class="pc-rank-source-espn"><b>ESPN</b> #${espnRank.rank} of ${espnRank.total} ${esc(posLabel)}</span>`:'';
+    const original=`<span>#${context.rank} of ${context.total} ${esc(posLabel)}</span>`;
+    return html.replace(original,vegasRank+espnRankHtml);
+  };
+
+  /* K and D/ST already use ESPN-only projection panels. Label their existing
+     rank explicitly so the source language is consistent across every position. */
+  const baseSpecialPanel=pcSpecialProjectionPanel;
+  pcSpecialProjectionPanel=function(label,data,entry,period,week){
+    const html=baseSpecialPanel(label,data,entry,period,week);
+    if(!html||!entry)return html;
+    const position=pcSpecialPosition(entry),context=pcSpecialProjectionRank(data,entry,period,week);
+    if(!context)return html;
+    const posLabel=`${position}${position==='K'?'s':''}`;
+    const original=`<span>#${context.rank} of ${context.total} ${esc(posLabel)}</span>`;
+    const replacement=`<span class="pc-rank-source-espn"><b>ESPN</b> #${context.rank} of ${context.total} ${esc(posLabel)}</span>`;
+    return html.replace(original,replacement);
+  };
+
+  /* Do not make the projection cards wait on a cold full-player-pool request.
+     Render immediately, load the pool in parallel, then repaint once if needed.
+     On normal League HQ use the pool is already warm, so there is only one pass. */
+  const baseRenderVegas=pcRenderVegas;
+  pcRenderVegas=async function(player,root,token){
+    const position=String(player?.position||'').toUpperCase();
+    if(['K','D/ST'].includes(position))return baseRenderVegas(player,root,token);
+    const week=typeof hjCurrentWeek==='function'?hjCurrentWeek(HJ_LEAGUE_STATE?.data):1;
+    const expectedPoolKey=`${HJ_LEAGUE_SEASON}:${week}`;
+    /* A season-slice Kona load can also leave 150+ players in this shared pool.
+       That is enough for season ranks but not weekly ranks. Only treat the pool
+       as ready when it was explicitly hydrated for the current scoring week. */
+    const poolReady=typeof HJ_ESPN_HQ_POOL!=='undefined'&&HJ_ESPN_HQ_POOL?.key===expectedPoolKey&&HJ_ESPN_HQ_POOL?.byId?.size>150;
+    if(poolReady||typeof hjEnsureEspnHqPool!=='function')return baseRenderVegas(player,root,token);
+    const poolPromise=Promise.resolve(hjEnsureEspnHqPool(HJ_LEAGUE_STATE?.data)).catch(()=>null);
+    await baseRenderVegas(player,root,token);
+    await poolPromise;
+    if(!pcActive||token!==pcActive.token)return;
+    return baseRenderVegas(player,root,token);
+  };
+})();
+</script>
+
+
+<script id="pc-weekly-espn-rank-v39-script">
+(function(){
+  if(window.__pcWeeklyEspnRankV39)return;
+  window.__pcWeeklyEspnRankV39=true;
+
+  /* V39 ranks weekly ESPN projections from the site's already-proven Players
+     directory hydration path, not the ID-batch payload used by V38. Owned
+     players come directly from the live league roster; free agents come from
+     the same current-week ESPN pool used to populate their directory cards. */
+  const rankCache=new Map();
+  const CACHE_MS=5*60*1000;
+  const isFiniteNumber=value=>typeof value==='number'&&Number.isFinite(value);
+
+  function visibleEspnWeekValue(target){
+    const text=target?.querySelector('.pc-vegas-espn-sub b')?.textContent||'';
+    const value=Number(String(text).replace(/[^0-9.-]/g,''));
+    return Number.isFinite(value)?value:null;
+  }
+
+  function ensureDirectoryRows(data){
+    if(typeof HJ_PLAYER_DIRECTORY==='undefined'||!data)return [];
+    const expected=typeof hjDirectoryDataKey==='function'?hjDirectoryDataKey(data):'';
+    if(!Array.isArray(HJ_PLAYER_DIRECTORY.rows)||!HJ_PLAYER_DIRECTORY.rows.length||(expected&&HJ_PLAYER_DIRECTORY.dataKey!==expected)){
+      if(typeof hjDirectoryBase==='function')hjDirectoryBase(data);
+    }
+    return Array.isArray(HJ_PLAYER_DIRECTORY.rows)?HJ_PLAYER_DIRECTORY.rows:[];
+  }
+
+  function applyOwnedWeeklyValues(rows,position,week,data){
+    const pos=String(position||'').toUpperCase(),byId=new Map(rows.map(row=>[String(row?.id||''),row]));
+    (data?.teams||[]).forEach(team=>{
+      hjRosterEntries(team).forEach(entry=>{
+        if(hjPlayerPosition(entry)!==pos)return;
+        const id=String(hjPlayer(entry)?.id||entry?.playerId||''),row=byId.get(id);
+        if(!row)return;
+        const value=pcEspnProjectionStat(entry,'week',week);
+        if(isFiniteNumber(value))row.espnWeekFpts=value;
+      });
+    });
+  }
+
+  function poolSnapshot(rows,position){
+    const pos=String(position||'').toUpperCase(),values=new Map();
+    rows.forEach(row=>{
+      if(String(row?.position||'').toUpperCase()!==pos)return;
+      const id=String(row?.id||'');
+      if(id&&isFiniteNumber(row?.espnWeekFpts))values.set(id,row.espnWeekFpts);
+    });
+    const nums=[...values.values()],positive=nums.filter(value=>value>0.01),distinct=new Set(positive.map(value=>Number(value).toFixed(2)));
+    return {values,total:values.size,positive:positive.length,distinct:distinct.size};
+  }
+
+  async function weeklyProjectionPool(position,week){
+    const data=HJ_LEAGUE_STATE?.data,pos=String(position||'').toUpperCase();
+    if(!data)return {values:new Map(),total:0,valid:false};
+    const key=`${HJ_LEAGUE_SEASON}:${week}:${pos}`;
+    const cached=rankCache.get(key);
+    if(cached&&Date.now()-cached.at<CACHE_MS)return cached.promise;
+
+    const promise=(async()=>{
+      const rows=ensureDirectoryRows(data);
+      if(!rows.length)return {values:new Map(),total:0,valid:false};
+      applyOwnedWeeklyValues(rows,pos,week,data);
+
+      /* This is the exact free-agent pool path that already populates the
+         Players directory's weekly ESPN column successfully. */
+      if(typeof hjDirectoryFetchEspnFreeAgentPool==='function'){
+        try{await hjDirectoryFetchEspnFreeAgentPool(false)}catch(error){console.warn('Weekly ESPN rank free-agent pool unavailable',error)}
+      }
+      applyOwnedWeeklyValues(rows,pos,week,data);
+
+      let snapshot=poolSnapshot(rows,pos);
+      /* If the directory was rebuilt after an earlier pool request, force one
+         re-application. This is still the directory source, not V38's batch. */
+      if(snapshot.positive<6&&typeof hjDirectoryFetchEspnFreeAgentPool==='function'){
+        try{await hjDirectoryFetchEspnFreeAgentPool(true)}catch(error){console.warn('Weekly ESPN rank pool refresh unavailable',error)}
+        applyOwnedWeeklyValues(rows,pos,week,data);
+        snapshot=poolSnapshot(rows,pos);
+      }
+
+      /* Fill only genuinely missing rows through the directory's own player-card
+         fallback. It writes the resolved values back to espnWeekFpts. */
+      const missing=rows.filter(row=>String(row?.position||'').toUpperCase()===pos&&Number(row?.id)>0&&!isFiniteNumber(row?.espnWeekFpts));
+      if(missing.length&&typeof hjDirectoryFetchEspnPlayerCards==='function'){
+        try{await hjDirectoryFetchEspnPlayerCards(missing)}catch(error){console.warn('Weekly ESPN rank player-card fallback unavailable',error)}
+        applyOwnedWeeklyValues(rows,pos,week,data);
+        snapshot=poolSnapshot(rows,pos);
+      }
+
+      /* Never publish a rank from a collapsed zero-only pool. The old code did
+         exactly that and made everyone #1. Better no chip than fake certainty. */
+      const minimumPositive=pos==='QB'?4:6;
+      snapshot.valid=snapshot.positive>=minimumPositive&&snapshot.distinct>=3;
+      return snapshot;
+    })().catch(error=>{console.warn('Weekly ESPN projection ranking unavailable',error);return {values:new Map(),total:0,valid:false}});
+    rankCache.set(key,{at:Date.now(),promise});
+    return promise;
+  }
+
+  function injectWeeklyRank(target,position,rank,total){
+    const context=target?.querySelector('.pc-vegas-context');
+    if(!context)return;
+    context.querySelectorAll('.pc-rank-source-espn').forEach(node=>node.remove());
+    if(!Number.isFinite(rank)||rank<1||!Number.isFinite(total)||total<1)return;
+    const vegas=context.querySelector('.pc-rank-source-vegas')||context.firstElementChild;
+    const chip=document.createElement('span');
+    chip.className='pc-rank-source-espn';
+    const pos=String(position||'').toUpperCase(),posLabel=pos==='D/ST'?'D/ST':`${pos}s`;
+    chip.innerHTML=`<b>ESPN</b> #${rank} of ${total} ${esc(posLabel)}`;
+    if(vegas?.nextSibling)context.insertBefore(chip,vegas.nextSibling);else context.appendChild(chip);
+  }
+
+  const baseRenderVegasV39=pcRenderVegas;
+  pcRenderVegas=async function(player,root,token){
+    const result=await baseRenderVegasV39(player,root,token);
+    const position=String(player?.position||'').toUpperCase();
+    if(['K','D/ST'].includes(position))return result;
+    const target=root?.querySelector?.('[data-pc-vegas-week]');
+    if(!target||!pcActive||token!==pcActive.token)return result;
+
+    /* Remove any stale weekly ESPN chip from earlier rank implementations before
+       doing fresh math. Season chips live in a different target and are untouched. */
+    target.querySelectorAll('.pc-rank-source-espn').forEach(node=>node.remove());
+    const targetValue=visibleEspnWeekValue(target);
+    if(!Number.isFinite(targetValue))return result;
+
+    const week=typeof hjCurrentWeek==='function'?Math.max(1,Number(hjCurrentWeek(HJ_LEAGUE_STATE?.data)||1)):1;
+    const pool=await weeklyProjectionPool(position,week);
+    if(!pcActive||token!==pcActive.token||!pool.valid)return result;
+
+    const id=String(player?.id||''),values=[...pool.values.entries()],greater=values.filter(([peerId,value])=>peerId!==id&&Number(value)>targetValue+1e-9).length;
+    const total=pool.values.has(id)?pool.total:pool.total+1;
+    injectWeeklyRank(target,position,1+greater,total);
+    return result;
+  };
+})();
+</script>
+
+
+
+<style id="hj-players-directory-overhaul-v40-css">
+/* ======================================================================
+   PLAYERS DIRECTORY OVERHAUL V40
+   Compact controls, ranked rows, live actuals, owner avatars, and a
+   per-position sortable stat rail. Scoped to League HQ > Players only.
+   ====================================================================== */
+#league-sync-shell.hj-players-sticky-open{overflow:visible!important}
+#league-sync-shell.hj-players-sticky-open #hq-panel-free-agents,
+#league-sync-shell.hj-players-sticky-open #hq-panel-free-agents>.hq-module,
+#league-sync-shell.hj-players-sticky-open .hq-player-directory{overflow:visible!important}
+
+.hq-player-directory .hq40-controls{
+  position:sticky;
+  top:var(--hj40-sticky-top,42px);
+  z-index:48;
+  display:grid;
+  gap:6px;
+  padding:8px 10px 7px;
+  border-bottom:1px solid rgba(20,50,79,.12);
+  background:rgba(255,255,255,.985);
+  box-shadow:0 5px 12px rgba(12,34,56,.055);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+.hq40-control-top{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap}
+.hq40-control-top #hq-fa-search{
+  flex:0 1 210px!important;
+  width:210px!important;
+  min-width:145px!important;
+  max-width:210px!important;
+  height:31px!important;
+  padding:0 9px!important;
+  border-radius:7px!important;
+  font-size:9px!important;
+}
+.hq-player-directory .hq-player-availability{
+  flex:0 0 auto!important;
+  display:inline-flex!important;
+  width:auto!important;
+  max-width:none!important;
+  gap:2px!important;
+  padding:2px!important;
+  border-radius:7px!important;
+}
+.hq-player-directory .hq-player-availability button{
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:0!important;
+  height:27px!important;
+  padding:0 9px!important;
+  border-radius:5px!important;
+  font-size:7.3px!important;
+  line-height:1!important;
+  letter-spacing:.045em!important;
+}
+.hq40-proj-sort{display:inline-flex;align-items:center;gap:2px;flex:0 0 auto;padding:2px;border:1px solid var(--line);border-radius:7px;background:var(--paper-dim)}
+.hq40-proj-sort button,.hq40-reset{
+  appearance:none;-webkit-appearance:none;border:0;background:transparent;color:#617489;cursor:pointer;
+  height:27px;padding:0 7px;border-radius:5px;font:850 6.9px/1 var(--mono);letter-spacing:.045em;text-transform:uppercase;white-space:nowrap
+}
+.hq40-proj-sort button[aria-pressed="true"]{background:var(--navy);color:#fff}
+.hq40-reset{margin-left:auto;width:29px;padding:0;border:1px solid var(--line);background:#fff;color:var(--navy);font-size:12px}
+.hq40-reset:hover,.hq40-reset:focus-visible{border-color:var(--navy);outline:none}
+
+.hq40-position-rail,.hq40-period-rail{
+  display:flex;align-items:center;gap:3px;min-width:0;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain
+}
+.hq40-position-rail::-webkit-scrollbar,.hq40-period-rail::-webkit-scrollbar{display:none}
+.hq40-position-btn,.hq40-period-btn,.hq40-year-btn{
+  appearance:none;-webkit-appearance:none;flex:0 0 auto;border:1px solid rgba(20,50,79,.11);background:#fff;color:var(--navy);
+  height:25px;padding:0 9px;border-radius:999px;cursor:pointer;font:850 7px/1 var(--mono);letter-spacing:.055em;text-transform:uppercase;white-space:nowrap
+}
+.hq40-position-btn[aria-pressed="true"],.hq40-period-btn[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.hq40-stat-control-row{display:flex;align-items:center;gap:7px;min-width:0}
+.hq40-year-switch{display:inline-flex;align-items:center;gap:2px;flex:0 0 auto;padding:2px;border:1px solid var(--line);border-radius:7px;background:var(--paper-dim)}
+.hq40-year-btn{height:24px;padding:0 8px;border:0;border-radius:5px;background:transparent;color:#6b7d8f}
+.hq40-year-btn[aria-pressed="true"]{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(20,50,79,.10)}
+.hq40-period-rail{flex:1 1 auto;padding-right:2px}
+.hq40-period-btn{height:24px;padding:0 8px}
+.hq40-sort-chip{
+  appearance:none;-webkit-appearance:none;flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;height:27px;padding:0 7px 0 8px;
+  border:1px solid rgba(20,50,79,.18);border-radius:7px;background:var(--navy);color:#fff;cursor:pointer;white-space:nowrap
+}
+.hq40-sort-chip span{font:650 6.1px/1 var(--mono);letter-spacing:.045em;text-transform:uppercase;opacity:.72}
+.hq40-sort-chip b{font:900 7.2px/1 var(--mono);letter-spacing:.055em;text-transform:uppercase}
+.hq40-sort-chip i{font:800 14px/1 var(--sans);font-style:normal;opacity:.82}
+
+/* Ranked player cards. The stat rail gets its own full-width second row. */
+.hq-player-directory .hq-player-card.hq40-card{
+  display:grid!important;
+  grid-template-columns:30px minmax(220px,1.35fr) minmax(112px,.56fr) 108px 108px!important;
+  grid-template-rows:auto auto!important;
+  grid-template-areas:"rank identity owner week season" ". stats stats stats stats"!important;
+  align-items:center!important;
+  gap:6px 10px!important;
+  min-height:0!important;
+  padding:8px 11px 6px!important;
+  overflow:visible!important;
+}
+.hq40-list-rank{grid-area:rank;align-self:center;color:#8a98a6;font:900 9px/1 var(--mono);text-align:center;font-variant-numeric:tabular-nums}
+.hq40-card .hq-player-identity{grid-area:identity!important;grid-template-columns:39px minmax(0,1fr)!important;gap:8px!important;min-width:0!important}
+.hq40-card .hq-player-photo{width:39px!important;height:39px!important}
+.hq40-card .hq-player-name{font-size:11.5px!important;line-height:1.12!important}
+.hq40-card .hq-player-meta{margin-top:3px!important;font-size:7.2px!important;gap:4px!important}
+.hq40-card .hq-player-game{margin-top:2px!important;font-size:7.6px!important;line-height:1.12!important}
+.hq40-owner{
+  grid-area:owner;display:inline-flex;align-items:center;gap:6px;justify-self:start;min-width:0;max-width:100%;
+  color:var(--navy);font:800 7.5px/1.1 var(--mono);letter-spacing:.025em;white-space:nowrap
+}
+.hq40-owner .av{width:20px!important;height:20px!important;flex:0 0 20px!important;border-width:1px!important}
+.hq40-owner-name{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.hq40-owner.is-free{color:#347151}
+.hq40-owner.is-free::before{content:"";width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:#59a875}
+
+.hq40-card .hq-player-proj{min-width:0!important;padding:5px 5px 4px!important;border-radius:7px!important}
+.hq40-week-proj{grid-area:week}
+.hq40-season-proj{grid-area:season}
+.hq40-card .hq-player-proj-label{font-size:6.2px!important;letter-spacing:.06em!important}
+.hq40-card .hq-player-proj-main{margin-top:3px!important;font-size:16px!important;line-height:1!important}
+.hq40-card .hq-player-proj-main.is-actual{color:var(--win-green,#2e7d4f)!important}
+.hq40-card .hq-player-proj-sub{display:flex!important;align-items:baseline;justify-content:center;gap:3px;flex-wrap:wrap;margin-top:3px!important;font-size:6.1px!important;line-height:1.05!important}
+.hq40-card .hq40-proj-e{color:#B98A2E;font-weight:850}
+.hq40-card .hq40-proj-v{color:var(--navy);font-weight:850}
+.hq40-card .hq40-proj-dot{color:#9aa5ae}
+
+.hq40-stat-rail{
+  grid-area:stats;display:flex;align-items:stretch;gap:2px;min-width:0;overflow-x:auto;overflow-y:hidden;
+  padding:4px 0 0;border-top:1px solid rgba(20,50,79,.075);scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain
+}
+.hq40-stat-rail::-webkit-scrollbar{display:none}
+.hq40-stat-btn{
+  appearance:none;-webkit-appearance:none;flex:0 0 57px;min-width:57px;height:31px;padding:3px 4px;border:0;border-radius:5px;
+  background:transparent;color:var(--navy);cursor:pointer;text-align:left;transition:background .12s ease,color .12s ease
+}
+.hq40-stat-btn:hover,.hq40-stat-btn:focus-visible{background:var(--paper-dim);outline:none}
+.hq40-stat-btn.is-sort{background:var(--navy);color:#fff}
+.hq40-stat-btn small{display:block;font:800 5.8px/1 var(--mono);letter-spacing:.045em;text-transform:uppercase;white-space:nowrap;opacity:.63}
+.hq40-stat-btn strong{display:block;margin-top:4px;font:850 9.2px/1 var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;color:inherit}
+.hq40-stat-state{display:flex;align-items:center;min-height:31px;color:#8492a0;font:750 7px/1 var(--mono);letter-spacing:.045em;text-transform:uppercase}
+
+.hq-player-directory .hq-player-loadmore{padding:8px 10px!important}
+.hq-player-directory .hq-player-loadmore button{padding:7px 11px!important;font-size:7.5px!important}
+
+@media(max-width:980px){
+  .hq-player-directory .hq-player-card.hq40-card{grid-template-columns:28px minmax(190px,1.2fr) minmax(100px,.52fr) 100px 100px!important;gap:6px 8px!important}
+  .hq40-control-top #hq-fa-search{flex-basis:180px!important;width:180px!important}
+}
+@media(max-width:720px){
+  .hq-player-directory .hq40-controls{padding:7px 8px 6px!important;gap:5px!important}
+  .hq40-control-top{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
+  .hq40-control-top::-webkit-scrollbar{display:none}
+  .hq40-control-top #hq-fa-search{flex:0 0 155px!important;width:155px!important;min-width:155px!important}
+  .hq40-reset{margin-left:0!important;flex:0 0 29px}
+  .hq40-stat-control-row{gap:5px}
+  .hq40-sort-chip span{display:none}
+
+  .hq-player-directory .hq-player-card.hq40-card{
+    grid-template-columns:24px minmax(0,1fr) minmax(0,1fr)!important;
+    grid-template-rows:auto auto auto auto!important;
+    grid-template-areas:"rank identity identity" ". owner owner" ". week season" "stats stats stats"!important;
+    gap:5px 7px!important;padding:8px 8px 6px!important
+  }
+  .hq40-list-rank{font-size:8px!important}
+  .hq40-card .hq-player-identity{grid-template-columns:34px minmax(0,1fr)!important;gap:7px!important}
+  .hq40-card .hq-player-photo{width:34px!important;height:34px!important}
+  .hq40-card .hq-player-name{font-size:10.5px!important}
+  .hq40-owner{font-size:7px!important;gap:5px!important}
+  .hq40-owner .av{width:18px!important;height:18px!important;flex-basis:18px!important}
+  .hq40-card .hq-player-proj{padding:5px 4px 4px!important}
+  .hq40-card .hq-player-proj-main{font-size:14.5px!important}
+  .hq40-card .hq-player-proj-sub{font-size:5.8px!important;gap:2px!important}
+  .hq40-stat-rail{padding-top:4px!important}
+  .hq40-stat-btn{flex-basis:54px;min-width:54px;height:30px}
+  .hq40-stat-btn small{font-size:5.5px}.hq40-stat-btn strong{font-size:8.8px}
+}
+@media(max-width:430px){
+  .hq40-control-top #hq-fa-search{flex-basis:140px!important;width:140px!important;min-width:140px!important}
+  .hq-player-directory .hq-player-availability button{padding:0 7px!important;font-size:6.8px!important}
+  .hq40-proj-sort button{padding:0 6px;font-size:6.5px}
+  .hq40-position-btn,.hq40-period-btn{padding:0 8px;font-size:6.6px}
+  .hq40-year-btn{font-size:6.5px;padding:0 7px}
+  .hq-player-directory .hq-player-card.hq40-card{grid-template-columns:22px minmax(0,1fr) minmax(0,1fr)!important;gap:5px 6px!important;padding-left:6px!important;padding-right:6px!important}
+  .hq40-card .hq-player-name{font-size:10px!important}
+  .hq40-card .hq-player-game{font-size:7px!important}
+  .hq40-card .hq-player-proj-main{font-size:13.5px!important}
+}
+</style>
+<script id="hj-players-directory-overhaul-v40-js">
+(function(){
+  if(window.__hjPlayersDirectoryOverhaulV40)return;
+  window.__hjPlayersDirectoryOverhaulV40=true;
+
+  const CURRENT_SEASON=Number(typeof HJ_LEAGUE_SEASON!=='undefined'?HJ_LEAGUE_SEASON:new Date().getFullYear())||new Date().getFullYear();
+  const PREVIOUS_SEASON=CURRENT_SEASON-1;
+  const HJ40=window.HJ40_PLAYER_DIRECTORY={
+    year:CURRENT_SEASON,
+    period:'total',
+    statSort:'',
+    data:new Map(),
+    loading:new Map(),
+    rawCache:new Map(),
+    snapshotCache:new Map(),
+    actualLoading:null,
+    actualFetchedAt:0,
+    liveRepaintPending:false,
+    nflTeam:'ALL',
+    manager:'ALL'
+  };
+
+  const HJ40_SKILL_POS=new Set(['QB','RB','WR','TE','K']);
+  const HJ40_FIELDS=[...new Set([
+    ...(typeof PC_FIELDS!=='undefined'?PC_FIELDS:[]),
+    'passing_air_yards','fantasy_points','fantasy_points_ppr',
+    'def_tackles','def_tackles_solo','def_tackles_with_assist','def_tackle_assists','def_fumbles_forced','def_sacks','def_qb_hits','def_interceptions','def_tds',
+    'fumble_recovery_opp','def_fumble_recovery_opp','special_teams_tds','kickoff_return_tds'
+  ])];
+
+  const HJ40_DEFS={
+    QB:[['fpts','FPTS'],['snap','SNP%'],['passYd','PASS YD'],['rushYd','RUSH YD'],['passTd','PASS TD'],['rushTd','RUSH TD'],['passAtt','PASS ATT'],['int','INT'],['rush','RUSH'],['airYd','AIR YD'],['passRtg','PASS RTG'],['passCmp','PASS CMP'],['cmpPct','CMP PCT']],
+    RB:[['fpts','FPTS'],['snap','SNP%'],['rushYd','RUSH YD'],['recYd','REC YD'],['rushTd','RUSH TD'],['recTd','REC TD'],['rush','RUSH'],['rec','REC'],['catchPct','CATCH %'],['tgt','TAR'],['ydRec','YD/REC'],['ydTar','YD/TAR'],['ypc','YPC']],
+    WR:[['fpts','FPTS'],['snap','SNP%'],['rec','REC'],['recYd','REC YD'],['recTd','REC TD'],['tgt','TAR'],['ydRec','YD/REC'],['ydTar','YD/TAR'],['catchPct','CATCH %']],
+    TE:[['fpts','FPTS'],['snap','SNP%'],['rec','REC'],['recYd','REC YD'],['recTd','REC TD'],['tgt','TAR'],['ydRec','YD/REC'],['ydTar','YD/TAR'],['catchPct','CATCH%']],
+    K:[['fpts','FPTS'],['fgm','FGM'],['xpm','XPM'],['fgm60','FGM 60+'],['fgm50','FGM 50+'],['fga','FGA'],['fgPct','FGM%'],['xpa','XPA'],['fgm30','FGM 30-39'],['fgm40','FGM 40-49']],
+    'D/ST':[['fpts','FPTS'],['sack','SACK'],['defTd','DEF TD'],['krTd','KR TD'],['stTd','ST TD'],['ff','FF'],['int','INT'],['ptAlw','PT ALW'],['fumRec','FUM REC'],['tkl','TKL'],['qbHit','QB HIT']]
+  };
+  const HJ40_LABELS=new Map(Object.values(HJ40_DEFS).flat().map(([key,label])=>[key,label]));
+
+  function hj40Num(value){const n=Number(value);return Number.isFinite(n)?n:0}
+  function hj40Finite(value){const n=Number(value);return Number.isFinite(n)?n:null}
+  function hj40Pos(value){const p=String(value||'').toUpperCase();return p==='FB'||p==='HB'?'RB':p}
+  function hj40PlayerKey(player){return `${hj40Pos(player?.position)}|${pcBaseName(player?.name||player?.fullName||player?.displayName||'')}`}
+  function hj40CurrentWeek(){return Math.max(1,Number(hjCurrentWeek(HJ_LEAGUE_STATE?.data)||1))}
+  function hj40GameState(player){return typeof hjPlayerGameState==='function'?hjPlayerGameState(player?.team):'pre'}
+  function hj40GameStarted(player){return hj40GameState(player)!=='pre'}
+  function hj40IsCurrentYear(){return Number(HJ40.year)===CURRENT_SEASON}
+  function hj40PeriodWeek(){return /^w\d+$/.test(HJ40.period)?Number(HJ40.period.slice(1)):null}
+  function hj40StatDefs(player){return HJ40_DEFS[hj40Pos(player?.position)]||[]}
+  function hj40PositionSupportsStat(position,key){
+    if(!key||position==='ALL')return true;
+    const positions=position==='FLEX'?['RB','WR','TE']:[position];
+    return positions.some(pos=>(HJ40_DEFS[pos]||[]).some(([statKey])=>statKey===key));
+  }
+
+  function hj40FmtNumber(value,decimals=0){
+    if(!Number.isFinite(value))return '—';
+    if(decimals===0&&Math.abs(value-Math.round(value))<.0001)return String(Math.round(value));
+    return Number(value).toFixed(decimals).replace(/\.0$/,'');
+  }
+  function hj40FmtMetric(key,value,avgMode=false){
+    if(!Number.isFinite(value))return '—';
+    if(key==='fpts')return pcFpts(value);
+    if(['snap','catchPct','cmpPct','fgPct'].includes(key))return `${value.toFixed(1)}%`;
+    if(['ydRec','ydTar','ypc','passRtg'].includes(key))return value.toFixed(1);
+    return hj40FmtNumber(value,avgMode?1:0);
+  }
+  function hj40PasserRating(cmp,att,yd,td,intc){
+    if(!(att>0))return null;
+    const clamp=v=>Math.max(0,Math.min(2.375,v));
+    const a=clamp((cmp/att-.3)*5),b=clamp((yd/att-3)*.25),c=clamp(td/att*20),d=clamp(2.375-intc/att*25);
+    return (a+b+c+d)/6*100;
+  }
+
+  async function hj40FetchRawCsv(season){
+    season=Number(season);
+    if(HJ40.rawCache.has(season))return HJ40.rawCache.get(season);
+    const promise=(async()=>{
+      const embedded=typeof PC_EMBEDDED!=='undefined'&&PC_EMBEDDED?.stats?.[String(season)];
+      if(embedded)return pcEmbeddedCsv(embedded);
+      const base=`https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_${season}`;
+      if(season===CURRENT_SEASON){
+        if('DecompressionStream' in window){
+          try{const response=await fetch(`${base}.csv.gz`,{cache:'no-store'});if(response.ok){const stream=response.body.pipeThrough(new DecompressionStream('gzip'));return await new Response(stream).text()}}catch(_){ }
+        }
+        try{const response=await fetch(`${base}.csv`,{cache:'no-store'});if(response.ok)return response.text()}catch(_){ }
+        return '';
+      }
+      return pcFetchCsv(`${base}.csv.gz`,`${base}.csv`);
+    })();
+    HJ40.rawCache.set(season,promise);promise.catch(()=>HJ40.rawCache.delete(season));
+    return promise;
+  }
+
+  function hj40DefenseRecord(map,team,week){
+    const key=`${team}|${week}`;
+    if(!map.has(key))map.set(key,{team,week,fpts:null,sack:0,defTd:0,krTd:null,krKnown:false,stTd:0,ff:0,int:0,ptAlw:null,fumRec:0,tkl:0,qbHit:0});
+    return map.get(key);
+  }
+
+  function hj40BuildSeasonState(season,rows,snaps,dstEntries){
+    const byPlayer=new Map(),byName=new Map(),snapsByName=new Map(),dstByTeamWeek=new Map();let maxWeek=0;
+    if(snaps&&typeof snaps.values==='function'){for(const snap of snaps.values()){const name=pcBaseName(snap?.player||''),week=Number(snap?.week)||0;if(!name||!week)continue;if(!snapsByName.has(name))snapsByName.set(name,[]);snapsByName.get(name).push(snap);maxWeek=Math.max(maxWeek,week)}snapsByName.forEach(list=>list.sort((a,b)=>Number(a.week)-Number(b.week)))}
+    rows.forEach(raw=>{
+      const row={...raw,position:hj40Pos(raw.position||raw.position_group),team:pcTeam(raw.team),week:Number(raw.week)||0};
+      if(row.week>maxWeek)maxWeek=row.week;
+      const name=pcBaseName(row.player_display_name||row.player_name||'');
+      if(HJ40_SKILL_POS.has(row.position)&&name){
+        const key=`${row.position}|${name}`;if(!byPlayer.has(key))byPlayer.set(key,[]);byPlayer.get(key).push(row);
+        if(!byName.has(name))byName.set(name,[]);byName.get(name).push(row);
+      }
+      if(!row.team||!row.week)return;
+      const hasDefense=['def_tackles','def_tackles_solo','def_tackles_with_assist','def_tackle_assists','def_fumbles_forced','def_sacks','def_qb_hits','def_interceptions','def_tds','fumble_recovery_opp','def_fumble_recovery_opp','special_teams_tds','kickoff_return_tds'].some(key=>Object.prototype.hasOwnProperty.call(row,key));
+      if(!hasDefense)return;
+      const rec=hj40DefenseRecord(dstByTeamWeek,row.team,row.week);
+      rec.sack+=hj40Num(row.def_sacks);rec.defTd+=hj40Num(row.def_tds);rec.ff+=hj40Num(row.def_fumbles_forced);rec.int+=hj40Num(row.def_interceptions);rec.qbHit+=hj40Num(row.def_qb_hits);
+      rec.tkl+=Object.prototype.hasOwnProperty.call(row,'def_tackles')?hj40Num(row.def_tackles):(hj40Num(row.def_tackles_solo)+hj40Num(row.def_tackle_assists));
+      rec.fumRec+=Object.prototype.hasOwnProperty.call(row,'fumble_recovery_opp')?hj40Num(row.fumble_recovery_opp):hj40Num(row.def_fumble_recovery_opp);
+      rec.stTd+=hj40Num(row.special_teams_tds);
+      if(Object.prototype.hasOwnProperty.call(row,'kickoff_return_tds')){if(!rec.krKnown){rec.krTd=0;rec.krKnown=true}rec.krTd+=hj40Num(row.kickoff_return_tds)}
+    });
+    byPlayer.forEach(list=>list.sort((a,b)=>a.week-b.week));byName.forEach(list=>list.sort((a,b)=>a.week-b.week));
+
+    (dstEntries||[]).forEach(entry=>{
+      const team=pcTeam(pcDstTeam(entry));if(!team)return;
+      pcDstStats(entry).forEach(stat=>{
+        const week=Number(stat.scoringPeriodId)||0;if(!week)return;maxWeek=Math.max(maxWeek,week);
+        const rec=hj40DefenseRecord(dstByTeamWeek,team,week),s=stat.stats||{};
+        if(Number.isFinite(Number(stat.appliedTotal)))rec.fpts=Number(stat.appliedTotal);
+        if(s['120']!=null)rec.ptAlw=Number(s['120']);
+        if(!rec.sack&&s['99']!=null)rec.sack=hj40Num(s['99']);
+        if(!rec.int&&s['95']!=null)rec.int=hj40Num(s['95']);
+        if(!rec.fumRec&&s['96']!=null)rec.fumRec=hj40Num(s['96']);
+        if(!rec.defTd&&s['105']!=null)rec.defTd=hj40Num(s['105']);
+      });
+    });
+    const dstByTeam=new Map();dstByTeamWeek.forEach(rec=>{if(!dstByTeam.has(rec.team))dstByTeam.set(rec.team,[]);dstByTeam.get(rec.team).push(rec)});dstByTeam.forEach(list=>list.sort((a,b)=>a.week-b.week));
+    return {season,rows,snaps:snaps||new Map(),snapsByName,byPlayer,byName,dstByTeam,maxWeek,loadedAt:Date.now()};
+  }
+
+  async function hj40EnsureSeason(season,force=false){
+    season=Number(season);
+    const cached=HJ40.data.get(season),stale=season===CURRENT_SEASON&&cached&&Date.now()-cached.loadedAt>5*60*1000;
+    if(cached&&!force&&!stale)return cached;
+    if(HJ40.loading.has(season))return HJ40.loading.get(season);
+    if(force||stale){HJ40.rawCache.delete(season);HJ40.data.delete(season);HJ40.snapshotCache.clear();if(season===CURRENT_SEASON){try{if(typeof pcSnapCache!=='undefined'&&pcSnapCache?.delete)pcSnapCache.delete(season)}catch(_){}try{if(typeof pcDstCache!=='undefined'&&pcDstCache?.delete)pcDstCache.delete(season)}catch(_){}}}
+    const promise=(async()=>{
+      const [rawResult,snapResult,dstResult]=await Promise.allSettled([
+        hj40FetchRawCsv(season),
+        typeof pcLoadSnaps==='function'?pcLoadSnaps(season):Promise.resolve(new Map()),
+        typeof pcLoadDstSeason==='function'?pcLoadDstSeason(season):Promise.resolve([])
+      ]);
+      const text=rawResult.status==='fulfilled'?rawResult.value:'',snaps=snapResult.status==='fulfilled'?snapResult.value:new Map(),dst=dstResult.status==='fulfilled'?dstResult.value:[];
+      const rows=pcParseCsv(text,HJ40_FIELDS,row=>String(row.season_type||'REG').toUpperCase()==='REG');
+      const state=hj40BuildSeasonState(season,rows,snaps,dst);HJ40.data.set(season,state);HJ40.loading.delete(season);HJ40.snapshotCache.clear();
+      const currentWeeks=hj40AvailableWeeks();if(/^w\d+$/.test(HJ40.period)&&!currentWeeks.includes(Number(HJ40.period.slice(1))))HJ40.period='total';
+      requestAnimationFrame(()=>{hj40RefreshControls();if(HJ_HQ_STATE?.activeTab==='free-agents')hjRenderPlayerDirectory(false)});
+      return state;
+    })().catch(error=>{HJ40.loading.delete(season);console.warn('Player directory stat data unavailable',error);const state=hj40BuildSeasonState(season,[],new Map(),[]);HJ40.data.set(season,state);return state});
+    HJ40.loading.set(season,promise);return promise;
+  }
+
+  function hj40AvailableWeeks(){
+    const state=HJ40.data.get(Number(HJ40.year));
+    if(Number(HJ40.year)===PREVIOUS_SEASON)return Array.from({length:18},(_,i)=>i+1);
+    let max=state?.maxWeek||0;
+    if(Number(HJ40.year)===CURRENT_SEASON&&typeof NFL_WEEK1!=='undefined'&&Array.isArray(NFL_WEEK1)&&NFL_WEEK1.some(game=>game?.state==='in'||game?.state==='post'))max=Math.max(max,hj40CurrentWeek());
+    return Array.from({length:Math.max(0,Math.min(18,max))},(_,i)=>i+1);
+  }
+
+  function hj40RowsForPlayer(player,state){
+    if(!state)return [];
+    const key=hj40PlayerKey(player),name=pcBaseName(player?.name||'');
+    return state.byPlayer.get(key)||state.byName.get(name)||[];
+  }
+  function hj40SelectedRows(rows){const week=hj40PeriodWeek();return week?rows.filter(row=>Number(row.week)===week):rows}
+  function hj40Scale(value,games){return HJ40.period==='avg'&&games?value/games:value}
+  function hj40Average(values){const v=values.filter(Number.isFinite);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null}
+
+  function hj40SkillSnapshot(player,state){
+    const rows=hj40SelectedRows(hj40RowsForPlayer(player,state)),week=hj40PeriodWeek(),name=pcBaseName(player?.name||''),allSnaps=state?.snapsByName?.get(name)||[],selectedSnaps=week?allSnaps.filter(row=>Number(row.week)===week):allSnaps,gameWeeks=new Set([...rows.map(row=>Number(row.week)),...selectedSnaps.map(row=>Number(row.week))].filter(Boolean)),games=gameWeeks.size,isAvg=HJ40.period==='avg';
+    if(!rows.length&&!selectedSnaps.length)return {values:{},games:0,isAvg};
+    const sum=key=>rows.reduce((n,row)=>n+hj40Num(row[key]),0),scale=v=>hj40Scale(v,games),snapValues=(selectedSnaps.length?selectedSnaps.map(row=>hj40Finite(row?.offense_pct)):rows.map(row=>hj40Finite(pcSnap(row,state.snaps)?.offense_pct))).filter(Number.isFinite);
+    const cmp=sum('completions'),att=sum('attempts'),passYd=sum('passing_yards'),passTd=sum('passing_tds'),intc=sum('passing_interceptions'),rushYd=sum('rushing_yards'),rushTd=sum('rushing_tds'),rush=sum('carries'),airYd=sum('passing_air_yards'),rec=sum('receptions'),recYd=sum('receiving_yards'),recTd=sum('receiving_tds'),tgt=sum('targets'),fgm=sum('fg_made'),fga=sum('fg_att'),xpm=sum('pat_made'),xpa=sum('pat_att'),fgm60=sum('fg_made_60_'),fgm50_59=sum('fg_made_50_59'),fgm30=sum('fg_made_30_39'),fgm40=sum('fg_made_40_49');
+    let fpts=rows.reduce((n,row)=>n+pcPoints(row),0);if(isAvg&&games)fpts/=games;
+    const liveWeek=hj40PeriodWeek(),currentWeek=hj40CurrentWeek();if(Number(HJ40.year)===CURRENT_SEASON&&liveWeek===currentWeek&&player?._actualWeekSeen&&Number.isFinite(player.actualWeekFpts))fpts=player.actualWeekFpts;
+    const values={
+      fpts,snap:(()=>{const v=hj40Average(snapValues);return Number.isFinite(v)?v*100:null})(),
+      passYd:scale(passYd),rushYd:scale(rushYd),passTd:scale(passTd),rushTd:scale(rushTd),passAtt:scale(att),int:scale(intc),rush:scale(rush),airYd:scale(airYd),passRtg:hj40PasserRating(cmp,att,passYd,passTd,intc),passCmp:scale(cmp),cmpPct:att?cmp/att*100:null,
+      recYd:scale(recYd),recTd:scale(recTd),rec:scale(rec),catchPct:tgt?rec/tgt*100:null,tgt:scale(tgt),ydRec:rec?recYd/rec:null,ydTar:tgt?recYd/tgt:null,ypc:rush?rushYd/rush:null,
+      fgm:scale(fgm),xpm:scale(xpm),fgm60:scale(fgm60),fgm50:scale(fgm50_59+fgm60),fga:scale(fga),fgPct:fga?fgm/fga*100:null,xpa:scale(xpa),fgm30:scale(fgm30),fgm40:scale(fgm40)
+    };
+    return {values,games,isAvg};
+  }
+
+  function hj40DstSnapshot(player,state){
+    const all=state?.dstByTeam?.get(pcTeam(player?.team))||[],week=hj40PeriodWeek(),rows=week?all.filter(row=>Number(row.week)===week):all,games=rows.length,isAvg=HJ40.period==='avg';
+    const sum=key=>{const vals=rows.map(row=>hj40Finite(row[key])).filter(Number.isFinite);return vals.length?vals.reduce((a,b)=>a+b,0):null},scale=v=>Number.isFinite(v)?hj40Scale(v,games):null;
+    let fpts=scale(sum('fpts'));if(Number(HJ40.year)===CURRENT_SEASON&&week===hj40CurrentWeek()&&player?._actualWeekSeen&&Number.isFinite(player.actualWeekFpts))fpts=player.actualWeekFpts;
+    const krVals=rows.map(row=>row.krKnown?hj40Finite(row.krTd):null).filter(Number.isFinite);
+    return {values:{fpts,sack:scale(sum('sack')),defTd:scale(sum('defTd')),krTd:krVals.length?scale(krVals.reduce((a,b)=>a+b,0)):null,stTd:scale(sum('stTd')),ff:scale(sum('ff')),int:scale(sum('int')),ptAlw:scale(sum('ptAlw')),fumRec:scale(sum('fumRec')),tkl:scale(sum('tkl')),qbHit:scale(sum('qbHit'))},games,isAvg};
+  }
+
+  function hj40Snapshot(player){
+    const state=HJ40.data.get(Number(HJ40.year));if(!state)return null;
+    const key=`${state.loadedAt}|${HJ40.year}|${HJ40.period}|${player?.id||player?.name}`;if(HJ40.snapshotCache.has(key))return HJ40.snapshotCache.get(key);
+    const raw=hj40Pos(player?.position)==='D/ST'?hj40DstSnapshot(player,state):hj40SkillSnapshot(player,state),out={};
+    hj40StatDefs(player).forEach(([statKey,label])=>{const value=hj40Finite(raw.values[statKey]);out[statKey]={key:statKey,label,value,display:hj40FmtMetric(statKey,value,raw.isAvg)}});
+    HJ40.snapshotCache.set(key,out);return out;
+  }
+
+  function hj40ProjectionScore(player,which){
+    if(which==='season')return Number.isFinite(player.espnSeasonFpts)?player.espnSeasonFpts:(Number.isFinite(player.vegasSeasonFpts)?player.vegasSeasonFpts:-Infinity);
+    return Number.isFinite(player.espnWeekFpts)?player.espnWeekFpts:(Number.isFinite(player.vegasWeekFpts)?player.vegasWeekFpts:-Infinity);
+  }
+
+  const originalDirectoryFilteredRows=hjDirectoryFilteredRows;
+  hjDirectoryFilteredRows=function(){
+    const query=hjNorm(HJ_HQ_STATE.query),teamFilter=String(HJ40.nflTeam||'ALL').toUpperCase(),rows=HJ_PLAYER_DIRECTORY.rows.filter(player=>
+      (HJ_HQ_STATE.position==='ALL'||player.position===HJ_HQ_STATE.position||(HJ_HQ_STATE.position==='FLEX'&&['RB','WR','TE'].includes(player.position)))&&
+      (teamFilter==='ALL'||pcTeam(player.team)===pcTeam(teamFilter))&&
+      (HJ40.manager==='ALL'||(player.ownership?.owned&&String(player.ownership?.owner||'')===String(HJ40.manager)))&&
+      (HJ_PLAYER_DIRECTORY.mode!=='free'||!player.ownership?.owned)&&
+      (!query||player.norm.includes(query)||hjNorm(player.team).includes(query)||hjNorm(player.ownership?.owner||'').includes(query))
+    );
+    rows.sort((a,b)=>{
+      if(HJ40.statSort){const av=hj40Snapshot(a)?.[HJ40.statSort]?.value,bv=hj40Snapshot(b)?.[HJ40.statSort]?.value,aa=Number.isFinite(av)?av:-Infinity,bb=Number.isFinite(bv)?bv:-Infinity;return bb-aa||a.name.localeCompare(b.name)}
+      if(HJ_HQ_STATE.sort==='name')return a.name.localeCompare(b.name);
+      if(HJ_HQ_STATE.sort==='rank'){const ar=Number(a.fantasyPositionRank)||9999,br=Number(b.fantasyPositionRank)||9999;return ar-br||a.position.localeCompare(b.position)||a.name.localeCompare(b.name)}
+      if(HJ_HQ_STATE.sort==='season')return hj40ProjectionScore(b,'season')-hj40ProjectionScore(a,'season')||a.name.localeCompare(b.name);
+      return hj40ProjectionScore(b,'week')-hj40ProjectionScore(a,'week')||a.name.localeCompare(b.name);
+    });
+    return rows;
+  };
+
+  function hj40ActualFromCurrentLeague(player){
+    if(!HJ_LEAGUE_STATE?.data||!hj40GameStarted(player))return null;
+    let hit=null;(HJ_LEAGUE_STATE.data.teams||[]).some(team=>hjRosterEntries(team).some(entry=>{
+      const same=hj40Pos(player.position)==='D/ST'?(hjPlayerPosition(entry)==='D/ST'&&pcTeam(hjPlayerTeam(entry))===pcTeam(player.team)):String(hjPlayer(entry)?.id||entry?.playerId||'')===String(player.id||'');
+      if(!same)return false;const value=hjPlayerActualScore(entry,hj40CurrentWeek());if(Number.isFinite(value)){hit=value;return true}return false;
+    }));return hit;
+  }
+  function hj40SyncOwnedActuals(){
+    HJ_PLAYER_DIRECTORY.rows.forEach(player=>{const value=hj40ActualFromCurrentLeague(player);if(Number.isFinite(value)){player.actualWeekFpts=value;player._actualWeekSeen=true}});
+  }
+
+  function hj40ProjectionBlock(player,period){
+    const isWeek=period==='week',espn=isWeek?player.espnWeekFpts:player.espnSeasonFpts,vegas=isWeek?player.vegasWeekFpts:player.vegasSeasonFpts,tried=!!player._espnTried;
+    const projTag='<span class="hq42-proj-tag">proj</span>';
+    if(isWeek&&hj40GameStarted(player)){
+      const actual=player._actualWeekSeen&&Number.isFinite(player.actualWeekFpts)?pcFpts(player.actualWeekFpts):'—',state=hj40GameState(player),label=state==='post'?'FINAL':'LIVE';
+      return `<div class="hq-player-proj hq40-week-proj is-live"><span class="hq-player-proj-label">${label}</span><span class="hq42-proj-primary"><strong class="hq-player-proj-main is-actual">${actual}</strong></span><span class="hq-player-proj-sub"><span class="hq40-proj-e">ESPN ${Number.isFinite(espn)?pcFpts(espn):'—'} ${projTag}</span><span class="hq40-proj-dot">·</span><span class="hq40-proj-v">Vegas ${Number.isFinite(vegas)?pcFpts(vegas):'—'} ${projTag}</span></span></div>`;
+    }
+    const main=Number.isFinite(espn)?pcFpts(espn):(!tried?'…':'—');
+    return `<div class="hq-player-proj ${isWeek?'hq40-week-proj':'hq40-season-proj'}"><span class="hq-player-proj-label">${isWeek?'THIS WEEK':'SEASON'}</span><span class="hq42-proj-primary"><strong class="hq-player-proj-main${!tried&&!Number.isFinite(espn)?' is-loading':''}">${main}</strong>${projTag}</span><span class="hq-player-proj-sub"><span class="hq40-proj-v">Vegas ${Number.isFinite(vegas)?pcFpts(vegas):'—'} ${projTag}</span></span></div>`;
+  }
+
+  function hj40StatRail(player){
+    if(HJ40.loading.has(Number(HJ40.year)))return `<div class="hq40-stat-rail"><span class="hq40-stat-state">Loading ${HJ40.year} stats…</span></div>`;
+    const snapshot=hj40Snapshot(player);if(!snapshot)return `<div class="hq40-stat-rail"><span class="hq40-stat-state">${HJ40.year} stats loading…</span></div>`;
+    const buttons=hj40StatDefs(player).map(([key,label])=>{const metric=snapshot[key],selected=HJ40.statSort===key;return `<button type="button" class="hq40-stat-btn${selected?' is-sort':''}" data-hq40-sort-stat="${esc(key)}" title="Sort by ${esc(label)}" aria-pressed="${selected}"><small>${esc(label)}</small><strong>${esc(metric?.display||'—')}</strong></button>`}).join('');
+    return `<div class="hq40-stat-rail" data-hq40-stat-rail="${esc(player.id||player.name)}">${buttons}</div>`;
+  }
+
+  hjDirectoryRowsHTML=function(){
+    hj40SyncOwnedActuals();HJ40.snapshotCache.clear();
+    const all=hjDirectoryFilteredRows(),visible=all.slice(0,HJ_PLAYER_DIRECTORY.renderLimit);
+    if(!visible.length)return `<div class="hq-empty">No players match those filters.</div>`;
+    const cards=visible.map((player,index)=>{
+      const own=player.ownership||hjOwnershipForPlayerLike(player),rank=player.fantasyPositionRank||hjFantasyRankForPlayer(player),rankLabel=rank?`${player.position}${rank}`:player.position,upcoming=pcUpcoming(player.team),game=upcoming?`${upcoming.day||''}${upcoming.day?' · ':''}${upcoming.location==='at'?'@':'vs'} ${upcoming.abbr}${upcoming.time?` · ${upcoming.time}`:''}`:'TBD',attrs=ffnPlayerDataAttrs(player),photo=player.photo?`<img class="hq-player-photo${player.position==='D/ST'?' is-defense':''}" src="${esc(player.photo)}" alt="" loading="lazy" onerror="ffnImageFallback(this)">`:`<span class="league-team-initials hq-player-photo">${esc(hjInitials(player.name))}</span>`,owner=own.owned?`<span class="hq40-owner">${av(own.owner,'hq40-owner-avatar')}<span class="hq40-owner-name">${esc(own.owner)}</span></span>`:`<span class="hq40-owner is-free"><span class="hq40-owner-name">Free agent</span></span>`;
+      return `<article class="hq-player-card hq40-card" data-hq-directory-id="${esc(player.id)}"><div class="hq41-player-head"><span class="hq40-list-rank">#${index+1}</span><button class="hq-player-identity pc-player-trigger" type="button" ${attrs} aria-label="Open ${esc(player.name)} player profile">${photo}<span><b class="hq-player-name">${esc(player.name)}</b><span class="hq-player-meta"><span>${esc(player.team||'FA')}</span><span>·</span><span class="hq-player-rank">${esc(rankLabel)}</span></span><span class="hq-player-game">${esc(game)}</span></span></button>${owner}</div>${hj40ProjectionBlock(player,'week')}${hj40ProjectionBlock(player,'season')}${hj40StatRail(player)}</article>`;
+    }).join('');
+    const more=all.length>visible.length?`<div class="hq-player-loadmore"><button type="button" data-hq-players-more>Show ${Math.min(36,all.length-visible.length)} more</button></div>`:'';
+    return `<div class="hq-player-list">${cards}</div>${more}<div class="hq-player-directory-note">List numbers follow the active filters and sort. Click any stat in a player row to rank the current filtered list by that stat.</div>`;
+  };
+
+  function hj40SortChip(){if(!HJ40.statSort)return '';const label=HJ40_LABELS.get(HJ40.statSort)||HJ40.statSort;return `<button type="button" class="hq40-sort-chip" data-hq40-clear-stat-sort title="Clear stat sort"><span>Sorting by</span><b>${esc(label)}</b><i>×</i></button>`}
+  function hj40ControlsHTML(){
+    const positions=['ALL','QB','RB','WR','TE','FLEX','K','D/ST'],weeks=hj40AvailableWeeks(),mode=HJ_PLAYER_DIRECTORY.mode;
+    const teams=[...new Set(HJ_PLAYER_DIRECTORY.rows.map(player=>pcTeam(player.team)).filter(team=>team&&team!=='FA'))].sort();
+    const managers=[...new Set((HJ_LEAGUE_STATE?.data?.teams||[]).map(team=>hjMatchManager(team,HJ_LEAGUE_STATE.data)||hjOwnerName(team,HJ_LEAGUE_STATE.data)).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    const periodButtons=[['total','Total'],['avg','Avg'],...weeks.map(week=>[`w${week}`,`W${week}`])];
+    const activeSort=HJ40.statSort?'stat':HJ_HQ_STATE.sort;
+    const statLabel=HJ40.statSort?(HJ40_LABELS.get(HJ40.statSort)||HJ40.statSort):'';
+    return `<div class="hq40-controls hq49-controls">
+      <div class="hq49-row hq49-row-primary">
+        <input class="hq-fa-control" id="hq-fa-search" type="search" placeholder="Search player" value="${esc(HJ_HQ_STATE.query)}" aria-label="Search players" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+        <div class="hq-player-availability" role="group" aria-label="Player availability"><button type="button" data-hq-player-availability="all" aria-pressed="${mode==='all'}">All Players</button><button type="button" data-hq-player-availability="free" aria-pressed="${mode==='free'}">Free Agents</button></div>
+      </div>
+      <div class="hq49-row hq49-row-selects">
+        <label class="hq49-select-wrap"><select class="hq49-select hq49-team-select" data-hq46-team-select aria-label="NFL team filter"><option value="ALL"${HJ40.nflTeam==='ALL'?' selected':''}>NFL Team</option>${teams.map(team=>`<option value="${esc(team)}"${HJ40.nflTeam===team?' selected':''}>${esc(team)}</option>`).join('')}</select></label>
+        <label class="hq49-select-wrap hq49-sort-wrap"><select class="hq49-select hq49-sort-select" data-hq49-sort-select aria-label="Sort players">${HJ40.statSort?`<option value="stat" selected>Stat: ${esc(statLabel)}</option>`:`<option value=""${activeSort==='week'?' selected':''} disabled>Sort By</option>`}<option value="week">This Week Proj</option><option value="season"${activeSort==='season'?' selected':''}>Season Proj</option><option value="rank"${activeSort==='rank'?' selected':''}>Pos Rank</option><option value="name"${activeSort==='name'?' selected':''}>Name</option></select>${HJ40.statSort?`<button type="button" class="hq49-stat-clear" data-hq40-clear-stat-sort aria-label="Clear ${esc(statLabel)} stat sort" title="Clear stat sort">×</button>`:''}</label>
+        <label class="hq49-select-wrap"><select class="hq49-select hq49-manager-select" data-hq49-manager-select aria-label="Filter by fantasy manager"><option value="ALL"${HJ40.manager==='ALL'?' selected':''}>Manager</option>${managers.map(name=>`<option value="${esc(name)}"${HJ40.manager===name?' selected':''}>${esc(name)}</option>`).join('')}</select></label>
+      </div>
+      <div class="hq49-row hq49-row-positions"><div class="hq40-position-rail" role="group" aria-label="Position filter">${positions.map(pos=>`<button type="button" class="hq40-position-btn" data-hq40-position="${esc(pos)}" aria-pressed="${HJ_HQ_STATE.position===pos}">${esc(pos)}</button>`).join('')}</div></div>
+      <div class="hq49-row hq49-row-period"><div class="hq40-year-switch" role="group" aria-label="Stat season"><button type="button" class="hq40-year-btn" data-hq40-year="${CURRENT_SEASON}" aria-pressed="${Number(HJ40.year)===CURRENT_SEASON}">${CURRENT_SEASON}</button><button type="button" class="hq40-year-btn" data-hq40-year="${PREVIOUS_SEASON}" aria-pressed="${Number(HJ40.year)===PREVIOUS_SEASON}">${PREVIOUS_SEASON}</button></div><div class="hq40-period-rail" role="group" aria-label="Stat period">${periodButtons.map(([key,label])=>`<button type="button" class="hq40-period-btn" data-hq40-period="${key}" aria-pressed="${HJ40.period===key}" title="${key==='total'?'Season Total':key==='avg'?'Season Average':`Week ${label.slice(1)}`}">${label}</button>`).join('')}</div></div>
+    </div>`;
+  }
+  hjDirectoryControlsHTML=hj40ControlsHTML;
+
+  function hj40RefreshControls(){
+    const module=document.querySelector('#hq-panel-free-agents .hq-player-directory');if(!module)return;
+    const current=module.querySelector('.hq40-controls'),old=module.querySelector('.hq-fa-controls,.hq-players-controls');
+    if(current)current.outerHTML=hj40ControlsHTML();else if(old)old.outerHTML=hj40ControlsHTML();
+    requestAnimationFrame(()=>{
+      const rail=module.querySelector('.hq40-position-rail'),active=rail?.querySelector('[aria-pressed="true"]');active?.scrollIntoView?.({block:'nearest',inline:'center'});
+    });
+  }
+
+  function hj40StickyState(){
+    const shell=document.getElementById('league-sync-shell'),panel=document.getElementById('hq-panel-free-agents');if(!shell)return;
+    const active=!!panel&&!panel.hidden&&HJ_HQ_STATE?.activeTab==='free-agents';shell.classList.toggle('hj-players-sticky-open',active);
+    const nav=document.querySelector('body > nav'),height=Math.ceil(nav?.getBoundingClientRect().height||42);document.documentElement.style.setProperty('--hj40-sticky-top',`${height}px`);
+  }
+
+  function hj40FindDirectoryRowByEntry(entry){
+    const id=String(hjEspnPoolEntryId(entry)||''),raw=hjEspnPoolEntryPlayer(entry),name=hjNorm(raw?.fullName||raw?.displayName||entry?.fullName||''),position=HJ_POSITION_IDS?.[raw?.defaultPositionId]||'';
+    if(position==='D/ST'){
+      const team=typeof pcSpecialTeam==='function'?pcTeam(pcSpecialTeam(entry)):'';if(team){const hit=HJ_PLAYER_DIRECTORY.rows.find(player=>player.position==='D/ST'&&pcTeam(player.team)===team);if(hit)return hit}
+    }
+    return (id&&HJ_PLAYER_DIRECTORY.rows.find(player=>String(player.id)===id))||(name&&HJ_PLAYER_DIRECTORY.rows.find(player=>player.norm===name))||null;
+  }
+  function hj40ApplyLiveEntry(entry){
+    const row=hj40FindDirectoryRowByEntry(entry);if(!row)return false;const week=hj40CurrentWeek(),raw=hjEspnPoolEntryPlayer(entry),stats=Array.isArray(raw?.stats)?raw.stats:[],actuals=stats.filter(stat=>Number(stat?.scoringPeriodId)===week&&Number(stat?.statSourceId)===0&&Number.isFinite(Number(stat?.appliedTotal))),actual=actuals.find(stat=>Number(stat?.statSplitTypeId)===0)||actuals.find(stat=>Number(stat?.statSplitTypeId)===1)||actuals[0];let changed=false;
+    if(actual){const value=Number(actual.appliedTotal);if(row.actualWeekFpts!==value||!row._actualWeekSeen){row.actualWeekFpts=value;row._actualWeekSeen=true;changed=true}}
+    else if(hj40GameStarted(row)){const applied=[entry?.appliedStatTotal,entry?.playerPoolEntry?.appliedStatTotal].map(Number).find(Number.isFinite);if(Number.isFinite(applied)){if(row.actualWeekFpts!==applied||!row._actualWeekSeen){row.actualWeekFpts=applied;row._actualWeekSeen=true;changed=true}}}
+    const proj=pcEspnProjectionStat(entry,'week',week);if(Number.isFinite(proj)&&row.espnWeekFpts!==proj){row.espnWeekFpts=proj;changed=true}
+    return changed;
+  }
+
+  async function hj40HydrateLiveActuals(force=false){
+    if(!HJ_LEAGUE_STATE?.data||HJ40.actualLoading)return HJ40.actualLoading;
+    const visibleIds=[...document.querySelectorAll('#hq-fa-results [data-hq-directory-id]')].map(node=>String(node.dataset.hqDirectoryId||'')).filter(Boolean),visible=visibleIds.map(id=>HJ_PLAYER_DIRECTORY.rows.find(player=>String(player.id)===id)).filter(player=>player&&hj40GameStarted(player));
+    if(!visible.length)return;
+    const now=Date.now();if(!force&&now-HJ40.actualFetchedAt<12000)return;
+    HJ40.actualFetchedAt=now;
+    HJ40.actualLoading=(async()=>{
+      const week=hj40CurrentWeek(),positive=visible.filter(player=>player.position!=='D/ST'&&Number(player.id)>0),url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${CURRENT_SEASON}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=${week}&view=kona_player_info`;let changed=false;
+      for(let i=0;i<positive.length;i+=30){
+        const ids=positive.slice(i,i+30).map(player=>Number(player.id)).filter(Number.isFinite);if(!ids.length)continue;
+        const filter={players:{filterIds:{value:ids},filterStatsForSourceIds:{value:[0,1]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${CURRENT_SEASON}`,`10${CURRENT_SEASON}`]}}};
+        try{const response=await fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}});if(response.ok){const payload=await response.json();(payload?.players||[]).forEach(entry=>{if(hj40ApplyLiveEntry(entry))changed=true})}}catch(_){ }
+      }
+      if(visible.some(player=>player.position==='D/ST')){
+        const filter={players:{filterSlotIds:{value:[16]},filterStatsForSourceIds:{value:[0,1]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${CURRENT_SEASON}`,`10${CURRENT_SEASON}`]},limit:100,offset:0}};
+        try{const response=await fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}});if(response.ok){const payload=await response.json();(payload?.players||[]).forEach(entry=>{if(hj40ApplyLiveEntry(entry))changed=true})}}catch(_){ }
+      }
+      HJ40.actualLoading=null;if(changed){HJ40.snapshotCache.clear();requestAnimationFrame(()=>{if(HJ_HQ_STATE?.activeTab==='free-agents')hjRenderPlayerDirectory(false)})}
+    })().catch(()=>{HJ40.actualLoading=null});return HJ40.actualLoading;
+  }
+
+  const baseRenderPlayerDirectory=hjRenderPlayerDirectory;
+  hjRenderPlayerDirectory=function(hydrate=true){
+    const scrolls=new Map([...document.querySelectorAll('#hq-fa-results [data-hq40-stat-rail]')].map(rail=>[String(rail.dataset.hq40StatRail||''),rail.scrollLeft||0]));
+    hj40SyncOwnedActuals();HJ40.snapshotCache.clear();const result=baseRenderPlayerDirectory.apply(this,arguments);
+    requestAnimationFrame(()=>{
+      scrolls.forEach((left,id)=>{const rail=[...document.querySelectorAll('#hq-fa-results [data-hq40-stat-rail]')].find(node=>String(node.dataset.hq40StatRail||'')===id);if(rail)rail.scrollLeft=left});
+      hj40StickyState();hj40EnsureSeason(Number(HJ40.year)).catch(()=>{});hj40HydrateLiveActuals(false).catch(()=>{});
+    });
+    return result;
+  };
+
+  const tools=document.getElementById('league-hq-tools');
+  tools?.addEventListener('click',event=>{
+    const pos=event.target.closest('[data-hq40-position]');if(pos){const next=pos.dataset.hq40Position||'ALL';HJ_HQ_STATE.position=next;HJ_PLAYER_DIRECTORY.renderLimit=36;if(HJ40.statSort&& !hj40PositionSupportsStat(next,HJ40.statSort))HJ40.statSort='';hj40RefreshControls();hjRenderPlayerDirectory(true);return}
+    const year=event.target.closest('[data-hq40-year]');if(year){HJ40.year=Number(year.dataset.hq40Year)||CURRENT_SEASON;HJ40.snapshotCache.clear();hj40RefreshControls();hjRenderPlayerDirectory(false);hj40EnsureSeason(HJ40.year).catch(()=>{});return}
+    const period=event.target.closest('[data-hq40-period]');if(period){HJ40.period=period.dataset.hq40Period||'total';HJ40.snapshotCache.clear();hj40RefreshControls();hjRenderPlayerDirectory(false);return}
+    const projectionSort=event.target.closest('[data-hq40-projection-sort]');if(projectionSort){HJ_HQ_STATE.sort=projectionSort.dataset.hq40ProjectionSort||'week';HJ40.statSort='';HJ_PLAYER_DIRECTORY.renderLimit=36;hj40RefreshControls();hjRenderPlayerDirectory(true);return}
+    const stat=event.target.closest('[data-hq40-sort-stat]');if(stat){HJ40.statSort=stat.dataset.hq40SortStat||'';HJ_PLAYER_DIRECTORY.renderLimit=36;hj40RefreshControls();hjRenderPlayerDirectory(false);return}
+    if(event.target.closest('[data-hq40-clear-stat-sort]')){HJ40.statSort='';HJ_HQ_STATE.sort='week';HJ_PLAYER_DIRECTORY.renderLimit=36;hj40RefreshControls();hjRenderPlayerDirectory(true);return}
+    if(event.target.closest('[data-hq40-reset]')){HJ_HQ_STATE.query='';HJ_HQ_STATE.position='ALL';HJ_HQ_STATE.sort='week';HJ_PLAYER_DIRECTORY.mode='all';HJ_PLAYER_DIRECTORY.renderLimit=36;HJ40.year=CURRENT_SEASON;HJ40.period='total';HJ40.statSort='';HJ40.nflTeam='ALL';HJ40.manager='ALL';HJ40.snapshotCache.clear();hj40RefreshControls();hjRenderPlayerDirectory(true);return}
+    if(event.target.closest('[data-hq-player-availability]'))requestAnimationFrame(()=>{HJ_PLAYER_DIRECTORY.renderLimit=36;hj40RefreshControls();hjRenderPlayerDirectory(true)});
+    if(event.target.closest('[data-hq-players-more]'))requestAnimationFrame(()=>hjRenderPlayerDirectory(true));
+    if(event.target.closest('[data-hq-tab]'))requestAnimationFrame(hj40StickyState);
+  },true);
+
+  tools?.addEventListener('change',event=>{
+    const teamSelect=event.target.closest('[data-hq46-team-select]');
+    if(teamSelect){HJ40.nflTeam=teamSelect.value||'ALL';HJ_PLAYER_DIRECTORY.renderLimit=36;hjRenderPlayerDirectory(true);return}
+    const sortSelect=event.target.closest('[data-hq49-sort-select]');
+    if(sortSelect&&sortSelect.value!=='stat'){HJ_HQ_STATE.sort=sortSelect.value||'week';HJ40.statSort='';HJ_PLAYER_DIRECTORY.renderLimit=36;hj40RefreshControls();hjRenderPlayerDirectory(true);return}
+    const managerSelect=event.target.closest('[data-hq49-manager-select]');
+    if(managerSelect){HJ40.manager=managerSelect.value||'ALL';HJ_PLAYER_DIRECTORY.renderLimit=36;hjRenderPlayerDirectory(true);return}
+  },true);
+
+  document.getElementById('league-hq-tabs')?.addEventListener('click',()=>requestAnimationFrame(hj40StickyState),true);
+  if(typeof hjSetHQTab==='function'){const hj40SetHQTabBase=hjSetHQTab;hjSetHQTab=function(){const result=hj40SetHQTabBase.apply(this,arguments);requestAnimationFrame(hj40StickyState);return result}}
+  window.addEventListener('resize',()=>requestAnimationFrame(hj40StickyState),{passive:true});
+  window.addEventListener('orientationchange',()=>requestAnimationFrame(hj40StickyState),{passive:true});
+
+  /* Reinstall the Players panel with the new compact controls and begin the
+     selected-season stat load only if the league data is already present. */
+  requestAnimationFrame(()=>{
+    try{if(typeof hjInstallPlayersPanel==='function')hjInstallPlayersPanel();hj40RefreshControls();hj40StickyState();if(HJ_LEAGUE_STATE?.data&&HJ_HQ_STATE?.activeTab==='free-agents'){hjRenderPlayerDirectory(true);hj40EnsureSeason(HJ40.year).catch(()=>{})}}catch(error){console.warn('Players directory overhaul initialization failed',error)}
+  });
+})();
+</script>
+
+
+<style id="hj-players-directory-readability-v41">
+/* ======================================================================
+   PLAYERS DIRECTORY READABILITY V41
+   Visible text in League HQ > Players never drops below 9px. Player
+   identity and owner share one clean header row; projections and stats
+   remain below it with no overlapping geometry.
+   ====================================================================== */
+
+/* Explicit floor for every small-text role used by this section. */
+.hq-player-directory :is(button,input,small,span,b,strong,i){font-size:9px!important}
+.hq-player-directory .hq-module-sub,
+.hq-player-directory .hq-module-note,
+.hq-player-directory .hq-player-directory-note,
+.hq-player-directory .hq40-stat-state,
+.hq-player-directory .hq-empty{font-size:9px!important;line-height:1.3!important}
+
+/* Compact controls, readable type. */
+.hq-player-directory .hq40-controls{gap:7px!important;padding:8px 10px!important}
+.hq40-control-top #hq-fa-search{height:32px!important;font-size:9px!important}
+.hq-player-directory .hq-player-availability button,
+.hq40-proj-sort button,
+.hq40-position-btn,
+.hq40-period-btn,
+.hq40-year-btn{font-size:9px!important;line-height:1!important}
+.hq-player-directory .hq-player-availability button{height:29px!important;padding:0 9px!important}
+.hq40-proj-sort button{height:29px!important;padding:0 8px!important}
+.hq40-position-btn,.hq40-period-btn{height:27px!important;padding:0 9px!important}
+.hq40-year-btn{height:27px!important;padding:0 9px!important}
+.hq40-sort-chip{height:30px!important;padding:0 8px!important}
+.hq40-sort-chip span{font-size:9px!important;font-weight:500!important}
+.hq40-sort-chip b{font-size:9px!important}
+.hq40-sort-chip i{font-size:14px!important}
+.hq40-reset{width:30px!important;height:30px!important;font-size:14px!important}
+.hq-player-directory .hq-player-loadmore button{font-size:9px!important}
+
+/* Clean three-line card: identity header, projection pair, stat rail. */
+.hq-player-directory .hq-player-card.hq40-card{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  grid-template-rows:auto auto auto!important;
+  grid-template-areas:"head head" "week season" "stats stats"!important;
+  align-items:stretch!important;
+  gap:8px 10px!important;
+  min-height:0!important;
+  padding:10px 12px 8px!important;
+  overflow:visible!important;
+}
+.hq41-player-head{
+  grid-area:head!important;
+  display:grid!important;
+  grid-template-columns:30px minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:10px!important;
+  min-width:0!important;
+}
+.hq40-list-rank{
+  grid-area:auto!important;
+  align-self:center!important;
+  color:#7f8e9d!important;
+  font:900 9.5px/1 var(--mono)!important;
+  text-align:center!important;
+  font-variant-numeric:tabular-nums!important;
+}
+
+/* Player gets the visual emphasis the row actually needs. */
+.hq41-player-head .hq-player-identity{
+  grid-area:auto!important;
+  display:grid!important;
+  grid-template-columns:46px minmax(0,1fr)!important;
+  gap:10px!important;
+  align-items:center!important;
+  min-width:0!important;
+  padding:0!important;
+}
+.hq41-player-head .hq-player-photo{width:46px!important;height:46px!important}
+.hq41-player-head .hq-player-name{
+  display:block!important;
+  font-size:13.5px!important;
+  line-height:1.12!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+}
+.hq41-player-head .hq-player-meta{
+  display:flex!important;
+  align-items:center!important;
+  flex-wrap:wrap!important;
+  gap:5px!important;
+  min-width:0!important;
+  margin-top:4px!important;
+  color:#718092!important;
+  font-size:9.5px!important;
+  line-height:1.15!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+}
+.hq41-player-head .hq-player-game{
+  display:block!important;
+  margin-top:3px!important;
+  color:#718092!important;
+  font-size:9.5px!important;
+  line-height:1.2!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+}
+
+/* Owner is always the right-hand item in the identity header. */
+.hq41-player-head .hq40-owner{
+  grid-area:auto!important;
+  justify-self:end!important;
+  align-self:center!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  min-width:0!important;
+  max-width:128px!important;
+  padding:4px 8px 4px 4px!important;
+  border:1px solid rgba(20,50,79,.14)!important;
+  border-radius:999px!important;
+  background:#fffdf7!important;
+  color:var(--navy)!important;
+  font:800 9.5px/1.1 var(--mono)!important;
+  letter-spacing:.02em!important;
+  white-space:nowrap!important;
+}
+.hq41-player-head .hq40-owner .av{width:22px!important;height:22px!important;flex:0 0 22px!important;border-width:1px!important}
+.hq41-player-head .hq40-owner-name{font-size:9.5px!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.hq41-player-head .hq40-owner.is-free{padding:6px 9px!important;color:#347151!important}
+.hq41-player-head .hq40-owner.is-free::before{width:8px!important;height:8px!important;flex:0 0 8px!important}
+
+/* Projection cards. */
+.hq40-week-proj{grid-area:week!important}
+.hq40-season-proj{grid-area:season!important}
+.hq40-card .hq-player-proj{min-width:0!important;padding:7px 7px 6px!important;border-radius:8px!important}
+.hq40-card .hq-player-proj-label{font-size:9px!important;line-height:1!important;letter-spacing:.045em!important}
+.hq40-card .hq-player-proj-main{margin-top:4px!important;font-size:18px!important;line-height:1!important}
+.hq40-card .hq-player-proj-sub{
+  display:flex!important;
+  align-items:baseline!important;
+  justify-content:center!important;
+  flex-wrap:wrap!important;
+  gap:4px!important;
+  margin-top:4px!important;
+  font-size:9px!important;
+  line-height:1.15!important;
+}
+.hq40-card .hq40-proj-e,.hq40-card .hq40-proj-v,.hq40-card .hq40-proj-dot{font-size:9px!important}
+
+/* Stat rail: same 9px type size for category and value. Category is regular,
+   value is bold. The rail grows just enough to make those labels legible. */
+.hq40-stat-rail{
+  grid-area:stats!important;
+  display:flex!important;
+  align-items:stretch!important;
+  gap:3px!important;
+  min-width:0!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  padding:6px 0 0!important;
+  border-top:1px solid rgba(20,50,79,.075)!important;
+  scrollbar-width:none!important;
+  -webkit-overflow-scrolling:touch!important;
+  overscroll-behavior-x:contain!important;
+}
+.hq40-stat-btn{
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  flex:0 0 70px!important;
+  min-width:70px!important;
+  height:40px!important;
+  padding:5px 6px!important;
+  border:0!important;
+  border-radius:6px!important;
+  background:transparent!important;
+  color:var(--navy)!important;
+  cursor:pointer!important;
+  text-align:left!important;
+}
+.hq40-stat-btn:hover,.hq40-stat-btn:focus-visible{background:var(--paper-dim)!important;outline:none!important}
+.hq40-stat-btn.is-sort{background:var(--navy)!important;color:#fff!important}
+.hq40-stat-btn small{
+  display:block!important;
+  font:400 9px/1.05 var(--mono)!important;
+  letter-spacing:.025em!important;
+  text-transform:uppercase!important;
+  white-space:nowrap!important;
+  opacity:.72!important;
+}
+.hq40-stat-btn strong{
+  display:block!important;
+  margin-top:4px!important;
+  font:850 9px/1.05 var(--mono)!important;
+  font-variant-numeric:tabular-nums!important;
+  white-space:nowrap!important;
+  color:inherit!important;
+}
+.hq40-stat-state{min-height:40px!important;font-size:9px!important;font-weight:650!important}
+
+@media(max-width:720px){
+  .hq-player-directory .hq40-controls{padding:8px!important;gap:6px!important}
+  .hq40-control-top #hq-fa-search{flex:0 0 160px!important;width:160px!important;min-width:160px!important}
+  .hq40-sort-chip span{display:inline!important}
+  .hq-player-directory .hq-player-card.hq40-card{gap:8px 9px!important;padding:10px 9px 8px!important}
+  .hq41-player-head{grid-template-columns:25px minmax(0,1fr) auto!important;gap:8px!important}
+  .hq41-player-head .hq-player-identity{grid-template-columns:44px minmax(0,1fr)!important;gap:9px!important}
+  .hq41-player-head .hq-player-photo{width:44px!important;height:44px!important}
+  .hq41-player-head .hq-player-name{font-size:12.5px!important}
+  .hq41-player-head .hq-player-meta,.hq41-player-head .hq-player-game{font-size:9px!important}
+  .hq41-player-head .hq40-owner{max-width:108px!important;font-size:9px!important;padding:4px 7px 4px 4px!important}
+  .hq41-player-head .hq40-owner .av{width:21px!important;height:21px!important;flex-basis:21px!important}
+  .hq41-player-head .hq40-owner-name{font-size:9px!important}
+  .hq40-card .hq-player-proj-main{font-size:17px!important}
+  .hq40-stat-btn{flex-basis:70px!important;min-width:70px!important;height:40px!important}
+}
+
+@media(max-width:430px){
+  .hq40-control-top #hq-fa-search{flex-basis:145px!important;width:145px!important;min-width:145px!important}
+  .hq-player-directory .hq-player-availability button,
+  .hq40-proj-sort button,
+  .hq40-position-btn,.hq40-period-btn,.hq40-year-btn{font-size:9px!important}
+  .hq-player-directory .hq-player-card.hq40-card{padding:10px 7px 8px!important;gap:8px 7px!important}
+  .hq41-player-head{grid-template-columns:23px minmax(0,1fr) auto!important;gap:7px!important}
+  .hq41-player-head .hq-player-identity{grid-template-columns:42px minmax(0,1fr)!important;gap:8px!important}
+  .hq41-player-head .hq-player-photo{width:42px!important;height:42px!important}
+  .hq41-player-head .hq-player-name{font-size:12px!important}
+  .hq41-player-head .hq40-owner{max-width:100px!important;padding-right:6px!important}
+  .hq41-player-head .hq40-owner .av{width:20px!important;height:20px!important;flex-basis:20px!important}
+  .hq40-card .hq-player-proj-main{font-size:16.5px!important}
+  .hq40-stat-btn{flex-basis:68px!important;min-width:68px!important}
+}
+</style>
+
+
+<style id="hj-players-directory-compact-projections-v42">
+/* V42: the projection pair is a slim joined ribbon, not two giant cards. */
+.hq-player-directory .hq-player-card.hq40-card{
+  gap:5px 0!important;
+  padding-top:9px!important;
+  padding-bottom:5px!important;
+}
+.hq41-player-head{margin-bottom:1px!important}
+.hq40-week-proj{grid-area:week!important}
+.hq40-season-proj{grid-area:season!important}
+.hq40-card .hq-player-proj{
+  display:grid!important;
+  grid-template-columns:auto auto!important;
+  grid-template-areas:"label primary" "sub sub"!important;
+  align-items:baseline!important;
+  justify-content:center!important;
+  column-gap:7px!important;
+  row-gap:2px!important;
+  min-width:0!important;
+  min-height:0!important;
+  padding:4px 7px 4px!important;
+  border:1px solid rgba(20,50,79,.11)!important;
+  border-radius:0!important;
+  background:rgba(242,237,220,.62)!important;
+  box-shadow:none!important;
+}
+.hq40-card .hq40-week-proj{border-radius:8px 0 0 8px!important}
+.hq40-card .hq40-season-proj{margin-left:-1px!important;border-radius:0 8px 8px 0!important}
+.hq40-card .hq-player-proj-label{
+  grid-area:label!important;
+  align-self:baseline!important;
+  margin:0!important;
+  font-size:9px!important;
+  line-height:1!important;
+  font-weight:650!important;
+  letter-spacing:.045em!important;
+  color:#758597!important;
+  white-space:nowrap!important;
+}
+.hq42-proj-primary{
+  grid-area:primary!important;
+  display:inline-flex!important;
+  align-items:baseline!important;
+  gap:4px!important;
+  min-width:0!important;
+  white-space:nowrap!important;
+}
+.hq40-card .hq-player-proj-main{
+  display:inline!important;
+  margin:0!important;
+  font-size:16px!important;
+  line-height:1!important;
+}
+.hq42-proj-tag{
+  display:inline!important;
+  font:500 9px/1 var(--mono)!important;
+  letter-spacing:0!important;
+  text-transform:lowercase!important;
+  color:#7c8997!important;
+  white-space:nowrap!important;
+}
+.hq40-card .hq-player-proj-sub{
+  grid-area:sub!important;
+  display:flex!important;
+  align-items:baseline!important;
+  justify-content:center!important;
+  flex-wrap:wrap!important;
+  gap:3px!important;
+  margin:0!important;
+  font-size:9px!important;
+  line-height:1.12!important;
+}
+.hq40-card .hq-player-proj-sub :is(.hq40-proj-e,.hq40-proj-v,.hq40-proj-dot,.hq42-proj-tag){font-size:9px!important}
+.hq40-card .hq-player-proj.is-live .hq42-proj-primary{justify-self:center!important}
+
+/* Stat rail: preserve the 9px readability floor while removing wasted vertical air. */
+.hq40-stat-rail{
+  padding:3px 0 0!important;
+  margin-top:0!important;
+  gap:3px!important;
+}
+.hq40-stat-btn{
+  flex-basis:70px!important;
+  min-width:70px!important;
+  height:31px!important;
+  padding:2px 6px!important;
+}
+.hq40-stat-btn small{
+  font:400 9px/1 var(--mono)!important;
+  margin:0!important;
+}
+.hq40-stat-btn strong{
+  margin-top:2px!important;
+  font:850 9px/1 var(--mono)!important;
+}
+.hq40-stat-state{min-height:31px!important}
+
+/* Mobile affordance: a tiny edge cue says the top control row continues sideways.
+   It occupies no extra height and disappears once the row reaches its end. */
+@media(max-width:720px){
+  .hq-player-directory .hq40-controls{position:sticky!important}
+  .hq-player-directory .hq40-controls.hq42-control-more::after{
+    content:"›";
+    position:absolute;
+    z-index:4;
+    top:13px;
+    right:4px;
+    width:20px;
+    height:20px;
+    display:grid;
+    place-items:center;
+    border-radius:999px;
+    background:linear-gradient(90deg,rgba(255,255,255,.35),rgba(255,255,255,.98) 40%);
+    color:var(--navy);
+    font:900 15px/1 var(--sans)!important;
+    pointer-events:none;
+    box-shadow:-6px 0 8px rgba(255,255,255,.92);
+  }
+  .hq40-card .hq-player-proj{padding:4px 5px 4px!important;column-gap:5px!important}
+  .hq40-card .hq-player-proj-main{font-size:15.5px!important}
+  .hq40-stat-btn{height:31px!important}
+}
+@media(max-width:430px){
+  .hq-player-directory .hq-player-card.hq40-card{gap:5px 0!important;padding-top:9px!important;padding-bottom:5px!important}
+  .hq40-card .hq-player-proj{grid-template-columns:auto auto!important;padding:4px 4px!important;column-gap:4px!important}
+  .hq40-card .hq-player-proj-main{font-size:15px!important}
+  .hq40-card .hq-player-proj-sub{gap:2px!important}
+}
+</style>
+<script id="hj-players-directory-scroll-cue-v42">
+(function(){
+  if(window.__hjPlayersDirectoryScrollCueV42)return;
+  window.__hjPlayersDirectoryScrollCueV42=true;
+  function update(row){
+    if(!row||!row.classList?.contains('hq40-control-top'))return;
+    const controls=row.closest('.hq40-controls');if(!controls)return;
+    const max=Math.max(0,row.scrollWidth-row.clientWidth);
+    controls.classList.toggle('hq42-control-more',max>3&&row.scrollLeft<max-3);
+  }
+  function scan(){document.querySelectorAll('.hq40-control-top').forEach(update)}
+  document.addEventListener('scroll',event=>update(event.target),true);
+  window.addEventListener('resize',()=>requestAnimationFrame(scan),{passive:true});
+  const root=document.getElementById('league-hq-tools');
+  if(root)new MutationObserver(()=>requestAnimationFrame(scan)).observe(root,{childList:true,subtree:true});
+  requestAnimationFrame(scan);
+})();
+</script>
+
+
+<style id="hj-players-directory-projection-scale-v43">
+/* V43: projection values are reference data, not headline scores. */
+.hq-player-directory .hq40-card .hq-player-proj-main{font-size:13px!important;line-height:1!important}
+@media(max-width:720px){
+  .hq-player-directory .hq40-card .hq-player-proj-main{font-size:12.5px!important}
+}
+@media(max-width:430px){
+  .hq-player-directory .hq40-card .hq-player-proj-main{font-size:12px!important}
+}
+</style>
+
+<style id="hj-strength-v17-readability-floor">
+/* V44 site pass: Roster Strength has a hard 9px readability floor.
+   Rebalance the dense ribbon/compare layouts rather than shrinking text. */
+
+/* Segmented controls */
+#hq-panel-strength .hj15-toggle{
+  font-size:9px!important;
+  line-height:1!important;
+  min-height:31px!important;
+  padding-left:9px!important;
+  padding-right:9px!important;
+}
+
+/* Manager card header */
+#hq-panel-strength .hj15-manager b{font-size:10px!important}
+#hq-panel-strength .hj15-profile{
+  font-size:9px!important;
+  line-height:1.15!important;
+  margin-top:3px!important;
+}
+#hq-panel-strength .hj15-overall small{
+  font-size:9px!important;
+  line-height:1!important;
+  margin-left:4px!important;
+}
+#hq-panel-strength .hj15-expand{font-size:9px!important}
+
+/* Position ribbon. Labels and projected values share the same readable floor;
+   the rank remains intentionally larger. */
+#hq-panel-strength .hj15-plabel,
+#hq-panel-strength .hj15-pvalue{
+  font-size:9px!important;
+  line-height:1.05!important;
+}
+#hq-panel-strength .hj15-plabel{font-weight:850!important}
+#hq-panel-strength .hj15-pvalue{font-weight:800!important}
+#hq-panel-strength .hj15-prank{font-size:12px!important;line-height:1!important}
+#hq-panel-strength .hj15-prank:before{
+  font-size:9px!important;
+  line-height:1!important;
+  vertical-align:1px!important;
+}
+#hq-panel-strength .hj15-pos{
+  padding-top:8px!important;
+  padding-bottom:10px!important;
+}
+#hq-panel-strength .hj15-posline{gap:5px!important}
+
+/* Expanded player detail */
+#hq-panel-strength .hj15-player{
+  font-size:9px!important;
+  line-height:1.3!important;
+  padding:4px 0!important;
+}
+#hq-panel-strength .hj15-player .pv{font-size:9px!important;line-height:1.2!important}
+#hq-panel-strength .hj15-badge{
+  font-size:9px!important;
+  line-height:1!important;
+  padding:2px 4px!important;
+  vertical-align:0!important;
+}
+#hq-panel-strength .hj15-empty,
+#hq-panel-strength .hq-empty{font-size:9px!important;line-height:1.35!important}
+
+/* Compare view */
+#hq-panel-strength .hj15-compare-controls select{font-size:9px!important}
+#hq-panel-strength .hj15-vs{font-size:9px!important}
+#hq-panel-strength .hj15-cteam b{font-size:9.5px!important}
+#hq-panel-strength .hj15-cteam small{font-size:9px!important;line-height:1.1!important}
+#hq-panel-strength .hj15-cdelta small{font-size:9px!important;line-height:1!important}
+#hq-panel-strength .hj15-clabel,
+#hq-panel-strength .hj15-cvalue{font-size:9px!important;line-height:1.1!important}
+#hq-panel-strength .hj15-cplayers .side-title{font-size:9px!important;line-height:1.1!important}
+#hq-panel-strength .hj15-compare-toggle{font-size:9px!important;line-height:1!important}
+
+/* Legacy/fallback strength surfaces, should they render during a source transition. */
+#hq-panel-strength .hq-strength-table th,
+#hq-panel-strength .hq-strength-cell small,
+#hq-panel-strength .hq-strength-matrix-note,
+#hq-panel-strength .hq-strength-view,
+#hq-panel-strength .hq-strength-model,
+#hq-panel-strength .hq-strength-method,
+#hq-panel-strength .hq-strength-compare-controls select{font-size:9px!important}
+
+@media(max-width:760px){
+  /* Keep the toolbar compact even with readable labels. */
+  #hq-panel-strength .hj15-toolbar{gap:7px!important;padding:8px!important}
+  #hq-panel-strength .hj15-group{padding:3px!important}
+  #hq-panel-strength .hj15-toggle{
+    min-height:32px!important;
+    padding:0 4px!important;
+    font-size:9px!important;
+  }
+
+  /* Header accommodates the larger PTS label without turning into a billboard. */
+  #hq-panel-strength .hj15-teamhead{
+    grid-template-columns:31px 27px minmax(0,1fr) auto 27px!important;
+    min-height:43px!important;
+    padding:5px 7px!important;
+    gap:6px!important;
+  }
+  #hq-panel-strength .hj15-manager b{font-size:9.5px!important}
+  #hq-panel-strength .hj15-overall strong{font-size:13px!important}
+  #hq-panel-strength .hj15-overall small{font-size:9px!important;margin-left:3px!important}
+  #hq-panel-strength .hj15-expand{width:25px!important;height:25px!important;font-size:9px!important}
+
+  /* Four cells still fit across a phone, but use two text rows inside each cell
+     so 9px labels/values never have to collide with the rank. */
+  #hq-panel-strength .hj15-ribbon{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  #hq-panel-strength .hj15-pos{padding:7px 7px 9px!important}
+  #hq-panel-strength .hj15-posline{
+    grid-template-columns:minmax(0,1fr) auto!important;
+    grid-template-rows:auto auto!important;
+    grid-template-areas:"label rank" "value rank"!important;
+    align-items:center!important;
+    gap:2px 4px!important;
+  }
+  #hq-panel-strength .hj15-plabel{grid-area:label!important;font-size:9px!important}
+  #hq-panel-strength .hj15-pvalue{grid-area:value!important;text-align:left!important;font-size:9px!important}
+  #hq-panel-strength .hj15-prank{grid-area:rank!important;font-size:11.5px!important;align-self:center!important}
+  #hq-panel-strength .hj15-prank:before{font-size:9px!important}
+
+  /* Expanded cards already use two position columns, so retain that roomy layout. */
+  #hq-panel-strength .hj15-card.is-open .hj15-ribbon{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #hq-panel-strength .hj15-card.is-open .hj15-pos{padding:8px 9px 10px!important}
+  #hq-panel-strength .hj15-card.is-open .hj15-plabel,
+  #hq-panel-strength .hj15-card.is-open .hj15-pvalue{font-size:9px!important}
+  #hq-panel-strength .hj15-card.is-open .hj15-prank{font-size:12px!important}
+  #hq-panel-strength .hj15-player{font-size:9px!important;line-height:1.3!important}
+  #hq-panel-strength .hj15-player .pv{font-size:9px!important}
+
+  /* Compare view gets slightly taller rows instead of tiny copy. */
+  #hq-panel-strength .hj15-compare-controls select{height:37px!important;font-size:9px!important}
+  #hq-panel-strength .hj15-vs{font-size:9px!important}
+  #hq-panel-strength .hj15-chead{padding:10px 8px!important;gap:7px!important}
+  #hq-panel-strength .hj15-cteam b{font-size:9px!important}
+  #hq-panel-strength .hj15-cteam small{font-size:9px!important}
+  #hq-panel-strength .hj15-cdelta small{font-size:9px!important}
+  #hq-panel-strength .hj15-cmain{
+    grid-template-columns:52px minmax(0,1fr) minmax(0,1fr)!important;
+    grid-template-areas:"label left right" "bar bar bar"!important;
+    gap:7px!important;
+    padding:10px 9px!important;
+  }
+  #hq-panel-strength .hj15-clabel,
+  #hq-panel-strength .hj15-cvalue,
+  #hq-panel-strength .hj15-cvalue:not(.right),
+  #hq-panel-strength .hj15-cvalue.right{font-size:9px!important}
+  #hq-panel-strength .hj15-cplayers .side-title{font-size:9px!important}
+  #hq-panel-strength .hj15-compare-toggle{font-size:9px!important}
+}
+
+@media(max-width:430px){
+  #hq-panel-strength .hj15-toggle{font-size:9px!important;padding:0 3px!important}
+  #hq-panel-strength .hj15-teamhead{grid-template-columns:30px 25px minmax(0,1fr) auto 25px!important;gap:5px!important}
+  #hq-panel-strength .hj15-ribbon{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  #hq-panel-strength .hj15-pos:nth-child(-n+4){border-top:1px solid rgba(20,50,79,.07)!important}
+  #hq-panel-strength .hj15-pos:nth-child(-n+3){border-top:0!important}
+  #hq-panel-strength .hj15-pos:nth-child(4n+1){border-left:1px solid rgba(20,50,79,.07)!important}
+  #hq-panel-strength .hj15-pos:nth-child(3n+1){border-left:0!important}
+  #hq-panel-strength .hj15-card.is-open .hj15-ribbon{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+</style>
+
+
+<style id="hj-strength-v18-compact-player-lists">
+/* V45: tighten expanded Roster Strength player lists without shrinking type. */
+#hq-panel-strength .hj15-playerflow{
+  margin-top:4px!important;
+  padding-top:3px!important;
+}
+#hq-panel-strength .hj15-player{
+  font-size:9px!important;
+  line-height:1.15!important;
+  padding:1.5px 0!important;
+}
+#hq-panel-strength .hj15-player .pv{
+  font-size:9px!important;
+  line-height:1.15!important;
+}
+/* FLEX is already communicated by the position section. Preserve IR only. */
+#hq-panel-strength .hj15-badge:not(.ir){display:none!important}
+@media(max-width:760px){
+  #hq-panel-strength .hj15-playerflow{margin-top:4px!important;padding-top:3px!important}
+  #hq-panel-strength .hj15-player{font-size:9px!important;line-height:1.15!important;padding:1.5px 0!important}
+  #hq-panel-strength .hj15-player .pv{font-size:9px!important;line-height:1.15!important}
+}
+</style>
+
+
+<style id="hj-v47-player-team-news-manager-filters">
+/* Players: keep position chips scrollable; NFL team is one compact dropdown. */
+.hq46-filter-rail-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px;min-width:0}
+.hq46-team-select-wrap{display:block;min-width:0}
+.hq46-team-select{appearance:auto;-webkit-appearance:menulist;box-sizing:border-box;width:88px;height:27px;padding:0 5px;border:1px solid rgba(20,50,79,.14);border-radius:7px;background:#fff;color:var(--navy);font:800 9px/1 var(--mono);letter-spacing:.025em;cursor:pointer}
+.hq46-team-select:focus{outline:2px solid rgba(185,138,46,.35);outline-offset:1px}
+
+/* News: manager filtering is intentionally avatar-only and one slim scrolling line. */
+.ffn-manager-filter{display:flex;align-items:center;gap:5px;min-height:30px;margin:-2px 2px 7px;padding:1px 0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.ffn-manager-filter::-webkit-scrollbar{display:none}
+.ffn-manager-filter:empty{display:none}
+.ffn-manager-btn{appearance:none;-webkit-appearance:none;flex:0 0 28px;width:28px;height:28px;padding:2px;border:1px solid rgba(20,50,79,.16);border-radius:50%;background:#fff;cursor:pointer;display:grid;place-items:center;transition:background .12s ease,border-color .12s ease,box-shadow .12s ease}
+.ffn-manager-btn img{display:block;width:22px;height:22px;border-radius:50%;object-fit:cover}
+.ffn-manager-btn[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);box-shadow:0 0 0 2px rgba(185,138,46,.35)}
+.ffn-manager-btn[aria-pressed="true"] img{outline:1px solid rgba(255,255,255,.72)}
+.ffn-manager-btn:focus-visible{outline:2px solid rgba(185,138,46,.6);outline-offset:2px}
+.ffn-manager-btn:disabled{opacity:.45;cursor:wait}
+@media(max-width:620px){
+  .hq46-filter-rail-row{grid-template-columns:minmax(0,1fr) auto;gap:5px}
+  .hq46-team-select{width:82px;height:27px;font-size:9px!important}
+  .ffn-manager-filter{gap:4px;min-height:28px;margin-bottom:6px}
+  .ffn-manager-btn{flex-basis:27px;width:27px;height:27px}.ffn-manager-btn img{width:21px;height:21px}
+}
+</style>
+<script id="hj-v46-news-manager-live-roster-hook">
+(function(){
+  let lastRosterSignature='';
+  function syncNewsManagerRail(){
+    if(typeof ffnRenderManagerFilter!=='function')return;
+    const index=ffnManagerRosterIndex(),signature=[...index.entries()].map(([name,row])=>`${name}:${[...row.ids].sort().join(',')}`).sort().join('|');
+    ffnRenderManagerFilter();
+    if(signature!==lastRosterSignature){
+      const had=!!lastRosterSignature;lastRosterSignature=signature;
+      if(had&&ffnFilterState?.manager){ffnSyncFilteredItems();ffnRebuildRail();ffnRenderStatus()}
+    }
+  }
+  if(typeof hjRenderLeague==='function'){
+    const base=hjRenderLeague;
+    hjRenderLeague=function(...args){const result=base.apply(this,args);requestAnimationFrame(syncNewsManagerRail);return result};
+  }
+  window.addEventListener('load',()=>requestAnimationFrame(syncNewsManagerRail),{once:true});
+  requestAnimationFrame(syncNewsManagerRail);
+})();
+</script>
+
+<script id="hj-v48-news-ownership-safe-refresh">
+(function(){
+  function applyNewsOwnership(){
+    requestAnimationFrame(()=>{
+      try{
+        const rail=document.getElementById('ffn-scroll');
+        if(rail&&typeof hjApplyOwnershipDetails==='function')hjApplyOwnershipDetails(rail);
+      }catch(error){console.warn('News ownership badge refresh skipped',error)}
+    });
+  }
+  if(typeof ffnAppendBatch==='function'){
+    const baseAppend=ffnAppendBatch;
+    ffnAppendBatch=function(...args){const result=baseAppend.apply(this,args);applyNewsOwnership();return result};
+  }
+  if(typeof ffnRefreshVisible==='function'){
+    const baseRefresh=ffnRefreshVisible;
+    ffnRefreshVisible=function(...args){const result=baseRefresh.apply(this,args);applyNewsOwnership();return result};
+  }
+  if(typeof ffnRebuildRail==='function'){
+    const baseRebuild=ffnRebuildRail;
+    ffnRebuildRail=function(...args){const result=baseRebuild.apply(this,args);applyNewsOwnership();return result};
+  }
+  applyNewsOwnership();
+})();
+</script>
+
+
+<style id="hj-v49-player-filter-four-row-layout">
+/* V49: explicit four-row Players filter bar. Nothing in this section drops below 9px. */
+.hq-player-directory .hq49-controls{
+  display:grid!important;
+  gap:4px!important;
+  padding:6px 8px!important;
+}
+.hq49-row{min-width:0;display:flex;align-items:center;gap:5px}
+.hq49-row-primary{display:grid;grid-template-columns:minmax(0,1fr) auto}
+.hq49-row-primary #hq-fa-search{
+  width:100%!important;min-width:0!important;max-width:none!important;height:29px!important;
+  padding:0 8px!important;font-size:9px!important
+}
+.hq49-row-primary .hq-player-availability{height:29px!important;padding:2px!important;gap:2px!important;white-space:nowrap}
+.hq49-row-primary .hq-player-availability button{height:25px!important;padding:0 8px!important;font-size:9px!important}
+
+.hq49-row-selects{display:grid;grid-template-columns:80px minmax(116px,1fr) minmax(88px,.8fr);gap:5px}
+.hq49-select-wrap{position:relative;display:block;min-width:0}
+.hq49-select{
+  box-sizing:border-box;width:100%;height:27px;min-width:0;padding:0 20px 0 7px;
+  border:1px solid rgba(20,50,79,.14);border-radius:7px;background:#fff;color:var(--navy);
+  font:800 9px/1 var(--mono);letter-spacing:.015em;cursor:pointer
+}
+.hq49-select:focus{outline:2px solid rgba(185,138,46,.35);outline-offset:1px}
+.hq49-sort-wrap .hq49-sort-select{padding-right:28px}
+.hq49-stat-clear{
+  position:absolute;right:2px;top:2px;width:23px;height:23px;padding:0;border:0;border-radius:5px;
+  background:var(--navy);color:#fff;font:800 14px/1 var(--sans);cursor:pointer
+}
+
+/* Positions are deliberately all visible at once on phones. */
+.hq49-row-positions .hq40-position-rail{
+  width:100%;display:grid!important;grid-template-columns:repeat(8,minmax(0,1fr));gap:3px!important;
+  overflow:visible!important;padding:0!important
+}
+.hq49-row-positions .hq40-position-btn{
+  min-width:0!important;width:100%!important;height:25px!important;padding:0 2px!important;
+  font-size:9px!important;letter-spacing:.02em!important
+}
+
+.hq49-row-period{display:grid;grid-template-columns:auto minmax(0,1fr);gap:5px}
+.hq49-row-period .hq40-year-switch{height:27px!important;padding:2px!important;gap:1px!important}
+.hq49-row-period .hq40-year-btn{height:23px!important;padding:0 7px!important;font-size:9px!important}
+.hq49-row-period .hq40-period-rail{
+  min-width:0;height:27px;gap:3px!important;overflow-x:auto!important;overflow-y:hidden!important;
+  padding:0!important;scrollbar-width:none;-webkit-overflow-scrolling:touch
+}
+.hq49-row-period .hq40-period-rail::-webkit-scrollbar{display:none}
+.hq49-row-period .hq40-period-btn{height:25px!important;padding:0 8px!important;font-size:9px!important}
+
+/* Retire the older filter-row styling now superseded by the explicit layout. */
+.hq49-controls .hq46-filter-rail-row,.hq49-controls .hq40-control-top,.hq49-controls .hq40-stat-control-row,.hq49-controls .hq40-proj-sort,.hq49-controls>.hq40-sort-chip{display:none!important}
+
+@media(max-width:620px){
+  .hq-player-directory .hq49-controls{gap:3px!important;padding:5px 6px!important}
+  .hq49-row{gap:4px}
+  .hq49-row-primary{grid-template-columns:minmax(0,1fr) auto}
+  .hq49-row-primary #hq-fa-search{height:28px!important}
+  .hq49-row-primary .hq-player-availability{height:28px!important}
+  .hq49-row-primary .hq-player-availability button{height:24px!important;padding:0 6px!important}
+  .hq49-row-selects{grid-template-columns:72px minmax(118px,1fr) minmax(82px,.78fr);gap:4px}
+  .hq49-select{height:26px;padding-left:6px;font-size:9px!important}
+  .hq49-stat-clear{height:22px;width:22px}
+  .hq49-row-positions .hq40-position-rail{gap:2px!important}
+  .hq49-row-positions .hq40-position-btn{height:24px!important;padding:0 1px!important;font-size:9px!important}
+  .hq49-row-period{gap:4px}
+  .hq49-row-period .hq40-year-switch{height:26px!important}
+  .hq49-row-period .hq40-year-btn{height:22px!important;padding:0 6px!important}
+  .hq49-row-period .hq40-period-rail{height:26px}
+  .hq49-row-period .hq40-period-btn{height:24px!important;padding:0 7px!important}
+}
+@media(max-width:390px){
+  .hq49-row-selects{grid-template-columns:68px minmax(112px,1fr) minmax(76px,.72fr)}
+  .hq49-select{padding-left:5px;padding-right:17px}
+  .hq49-row-primary .hq-player-availability button{padding:0 5px!important;letter-spacing:.01em!important}
+  .hq49-row-positions .hq40-position-btn{letter-spacing:0!important}
+}
+</style>
+
+<style id="hj-v50-news-manager-dropdown">
+/* V50: manager filtering belongs in the existing news filter row, not a second avatar rail. */
+.ffn-filters{
+  grid-template-columns:minmax(108px,190px) 72px 78px 96px 28px!important;
+  gap:5px!important;
+}
+#ffn-player-filter{min-width:0!important;width:100%!important}
+#ffn-manager-filter{min-width:0!important;width:100%!important}
+.ffn-filter-reset{
+  width:28px!important;min-width:28px!important;padding:0!important;
+  font-size:14px!important;line-height:1!important;text-transform:none!important
+}
+@media(max-width:640px){
+  .ffn-filters{
+    grid-template-columns:minmax(76px,1fr) 54px 62px 76px 27px!important;
+    gap:3px!important;
+  }
+  .ffn-filter-control{padding-left:5px!important;padding-right:2px!important}
+  #ffn-player-filter{padding-right:5px!important}
+  .ffn-filter-reset{width:27px!important;min-width:27px!important;font-size:13px!important}
+}
+@media(max-width:360px){
+  .ffn-filters{grid-template-columns:minmax(64px,1fr) 50px 58px 68px 25px!important;gap:2px!important}
+  .ffn-filter-control{padding-left:4px!important;font-size:6.7px!important}
+  .ffn-filter-reset{width:25px!important;min-width:25px!important}
+}
+</style>
+
+
+<style id="hj-v51-player-filter-compact-correction">
+/* V51: four rows means four rows. Compact controls, no phantom label row, no desktop stretching. */
+.hq-player-directory .hq49-controls{
+  gap:3px!important;
+  padding:5px 7px!important;
+}
+.hq49-row{gap:4px!important}
+
+/* Row 1: search and availability remain on the same line at every width. */
+.hq49-row-primary{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:5px!important;
+}
+.hq49-row-primary #hq-fa-search{
+  flex:0 1 210px!important;
+  width:210px!important;
+  min-width:120px!important;
+  max-width:210px!important;
+  height:28px!important;
+}
+.hq49-row-primary .hq-player-availability{
+  grid-column:auto!important;
+  flex:0 0 auto!important;
+  display:inline-flex!important;
+  width:max-content!important;
+  max-width:max-content!important;
+  min-width:0!important;
+  justify-self:start!important;
+  height:28px!important;
+  padding:2px!important;
+  gap:1px!important;
+}
+.hq49-row-primary .hq-player-availability button{
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:0!important;
+  height:24px!important;
+  padding:0 7px!important;
+  font-size:9px!important;
+}
+
+/* Row 2: the selects label themselves. No captions above them. */
+.hq49-row-selects{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  width:auto!important;
+  max-width:100%!important;
+  gap:5px!important;
+}
+.hq49-select-wrap{flex:0 0 auto!important;min-width:0!important}
+.hq49-select-wrap>.sr-only{display:none!important}
+.hq49-team-select{width:82px!important}
+.hq49-sort-select{width:128px!important}
+.hq49-manager-select{width:100px!important}
+.hq49-select{
+  height:26px!important;
+  padding:0 20px 0 7px!important;
+  font-size:9px!important;
+}
+.hq49-sort-wrap .hq49-sort-select{padding-right:28px!important}
+.hq49-stat-clear{top:2px!important;right:2px!important;width:22px!important;height:22px!important}
+
+/* Row 3: buttons size to their labels instead of filling the whole desktop width. */
+.hq49-row-positions .hq40-position-rail{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  width:auto!important;
+  max-width:100%!important;
+  gap:3px!important;
+  overflow:visible!important;
+}
+.hq49-row-positions .hq40-position-btn{
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:0!important;
+  height:24px!important;
+  padding:0 7px!important;
+  font-size:9px!important;
+}
+
+/* Row 4 stays compact; only the week sequence may scroll when a full prior season cannot physically fit. */
+.hq49-row-period{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  width:100%!important;
+  gap:4px!important;
+}
+.hq49-row-period .hq40-year-switch{flex:0 0 auto!important;height:26px!important}
+.hq49-row-period .hq40-year-btn{height:22px!important;padding:0 6px!important;font-size:9px!important}
+.hq49-row-period .hq40-period-rail{
+  flex:0 1 auto!important;
+  width:auto!important;
+  max-width:calc(100% - 92px)!important;
+  height:26px!important;
+  gap:3px!important;
+}
+.hq49-row-period .hq40-period-btn{flex:0 0 auto!important;width:auto!important;height:24px!important;padding:0 7px!important;font-size:9px!important}
+
+@media(max-width:620px){
+  .hq-player-directory .hq49-controls{padding:4px 5px!important;gap:3px!important}
+  .hq49-row-primary{gap:4px!important}
+  .hq49-row-primary #hq-fa-search{
+    flex:1 1 0!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:none!important;
+    height:27px!important;
+  }
+  .hq49-row-primary .hq-player-availability{height:27px!important}
+  .hq49-row-primary .hq-player-availability button{height:23px!important;padding:0 5px!important;letter-spacing:.01em!important}
+
+  .hq49-row-selects{
+    display:grid!important;
+    grid-template-columns:minmax(68px,.76fr) minmax(104px,1.18fr) minmax(78px,.9fr)!important;
+    width:100%!important;
+    gap:4px!important;
+  }
+  .hq49-select-wrap{width:100%!important}
+  .hq49-team-select,.hq49-sort-select,.hq49-manager-select{width:100%!important}
+  .hq49-select{height:25px!important;padding-left:6px!important;font-size:9px!important}
+
+  .hq49-row-positions .hq40-position-rail{width:100%!important;gap:2px!important}
+  .hq49-row-positions .hq40-position-btn{height:23px!important;padding:0 5px!important;letter-spacing:0!important}
+
+  .hq49-row-period .hq40-year-switch{height:25px!important}
+  .hq49-row-period .hq40-year-btn{height:21px!important;padding:0 5px!important}
+  .hq49-row-period .hq40-period-rail{height:25px!important;max-width:calc(100% - 86px)!important}
+  .hq49-row-period .hq40-period-btn{height:23px!important;padding:0 6px!important}
+}
+@media(max-width:390px){
+  .hq49-row-primary .hq-player-availability button{padding:0 4px!important}
+  .hq49-row-selects{grid-template-columns:minmax(64px,.72fr) minmax(100px,1.16fr) minmax(74px,.86fr)!important}
+  .hq49-select{padding-left:5px!important;padding-right:17px!important}
+  .hq49-row-positions .hq40-position-btn{padding:0 4px!important}
+}
+</style>
 </body>
 </html>
