@@ -22269,5 +22269,35 @@ requestAnimationFrame(()=>{if(HJ_LEAGUE_STATE?.data&&HJ_HQ_STATE?.activeTab==='m
 .hq-strength-cell.is-top strong{color:var(--win-green)!important}
 </style>
 
+
+
+<style id="hj-v59-roster-live-indicator-size-fix">
+/* V59: League HQ roster LIVE/FINAL pills must exactly match Matchup Center.
+   Higher specificity is required because an older .league-player-points small !important rule
+   otherwise inflates these labels. */
+#league-sync-content .league-player-points small.league-player-live-label,
+#league-sync-content .league-roster-total-status{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:max-content!important;
+  min-width:0!important;
+  min-height:0!important;
+  height:auto!important;
+  margin:0 0 1px auto!important;
+  padding:1px 3px!important;
+  border:0!important;
+  border-radius:999px!important;
+  font-family:var(--mono)!important;
+  font-size:5.7px!important;
+  line-height:1!important;
+  font-weight:750!important;
+  letter-spacing:.06em!important;
+  text-transform:uppercase!important;
+  white-space:nowrap!important;
+}
+#league-sync-content .league-roster-total-status{margin:0 2px 0 0!important}
+</style>
+
 </body>
 </html>
