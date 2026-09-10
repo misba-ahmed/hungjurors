@@ -10906,6 +10906,8 @@ async function pcFetchCsv(gzipUrl,csvUrl){
   const response=await fetch(csvUrl,{cache:'force-cache'});if(!response.ok)throw new Error(`Data source returned ${response.status}`);return response.text();
 }
 function pcPoints(row){
+  const espnApplied=Number(row?.pc_espn_applied_total);
+  if(Number.isFinite(espnApplied))return espnApplied;
   const pos=String(row.position||row.position_group||'').toUpperCase();
   let value=pcNumber(row.passing_yards)*PC_SCORING.passYd+pcNumber(row.passing_tds)*PC_SCORING.passTd+pcNumber(row.passing_interceptions)*PC_SCORING.passInt+pcNumber(row.passing_2pt_conversions)*PC_SCORING.pass2;
   value+=pcNumber(row.rushing_yards)*PC_SCORING.rushYd+pcNumber(row.rushing_tds)*PC_SCORING.rushTd+pcNumber(row.rushing_2pt_conversions)*PC_SCORING.rush2;
@@ -10925,18 +10927,110 @@ function pcOpportunities(row,pos=String(row.position||'')){
   return 0;
 }
 function pcTouchdowns(row,pos=String(row.position||'')){return pos==='QB'?pcNumber(row.passing_tds)+pcNumber(row.rushing_tds):pos==='K'?0:pcNumber(row.rushing_tds)+pcNumber(row.receiving_tds)+pcNumber(row.special_teams_tds)}
+const pcSeasonFetchedAt=new Map();
+function pcEspnActualSeasonMatch(stat,season){
+  const raw=stat?.seasonId??stat?.seasonValue,parsed=Number(raw);
+  return raw==null||raw===''||!Number.isFinite(parsed)||parsed===Number(season);
+}
+function pcEspnActualPlayer(entry){return entry?.player||entry?.playerPoolEntry?.player||{}}
+function pcEspnActualPosition(player){return ({1:'QB',2:'RB',3:'WR',4:'TE',5:'K'})[Number(player?.defaultPositionId)]||''}
+function pcEspnActualTeam(player){const id=String(player?.proTeamId||'');return pcTeam(Object.entries(NFL_TEAM_IDS).find(([,teamId])=>String(teamId)===id)?.[0]||'')}
+function pcEspnRaw(stats,...ids){for(const id of ids){const value=stats?.[String(id)]??stats?.[id];if(value!==''&&value!=null&&Number.isFinite(Number(value)))return Number(value)}return null}
+function pcEspnActualBestStats(player,season){
+  const stats=Array.isArray(player?.stats)?player.stats:[],best=new Map();
+  stats.filter(stat=>Number(stat?.scoringPeriodId)>0&&Number(stat?.statSourceId)===0&&Number.isFinite(Number(stat?.appliedTotal))&&pcEspnActualSeasonMatch(stat,season)).forEach(stat=>{
+    const week=Number(stat.scoringPeriodId),raw=stat?.stats||{},quality=(Object.keys(raw).length?1000:0)+(Number(stat?.statSplitTypeId)===1?100:0)+(Number.isFinite(Number(stat?.appliedTotal))?10:0),prior=best.get(week);
+    if(!prior||quality>prior.quality)best.set(week,{stat,quality});
+  });
+  return [...best.values()].map(item=>item.stat).sort((a,b)=>Number(a.scoringPeriodId)-Number(b.scoringPeriodId));
+}
+function pcEspnActualRow(entry,stat,season,schedule){
+  const player=pcEspnActualPlayer(entry),position=pcEspnActualPosition(player),team=pcEspnActualTeam(player),week=Number(stat?.scoringPeriodId)||0,s=stat?.stats||{};
+  if(!position||!team||!week)return null;
+  const scheduleGames=[...(schedule?.values?.()||[])],game=scheduleGames.find(item=>Number(item?.season)===Number(season)&&Number(item?.week)===week&&(pcTeam(item?.home_team)===team||pcTeam(item?.away_team)===team));
+  const currentGame=Number(season)===Number(NFL_SEASON)&&Array.isArray(NFL_WEEK1)?NFL_WEEK1.find(item=>Number(item?.week||1)===week&&(pcTeam(item?.a?.[1])===team||pcTeam(item?.b?.[1])===team)):null;
+  const home=game?pcTeam(game.home_team)===team:false,opponent=game?(home?pcTeam(game.away_team):pcTeam(game.home_team)):currentGame?(pcTeam(currentGame.a?.[1])===team?pcTeam(currentGame.b?.[1]):pcTeam(currentGame.a?.[1])):'';
+  const rec=pcEspnRaw(s,53,41),targets=pcEspnRaw(s,58),fg50=pcEspnRaw(s,198),fg60=pcEspnRaw(s,201),fg50Legacy=pcEspnRaw(s,74),fgm=pcEspnRaw(s,83),fga=pcEspnRaw(s,84),fgMiss=pcEspnRaw(s,85);
+  return {
+    player_id:String(player?.id||entry?.id||''),player_display_name:player?.fullName||player?.displayName||player?.name||'',position,position_group:position,headshot_url:player?.headshot?.href||'',season:String(season),week:String(week),season_type:'REG',game_id:String(game?.game_id||currentGame?.eventId||`${season}-${week}-${team}`),team,opponent_team:opponent,
+    completions:pcEspnRaw(s,1)??'',attempts:pcEspnRaw(s,0)??'',passing_yards:pcEspnRaw(s,3)??'',passing_tds:pcEspnRaw(s,4)??'',passing_interceptions:pcEspnRaw(s,20)??'',passing_first_downs:pcEspnRaw(s,211)??'',passing_epa:'',passing_2pt_conversions:pcEspnRaw(s,19)??'',
+    carries:pcEspnRaw(s,23)??'',rushing_yards:pcEspnRaw(s,24)??'',rushing_tds:pcEspnRaw(s,25)??'',rushing_first_downs:pcEspnRaw(s,212)??'',rushing_2pt_conversions:pcEspnRaw(s,26)??'',
+    receptions:rec??'',targets:targets??'',receiving_yards:pcEspnRaw(s,42)??'',receiving_tds:pcEspnRaw(s,43)??'',receiving_2pt_conversions:pcEspnRaw(s,44)??'',receiving_air_yards:'',receiving_yards_after_catch:pcEspnRaw(s,59)??'',receiving_first_downs:pcEspnRaw(s,213)??'',target_share:'',air_yards_share:'',wopr:'',special_teams_tds:pcEspnRaw(s,103,104)??'',fumble_recovery_tds:'',fumbles_lost_total:pcEspnRaw(s,72)??'',
+    fg_made:fgm??'',fg_att:fga??'',fg_missed:fgMiss??'',fg_long:'',fg_made_0_19:'',fg_made_20_29:'',fg_made_30_39:'',fg_made_40_49:pcEspnRaw(s,77)??'',fg_made_50_59:fg50??(fg60==null?fg50Legacy??'':''),fg_made_60_:fg60??'',pat_made:pcEspnRaw(s,86)??'',pat_att:pcEspnRaw(s,87)??'',pat_missed:pcEspnRaw(s,88)??'',
+    pc_espn_applied_total:Number(stat.appliedTotal),pc_espn_actual:true
+  };
+}
+async function pcEspnLeaguePlayersRequest(season,week,view,playersFilter){
+  const path=`/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=${week}&view=${view}`;
+  const hosts=['https://lm-api-reads.fantasy.espn.com','https://fantasy.espn.com'];
+  let lastError=null;
+  for(const host of hosts){
+    try{
+      const response=await fetch(`${host}${path}`,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify({players:playersFilter})}});
+      if(!response.ok)throw new Error(`ESPN ${view} returned ${response.status}`);
+      const payload=await response.json(),entries=Array.isArray(payload?.players)?payload.players:[];
+      if(!entries.length)throw new Error(`ESPN ${view} returned no players`);
+      return entries;
+    }catch(error){lastError=error}
+  }
+  throw lastError||new Error(`ESPN ${view} request failed`);
+}
+async function pcLoadEspnActualSeasonRows(season,ids=null){
+  season=Number(season);if(season!==Number(NFL_SEASON))return [];
+  const week=typeof hjCurrentWeek==='function'?Math.max(1,Number(hjCurrentWeek())||1):Math.max(1,Number(NFL_WEEK1?.[0]?.week||1));
+  const statFilter={filterStatsForSourceIds:{value:[0]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${season}`,`10${season}`]}};
+  const cleanIds=[...new Set((ids||[]).map(Number).filter(id=>Number.isFinite(id)&&id>0))];
+  let entries=[];
+  if(cleanIds.length){
+    /* ESPN's player-card view is the deep game-log endpoint. Do not attach a
+       limit to an ID-filtered request; ESPN requires a sort whenever limit is used. */
+    for(let i=0;i<cleanIds.length;i+=40){
+      const chunk=cleanIds.slice(i,i+40),found=await pcEspnLeaguePlayersRequest(season,week,'kona_playercard',{filterIds:{value:chunk},...statFilter});
+      entries.push(...found);
+    }
+  }else{
+    /* Bulk actuals power League HQ stat sorting. A limit is safe only with an
+       explicit sort. Page once more if ESPN returns a full first page. */
+    const base={filterStatus:{value:['FREEAGENT','WAIVERS','ONTEAM']},filterSlotIds:{value:[0,2,4,6,17]},...statFilter,limit:1000,offset:0,sortPercOwned:{sortPriority:1,sortAsc:false}};
+    const first=await pcEspnLeaguePlayersRequest(season,week,'kona_player_info',base);entries.push(...first);
+    if(first.length>=1000){const second=await pcEspnLeaguePlayersRequest(season,week,'kona_player_info',{...base,offset:1000});entries.push(...second)}
+  }
+  const byId=new Map();entries.forEach(entry=>{const id=String(pcEspnActualPlayer(entry)?.id||entry?.id||'');if(id)byId.set(id,entry)});
+  const schedule=await pcLoadSchedules().catch(()=>new Map()),rows=[];
+  byId.forEach(entry=>{const player=pcEspnActualPlayer(entry);pcEspnActualBestStats(player,season).forEach(stat=>{const row=pcEspnActualRow(entry,stat,season,schedule);if(row)rows.push(row)})});
+  return rows;
+}
+function pcMergeSeasonActualRows(primary,espnRows){
+  const map=new Map();
+  const key=row=>{const position=String(row?.position||row?.position_group||'').toUpperCase(),week=Number(row?.week)||0,name=pcBaseName(row?.player_display_name||row?.player_name||'');return name?`${position}|${name}|${week}`:`${position}|id:${String(row?.player_id||'')}|${week}`};
+  const quality=row=>Object.entries(row||{}).reduce((n,[field,value])=>n+(!['pc_espn_actual','pc_espn_applied_total','pc_espn_player_id'].includes(field)&&value!==''&&value!=null?1:0),0)+(row?.pc_espn_actual?0:4);
+  const merge=(a,b)=>{
+    if(!a)return {...b};if(!b)return {...a};
+    const richer=quality(a)>=quality(b)?a:b,other=richer===a?b:a,merged={...other,...richer};
+    Object.keys(other).forEach(field=>{if((merged[field]===''||merged[field]==null)&&other[field]!==''&&other[field]!=null)merged[field]=other[field]});
+    const espn=[a,b].find(row=>row?.pc_espn_actual);
+    if(espn){merged.pc_espn_actual=true;merged.pc_espn_player_id=String(espn.player_id||espn.pc_espn_player_id||'');if(Number.isFinite(Number(espn.pc_espn_applied_total)))merged.pc_espn_applied_total=Number(espn.pc_espn_applied_total)}
+    return merged;
+  };
+  (primary||[]).forEach(row=>{const k=key(row);map.set(k,merge(map.get(k),row))});
+  (espnRows||[]).forEach(row=>{const k=key(row);map.set(k,merge(map.get(k),row))});
+  return [...map.values()].sort((a,b)=>Number(a.week)-Number(b.week)||String(a.player_display_name||'').localeCompare(String(b.player_display_name||'')));
+}
 function pcLoadSeason(season){
-  season=Number(season);if(!pcSeasonCache.has(season)){
-    const base=`https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_${season}`;
-    const source=PC_EMBEDDED.stats[String(season)]?pcEmbeddedCsv(PC_EMBEDDED.stats[String(season)]):pcFetchCsv(`${base}.csv.gz`,`${base}.csv`).catch(error=>{if(season>=NFL_SEASON)return '';throw error});
-    const promise=source.then(text=>pcParseCsv(text,PC_FIELDS,row=>String(row.season_type||'REG').toUpperCase()==='REG'&&PC_POSITIONS.has(String(row.position||row.position_group||'').toUpperCase()))).then(rows=>rows.map(row=>({...row,position:String(row.position||row.position_group||'').toUpperCase(),team:pcTeam(row.team),opponent_team:pcTeam(row.opponent_team)})));
+  season=Number(season);const current=season===Number(NFL_SEASON),stale=current&&Date.now()-Number(pcSeasonFetchedAt.get(season)||0)>12000;
+  if(stale)pcSeasonCache.delete(season);
+  if(!pcSeasonCache.has(season)){
+    const base=`https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_${season}`,embedded=PC_EMBEDDED.stats[String(season)];
+    const source=embedded?pcEmbeddedCsv(embedded):pcFetchCsv(`${base}.csv.gz`,`${base}.csv`).catch(error=>{if(current)return '';throw error});
+    const native=source.then(text=>pcParseCsv(text,PC_FIELDS,row=>String(row.season_type||'REG').toUpperCase()==='REG'&&(!row.season||Number(row.season)===season)&&PC_POSITIONS.has(String(row.position||row.position_group||'').toUpperCase()))).then(rows=>rows.map(row=>({...row,position:String(row.position||row.position_group||'').toUpperCase(),team:pcTeam(row.team),opponent_team:pcTeam(row.opponent_team)})));
+    const promise=current?Promise.allSettled([native,pcLoadEspnActualSeasonRows(season)]).then(results=>{const nativeRows=results[0].status==='fulfilled'?results[0].value:[],espnRows=results[1].status==='fulfilled'?results[1].value:[];pcSeasonFetchedAt.set(season,Date.now());return pcMergeSeasonActualRows(nativeRows,espnRows)}):native;
     pcSeasonCache.set(season,promise);promise.catch(()=>pcSeasonCache.delete(season));
   }return pcSeasonCache.get(season);
 }
 function pcLoadDstSeason(season){
   season=Number(season);if(!pcDstCache.has(season)){
     const url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=0&view=kona_player_info`,filter={players:{filterSlotIds:{value:[16]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${season}`,`10${season}`]},filterStatsForSplitTypeIds:{value:[1]},filterStatsForSourceIds:{value:[0]},limit:100,offset:0,sortAppliedStatTotal:{sortAsc:false,sortPriority:1,value:`00${season}`}}};
-    const promise=fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}}).then(response=>{if(!response.ok)throw new Error(`Defense data returned ${response.status}`);return response.json()}).then(data=>{const entries=Array.isArray(data?.players)?data.players:[];if(!entries.length&&season<NFL_SEASON)throw new Error('Defense data was empty.');return entries});
+    const promise=fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}}).then(response=>{if(!response.ok)throw new Error(`Defense data returned ${response.status}`);return response.json()}).then(data=>{const entries=Array.isArray(data?.players)?data.players:[];if(!entries.length&&season<NFL_SEASON)throw new Error('Defense data was empty.');return entries.map(entry=>{const player=entry?.player||{},stats=(player?.stats||[]).filter(stat=>pcEspnActualSeasonMatch(stat,season));return {...entry,_pcSeason:season,player:{...player,stats}}})});
     pcDstCache.set(season,promise);promise.catch(()=>pcDstCache.delete(season));
   }return pcDstCache.get(season);
 }
@@ -10963,7 +11057,7 @@ function pcSpecialProjectionPanel(label,data,entry,period,week){
 async function pcRenderSpecialProjections(player,root,token){
   const weeklyTarget=root.querySelector('[data-pc-vegas-week],[data-pc-special-week]'),seasonTarget=root.querySelector('[data-pc-vegas-season],[data-pc-special-season]');if(!weeklyTarget&&!seasonTarget)return;const data=await pcLoadSpecialProjections(NFL_SEASON);if(!pcActive||token!==pcActive.token)return;const entry=pcSpecialProjectionFind(data,player),week=typeof hjCurrentWeek==='function'?hjCurrentWeek():Number(NFL_WEEK1[0]?.week||1),render=(target,label,period)=>{if(!target)return;const panel=pcSpecialProjectionPanel(label,data,entry,period,week);if(!panel){target.innerHTML='<div class="pc-vegas-state">No current projection is available for this player.</div>';return}target.innerHTML=`<div class="pc-vegas-head"><span class="pc-vegas-title">${period==='season'?'ESPN fantasy season projection':'ESPN fantasy projection'}</span><span class="pc-vegas-updated">${data.updated?`Updated ${esc(data.updated)}`:''}</span></div><div class="pc-vegas-grid is-single">${panel}</div>`};render(weeklyTarget,'This week','week');render(seasonTarget,'Season','season');
 }
-function pcDstStats(entry){return (entry?.player?.stats||[]).filter(stat=>Number(stat?.scoringPeriodId)>0&&Number(stat?.statSourceId)===0&&Number(stat?.statSplitTypeId)===1).sort((a,b)=>Number(a.scoringPeriodId)-Number(b.scoringPeriodId))}
+function pcDstStats(entry){const season=Number(entry?._pcSeason||NFL_SEASON);return (entry?.player?.stats||[]).filter(stat=>Number(stat?.scoringPeriodId)>0&&Number(stat?.statSourceId)===0&&Number(stat?.statSplitTypeId)===1&&pcEspnActualSeasonMatch(stat,season)).sort((a,b)=>Number(a.scoringPeriodId)-Number(b.scoringPeriodId))}
 function pcDstTotal(entry){return pcDstStats(entry).reduce((sum,stat)=>sum+pcNumber(stat.appliedTotal),0)}
 function pcDstTeam(entry){const id=String(entry?.player?.proTeamId||'');return Object.entries(NFL_TEAM_IDS).find(([,teamId])=>String(teamId)===id)?.[0]?.toUpperCase().replace(/^WSH$/,'WAS')||''}
 function pcDstFind(entries,player){return entries.find(entry=>String(entry?.player?.id||entry?.id)===String(player.id))||entries.find(entry=>pcTeam(pcDstTeam(entry))===pcTeam(player.team))||entries.find(entry=>pcNameMatch(entry?.player?.fullName,player.name))}
@@ -10978,6 +11072,11 @@ function pcDstOffenseRanks(entries,season,schedule){
 }
 function pcDstTimeline(entry,player,season,schedule,entries,offenseRanks=pcDstOffenseRanks(entries,season,schedule)){
   const team=pcDstTeam(entry)||pcTeam(player.team),actual=new Map(pcDstStats(entry).map(stat=>[Number(stat.scoringPeriodId),stat]));
+  /* Match the 2026 skill-player cards: only completed D/ST game rows appear,
+     newest first, and future weeks are added only after results exist. */
+  if(Number(season)===Number(NFL_SEASON)){
+    return [...actual.entries()].sort((a,b)=>b[0]-a[0]).map(([week,stat])=>{const game=pcDstScheduleGame(team,season,week,schedule),home=game&&pcTeam(game.home_team)===pcTeam(team),opponent=game?(home?pcTeam(game.away_team):pcTeam(game.home_team)):'—',opponentRank=offenseRanks.get(opponent)?.rank||null;return {week,team,opponent,opponentRank,venue:game?(home?'vs':'@'):'',points:pcNumber(stat.appliedTotal),rank:pcDstWeekRank(entries,week,stat.appliedTotal),stats:stat.stats||{},status:''}});
+  }
   return Array.from({length:18},(_,index)=>index+1).map(week=>{const stat=actual.get(week),game=pcDstScheduleGame(team,season,week,schedule),home=game&&pcTeam(game.home_team)===pcTeam(team),opponent=game?(home?pcTeam(game.away_team):pcTeam(game.home_team)):'BYE',opponentRank=offenseRanks.get(opponent)?.rank||null;if(!stat)return {week,team,opponent,opponentRank,venue:game?(home?'vs':'@'):'',status:game?'NO DATA':'BYE'};return {week,team,opponent,opponentRank,venue:game?(home?'vs':'@'):'',points:pcNumber(stat.appliedTotal),rank:pcDstWeekRank(entries,week,stat.appliedTotal),stats:stat.stats||{},status:''}}).reverse();
 }
 function pcDstTable(rows){
@@ -11020,13 +11119,29 @@ function pcPlayerFromTrigger(trigger){
   const exact=ffnRosterPlayers.find(player=>String(player.id)===String(raw.id))||ffnRosterPlayers.find(player=>pcNameMatch(player.name,raw.name));
   if(exact){raw.id=raw.id||exact.id;raw.name=exact.name||raw.name;raw.team=pcTeam(exact.team||raw.team);raw.position=String(exact.position||raw.position).toUpperCase();raw.photo=exact.photo||raw.photo}return raw;
 }
-function pcPlayerRows(rows,player){return rows.filter(row=>pcNameMatch(row.player_display_name,player.name)).sort((a,b)=>pcNumber(a.week)-pcNumber(b.week))}
+function pcPlayerRows(rows,player){
+  const id=String(player?.id||''),position=String(player?.position||'').toUpperCase(),name=player?.name||'';
+  const candidates=(rows||[]).filter(row=>{
+    const rowPos=String(row?.position||row?.position_group||'').toUpperCase(),samePos=!position||!rowPos||rowPos===position;
+    if(!samePos)return false;
+    const rowEspnId=String(row?.pc_espn_player_id||(row?.pc_espn_actual?row?.player_id:'')||'');
+    return !!((id&&rowEspnId===id)||pcNameMatch(row?.player_display_name||row?.player_name||'',name));
+  });
+  const byWeek=new Map(),quality=row=>(String(row?.pc_espn_player_id||'')===id?10000:0)+(row?.pc_espn_actual?1000:0)+Object.values(row||{}).filter(value=>value!==''&&value!=null).length;
+  candidates.forEach(row=>{const week=Number(row?.week)||0,prior=byWeek.get(week);if(!prior||quality(row)>quality(prior))byWeek.set(week,row)});
+  return [...byWeek.values()].sort((a,b)=>pcNumber(a.week)-pcNumber(b.week));
+}
 function pcTeamForWeek(rows,week,fallback=''){
   const exact=rows.find(row=>pcNumber(row.week)===week)?.team;if(exact)return pcTeam(exact);
   const before=[...rows].reverse().find(row=>pcNumber(row.week)<week)?.team,after=rows.find(row=>pcNumber(row.week)>week)?.team;
   return pcTeam(before||after||fallback);
 }
 function pcCompleteWeeks(rows,player,season,schedule,snaps){
+  /* Current-season player cards should grow naturally as games are played.
+     Do not pre-render future weeks, byes, or DNP placeholders for 2026. */
+  if(Number(season)===Number(NFL_SEASON)){
+    return [...(rows||[])].filter(row=>pcNumber(row.week)>0).sort((a,b)=>pcNumber(a.week)-pcNumber(b.week));
+  }
   const actual=new Map(rows.map(row=>[pcNumber(row.week),row])),games=[...schedule.values()].filter(game=>pcNumber(game.season)===pcNumber(season)&&String(game.game_type||'REG').toUpperCase()==='REG');
   return Array.from({length:18},(_,index)=>index+1).map(week=>{
     if(actual.has(week))return actual.get(week);
@@ -11290,7 +11405,7 @@ function pcLoadEspnProjection(player,season=NFL_SEASON){
   if(['K','D/ST'].includes(String(player.position||'').toUpperCase()))return pcLoadSpecialProjections(season).then(data=>({entry:pcSpecialProjectionFind(data,player),updated:data.updated||''}));
   const local=typeof pcFindLeagueProjectionEntry==='function'?pcFindLeagueProjectionEntry(player):null;if(local)return Promise.resolve({entry:local,updated:HJ_LEAGUE_STATE?.serverTime||''});
   const id=Number(player.id);if(!Number.isFinite(id)||id<=0)return Promise.resolve({entry:null,updated:''});const key=`${season}:${id}`;if(pcEspnProjectionCache.has(key))return pcEspnProjectionCache.get(key);
-  const url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=0&view=kona_player_info`,filter={players:{filterIds:{value:[id]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${season}`,`10${season}`]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForSourceIds:{value:[1]},limit:5,offset:0}};
+  const url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=0&view=kona_player_info`,filter={players:{filterIds:{value:[id]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${season}`,`10${season}`]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForSourceIds:{value:[1]}}};
   const promise=fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}}).then(response=>{if(!response.ok)throw new Error(`ESPN projection returned ${response.status}`);return Promise.all([response.json(),Promise.resolve(response.headers.get('X-Fantasy-Server-Time')||'')])}).then(([data,updated])=>({entry:Array.isArray(data?.players)?data.players[0]||null:null,updated}));pcEspnProjectionCache.set(key,promise);promise.catch(()=>pcEspnProjectionCache.delete(key));return promise;
 }
 async function pcLoadProfileEspnPair(player,season=NFL_SEASON,week=(typeof hjCurrentWeek==='function'?hjCurrentWeek():1)){
@@ -11335,7 +11450,7 @@ async function pcLoadProfileEspnPair(player,season=NFL_SEASON,week=(typeof hjCur
 
   if(!Number.isFinite(seasonValue)||!Number.isFinite(weekValue)){
     try{
-      const scoringPeriodId=0,url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=${scoringPeriodId}&view=kona_player_info`,filter={players:{filterIds:{value:[id]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${season}`,`10${season}`]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForSourceIds:{value:[1]},limit:8,offset:0}};
+      const scoringPeriodId=0,url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=${scoringPeriodId}&view=kona_player_info`,filter={players:{filterIds:{value:[id]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${season}`,`10${season}`]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForSourceIds:{value:[1]}}};
       const response=await fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}});if(!response.ok)throw new Error(`ESPN profile season projection returned ${response.status}`);
       const payload=await response.json();updated=response.headers.get('X-Fantasy-Server-Time')||updated;const entries=Array.isArray(payload?.players)?payload.players:[],entry=entries.find(item=>String(hjEspnPoolEntryId(item))===idKey)||entries[0]||null;
       if(entry){takeEntry(entry);if(typeof HJ_PLAYER_DIRECTORY!=='undefined')HJ_PLAYER_DIRECTORY?.espnCache?.set?.(idKey,entry);if(typeof hjMergeEspnHqEntries==='function'&&Number(season)===Number(HJ_LEAGUE_SEASON))hjMergeEspnHqEntries([entry],week,false)}
@@ -11378,7 +11493,9 @@ async function pcRenderSeason(season){
     if(active.player.position==='D/ST'){
       const [entries,scheduleResult,allRows]=await Promise.all([pcLoadDstSeason(season),pcLoadSchedules().catch(()=>new Map()),pcLoadSeason(season).catch(()=>[])]);if(!pcActive||token!==pcActive.token)return;scroll.innerHTML=pcDstProfileHTML(active.player,Number(season),entries,scheduleResult,allRows);scroll.scrollTop=0;pcBindProfileNav(scroll);pcRenderTeamRanks(active.player,Number(season),scroll,token).catch(()=>{});pcRenderSpecialProjections(active.player,scroll,token).catch(()=>{scroll.querySelectorAll('[data-pc-special-week],[data-pc-special-season]').forEach(target=>target.innerHTML='<div class="pc-vegas-state">Projection temporarily unavailable.</div>')});pcRenderPlayerNews(active.player,scroll,token).catch(()=>{});return;
     }
-    const [allRows,snapsResult,scheduleResult]=await Promise.all([pcLoadSeason(season),pcLoadSnaps(season).catch(()=>new Map()),pcLoadSchedules().catch(()=>new Map())]);if(!pcActive||token!==pcActive.token)return;scroll.innerHTML=pcProfileHTML(active.player,Number(season),allRows,snapsResult,scheduleResult);scroll.scrollTop=0;pcBindProfileNav(scroll);const playerRows=pcPlayerRows(allRows,active.player),rates=pcExpectedRates(allRows);pcRenderTeamRanks(active.player,Number(season),scroll,token).catch(()=>{});pcRenderVegas(active.player,scroll,token).catch(()=>{scroll.querySelectorAll('[data-pc-vegas-week],[data-pc-vegas-season]').forEach(target=>target.innerHTML='<div class="pc-vegas-state">Vegas projections are temporarily unavailable.</div>')});pcRenderNextContext(active.player,playerRows,allRows,scheduleResult,rates,scroll,token).catch(()=>{});pcRenderPlayerNews(active.player,scroll,token).catch(()=>{})
+    let [allRows,snapsResult,scheduleResult]=await Promise.all([pcLoadSeason(season),pcLoadSnaps(season).catch(()=>new Map()),pcLoadSchedules().catch(()=>new Map())]);if(!pcActive||token!==pcActive.token)return;
+    if(Number(season)===Number(NFL_SEASON)&&!pcPlayerRows(allRows,active.player).length&&Number(active.player?.id)>0){const direct=await pcLoadEspnActualSeasonRows(season,[Number(active.player.id)]).catch(()=>[]);if(direct.length)allRows=pcMergeSeasonActualRows(allRows,direct);if(!pcActive||token!==pcActive.token)return}
+    scroll.innerHTML=pcProfileHTML(active.player,Number(season),allRows,snapsResult,scheduleResult);scroll.scrollTop=0;pcBindProfileNav(scroll);const playerRows=pcPlayerRows(allRows,active.player),rates=pcExpectedRates(allRows);pcRenderTeamRanks(active.player,Number(season),scroll,token).catch(()=>{});pcRenderVegas(active.player,scroll,token).catch(()=>{scroll.querySelectorAll('[data-pc-vegas-week],[data-pc-vegas-season]').forEach(target=>target.innerHTML='<div class="pc-vegas-state">Vegas projections are temporarily unavailable.</div>')});pcRenderNextContext(active.player,playerRows,allRows,scheduleResult,rates,scroll,token).catch(()=>{});pcRenderPlayerNews(active.player,scroll,token).catch(()=>{})
   }
   catch(error){if(!pcActive||token!==pcActive.token)return;scroll.innerHTML=`<div class="pc-empty"><strong>Player stats did not load</strong><span>The weekly data source did not answer this request. The news feed is unaffected.</span><button class="pc-retry" type="button">Retry</button></div>`;scroll.querySelector('.pc-retry')?.addEventListener('click',()=>pcRenderSeason(season))}
 }
@@ -11423,7 +11540,7 @@ function pcOpen(trigger){
   pcClose();
   const teamLogo=ffnTeamLogo(player.team);
   const isDefense=player.position==='D/ST',photo=isDefense?teamLogo:(player.photo||nflHeadshot(player.id));
-  const season=2025;
+  const season=Number(NFL_SEASON);
   const overlay=document.createElement('div');
   overlay.className='pc-modal-overlay';
   overlay.setAttribute('role','presentation');
@@ -11431,7 +11548,7 @@ function pcOpen(trigger){
     <header class="pc-modal-head">
       <div class="pc-modal-photo${isDefense?' is-defense':''}">${photo?`<img class="pc-headshot${isDefense?' pc-dst-logo':''}" src="${esc(photo)}" alt="">`:`<span>${esc(ffnInitials(player.name))}</span>`}${teamLogo&&!isDefense?`<img class="pc-team-badge" src="${esc(teamLogo)}" alt="">`:''}</div>
       <div class="pc-modal-heading"><div class="pc-modal-kicker">${isDefense?'Defense profile':'Player profile'}</div><h2 class="pc-modal-title">${esc(player.name)}</h2><div class="pc-modal-meta">${esc(player.team||'FA')} · ${esc(player.position||'—')}</div></div>
-      <div class="pc-head-actions"><select class="pc-season-select" aria-label="Season"><option value="2026">2026</option><option value="2025" selected>2025</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option></select><button class="pc-modal-close" type="button" aria-label="Close player profile">×</button></div>
+      <div class="pc-head-actions"><select class="pc-season-select" aria-label="Season">${Array.from({length:Math.max(1,Number(NFL_SEASON)-2022+1)},(_,index)=>Number(NFL_SEASON)-index).map(year=>`<option value="${year}"${year===season?' selected':''}>${year}</option>`).join('')}</select><button class="pc-modal-close" type="button" aria-label="Close player profile">×</button></div>
       <nav class="pc-profile-nav" data-pc-profile-nav aria-label="Player profile sections"></nav>
     </header>
     <div class="pc-modal-scroll"></div>
@@ -11462,7 +11579,7 @@ document.addEventListener('pointerover',event=>{
   clearTimeout(pcPrefetchTimer);
   pcPrefetchTimer=setTimeout(()=>{
     const player=pcPlayerFromTrigger(trigger);
-    if(player.id)Promise.allSettled(player.position==='D/ST'?[pcLoadDstSeason(2025),pcLoadSchedules(),pcLoadSpecialProjections(NFL_SEASON)]:player.position==='K'?[pcLoadSeason(2025),pcLoadSnaps(2025),pcLoadSchedules(),pcLoadSpecialProjections(NFL_SEASON)]:[pcLoadSeason(2025),pcLoadSnaps(2025),pcLoadSchedules(),pcLoadVegas('weekly'),pcLoadVegas('season')]);
+    if(player.id)Promise.allSettled(player.position==='D/ST'?[pcLoadDstSeason(NFL_SEASON),pcLoadSchedules(),pcLoadSpecialProjections(NFL_SEASON)]:player.position==='K'?[pcLoadSeason(NFL_SEASON),pcLoadSnaps(NFL_SEASON),pcLoadSchedules(),pcLoadSpecialProjections(NFL_SEASON)]:[pcLoadSeason(NFL_SEASON),pcLoadSnaps(NFL_SEASON),pcLoadSchedules(),pcLoadVegas('weekly'),pcLoadVegas('season')]);
   },250);
 });
 document.addEventListener('pointerout',event=>{
@@ -11470,7 +11587,7 @@ document.addEventListener('pointerout',event=>{
   if(trigger&&!trigger.contains(event.relatedTarget))clearTimeout(pcPrefetchTimer);
 });
 document.addEventListener('keydown',event=>{if(event.key==='Escape'){if(pcStatPopover)pcHideStatHelp();else if(pcActive)pcClose()}});
-const pcWarmData=()=>setTimeout(()=>Promise.allSettled([pcLoadSeason(2025),pcLoadSnaps(2025),pcLoadSchedules()]),1200);
+const pcWarmData=()=>setTimeout(()=>Promise.allSettled([pcLoadSeason(NFL_SEASON),pcLoadSnaps(NFL_SEASON),pcLoadSchedules()]),1200);
 if(document.readyState==='complete')pcWarmData();else window.addEventListener('load',pcWarmData,{once:true});
 
 /* ---- The Hung Jurors live ESPN league sync ---- */
@@ -14241,7 +14358,7 @@ async function wireLoadPlayers(ids){
   WIRE.playersFor=key;
   try{
     const url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${HJ_LEAGUE_SEASON}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=0&view=kona_player_info`;
-    const filter={players:{filterIds:{value:ids.map(Number)},limit:Math.max(ids.length,50),offset:0}};
+    const filter={players:{filterIds:{value:ids.map(Number)}}};
     const response=await fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}});
     if(!response.ok)throw new Error(`kona ${response.status}`);
     const json=await response.json();(json?.players||[]).forEach(entry=>{const p=entry?.player||entry;if(p?.id)WIRE.players.set(String(p.id),wirePlayerObj(p))});
@@ -14825,7 +14942,8 @@ const HJ_PLAYER_DIRECTORY={
 };
 
 function hjDirectoryDataKey(data=HJ_LEAGUE_STATE.data){
-  return `${HJ_LEAGUE_SEASON}:${hjCurrentWeek(data)}:${Number(data?.status?.latestScoringPeriod||0)}:${Number(data?.teams?.length||0)}:${(data?.teams||[]).reduce((n,t)=>n+hjRosterEntries(t).length,0)}`;
+  const rosterSig=(data?.teams||[]).flatMap(team=>hjRosterEntries(team).map(entry=>`${String(team?.id||'')}:${String(hjPlayer(entry)?.id||entry?.playerId||'')}`)).sort().join(',');
+  return `${HJ_LEAGUE_SEASON}:${hjCurrentWeek(data)}:${Number(data?.status?.latestScoringPeriod||0)}:${rosterSig}`;
 }
 function hjLeagueHas2026Results(data=HJ_LEAGUE_STATE.data){
   /* Use 2025 final ranks throughout Week 1. Switch only after ESPN marks
@@ -14860,6 +14978,7 @@ function hjDirectoryBase(data=HJ_LEAGUE_STATE.data){
     const prior=map.get(key)||{};map.set(key,{...prior,...player,id,name,position,norm:hjNorm(name)});
   };
   FFN_BOOTSTRAP_ROSTER.forEach(player=>put({...player,position:String(player.position||'').toUpperCase()}));
+  if(typeof ffnRosterPlayers!=='undefined'&&Array.isArray(ffnRosterPlayers))ffnRosterPlayers.forEach(player=>put({...player,position:String(player.position||'').toUpperCase()}));
   (data?.teams||[]).forEach(team=>hjRosterEntries(team).forEach(entry=>{
     const p=hjPlayer(entry),id=String(p?.id||entry?.playerId||''),position=hjPlayerPosition(entry),name=p?.fullName||p?.displayName||p?.name||'Player';
     put({id,name,team:hjPlayerTeam(entry),position,photo:hjPlayerPhoto(entry),depthTier:0,_leagueEntry:entry});
@@ -14967,7 +15086,7 @@ async function hjDirectoryFetchEspnBatch(players){
   needed.forEach(player=>HJ_PLAYER_DIRECTORY.espnPending.add(String(player.id)));
   const url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${HJ_LEAGUE_SEASON}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=0&view=kona_player_info`,chunks=[];for(let i=0;i<needed.length;i+=20)chunks.push(needed.slice(i,i+20));
   for(const chunk of chunks){
-    const ids=chunk.map(player=>Number(player.id)),filter={players:{filterIds:{value:ids},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${HJ_LEAGUE_SEASON}`,`10${HJ_LEAGUE_SEASON}`]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForSourceIds:{value:[1]},limit:Math.max(25,ids.length+5),offset:0}},found=new Map();
+    const ids=chunk.map(player=>Number(player.id)),filter={players:{filterIds:{value:ids},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${HJ_LEAGUE_SEASON}`,`10${HJ_LEAGUE_SEASON}`]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForSourceIds:{value:[1]}}},found=new Map();
     try{
       const response=await fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}});if(!response.ok)throw new Error(`ESPN projection batch ${response.status}`);const payload=await response.json();(payload?.players||[]).forEach(entry=>found.set(String(hjEspnPoolEntryId(entry)),entry));
     }catch(error){console.warn('ESPN batch projection request unavailable; falling back to player-profile requests',error)}
@@ -15063,7 +15182,8 @@ const HJ_2025_POSITION_RANKS = {"K|andre szmyt":23,"K|andy borregales":10,"K|ben
 /* ESPN's status fields can already report scoring period 1 while Week 1 is
    still the active matchup. Do not treat that as a completed 2026 sample. */
 hjLeagueHas2026Results = function(data=HJ_LEAGUE_STATE.data){
-  return Number(data?.status?.currentMatchupPeriod||1) > 1;
+  const gameHasStarted=Array.isArray(NFL_WEEK1)&&NFL_WEEK1.some(game=>game?.state==='in'||game?.state==='post'||(Number.isFinite(new Date(game?.kickoff||'').getTime())&&new Date(game.kickoff).getTime()<=Date.now()));
+  return Number(data?.status?.currentMatchupPeriod||1)>1||gameHasStarted;
 };
 
 const hjFantasyRankForPlayerDynamic = hjFantasyRankForPlayer;
@@ -15095,30 +15215,29 @@ Object.assign(HJ_PLAYER_DIRECTORY,{
 
 function hjDirectoryApplyEspnEntry(entry){
   if(!entry)return false;
-  const week=hjCurrentWeek(HJ_LEAGUE_STATE.data);
-  const id=String(hjEspnPoolEntryId(entry)||'');
-  const raw=hjEspnPoolEntryPlayer(entry);
-  const name=hjNorm(raw?.fullName||entry?.fullName||'');
-  const row=(id&&HJ_PLAYER_DIRECTORY.rows.find(player=>String(player.id)===id))
-    ||(name&&HJ_PLAYER_DIRECTORY.rows.find(player=>player.norm===name));
-  if(!row)return false;
-  const weekly=pcEspnProjectionStat(entry,'week',week);
-  const season=pcEspnProjectionStat(entry,'season',week);
-  if(Number.isFinite(weekly))row.espnWeekFpts=weekly;
-  if(Number.isFinite(season))row.espnSeasonFpts=season;
-  if(Number.isFinite(weekly)||Number.isFinite(season)){
-    row._espnTried=true;
-    HJ_PLAYER_DIRECTORY.espnCache.set(String(row.id),entry);
-    return true;
+  const week=hjCurrentWeek(HJ_LEAGUE_STATE.data),id=String(hjEspnPoolEntryId(entry)||''),raw=hjEspnPoolEntryPlayer(entry),position=hjEspnPoolPosition(entry),nameRaw=raw?.fullName||raw?.displayName||entry?.fullName||'',name=hjNorm(nameRaw),team=HJ_PRO_TEAM_BY_ID[String(raw?.proTeamId||'')]||'';
+  if(!id||!nameRaw||!['QB','RB','WR','TE','K','D/ST'].includes(position))return false;
+  let row=(position==='D/ST'&&team?HJ_PLAYER_DIRECTORY.rows.find(player=>player.position==='D/ST'&&pcTeam(player.team)===pcTeam(team)):null)||(id&&HJ_PLAYER_DIRECTORY.rows.find(player=>String(player.id)===id))||(name&&HJ_PLAYER_DIRECTORY.rows.find(player=>player.norm===name&&(!position||player.position===position)));
+  let created=false;
+  if(!row){
+    row={id,name:nameRaw,team,position,photo:position==='D/ST'?ffnTeamLogo(team):(raw?.headshot?.href||nflHeadshot(id)),depthTier:99,depthSlot:99,rosterOrder:999,norm:name,ownership:{owned:false,owner:'',label:'Free agent'},fantasyPositionRank:null,espnWeekFpts:null,espnSeasonFpts:null,vegasWeekFpts:null,vegasSeasonFpts:null,_espnTried:false};
+    row.ownership=hjOwnershipForPlayerLike(row);row.fantasyPositionRank=hjFantasyRankForPlayer(row)||null;HJ_PLAYER_DIRECTORY.rows.push(row);HJ_HQ_STATE.freeAgents=HJ_PLAYER_DIRECTORY.rows;created=true;
+  }else{
+    row.name=nameRaw||row.name;row.norm=hjNorm(row.name);if(team)row.team=team;if(position)row.position=position;if(!row.photo&&position!=='D/ST')row.photo=raw?.headshot?.href||nflHeadshot(id);row.ownership=hjOwnershipForPlayerLike(row);
   }
-  return false;
+  const weekly=pcEspnProjectionStat(entry,'week',week),season=pcEspnProjectionStat(entry,'season',week);
+  if(Number.isFinite(weekly))row.espnWeekFpts=weekly;if(Number.isFinite(season))row.espnSeasonFpts=season;
+  const actuals=pcEspnActualBestStats(raw,HJ_LEAGUE_SEASON);if(actuals.length){const bag=row._espnActualByWeek||(row._espnActualByWeek={});actuals.forEach(stat=>bag[String(Number(stat.scoringPeriodId))]={appliedTotal:Number(stat.appliedTotal),stats:{...(stat.stats||{})}})}
+  if(Number.isFinite(weekly)||Number.isFinite(season))row._espnTried=true;
+  HJ_PLAYER_DIRECTORY.espnCache.set(String(row.id),entry);if(created)HJ_PLAYER_DIRECTORY._v64AddedPlayers=(Number(HJ_PLAYER_DIRECTORY._v64AddedPlayers)||0)+1;
+  return true;
 }
 
 function hjDirectoryEspnPoolFilter(){
   return {
     players:{
       filterStatus:{value:['FREEAGENT','WAIVERS']},
-      filterSlotIds:{value:[]},
+      filterSlotIds:{value:[0,2,4,6,16,17]},
       limit:1000,
       offset:0,
       sortPercOwned:{sortPriority:1,sortAsc:false},
@@ -15128,41 +15247,19 @@ function hjDirectoryEspnPoolFilter(){
 }
 
 async function hjDirectoryFetchEspnFreeAgentPool(force=false){
-  const data=HJ_LEAGUE_STATE.data;
-  if(!data)return [];
-  const week=hjCurrentWeek(data);
-  const key=`${HJ_LEAGUE_SEASON}:${week}`;
+  const data=HJ_LEAGUE_STATE.data;if(!data)return [];
+  const week=hjCurrentWeek(data),key=`${HJ_LEAGUE_SEASON}:${week}`;
   if(!force&&HJ_PLAYER_DIRECTORY.espnPoolLoaded&&HJ_PLAYER_DIRECTORY.espnPoolKey===key)return [];
   if(!force&&HJ_PLAYER_DIRECTORY.espnPoolPromise&&HJ_PLAYER_DIRECTORY.espnPoolKey===key)return HJ_PLAYER_DIRECTORY.espnPoolPromise;
-  HJ_PLAYER_DIRECTORY.espnPoolKey=key;
-  HJ_PLAYER_DIRECTORY.espnPoolError='';
-  const path=`/apis/v3/games/ffl/seasons/${HJ_LEAGUE_SEASON}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}`;
-  const query=`?view=kona_player_info&scoringPeriodId=${week}`;
-  const urls=[
-    `https://lm-api-reads.fantasy.espn.com${path}${query}`,
-    `https://fantasy.espn.com${path}${query}`
-  ];
-  const headers={'x-fantasy-filter':JSON.stringify(hjDirectoryEspnPoolFilter())};
-  HJ_PLAYER_DIRECTORY.espnPoolPromise=Promise.any(urls.map(url=>
-    fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers})
-      .then(response=>{if(!response.ok)throw new Error(`ESPN player pool ${response.status}`);return response.json()})
-      .then(payload=>{
-        const entries=Array.isArray(payload?.players)?payload.players:[];
-        if(!entries.length)throw new Error('ESPN player pool was empty');
-        return entries;
-      })
-  )).then(entries=>{
-    let applied=0;
-    entries.forEach(entry=>{if(hjDirectoryApplyEspnEntry(entry))applied++});
-    HJ_PLAYER_DIRECTORY.espnPoolLoaded=true;
-    HJ_PLAYER_DIRECTORY.espnPoolError='';
+  HJ_PLAYER_DIRECTORY.espnPoolKey=key;HJ_PLAYER_DIRECTORY.espnPoolError='';
+  const path=`/apis/v3/games/ffl/seasons/${HJ_LEAGUE_SEASON}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}`,query=`?view=kona_player_info&scoringPeriodId=${week}`,urls=[`https://lm-api-reads.fantasy.espn.com${path}${query}`,`https://fantasy.espn.com${path}${query}`],filter=hjDirectoryEspnPoolFilter();
+  filter.players.filterSlotIds={value:[0,2,4,6,16,17]};
+  const headers={'x-fantasy-filter':JSON.stringify(filter)},before=HJ_PLAYER_DIRECTORY.rows.length;
+  HJ_PLAYER_DIRECTORY.espnPoolPromise=Promise.any(urls.map(url=>fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers}).then(response=>{if(!response.ok)throw new Error(`ESPN player pool ${response.status}`);return response.json()}).then(payload=>{const entries=Array.isArray(payload?.players)?payload.players:[];if(!entries.length)throw new Error('ESPN player pool was empty');return entries}))).then(entries=>{
+    entries.forEach(hjDirectoryApplyEspnEntry);HJ_PLAYER_DIRECTORY.espnPoolLoaded=true;HJ_PLAYER_DIRECTORY.espnPoolError='';
+    if(HJ_PLAYER_DIRECTORY.rows.length>before){HJ_PLAYER_DIRECTORY.sourceKey='';queueMicrotask(()=>{if(HJ_LEAGUE_STATE.data)hjDirectoryLoadSources(HJ_LEAGUE_STATE.data).catch(error=>console.warn('New-player source hydration unavailable',error))})}
     return entries;
-  }).catch(error=>{
-    HJ_PLAYER_DIRECTORY.espnPoolLoaded=false;
-    HJ_PLAYER_DIRECTORY.espnPoolError=String(error?.message||error||'ESPN projections unavailable');
-    console.warn('ESPN free-agent projection pool unavailable',error);
-    return [];
-  }).finally(()=>{HJ_PLAYER_DIRECTORY.espnPoolPromise=null});
+  }).catch(error=>{HJ_PLAYER_DIRECTORY.espnPoolLoaded=false;HJ_PLAYER_DIRECTORY.espnPoolError=String(error?.message||error||'ESPN projections unavailable');console.warn('ESPN free-agent projection pool unavailable',error);return []}).finally(()=>{HJ_PLAYER_DIRECTORY.espnPoolPromise=null});
   return HJ_PLAYER_DIRECTORY.espnPoolPromise;
 }
 
@@ -15306,7 +15403,7 @@ requestAnimationFrame(()=>{
     let applied=0;
     for(let i=0;i<eligible.length;i+=30){
       const chunk=eligible.slice(i,i+30),ids=chunk.map(player=>Number(player.id));
-      const filter={players:{filterIds:{value:ids},limit:Math.max(40,ids.length+5),offset:0}};
+      const filter={players:{filterIds:{value:ids}}};
       try{
         const response=await fetch(hjDirectoryEspnUrl(week),{
           method:'GET',mode:'cors',credentials:'omit',cache:'no-store',
@@ -15327,7 +15424,7 @@ requestAnimationFrame(()=>{
     const week=hjDirectoryCurrentWeek();
     const filter={players:{
       filterStatus:{value:['FREEAGENT','WAIVERS']},
-      filterSlotIds:{value:[]},
+      filterSlotIds:{value:[0,2,4,6,16,17]},
       limit:1000,
       sortPercOwned:{sortPriority:1,sortAsc:false},
       sortDraftRanks:{sortPriority:100,sortAsc:true,value:'STANDARD'}
@@ -16049,7 +16146,7 @@ async function hjMathLoadRosterSeasonProjections(data=HJ_LEAGUE_STATE.data,force
   HJ_MATH_SEASON.loading=(async()=>{
     const url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${HJ_LEAGUE_SEASON}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=0&view=kona_player_info`;
     for(let i=0;i<chunks.length;i+=3){
-      const group=chunks.slice(i,i+3),results=await Promise.allSettled(group.map(chunk=>{const filter={players:{filterIds:{value:chunk},filterStatsForSourceIds:{value:[1]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${HJ_LEAGUE_SEASON}`,`10${HJ_LEAGUE_SEASON}`]},limit:Math.max(45,chunk.length+5),offset:0}};return fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}}).then(response=>{if(!response.ok)throw new Error(`ESPN season projection batch ${response.status}`);HJ_MATH_SEASON.updated=response.headers.get('X-Fantasy-Server-Time')||HJ_MATH_SEASON.updated;return response.json()})}));
+      const group=chunks.slice(i,i+3),results=await Promise.allSettled(group.map(chunk=>{const filter={players:{filterIds:{value:chunk},filterStatsForSourceIds:{value:[1]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${HJ_LEAGUE_SEASON}`,`10${HJ_LEAGUE_SEASON}`]}}};return fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}}).then(response=>{if(!response.ok)throw new Error(`ESPN season projection batch ${response.status}`);HJ_MATH_SEASON.updated=response.headers.get('X-Fantasy-Server-Time')||HJ_MATH_SEASON.updated;return response.json()})}));
       results.forEach(result=>{if(result.status!=='fulfilled')return;(result.value?.players||[]).forEach(entry=>{const id=hjMathEntryId(entry);if(id&&hjMathCanonicalStat(entry,'season',1,HJ_LEAGUE_SEASON,1))HJ_MATH_SEASON.byId.set(id,entry)})});
     }
     const unresolved=ids.filter(id=>!HJ_MATH_SEASON.byId.has(String(id)));if(unresolved.length)HJ_MATH_SEASON.error=`${unresolved.length} rostered player${unresolved.length===1?'':'s'} missing an ESPN season projection`;
@@ -16090,7 +16187,7 @@ pcLoadEspnProjection=function(player,season=NFL_SEASON){
     }
     /* Final fallback uses the same Kona fields, but keeps the current scoring
        period in the URL so ESPN applies this league's scoring to free agents. */
-    const url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=${week}&view=kona_player_info`,filter={players:{filterIds:{value:[id]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${season}`,`10${season}`]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForSourceIds:{value:[1]},filterRanksForScoringPeriodIds:{value:[week]},limit:8,offset:0}};
+    const url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=${week}&view=kona_player_info`,filter={players:{filterIds:{value:[id]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${season}`,`10${season}`]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForSourceIds:{value:[1]},filterRanksForScoringPeriodIds:{value:[week]}}};
     const response=await fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}});if(!response.ok)throw new Error(`ESPN projection returned ${response.status}`);
     const payload=await response.json(),updated=response.headers.get('X-Fantasy-Server-Time')||'',entry=Array.isArray(payload?.players)?payload.players.find(item=>String(hjEspnPoolEntryId(item))===String(id))||payload.players[0]||local||null:local||null;
     if(entry&&typeof hjMergeEspnHqEntries==='function'&&Number(season)===Number(HJ_LEAGUE_SEASON))hjMergeEspnHqEntries([entry],week,false);
@@ -16107,7 +16204,7 @@ async function hjMathDirectoryEnsureSeason(players){
   eligible.forEach(player=>{const id=String(player.id),cached=HJ_MATH_SEASON.byId.get(id)||HJ_PLAYER_DIRECTORY?.espnCache?.get(id);if(!cached)return;const s=pcEspnProjectionStat(cached,'season',week);if(Number.isFinite(s)){player.espnSeasonFpts=s;HJ_PLAYER_DIRECTORY.espnCache.set(id,cached)}});
   let missing=eligible.filter(player=>!Number.isFinite(player.espnSeasonFpts));if(!missing.length)return;
   const url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${HJ_LEAGUE_SEASON}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=0&view=kona_player_info`;
-  for(let i=0;i<missing.length;i+=25){const chunk=missing.slice(i,i+25),ids=chunk.map(player=>Number(player.id)),filter={players:{filterIds:{value:ids},filterStatsForSourceIds:{value:[1]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${HJ_LEAGUE_SEASON}`,`10${HJ_LEAGUE_SEASON}`]},limit:Math.max(30,ids.length+5),offset:0}};try{const response=await fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}});if(!response.ok)throw new Error(`ESPN directory season projection ${response.status}`);const payload=await response.json();(payload?.players||[]).forEach(entry=>{const id=hjMathEntryId(entry);if(id&&hjMathCanonicalStat(entry,'season',week,HJ_LEAGUE_SEASON,1)){HJ_MATH_SEASON.byId.set(id,entry);hjDirectoryApplyEspnEntry(entry)}})}catch(error){console.warn('ESPN visible-player season projections unavailable',error)}}
+  for(let i=0;i<missing.length;i+=25){const chunk=missing.slice(i,i+25),ids=chunk.map(player=>Number(player.id)),filter={players:{filterIds:{value:ids},filterStatsForSourceIds:{value:[1]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${HJ_LEAGUE_SEASON}`,`10${HJ_LEAGUE_SEASON}`]}}};try{const response=await fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}});if(!response.ok)throw new Error(`ESPN directory season projection ${response.status}`);const payload=await response.json();(payload?.players||[]).forEach(entry=>{const id=hjMathEntryId(entry);if(id&&hjMathCanonicalStat(entry,'season',week,HJ_LEAGUE_SEASON,1)){HJ_MATH_SEASON.byId.set(id,entry);hjDirectoryApplyEspnEntry(entry)}})}catch(error){console.warn('ESPN visible-player season projections unavailable',error)}}
 }
 const hjMathDirectoryFetchBase=hjDirectoryFetchEspnBatch;
 hjDirectoryFetchEspnBatch=async function(players){await hjMathDirectoryFetchBase(players);await hjMathDirectoryEnsureSeason(players)};
@@ -18721,7 +18818,7 @@ pcLoadVegas=function(kind,force=false){
     }catch(error){
       const stored=hjVegasAuditStored(kind);
       if(stored)return stored;
-      throw error;
+      try{const bundled=await pcVegasBuiltIn(kind);return {...bundled,source:'Bundled snapshot',fallback:true,liveError:String(error?.message||error||'Live Vegas source unavailable')}}catch(_){throw error}
     }
   })();
   pcVegasCache.set(kind,{promise,expires:now+HJ_VEGAS_AUDIT_TTL});
@@ -20768,7 +20865,8 @@ requestAnimationFrame(()=>{if(HJ_LEAGUE_STATE?.data&&HJ_HQ_STATE?.activeTab==='m
   function hj40PlayerKey(player){return `${hj40Pos(player?.position)}|${pcBaseName(player?.name||player?.fullName||player?.displayName||'')}`}
   function hj40CurrentWeek(){return Math.max(1,Number(hjCurrentWeek(HJ_LEAGUE_STATE?.data)||1))}
   function hj40GameState(player){return typeof hjPlayerGameState==='function'?hjPlayerGameState(player?.team):'pre'}
-  function hj40GameStarted(player){return hj40GameState(player)!=='pre'}
+  function hj40CurrentActualFpts(player){if(player?._actualWeekSeen&&Number.isFinite(player.actualWeekFpts))return Number(player.actualWeekFpts);const state=HJ40.data.get(CURRENT_SEASON),rows=state?hj40RowsForPlayer(player,state).filter(row=>Number(row.week)===hj40CurrentWeek()):[];return rows.length?rows.reduce((sum,row)=>sum+pcPoints(row),0):null}
+  function hj40GameStarted(player){return Number.isFinite(hj40CurrentActualFpts(player))||hj40GameState(player)!=='pre'}
   function hj40IsCurrentYear(){return Number(HJ40.year)===CURRENT_SEASON}
   function hj40PeriodWeek(){return /^w\d+$/.test(HJ40.period)?Number(HJ40.period.slice(1)):null}
   function hj40StatDefs(player){return HJ40_DEFS[hj40Pos(player?.position)]||[]}
@@ -20865,18 +20963,20 @@ requestAnimationFrame(()=>{if(HJ_LEAGUE_STATE?.data&&HJ_HQ_STATE?.activeTab==='m
 
   async function hj40EnsureSeason(season,force=false){
     season=Number(season);
-    const cached=HJ40.data.get(season),stale=season===CURRENT_SEASON&&cached&&Date.now()-cached.loadedAt>5*60*1000;
+    const cached=HJ40.data.get(season),stale=season===CURRENT_SEASON&&cached&&Date.now()-cached.loadedAt>30*1000;
     if(cached&&!force&&!stale)return cached;
     if(HJ40.loading.has(season))return HJ40.loading.get(season);
     if(force||stale){HJ40.rawCache.delete(season);HJ40.data.delete(season);HJ40.snapshotCache.clear();if(season===CURRENT_SEASON){try{if(typeof pcSnapCache!=='undefined'&&pcSnapCache?.delete)pcSnapCache.delete(season)}catch(_){}try{if(typeof pcDstCache!=='undefined'&&pcDstCache?.delete)pcDstCache.delete(season)}catch(_){}}}
     const promise=(async()=>{
-      const [rawResult,snapResult,dstResult]=await Promise.allSettled([
+      const [rawResult,snapResult,dstResult,currentRowsResult]=await Promise.allSettled([
         hj40FetchRawCsv(season),
         typeof pcLoadSnaps==='function'?pcLoadSnaps(season):Promise.resolve(new Map()),
-        typeof pcLoadDstSeason==='function'?pcLoadDstSeason(season):Promise.resolve([])
+        typeof pcLoadDstSeason==='function'?pcLoadDstSeason(season):Promise.resolve([]),
+        season===CURRENT_SEASON&&typeof pcLoadSeason==='function'?pcLoadSeason(season):Promise.resolve([])
       ]);
-      const text=rawResult.status==='fulfilled'?rawResult.value:'',snaps=snapResult.status==='fulfilled'?snapResult.value:new Map(),dst=dstResult.status==='fulfilled'?dstResult.value:[];
-      const rows=pcParseCsv(text,HJ40_FIELDS,row=>String(row.season_type||'REG').toUpperCase()==='REG');
+      const text=rawResult.status==='fulfilled'?rawResult.value:'',snaps=snapResult.status==='fulfilled'?snapResult.value:new Map(),dst=dstResult.status==='fulfilled'?dstResult.value:[],currentRows=currentRowsResult.status==='fulfilled'?currentRowsResult.value:[];
+      const nativeRows=pcParseCsv(text,HJ40_FIELDS,row=>String(row.season_type||'REG').toUpperCase()==='REG'&&(!row.season||Number(row.season)===season));
+      const rows=season===CURRENT_SEASON&&currentRows.length?pcMergeSeasonActualRows(nativeRows,currentRows):nativeRows;
       const state=hj40BuildSeasonState(season,rows,snaps,dst);HJ40.data.set(season,state);HJ40.loading.delete(season);HJ40.snapshotCache.clear();
       const currentWeeks=hj40AvailableWeeks();if(/^w\d+$/.test(HJ40.period)&&!currentWeeks.includes(Number(HJ40.period.slice(1))))HJ40.period='total';
       requestAnimationFrame(()=>{hj40RefreshControls();if(HJ_HQ_STATE?.activeTab==='free-agents')hjRenderPlayerDirectory(false)});
@@ -20902,9 +21002,17 @@ requestAnimationFrame(()=>{if(HJ_LEAGUE_STATE?.data&&HJ_HQ_STATE?.activeTab==='m
   function hj40Scale(value,games){return HJ40.period==='avg'&&games?value/games:value}
   function hj40Average(values){const v=values.filter(Number.isFinite);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null}
 
+  function hj40EspnActualSnapshot(player){
+    const bag=player?._espnActualByWeek||{},periodWeek=hj40PeriodWeek(),rows=Object.entries(bag).map(([week,row])=>({week:Number(week),...row})).filter(row=>row.week&&(!periodWeek||row.week===periodWeek)).sort((a,b)=>a.week-b.week),games=rows.length,isAvg=HJ40.period==='avg';
+    if(!rows.length)return {values:{},games:0,isAvg};
+    const raw=(row,...ids)=>{for(const id of ids){const value=row?.stats?.[String(id)]??row?.stats?.[id];if(value!==''&&value!=null&&Number.isFinite(Number(value)))return Number(value)}return 0},sum=(...ids)=>rows.reduce((total,row)=>total+raw(row,...ids),0),scale=value=>isAvg&&games?value/games:value;
+    const cmp=sum(1),att=sum(0),passYd=sum(3),passTd=sum(4),intc=sum(20),rush=sum(23),rushYd=sum(24),rushTd=sum(25),rec=rows.reduce((total,row)=>total+(raw(row,53)||raw(row,41)),0),recYd=sum(42),recTd=sum(43),tgt=sum(58),fgm=sum(83),fga=sum(84),xpm=sum(86),xpa=sum(87),fgm60=sum(201),fgm50_59=sum(198),fgm40=sum(77),fpts=rows.reduce((total,row)=>total+Number(row.appliedTotal||0),0);
+    return {games,isAvg,values:{fpts:scale(fpts),passYd:scale(passYd),rushYd:scale(rushYd),passTd:scale(passTd),rushTd:scale(rushTd),passAtt:scale(att),int:scale(intc),rush:scale(rush),passRtg:hj40PasserRating(cmp,att,passYd,passTd,intc),passCmp:scale(cmp),cmpPct:att?cmp/att*100:null,recYd:scale(recYd),recTd:scale(recTd),rec:scale(rec),catchPct:tgt?rec/tgt*100:null,tgt:scale(tgt),ydRec:rec?recYd/rec:null,ydTar:tgt?recYd/tgt:null,ypc:rush?rushYd/rush:null,fgm:scale(fgm),xpm:scale(xpm),fgm60:scale(fgm60),fgm50:scale(fgm50_59+fgm60),fga:scale(fga),fgPct:fga?fgm/fga*100:null,xpa:scale(xpa),fgm40:scale(fgm40)}};
+  }
+
   function hj40SkillSnapshot(player,state){
-    const rows=hj40SelectedRows(hj40RowsForPlayer(player,state)),week=hj40PeriodWeek(),name=pcBaseName(player?.name||''),allSnaps=state?.snapsByName?.get(name)||[],selectedSnaps=week?allSnaps.filter(row=>Number(row.week)===week):allSnaps,gameWeeks=new Set([...rows.map(row=>Number(row.week)),...selectedSnaps.map(row=>Number(row.week))].filter(Boolean)),games=gameWeeks.size,isAvg=HJ40.period==='avg';
-    if(!rows.length&&!selectedSnaps.length)return {values:{},games:0,isAvg};
+    const rows=hj40SelectedRows(hj40RowsForPlayer(player,state)),week=hj40PeriodWeek(),name=pcBaseName(player?.name||''),allSnaps=state?.snapsByName?.get(name)||[],selectedSnaps=week?allSnaps.filter(row=>Number(row.week)===week):allSnaps,espn=Number(HJ40.year)===CURRENT_SEASON?hj40EspnActualSnapshot(player):{values:{},games:0,isAvg:HJ40.period==='avg'},gameWeeks=new Set([...rows.map(row=>Number(row.week)),...selectedSnaps.map(row=>Number(row.week))].filter(Boolean)),games=gameWeeks.size||espn.games,isAvg=HJ40.period==='avg';
+    if(!rows.length&&!selectedSnaps.length&&!espn.games)return {values:{},games:0,isAvg};
     const sum=key=>rows.reduce((n,row)=>n+hj40Num(row[key]),0),scale=v=>hj40Scale(v,games),snapValues=(selectedSnaps.length?selectedSnaps.map(row=>hj40Finite(row?.offense_pct)):rows.map(row=>hj40Finite(pcSnap(row,state.snaps)?.offense_pct))).filter(Number.isFinite);
     const cmp=sum('completions'),att=sum('attempts'),passYd=sum('passing_yards'),passTd=sum('passing_tds'),intc=sum('passing_interceptions'),rushYd=sum('rushing_yards'),rushTd=sum('rushing_tds'),rush=sum('carries'),airYd=sum('passing_air_yards'),rec=sum('receptions'),recYd=sum('receiving_yards'),recTd=sum('receiving_tds'),tgt=sum('targets'),fgm=sum('fg_made'),fga=sum('fg_att'),xpm=sum('pat_made'),xpa=sum('pat_att'),fgm60=sum('fg_made_60_'),fgm50_59=sum('fg_made_50_59'),fgm30=sum('fg_made_30_39'),fgm40=sum('fg_made_40_49');
     let fpts=rows.reduce((n,row)=>n+pcPoints(row),0);if(isAvg&&games)fpts/=games;
@@ -20915,15 +21023,24 @@ requestAnimationFrame(()=>{if(HJ_LEAGUE_STATE?.data&&HJ_HQ_STATE?.activeTab==='m
       recYd:scale(recYd),recTd:scale(recTd),rec:scale(rec),catchPct:tgt?rec/tgt*100:null,tgt:scale(tgt),ydRec:rec?recYd/rec:null,ydTar:tgt?recYd/tgt:null,ypc:rush?rushYd/rush:null,
       fgm:scale(fgm),xpm:scale(xpm),fgm60:scale(fgm60),fgm50:scale(fgm50_59+fgm60),fga:scale(fga),fgPct:fga?fgm/fga*100:null,xpa:scale(xpa),fgm30:scale(fgm30),fgm40:scale(fgm40)
     };
-    return {values,games,isAvg};
+    if(espn.games){const preferEspn=!rows.length||week===hj40CurrentWeek()||espn.games>=new Set(rows.map(row=>Number(row.week)).filter(Boolean)).size;Object.entries(espn.values).forEach(([key,value])=>{if(Number.isFinite(value)&&(preferEspn||!Number.isFinite(values[key])))values[key]=value})}
+    return {values,games:Math.max(games,espn.games),isAvg};
   }
 
+  function hj40EspnDstSnapshot(player){
+    const bag=player?._espnActualByWeek||{},periodWeek=hj40PeriodWeek(),rows=Object.entries(bag).map(([week,row])=>({week:Number(week),...row})).filter(row=>row.week&&(!periodWeek||row.week===periodWeek)),games=rows.length,isAvg=HJ40.period==='avg';
+    if(!rows.length)return {values:{},games:0,isAvg};
+    const raw=(row,id)=>{const value=row?.stats?.[String(id)]??row?.stats?.[id];return value!==''&&value!=null&&Number.isFinite(Number(value))?Number(value):0},sum=id=>rows.reduce((total,row)=>total+raw(row,id),0),scale=value=>isAvg&&games?value/games:value;
+    const tackles=rows.reduce((total,row)=>total+(raw(row,109)||(raw(row,107)+raw(row,108))),0),defTd=rows.reduce((total,row)=>total+raw(row,103)+raw(row,104),0),stTd=rows.reduce((total,row)=>total+raw(row,93)+raw(row,101)+raw(row,102),0);
+    return {games,isAvg,values:{fpts:scale(rows.reduce((total,row)=>total+Number(row.appliedTotal||0),0)),sack:scale(sum(99)),defTd:scale(defTd),krTd:scale(sum(101)),stTd:scale(stTd),ff:scale(sum(106)),int:scale(sum(95)),ptAlw:scale(sum(120)),fumRec:scale(sum(96)),tkl:scale(tackles)}};
+  }
   function hj40DstSnapshot(player,state){
-    const all=state?.dstByTeam?.get(pcTeam(player?.team))||[],week=hj40PeriodWeek(),rows=week?all.filter(row=>Number(row.week)===week):all,games=rows.length,isAvg=HJ40.period==='avg';
+    const all=state?.dstByTeam?.get(pcTeam(player?.team))||[],week=hj40PeriodWeek(),rows=week?all.filter(row=>Number(row.week)===week):all,espn=Number(HJ40.year)===CURRENT_SEASON?hj40EspnDstSnapshot(player):{values:{},games:0,isAvg:HJ40.period==='avg'},games=rows.length||espn.games,isAvg=HJ40.period==='avg';
     const sum=key=>{const vals=rows.map(row=>hj40Finite(row[key])).filter(Number.isFinite);return vals.length?vals.reduce((a,b)=>a+b,0):null},scale=v=>Number.isFinite(v)?hj40Scale(v,games):null;
     let fpts=scale(sum('fpts'));if(Number(HJ40.year)===CURRENT_SEASON&&week===hj40CurrentWeek()&&player?._actualWeekSeen&&Number.isFinite(player.actualWeekFpts))fpts=player.actualWeekFpts;
-    const krVals=rows.map(row=>row.krKnown?hj40Finite(row.krTd):null).filter(Number.isFinite);
-    return {values:{fpts,sack:scale(sum('sack')),defTd:scale(sum('defTd')),krTd:krVals.length?scale(krVals.reduce((a,b)=>a+b,0)):null,stTd:scale(sum('stTd')),ff:scale(sum('ff')),int:scale(sum('int')),ptAlw:scale(sum('ptAlw')),fumRec:scale(sum('fumRec')),tkl:scale(sum('tkl')),qbHit:scale(sum('qbHit'))},games,isAvg};
+    const krVals=rows.map(row=>row.krKnown?hj40Finite(row.krTd):null).filter(Number.isFinite),values={fpts,sack:scale(sum('sack')),defTd:scale(sum('defTd')),krTd:krVals.length?scale(krVals.reduce((a,b)=>a+b,0)):null,stTd:scale(sum('stTd')),ff:scale(sum('ff')),int:scale(sum('int')),ptAlw:scale(sum('ptAlw')),fumRec:scale(sum('fumRec')),tkl:scale(sum('tkl')),qbHit:scale(sum('qbHit'))};
+    if(espn.games){const nativeWeeks=new Set(rows.map(row=>Number(row.week)).filter(Boolean)).size,preferEspn=!rows.length||week===hj40CurrentWeek()||espn.games>=nativeWeeks;Object.entries(espn.values).forEach(([key,value])=>{if(Number.isFinite(value)&&(preferEspn||!Number.isFinite(values[key])))values[key]=value})}
+    return {values,games:Math.max(games,espn.games),isAvg};
   }
 
   function hj40Snapshot(player){
@@ -20973,7 +21090,7 @@ requestAnimationFrame(()=>{if(HJ_LEAGUE_STATE?.data&&HJ_HQ_STATE?.activeTab==='m
     const isWeek=period==='week',espn=isWeek?player.espnWeekFpts:player.espnSeasonFpts,vegas=isWeek?player.vegasWeekFpts:player.vegasSeasonFpts,tried=!!player._espnTried;
     const projTag='<span class="hq42-proj-tag">proj</span>';
     if(isWeek&&hj40GameStarted(player)){
-      const actual=player._actualWeekSeen&&Number.isFinite(player.actualWeekFpts)?pcFpts(player.actualWeekFpts):'—',state=hj40GameState(player),label=state==='post'?'FINAL':'LIVE';
+      const actualValue=hj40CurrentActualFpts(player),actual=Number.isFinite(actualValue)?pcFpts(actualValue):'—',state=hj40GameState(player),label=state==='post'?'FINAL':(Number.isFinite(actualValue)&&state==='pre'?'ACTUAL':'LIVE');
       return `<div class="hq-player-proj hq40-week-proj is-live"><span class="hq-player-proj-label">${label}</span><span class="hq42-proj-primary"><strong class="hq-player-proj-main is-actual">${actual}</strong></span><span class="hq-player-proj-sub"><span class="hq40-proj-e">ESPN ${Number.isFinite(espn)?pcFpts(espn):'—'} ${projTag}</span><span class="hq40-proj-dot">·</span><span class="hq40-proj-v">Vegas ${Number.isFinite(vegas)?pcFpts(vegas):'—'} ${projTag}</span></span></div>`;
     }
     const main=Number.isFinite(espn)?pcFpts(espn):(!tried?'…':'—');
@@ -21046,7 +21163,8 @@ requestAnimationFrame(()=>{if(HJ_LEAGUE_STATE?.data&&HJ_HQ_STATE?.activeTab==='m
     return (id&&HJ_PLAYER_DIRECTORY.rows.find(player=>String(player.id)===id))||(name&&HJ_PLAYER_DIRECTORY.rows.find(player=>player.norm===name))||null;
   }
   function hj40ApplyLiveEntry(entry){
-    const row=hj40FindDirectoryRowByEntry(entry);if(!row)return false;const week=hj40CurrentWeek(),raw=hjEspnPoolEntryPlayer(entry),stats=Array.isArray(raw?.stats)?raw.stats:[],actuals=stats.filter(stat=>Number(stat?.scoringPeriodId)===week&&Number(stat?.statSourceId)===0&&Number.isFinite(Number(stat?.appliedTotal))),actual=actuals.find(stat=>Number(stat?.statSplitTypeId)===0)||actuals.find(stat=>Number(stat?.statSplitTypeId)===1)||actuals[0];let changed=false;
+    const row=hj40FindDirectoryRowByEntry(entry);if(!row)return false;const week=hj40CurrentWeek(),raw=hjEspnPoolEntryPlayer(entry),stats=Array.isArray(raw?.stats)?raw.stats:[],actuals=stats.filter(stat=>Number(stat?.scoringPeriodId)===week&&Number(stat?.statSourceId)===0&&Number.isFinite(Number(stat?.appliedTotal))&&pcEspnActualSeasonMatch(stat,CURRENT_SEASON)),actual=actuals.find(stat=>Number(stat?.statSplitTypeId)===1)||actuals.find(stat=>Number(stat?.statSplitTypeId)===0)||actuals[0];let changed=false;
+    const allActual=pcEspnActualBestStats(raw,CURRENT_SEASON);if(allActual.length){const bag=row._espnActualByWeek||(row._espnActualByWeek={});allActual.forEach(stat=>{const key=String(Number(stat.scoringPeriodId)),next={appliedTotal:Number(stat.appliedTotal),stats:{...(stat.stats||{})}};const prior=bag[key];if(!prior||prior.appliedTotal!==next.appliedTotal||JSON.stringify(prior.stats)!==JSON.stringify(next.stats)){bag[key]=next;changed=true}})}
     if(actual){const value=Number(actual.appliedTotal);if(row.actualWeekFpts!==value||!row._actualWeekSeen){row.actualWeekFpts=value;row._actualWeekSeen=true;changed=true}}
     else if(hj40GameStarted(row)){const applied=[entry?.appliedStatTotal,entry?.playerPoolEntry?.appliedStatTotal].map(Number).find(Number.isFinite);if(Number.isFinite(applied)){if(row.actualWeekFpts!==applied||!row._actualWeekSeen){row.actualWeekFpts=applied;row._actualWeekSeen=true;changed=true}}}
     const proj=pcEspnProjectionStat(entry,'week',week);if(Number.isFinite(proj)&&row.espnWeekFpts!==proj){row.espnWeekFpts=proj;changed=true}
@@ -21067,7 +21185,7 @@ requestAnimationFrame(()=>{if(HJ_LEAGUE_STATE?.data&&HJ_HQ_STATE?.activeTab==='m
         try{const response=await fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}});if(response.ok){const payload=await response.json();(payload?.players||[]).forEach(entry=>{if(hj40ApplyLiveEntry(entry))changed=true})}}catch(_){ }
       }
       if(visible.some(player=>player.position==='D/ST')){
-        const filter={players:{filterSlotIds:{value:[16]},filterStatsForSourceIds:{value:[0,1]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${CURRENT_SEASON}`,`10${CURRENT_SEASON}`]},limit:100,offset:0}};
+        const filter={players:{filterSlotIds:{value:[16]},filterStatsForSourceIds:{value:[0,1]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${CURRENT_SEASON}`,`10${CURRENT_SEASON}`]},limit:100,offset:0,sortAppliedStatTotal:{sortAsc:false,sortPriority:1,value:`00${CURRENT_SEASON}`}}};
         try{const response=await fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}});if(response.ok){const payload=await response.json();(payload?.players||[]).forEach(entry=>{if(hj40ApplyLiveEntry(entry))changed=true})}}catch(_){ }
       }
       HJ40.actualLoading=null;if(changed){HJ40.snapshotCache.clear();requestAnimationFrame(()=>{if(HJ_HQ_STATE?.activeTab==='free-agents')hjRenderPlayerDirectory(false)})}
@@ -22299,5 +22417,16 @@ requestAnimationFrame(()=>{if(HJ_LEAGUE_STATE?.data&&HJ_HQ_STATE?.activeTab==='m
 #league-sync-content .league-roster-total-status{margin:0 2px 0 0!important}
 </style>
 
+
+<script id="hj-current-season-stats-v60-cache-refresh">
+(function(){
+  try{if(typeof pcSeasonCache!=='undefined')pcSeasonCache.delete(Number(NFL_SEASON));if(typeof pcDstCache!=='undefined')pcDstCache.delete(Number(NFL_SEASON));if(typeof pcSnapCache!=='undefined')pcSnapCache.delete(Number(NFL_SEASON))}catch(_){}
+  window.addEventListener('focus',()=>{try{if(typeof pcSeasonCache!=='undefined')pcSeasonCache.delete(Number(NFL_SEASON));if(typeof pcDstCache!=='undefined')pcDstCache.delete(Number(NFL_SEASON));if(typeof pcSnapCache!=='undefined')pcSnapCache.delete(Number(NFL_SEASON));if(typeof HJ40_PLAYER_DIRECTORY!=='undefined'){HJ40_PLAYER_DIRECTORY.data?.delete?.(Number(NFL_SEASON));HJ40_PLAYER_DIRECTORY.rawCache?.delete?.(Number(NFL_SEASON));HJ40_PLAYER_DIRECTORY.snapshotCache?.clear?.()}if(HJ_HQ_STATE?.activeTab==='free-agents'&&typeof hjRenderPlayerDirectory==='function')hjRenderPlayerDirectory(true)}catch(_){}},{passive:true});
+})();
+</script>
+
+<script id="hj-v64-build-marker">
+window.HJ_BUILD='v64-deep-recovery';
+</script>
 </body>
 </html>
