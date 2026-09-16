@@ -63,8 +63,15 @@ jobs:
            // publication alongside an exact-season preview; never use winter/prior-year grades.
            const seasonStart=Date.UTC(Number(season),8,1),seasonEnd=Date.UTC(Number(season)+1,2,1);
            const baseGrade=!kicker&&preview&&Number(base?.currentEventWeek?.season)===Number(season)?base?.player?.grades?.find(g=>g.facet==='offense'&&numeric(g.gradeValue)!==null&&Date.parse(g.updatedAt)>=seasonStart&&Date.parse(g.updatedAt)<seasonEnd&&Date.parse(g.updatedAt)<=now+60000):null;
-           if(grade===null&&baseGrade){grade=baseGrade.gradeValue;updated=baseGrade.updatedAt.slice(0,10);rank=null;total=null;}
+           if(grade===null&&baseGrade){grade=baseGrade.gradeValue;updated=baseGrade.updatedAt.slice(0,10);rank=baseGrade.gradeRank;total=baseGrade.gradeRankTotal;}
            else if(baseGrade&&baseGrade.gradeValue===grade)updated=baseGrade.updatedAt.slice(0,10);
+           // Keep a rank paired with its own grade and population. The current-season
+           // profile can supply a rank even when the stat preview excludes the player.
+           // Never borrow a rank from another facet, season, or a different grade value.
+           const validRank=(r,n)=>Number.isInteger(r)&&r>0&&Number.isInteger(n)&&n>0&&r<=n;
+           if(!validRank(rank,total)&&baseGrade?.gradeValue===grade&&validRank(baseGrade.gradeRank,baseGrade.gradeRankTotal)){
+            rank=baseGrade.gradeRank;total=baseGrade.gradeRankTotal;
+           }
            if(grade===null&&header&&2000+Number(header[1])===Number(season)&&header[2]!=='N/S'){grade=numeric(Number(header[2]));rank=header[3]?Number(header[3]):null;total=header[4]?Number(header[4]):null;}
            if(grade===null&&!header&&!preview)throw new Error('PFF grade not found');
            if(!updated){const date=text.match(/Last updated:\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/i);if(date)updated=`${date[3]}-${date[1].padStart(2,'0')}-${date[2].padStart(2,'0')}`;}
@@ -82,6 +89,7 @@ jobs:
           }
           
           import { readFile, writeFile, mkdir } from 'node:fs/promises';
+          const PFF_COLLECTOR_VERSION=2;
           
           export async function collectPff({html,request=fetch,previous=null,spacing=1000,now=Date.now}) {
            const mapMatch=html.match(/const HJ_PFF_PLAYERS=(\{[^\n]+\});/);
@@ -92,7 +100,7 @@ jobs:
            // A normal HTML upload can reuse the recently published feed. Scheduled runs
            // always fetch the public pages again.
            const oldRows=Object.entries(previous?.players||{});
-           if(previous?.schema===1&&previous.season===season&&Number.isFinite(previous.generatedAt)&&previous.generatedAt<=now()+60000&&now()-previous.generatedAt<60*60*1000&&oldRows.length>0&&oldRows.every(([id,r])=>players[id]&&r.schema===4&&String(r.espnId)===id&&String(r.pffId)===String(players[id].pffId)&&r.season===season&&Number.isFinite(r.checkedAt)&&r.checkedAt<=previous.generatedAt+60000&&now()-r.checkedAt<2*60*60*1000))return previous;
+           if(previous?.schema===1&&previous.collectorVersion===PFF_COLLECTOR_VERSION&&previous.season===season&&Number.isFinite(previous.generatedAt)&&previous.generatedAt<=now()+60000&&now()-previous.generatedAt<60*60*1000&&oldRows.length>0&&oldRows.every(([id,r])=>players[id]&&r.schema===4&&String(r.espnId)===id&&String(r.pffId)===String(players[id].pffId)&&r.season===season&&Number.isFinite(r.checkedAt)&&r.checkedAt<=previous.generatedAt+60000&&now()-r.checkedAt<2*60*60*1000))return previous;
            const filter={players:{filterSlotIds:{value:[0,2,4,6,16,17]},filterStatsForSourceIds:{value:[0]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForScoringPeriodIds:{value:Array.from({length:19},(_,i)=>i)},limit:2000,offset:0,sortPercOwned:{sortAsc:false,sortPriority:1}}};
            const poolResponse=await request(`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${league}?scoringPeriodId=0&view=kona_player_info`,{headers:{'x-fantasy-filter':JSON.stringify(filter)},signal:AbortSignal.timeout(20000)});
            if(!poolResponse.ok){
@@ -107,8 +115,9 @@ jobs:
             return players[String(p.id)]&&(Number(p.proTeamId)>0||played||Number(e.onTeamId)>0);
            }).map(e=>String(e.player.id)))];
            if(!ids.length)throw Error('No matching current-season players');
-           const result={schema:1,season,generatedAt:0,players:{},errors:{}};
-           let cursor=0,failed=false,lastStart=0,gate=Promise.resolve();
+           const result={schema:1,collectorVersion:PFF_COLLECTOR_VERSION,season,generatedAt:0,players:{},errors:{}};
+           console.log(`PFF refresh starting: ${ids.length} profiles; progress every 50 checks.`);
+           let cursor=0,completed=0,failed=false,lastStart=0,gate=Promise.resolve();
            async function waitTurn(){const prior=gate;let release;gate=new Promise(r=>release=r);await prior;try{const delay=lastStart+spacing-now();if(delay>0)await new Promise(r=>setTimeout(r,delay));lastStart=now();}finally{release();}}
            async function worker(){
             while(cursor<ids.length&&!failed){
@@ -128,7 +137,10 @@ jobs:
               const row=entry.kind==='team'?parseTeam(raw,entry,id,season):parseProfile(raw,entry,id,season,now());
               result.players[id]=row;
              }catch(error){result.errors[id]=error.message;console.warn(`PFF ${id}: ${error.message}`);}
-             finally{clearTimeout(timer);}
+             finally{
+              clearTimeout(timer);completed++;
+              if(completed%50===0||completed===ids.length)console.log(`PFF progress: ${completed}/${ids.length} checked, ${Object.keys(result.players).length} records, ${Object.keys(result.errors).length} unavailable.`);
+             }
             }
            }
            await Promise.all(Array.from({length:4},worker));
