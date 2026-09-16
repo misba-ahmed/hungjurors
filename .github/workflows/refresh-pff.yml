@@ -93,9 +93,12 @@ jobs:
            // always fetch the public pages again.
            const oldRows=Object.entries(previous?.players||{});
            if(previous?.schema===1&&previous.season===season&&Number.isFinite(previous.generatedAt)&&previous.generatedAt<=now()+60000&&now()-previous.generatedAt<60*60*1000&&oldRows.length>0&&oldRows.every(([id,r])=>players[id]&&r.schema===4&&String(r.espnId)===id&&String(r.pffId)===String(players[id].pffId)&&r.season===season&&Number.isFinite(r.checkedAt)&&r.checkedAt<=previous.generatedAt+60000&&now()-r.checkedAt<2*60*60*1000))return previous;
-           const filter={players:{filterSlotIds:{value:[0,2,4,6,16,17]},filterStatsForSourceIds:{value:[0]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForScoringPeriodIds:{value:Array.from({length:19},(_,i)=>i)},limit:2000,offset:0}};
+           const filter={players:{filterSlotIds:{value:[0,2,4,6,16,17]},filterStatsForSourceIds:{value:[0]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForScoringPeriodIds:{value:Array.from({length:19},(_,i)=>i)},limit:2000,offset:0,sortPercOwned:{sortAsc:false,sortPriority:1}}};
            const poolResponse=await request(`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${league}?scoringPeriodId=0&view=kona_player_info`,{headers:{'x-fantasy-filter':JSON.stringify(filter)},signal:AbortSignal.timeout(20000)});
-           if(!poolResponse.ok)throw Error(`ESPN player list HTTP ${poolResponse.status}`);
+           if(!poolResponse.ok){
+            let reason='';try{const body=await poolResponse.json();reason=(body.messages||[]).map(String).join('; ').slice(0,500);}catch(_){}
+            throw Error(`ESPN player list HTTP ${poolResponse.status}${reason?': '+reason:''}`);
+           }
            const pool=await poolResponse.json();
            if(!Array.isArray(pool.players)||pool.players.length===0||pool.players.length>=2000)throw Error('ESPN player list incomplete');
            const ids=[...new Set(pool.players.filter(e=>{
