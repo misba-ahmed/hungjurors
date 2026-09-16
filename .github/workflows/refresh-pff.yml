@@ -1,0 +1,154 @@
+name: Publish site and refresh PFF
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: hung-jurors-pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/configure-pages@v5
+        id: pages
+      - name: Stage existing site files
+        shell: bash
+        run: |
+          mkdir -p _site
+          git archive HEAD | tar -x -C _site
+          find _site -mindepth 1 -name ".*" -prune -exec rm -rf {} +
+          touch _site/.nojekyll
+      - name: Refresh public PFF grades
+        env:
+          PAGES_BASE_URL: ${{ steps.pages.outputs.base_url }}
+        shell: bash
+        run: |
+          node --input-type=module <<'PFF_SCRIPT'
+          export class SourceError extends Error { constructor(message,code,status=502){super(message);this.code=code;this.status=status;} }
+          export function parseProfile(raw,entry,id,season,now=Date.now()){
+           const nextMatch=raw.match(/<script\b(?=[^>]*\bid=["']__NEXT_DATA__["'])[^>]*>([\s\S]*?)<\/script>/i);
+           let next=null;try{next=JSON.parse(nextMatch?.[1]||'null');}catch(_){}
+           const props=next?.props?.pageProps;
+           // Identity and selected season must come from PFF's public page hydration data.
+           if(!props)throw new SourceError('PFF page format changed','source-format',502);
+           const canonical='',photo='';
+           if(props?.playerId!=null&&String(props.playerId)!==String(entry.pffId))throw new Error('PFF player identity mismatch');
+           if(!canonical.split(/[?#]/)[0].endsWith('/'+entry.pffId)&&!photo.includes(`/nfl/${entry.pffId}.png`)&&String(props?.playerId)!==String(entry.pffId))throw new Error('PFF player identity missing');
+           const queries=Object.values(props?.initialState?.consumerApi?.queries||{}),preview=queries.find(q=>q.status==='fulfilled'&&q.endpointName==='getPremiumStatsPreviewKeyStats'&&String(q.originalArgs?.playerId)===String(entry.pffId)&&Number(q.originalArgs?.season)===Number(season)&&q.originalArgs?.weekGroup==='REG'&&q.originalArgs?.league==='nfl');
+           const base=queries.find(q=>q.status==='fulfilled'&&q.endpointName==='getPlayerProfileBaseData'&&String(q.data?.player?.playerId)===String(entry.pffId))?.data;
+           const position=p=>({HB:'RB',FB:'RB',PK:'K'}[p]||p);
+           if(base?.player?.position&&position(base.player.position)!==position(entry.position))throw new Error('PFF position mismatch');
+           const text=raw.replace(/<(script|style|noscript)\b[^>]*>[\s\S]*?<\/\1>/gi,' ').replace(/<[^>]*>/g,' ').replace(/&#x27;|&#39;|&apos;/g,"'").replace(/&nbsp;|&#160;/g,' ').replace(/&amp;/g,'&').replace(/\s+/g,' '),header=text.match(/Overall Grade\s*['’](\d{2})\s+(N\/S|\d+(?:\.\d+)?)(?:\s+(?:(\d+)\s*(?:st|nd|rd|th)\s*\/\s*(\d+)\s*-?\s*(QB|RB|WR|TE|K)s?|(Not Enough Snaps)))?/i);
+           if(!preview&&(!header||2000+Number(header[1])!==Number(season)))throw new Error('PFF selected season unavailable');
+           const numeric=n=>typeof n==='number'&&Number.isFinite(n)&&n>=0&&n<=100?n:null;
+           const kicker=entry.position==='K',grades=preview?.data?.primaryStats?.grades,key=kicker?'fgepKicker':entry.position==='QB'?'offensive':'offense';
+           if(kicker&&preview?.data?.primaryStats?.previewType!=='K_FIELD_GOALS_PREVIEW'&&preview)throw new Error('PFF field-goal grade missing');
+           let grade=numeric(grades?.[key]),rank=grades?.[key+'PositionRank'],total=grades?.positionRankTotal,updated=null;
+           // Base profile grades have no explicit season. Accept only a current regular-season
+           // publication alongside an exact-season preview; never use winter/prior-year grades.
+           const seasonStart=Date.UTC(Number(season),8,1),seasonEnd=Date.UTC(Number(season)+1,2,1);
+           const baseGrade=!kicker&&preview&&Number(base?.currentEventWeek?.season)===Number(season)?base?.player?.grades?.find(g=>g.facet==='offense'&&numeric(g.gradeValue)!==null&&Date.parse(g.updatedAt)>=seasonStart&&Date.parse(g.updatedAt)<seasonEnd&&Date.parse(g.updatedAt)<=now+60000):null;
+           if(grade===null&&baseGrade){grade=baseGrade.gradeValue;updated=baseGrade.updatedAt.slice(0,10);rank=null;total=null;}
+           else if(baseGrade&&baseGrade.gradeValue===grade)updated=baseGrade.updatedAt.slice(0,10);
+           if(grade===null&&header&&2000+Number(header[1])===Number(season)&&header[2]!=='N/S'){grade=numeric(Number(header[2]));rank=header[3]?Number(header[3]):null;total=header[4]?Number(header[4]):null;}
+           if(grade===null&&!header&&!preview)throw new Error('PFF grade not found');
+           if(!updated){const date=text.match(/Last updated:\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/i);if(date)updated=`${date[3]}-${date[1].padStart(2,'0')}-${date[2].padStart(2,'0')}`;}
+           const row={schema:4,source:'pff-public-profile',sourceUrl:`https://www.pff.com/nfl/players/${entry.slug}/${entry.pffId}`,espnId:String(id),pffId:String(entry.pffId),season:Number(season),position:entry.position,metric:kicker?'field-goal':'overall',grade,positionRank:grade!==null&&Number.isInteger(rank)&&rank>0&&(!total||rank<=total)?rank:null,rankTotal:Number.isInteger(total)&&total>0?total:null,status:grade===null?'not-graded':'available',updated,checkedAt:now};
+           return row;
+          }
+          export function parseTeam(raw,entry,id,season){
+           let data;try{data=JSON.parse(raw);}catch(_){const text=raw.replace(/<[^>]*>/g,' ').replace(/&quot;/g,'"').replace(/&amp;/g,'&');const a=text.indexOf('{'),b=text.lastIndexOf('}');data=JSON.parse(text.slice(a,b+1));}
+           const base={espnId:String(id),pffId:entry.pffId,season:Number(season),position:'D/ST',metric:'defense',grade:null,positionRank:null,rankTotal:null,updated:null,checkedAt:Date.now(),schema:4,source:'pff-public-team',status:'source-unavailable',sourceSeason:Number(data.season)};
+           const field=(data.team_grades||[]).find(r=>r.label==='Defense');
+           if(Number(data.season)!==Number(season)||!field||field.locked)return base;
+           const grade=field.value;if(typeof grade!=='number'||!Number.isFinite(grade)||grade<0||grade>100)return base;
+           base.grade=grade;base.status='available';const rank=String(field.rank??'').match(/^(\d+)(?:st|nd|rd|th)?$/);if(rank&&Number(rank[1])>=1&&Number(rank[1])<=32){base.positionRank=Number(rank[1]);base.rankTotal=32;}
+           return base;
+          }
+          
+          import { readFile, writeFile, mkdir } from 'node:fs/promises';
+          
+          export async function collectPff({html,request=fetch,previous=null,spacing=1000,now=Date.now}) {
+           const mapMatch=html.match(/const HJ_PFF_PLAYERS=(\{[^\n]+\});/);
+           const season=Number(html.match(/const NFL_SEASON\s*=\s*(\d{4})/)?.[1]);
+           const league=html.match(/const ESPN_FANTASY_LEAGUE_ID\s*=\s*['"](\d+)/)?.[1];
+           if(!mapMatch||!season||!league)throw Error('Cannot locate season, league, or PFF player IDs in index.html');
+           const players=JSON.parse(mapMatch[1]);
+           // A normal HTML upload can reuse the recently published feed. Scheduled runs
+           // always fetch the public pages again.
+           const oldRows=Object.entries(previous?.players||{});
+           if(previous?.schema===1&&previous.season===season&&Number.isFinite(previous.generatedAt)&&previous.generatedAt<=now()+60000&&now()-previous.generatedAt<60*60*1000&&oldRows.length>0&&oldRows.every(([id,r])=>players[id]&&r.schema===4&&String(r.espnId)===id&&String(r.pffId)===String(players[id].pffId)&&r.season===season&&Number.isFinite(r.checkedAt)&&r.checkedAt<=previous.generatedAt+60000&&now()-r.checkedAt<2*60*60*1000))return previous;
+           const filter={players:{filterSlotIds:{value:[0,2,4,6,16,17]},filterStatsForSourceIds:{value:[0]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForScoringPeriodIds:{value:Array.from({length:19},(_,i)=>i)},limit:2000,offset:0}};
+           const poolResponse=await request(`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${league}?scoringPeriodId=0&view=kona_player_info`,{headers:{'x-fantasy-filter':JSON.stringify(filter)},signal:AbortSignal.timeout(20000)});
+           if(!poolResponse.ok)throw Error(`ESPN player list HTTP ${poolResponse.status}`);
+           const pool=await poolResponse.json();
+           if(!Array.isArray(pool.players)||pool.players.length===0||pool.players.length>=2000)throw Error('ESPN player list incomplete');
+           const ids=[...new Set(pool.players.filter(e=>{
+            const p=e.player||{};
+            const played=(p.stats||[]).some(s=>Number(s.seasonId)===season&&s.statSourceId===0&&Number(s.stats?.['210'])>0);
+            return players[String(p.id)]&&(Number(p.proTeamId)>0||played||Number(e.onTeamId)>0);
+           }).map(e=>String(e.player.id)))];
+           if(!ids.length)throw Error('No matching current-season players');
+           const result={schema:1,season,generatedAt:0,players:{},errors:{}};
+           let cursor=0,failed=false,lastStart=0,gate=Promise.resolve();
+           async function waitTurn(){const prior=gate;let release;gate=new Promise(r=>release=r);await prior;try{const delay=lastStart+spacing-now();if(delay>0)await new Promise(r=>setTimeout(r,delay));lastStart=now();}finally{release();}}
+           async function worker(){
+            while(cursor<ids.length&&!failed){
+             const id=ids[cursor++],entry=players[id];await waitTurn();if(failed)return;
+             const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+             try{
+              const url=entry.kind==='team'?`https://www.pff.com/api/teams/${entry.pffId}/stats`:`https://www.pff.com/nfl/players/${entry.slug}/${entry.pffId}`;
+              const response=await request(url,{signal:controller.signal,redirect:'error'});
+              if([401,403,429].includes(response.status)){
+               await response.body?.cancel();
+               if(entry.kind==='team'&&response.status!==429){result.errors[id]='source-unavailable';continue;}
+               failed=true;throw Error(`PFF access/rate limit (${response.status}); stopping this refresh`);
+              }
+              if(!response.ok)throw Error(`PFF HTTP ${response.status}`);
+              const raw=await response.text();
+              if(raw.length>2000000)throw Error('Unexpected PFF page size');
+              const row=entry.kind==='team'?parseTeam(raw,entry,id,season):parseProfile(raw,entry,id,season,now());
+              result.players[id]=row;
+             }catch(error){result.errors[id]=error.message;console.warn(`PFF ${id}: ${error.message}`);}
+             finally{clearTimeout(timer);}
+            }
+           }
+           await Promise.all(Array.from({length:4},worker));
+           const count=Object.keys(result.players).length;
+           if(failed||count<Math.ceil(ids.length*.8))throw Error(`PFF refresh incomplete (${count}/${ids.length}); keeping the previous deployment`);
+           result.generatedAt=now();
+           console.log(`PFF refresh: ${count} checked players, ${Object.keys(result.errors).length} unavailable.`);
+           return result;
+          }
+          
+          async function main(){
+           const html=await readFile('index.html','utf8');let previous=null;
+           if(process.env.GITHUB_EVENT_NAME==='push'&&process.env.PAGES_BASE_URL){
+            try{const r=await fetch(new URL('./data/pff-grades.json',process.env.PAGES_BASE_URL.replace(/\/$/,'')+'/'),{signal:AbortSignal.timeout(10000)});if(r.ok)previous=await r.json();}catch(_){}
+           }
+           const result=await collectPff({html,previous});
+           await mkdir('_site/data',{recursive:true});await writeFile('_site/data/pff-grades.json',JSON.stringify(result));
+          }
+          if(process.env.PFF_UNIT_TEST!=='1')await main();
+          PFF_SCRIPT
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Publish updated site
+        uses: actions/deploy-pages@v4
+        id: deployment
