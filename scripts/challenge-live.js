@@ -1,4 +1,4 @@
-const HJ_CHALLENGE_STATE={data:null,weeks:new Map(),model:null,names:[],pending:null,active:'raffle',error:'',checkedAt:0,lmsFit:true,raffleFit:true,tittyFit:true,mvpFit:true,overFit:true,overTimer:null,tittyObserver:null,profileTimer:null,suppressClickUntil:0};
+const HJ_CHALLENGE_STATE={data:null,weeks:new Map(),model:null,names:[],pending:null,active:'raffle',error:'',checkedAt:0,lmsFit:true,raffleFit:true,tittyFit:true,mvpFit:true,overFit:true,tittyObserver:null,profileTimer:null,suppressClickUntil:0};
 function hjChallengeNames(data){return (data.teams||[]).map(t=>({id:String(t.id),short:hjMatchManager(t,data)||hjOwnerName(t,data)||hjTeamName(t)}))}
 function hjChallengeWeekActive(data,week){
  return (data.schedule||[]).some(g=>Number(g.matchupPeriodId)===week&&['home','away'].some(k=>Math.abs(Number(g[k]?.pointsByScoringPeriod?.[week]??g[k]?.totalPointsLive??0))>0))||(typeof NFL_WEEK1!=='undefined'&&NFL_WEEK1.some(g=>Number(g.week)===week&&['in','post'].includes(g.state)));
@@ -87,7 +87,7 @@ function hjChOver(model){
  const figures=names.map((n,i)=>{
   const r=byId.get(n.id)||{total:0,tie:0,missing:[],weeks:0},ratio=maxAbs?Math.abs(r.total)/maxAbs:0,neg=r.total<0,crown=leaders.has(n.id),behind=top-r.total;
   const label=`${esc(n.short)}: ${hjChSigned(r.total)} versus projections${crown?', current leader':`, ${behind.toFixed(2)} behind`}`;
-  return `<div class="lineup-figure over-figure ${neg?'is-neg':'is-pos'}${crown?' is-leader':''}" role="group" aria-label="${label}" data-lineup-manager="${esc(n.id)}" data-over-id="${esc(n.id)}" style="${hjChJacket(i)};--over-shift:${ratio.toFixed(4)}"><b class="lineup-bar-value ${neg?'is-neg':'is-pos'}">${hjChSigned(r.total)}${r.missing.length?'*':''}</b><span class="${neg?'over-pit':'over-pedestal'}" aria-hidden="true"></span><div class="over-body">${hjChFigureArt(n,`over-head-${i}`,crown)}</div><span class="lineup-label"><span class="lineup-name manager-profile-trigger" data-manager="${esc(n.short)}" role="button" tabindex="0" aria-label="Open ${esc(n.short)} profile">${esc(n.short)}</span><span class="lineup-stat over-behind" aria-hidden="true">${crown?'Leader':`${behind.toFixed(2)} behind`}</span></span></div>`;
+  return `<div class="lineup-figure over-figure ${neg?'is-neg':'is-pos'}${crown?' is-leader':''}" role="group" aria-label="${label}" data-lineup-manager="${esc(n.id)}" data-over-id="${esc(n.id)}" style="${hjChJacket(i)};--over-shift:${ratio.toFixed(4)}"><b class="lineup-bar-value ${neg?'is-neg':'is-pos'}">${hjChSigned(r.total)}${r.missing.length?'*':''}</b><span class="${neg?'over-pit':'over-pedestal'}" aria-hidden="true"></span><div class="over-body">${hjChFigureArt(n,`over-head-${i}`,crown)}</div><span class="lineup-label"><span class="lineup-name manager-profile-trigger" data-manager="${esc(n.short)}" role="button" tabindex="0" aria-label="Open ${esc(n.short)} profile">${esc(n.short)}</span><span class="lineup-stat over-behind" aria-hidden="true">${crown?'<em>Leader</em>':`<b>${behind.toFixed(2)}</b><em>Behind</em>`}</span></span></div>`;
  }).join('');
  // Weekly over/under heatmap in the League Awards style; cells open a small projection card.
  const weeks=[...model.weeks].reverse(),cells=rows.flatMap(r=>r.history.map(h=>Math.abs(h.value))).filter(Number.isFinite),maxAbsV=Math.max(1,...cells);
@@ -101,7 +101,6 @@ function hjChOver(model){
 function hjChCloseOverCard(){
  const card=document.querySelector('.over-card');if(card)card.remove();
  document.querySelectorAll('.over-cell.is-open').forEach(c=>c.classList.remove('is-open'));
- clearTimeout(HJ_CHALLENGE_STATE.overTimer);HJ_CHALLENGE_STATE.overTimer=null;
 }
 function hjChOpenOverCard(cell){
  hjChCloseOverCard();
@@ -113,7 +112,6 @@ function hjChOpenOverCard(cell){
  card.style.left=`${Math.max(6,Math.min(wrap.scrollWidth-cw-6,left-cw/2))}px`;
  card.style.top=above?`${td.offsetTop-card.offsetHeight-8}px`:`${td.offsetTop+td.offsetHeight+8}px`;
  card.classList.add(above?'is-above':'is-below');
- HJ_CHALLENGE_STATE.overTimer=setTimeout(hjChCloseOverCard,4000);
 }
 function hjChLeaders(rows){
  const top=rows[0];
@@ -320,7 +318,6 @@ function selectChallenge(id){
   if(row&&!e.target.closest('a'))hjChToggleTitty(row);
  });
  document.addEventListener('click',e=>{if(!e.target.closest('.over-cell,.over-card'))hjChCloseOverCard();},true);
- document.addEventListener('scroll',()=>{if(document.querySelector('.over-card'))hjChCloseOverCard();},true);
  $('#challenge-out').addEventListener('keydown',e=>{const row=e.target.closest('.titty-row');if(row&&(e.key==='Enter'||e.key===' ')){e.preventDefault();hjChToggleTitty(row);}});
  const strip=$('#challenge-strip');
  strip.innerHTML=CHALLENGES.map(ch=>`<button type="button" id="challenge-tab-${ch.id}" role="tab" aria-controls="challenge-out" data-challenge="${ch.id}" aria-selected="false">${ch.label}</button>`).join('');
