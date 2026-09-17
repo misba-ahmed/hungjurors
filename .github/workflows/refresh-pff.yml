@@ -25,7 +25,9 @@ jobs:
         with:
           node-version: '24'
       - name: Verify projection feed contracts
-        run: node scripts/test-vegas-feed.mjs
+        run: |
+          node scripts/test-vegas-feed.mjs
+          node scripts/test-challenges.mjs
       - uses: actions/configure-pages@v5
         id: pages
       - name: Stage site
