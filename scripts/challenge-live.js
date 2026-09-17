@@ -34,7 +34,7 @@ async function hjRefreshChallenges(data){
  }).catch(error=>{HJ_CHALLENGE_STATE.error='ESPN challenge update delayed; retrying automatically';hjRenderChallenge();console.warn('Challenges refresh failed',error)}).finally(()=>{HJ_CHALLENGE_STATE.pending=null});
  return HJ_CHALLENGE_STATE.pending;
 }
-function hjChManager(name){return `<span class="who-cell">${av(name,'xs')}<b>${esc(name)}</b></span>`}
+function hjChManager(name){return `<span class="who-cell">${av(name,'challenge-avatar')}<b>${esc(name)}</b></span>`}
 function hjChMetricCard(label,value,detail=''){return `<div class="challenge-live-card"><span>${esc(label)}</span><strong>${value}</strong>${detail?`<small>${esc(detail)}</small>`:''}</div>`}
 function hjChFormat(key,value){return Number.isFinite(value)?key==='titty'||key==='mvp'?String(value):(key==='overachiever'&&value>0?'+':'')+value.toFixed(2):'—'}
 function hjChTable(headers,rows){return `<div class="tbl-wrap challenge-live-table"><table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`}
@@ -45,9 +45,32 @@ function hjChRaffle(model){
  const history=model.raffle.map(w=>`<tr><td>Week ${w.week}</td><td>${w.winners.map(t=>hjChManager(t.short)).join(' ')}</td><td class="num">${w.score.toFixed(2)}</td></tr>`).join('');
  return `<div class="challenge-live-cards">${cards}</div>${hjChTable(['Manager','Tickets','Current odds'],rows)}<details class="challenge-live-details"><summary>Weekly high scorers</summary>${history?hjChTable(['Week','Manager','Score'],history):'<p>Tickets appear when ESPN finalizes Week 1.</p>'}</details><p class="challenge-live-note">Ticket totals update automatically. Tied high scorers each earn a ticket. The end-of-season raffle draw determines the winner.</p>`;
 }
+function hjChLmsFigure(manager,elimination,index){
+ const palette=['#26546b','#426575','#1d405b','#4f6070','#345e65','#264a67','#53647a','#385d76','#41667c','#34475e'];
+ const key=`lms-head-${index}`,out=!!elimination;
+ // Keep the original avatar pixels; clip off its shoulders to join the illustrated body.
+ return `<div class="lms-figure${out?' is-eliminated':''}" role="img" aria-label="${esc(manager.short)}: ${out?`eliminated Week ${elimination.week}, seated`:'standing'}" data-lms-manager="${esc(manager.id)}" style="--lms-jacket:${palette[index%palette.length]}">
+ <svg viewBox="0 0 120 240" aria-hidden="true" focusable="false">
+ <defs><clipPath id="${key}"><ellipse cx="60" cy="40" rx="30" ry="37"/></clipPath></defs>
+ <ellipse class="lms-shadow" cx="60" cy="223" rx="35" ry="5"/>
+ <g class="lms-standing-legs"><path d="M43 136 40 214M77 136 80 214" fill="none" stroke="#142c42" stroke-width="19" stroke-linecap="round"/><path d="M28 214h21v9H25q-5-5 3-9M72 214h21q8 4 3 9H72Z" fill="#0a1c2d"/><path d="M27 222h22M73 222h22" stroke="#c7d0d4" stroke-width="2"/></g>
+ <g class="lms-seated-legs"><path d="M43 194 26 211 56 218M77 194 94 211 65 218" fill="none" stroke="#142c42" stroke-width="18" stroke-linecap="round"/><path d="m43 213 18 2v8H40q-5-5 3-10M65 214l17-2q7 7 2 11H65Z" fill="#0a1c2d"/></g>
+ <g class="lms-upper"><path d="M52 62h16v18H52Z" fill="#d7b69b"/>
+ <path d="M42 77 27 88 21 125M78 77l15 11 6 37" fill="none" stroke="var(--lms-jacket)" stroke-width="17" stroke-linecap="round"/>
+ <path d="m21 125 2 10M99 125l-2 10" stroke="#d7b69b" stroke-width="10" stroke-linecap="round"/>
+ <path d="M40 74 52 70h16l12 4 5 73H35Z" fill="var(--lms-jacket)" stroke="#132c41" stroke-width="2"/>
+ <path d="m50 72 10 49 10-49Z" fill="#f5f1e5"/><path d="m57 79 6 0 3 26-6 11-6-11Z" fill="#c39b42"/>
+ <path d="m48 72-7 16 10 7-6 8 15 24M72 72l7 16-10 7 6 8-15 24" fill="none" stroke="#ffffff" stroke-opacity=".2" stroke-width="2"/>
+ <path d="M60 124v22M39 137h12M69 137h12" stroke="#11283c" stroke-width="2"/><circle cx="64" cy="131" r="1.5" fill="#cfb365"/>
+ <path d="M70 91h9v2h-9Z" fill="#dfc778"/>
+ <image href="data:image/png;base64,${AV[manager.short]||AV_DEFAULT}" x="12" y="-2" width="96" height="96" clip-path="url(#${key})"/>
+ </g></svg></div>`;
+}
 function hjChLms(model){
- const alive=HJ_CHALLENGE_STATE.names.filter(n=>model.alive.includes(n.id)),live=model.weeks.find(w=>!w.final&&w.week>=5),risk=live?.teams.filter(t=>model.alive.includes(t.id)&&Number.isFinite(t.score)).sort((a,b)=>a.score-b.score)[0];
- return `<div class="challenge-live-cards">${hjChMetricCard('Still standing',String(alive.length),`Of ${HJ_CHALLENGE_STATE.names.length} managers`)}${hjChMetricCard(model.finalWeek<5?'First elimination':'Eliminations',model.finalWeek<5?'Week 5':String(model.eliminations.length),'Only final weekly scores count')}${alive.length===1?hjChMetricCard('Last man standing',hjChManager(alive[0].short)):risk?hjChMetricCard(`Week ${live.week} at risk`,hjChManager(risk.short),'Provisional · games still in progress'):''}</div><div class="challenge-survivors">${alive.map(n=>`<div>${hjChManager(n.short)}<span>Still standing</span></div>`).join('')}</div>${model.lmsBlocked?`<p class="challenge-live-warning">${esc(model.lmsBlocked)}</p>`:''}${model.eliminations.length?hjChTable(['Week','Eliminated','Score'],model.eliminations.map(t=>`<tr><td>Week ${t.week}</td><td>${hjChManager(t.short)}</td><td class="num">${t.score.toFixed(2)}</td></tr>`).join('')):''}`;
+ const names=HJ_CHALLENGE_STATE.names,eliminated=new Map(model.eliminations.map(e=>[e.id,e]));
+ const figures=names.map((n,i)=>hjChLmsFigure(n,eliminated.get(n.id),i)).join('');
+ const history=hjChLmsHistory(model,names).map(w=>`<li class="lms-feed-week${w.eliminated?' has-elimination':''}"><div class="lms-feed-meta"><b>Week ${w.week}</b><span>${w.eliminated?'ELIMINATED':w.pending?'PENDING':'NO ELIMINATION'}</span></div><div class="lms-feed-results">${w.lowest.map(t=>`<div class="lms-feed-result">${hjChManager(t.short)}<strong>${t.score.toFixed(2)}</strong></div>`).join('')}</div></li>`).join('');
+ return `<div class="lms-stage" tabindex="0" role="group" aria-label="Last Man Standing manager lineup"><div class="lms-lineup">${figures}</div></div><ol class="lms-feed" aria-label="Weekly elimination feed">${history}</ol>`;
 }
 function hjChSpecial(ch,model){
  const rows=model.totals[ch.id],complete=rows.filter(r=>!r.missing.length),leader=complete[0],tiebreak=['titty','mvp'].includes(ch.id),tieLabel=ch.id==='titty'?'QB/RB/WR yards':'MVP player points';
@@ -68,7 +91,7 @@ function hjRenderChallenge(){
  const model=state.model,time=state.checkedAt?new Date(state.checkedAt).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
  const status=state.error||HJ_LEAGUE_STATE.error||(!model?'Loading ESPN season results…':`${model.liveWeek?`Week ${model.liveWeek} in progress`:model.finalWeek?`Final through Week ${model.finalWeek}`:'Season has not started'} · ${time?`ESPN checked ${time} · `:''}Updates automatically`);
  const body=!model?'<div class="empty">Loading scores and historical lineups…</div>':ch.id==='raffle'?hjChRaffle(model):ch.id==='lms'?hjChLms(model):hjChSpecial(ch,model);
- const html=`<div class="challenge-live-status${state.error||HJ_LEAGUE_STATE.error?' is-delayed':''}" role="status">${esc(status)}</div>${body}`;
+ const html=`${ch.id==='lms'?'':`<div class="challenge-live-status${state.error||HJ_LEAGUE_STATE.error?' is-delayed':''}" role="status">${esc(status)}</div>`}${body}`;
  // Preserve open weekly details and avoid replacing identical content.
  const opened=[...out.querySelectorAll('details[open]')].map(n=>n.querySelector('summary')?.textContent);
  if(out.innerHTML!==html){out.innerHTML=html;out.querySelectorAll('details').forEach(n=>{if(opened.includes(n.querySelector('summary')?.textContent))n.open=true})}
