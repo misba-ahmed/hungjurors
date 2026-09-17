@@ -47,23 +47,6 @@ jobs:
           import {readFile,writeFile,mkdir,appendFile} from 'node:fs/promises';
           export const VEGAS_SCORING='.5tep';
           export const vegasUrl=kind=>`https://www.winwithodds.com/${kind==='weekly'?'weekly_full_stats':'season_long_full_stats'}/${VEGAS_SCORING}`;
-          function applySourceScoring(raw,rows){
-           const selected=raw.match(/\bSCORING_SLUG\s*=\s*['"]([^'"]+)['"]/)?.[1];
-           if(selected!==VEGAS_SCORING)throw Error('WinWithOdds did not return the requested .5tep format');
-           // These pages send a PPR table, then apply TEP in calcNewProjection.
-           // Verify that source contract before reproducing its displayed calculation.
-           const formula=raw.match(/function\s+calcNewProjection\b[\s\S]*?return[^\n]+/)?.[0]?.replace(/\s+/g,'')||'';
-           if(!formula.includes("(stats.pos==='TE')?1.5:1.0")||!formula.includes('stats.recs*(mult-1.0))*10)/10'))throw Error('WinWithOdds .5tep scoring formula changed');
-           for(const row of rows){
-            row.sourceScoring=VEGAS_SCORING;
-            row.sourceReceptionPoints=row.position==='TE'?1.5:1;
-            const bonus=Number(row.receptions||0)*(row.sourceReceptionPoints-1);
-            for(const key of ['sourceProjection','ceiling','floor']){
-             if(row[key]!==undefined&&row[key]!=='')row[key]=Math.round((Number(row[key])+bonus)*10)/10;
-            }
-           }
-           rows.sort((a,b)=>b.sourceProjection-a.sourceProjection).forEach((row,index)=>{row.rank=index+1;});
-          }
           const decode=s=>String(s).replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/g,' ').replace(/&amp;/g,'&').replace(/&#39;|&#x27;|&apos;/g,"'").replace(/&quot;/g,'"').replace(/&#(\d+);/g,(_,n)=>String.fromCodePoint(Number(n))).replace(/\s+/g,' ').trim();
           export function parseCsv(text){
            const result=[];let row=[],cell='',quoted=false;
@@ -82,20 +65,6 @@ jobs:
            // Week 2 follows the first regular-season weekend. Derive Labor Day each year.
            const sep1=new Date(Date.UTC(season,8,1)),laborDay=1+(8-sep1.getUTCDay())%7,firstRollover=Date.UTC(season,8,laborDay+8);
            return serial<firstRollover?1:Math.min(18,2+Math.floor((serial-firstRollover)/(7*86400000)));
-          }
-          export function parseVegas(raw,kind,season,now=Date.now()){
-           const table=[...raw.matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)].map(m=>m[1]).find(t=>/<th[^>]*>\s*Name\s*<\/th>/i.test(t)&&/Projections/.test(t));if(!table)throw Error('WinWithOdds table not found');
-           const trs=[...table.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map(m=>m[1]),headers=[...trs.shift().matchAll(/<th\b[^>]*>([\s\S]*?)<\/th>/gi)].map(m=>decode(m[1]).toLowerCase());
-           const keys={'#':'rank',name:'name',position:'position',attempts:'passAttempts',comps:'completions','pass yards':'passYards','pass tds':'passTds',ints:'interceptions',receptions:'receptions','rec yards':'recYards','rec tds':'recTds','rush attempts':'rushAttempts','rush yards':'rushYards','rush tds':'rushTds',fumbles:'fumbles',projections:'sourceProjection',ceiling:'ceiling',floor:'floor'};
-           const rows=trs.map(tr=>{const cells=[...tr.matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)].map(m=>decode(m[1]));return Object.fromEntries(headers.flatMap((h,i)=>keys[h]?[[keys[h],cells[i]??'']]:[]));}).filter(r=>r.name&&['QB','RB','WR','TE'].includes(r.position));
-           if(rows.length<10||!rows.some(r=>r.position==='QB'&&Number(r.passYards)>0)||rows.some(r=>r.sourceProjection===''||!Number.isFinite(Number(r.sourceProjection))))throw Error('Incomplete WinWithOdds table');
-           applySourceScoring(raw,rows);
-           const updated=decode(raw).match(/Updated\s+([0-9/]+\s+[0-9:]+\s+[AP]M\s+ET)/i)?.[1]||'',publishedAt=sourceTimestamp(updated),sourceYear=new Date(publishedAt).getUTCFullYear();
-           if(sourceYear!==season||publishedAt>now+5*60000)throw Error('Projection publication season/date mismatch');
-           const week=kind==='weekly'?Number(decode(raw).match(/\bWeek\s+(\d{1,2})\s+Player\s+Prop\s+Projections\b/i)?.[1]):0;
-           if(kind==='weekly'&&(!Number.isInteger(week)||week<1||week>18))throw Error('Weekly projection table has no confirmed NFL week');
-           if(kind==='weekly'&&week!==nflWeek(now,season))throw Error(`Weekly table is still Week ${week}; current week is ${nflWeek(now,season)}`);
-           return {source:'WinWithOdds',sourceUrl:vegasUrl(kind),scoring:VEGAS_SCORING,season,week,updated,publishedAt,checkedAt:now,rows};
           }
           // Read only the rendered public table after the page applies its scoring format.
           export function extractRenderedVegasTable(){
@@ -135,38 +104,6 @@ jobs:
            if(kind==='weekly'&&week!==nflWeek(now,season))throw Error(`Projection week ${week||'missing'} does not match current week ${nflWeek(now,season)}`);
            return {source:'WinWithOdds',sourceUrl:vegasUrl(kind),scoring:VEGAS_SCORING,season,week,updated,publishedAt,checkedAt:now,transport:'rendered-browser',rows};
           }
-          export async function collectBrowserVegas(season,launch=null){
-           const results={};let browser;
-           try{
-            if(launch)browser=await launch();
-            else{const {chromium}=await import(process.env.VEGAS_PLAYWRIGHT_MODULE||'playwright');browser=await chromium.launch({headless:true});}
-            let block=null;
-            for(const kind of ['weekly','season']){
-             if(block){results[kind]={error:block};continue;}
-             const page=await browser.newPage();
-             try{
-              console.log(`Reading ${vegasUrl(kind)} in Chromium`);
-              const response=await page.goto(vegasUrl(kind),{waitUntil:'load',timeout:30000});
-              const code=response?.status(),headers=response?.headers()||{};
-              if(headers['cf-mitigated']==='challenge'||[401,403,429].includes(code)){
-               const error=Error(`WinWithOdds refused the browser request (HTTP ${code}; ${headers['cf-mitigated']||'access restriction'})`);error.status=code||403;block=error;throw error;
-              }
-              if(!response?.ok())throw Error(`Projection page HTTP ${code||'unknown'}`);
-              const title=await page.title();
-              if(/just a moment|verify you are human|access denied|checking your browser/i.test(title)){
-               const error=Error('WinWithOdds presented a verification challenge; collection stopped');error.status=403;block=error;throw error;
-              }
-              await page.locator('table.dataTable').waitFor({state:'attached',timeout:10000});
-              const table=await page.evaluate(extractRenderedVegasTable);
-              results[kind]={data:parseRenderedVegas(table,kind,season)};
-             }catch(error){results[kind]={error};}
-             finally{await page.close();}
-            }
-           }catch(error){for(const kind of ['weekly','season'])if(!results[kind])results[kind]={error};}
-           finally{if(browser)await browser.close();}
-           return results;
-          }
-
           async function request(url,accept='application/json'){
            const r=await fetch(url,{headers:{'User-Agent':'HungJurors-public-data/1.0','Accept':accept},cache:'no-store',signal:AbortSignal.timeout(20000)});
            if(!r.ok){

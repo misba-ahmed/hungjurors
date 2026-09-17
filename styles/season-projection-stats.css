@@ -12,9 +12,11 @@
 }
 .pc-modal [data-pc-vegas-season] .pc-season-stats {
   grid-auto-columns: 62px;
+  gap: 7px !important;
   padding-bottom: 0;
 }
-.pc-modal [data-pc-vegas-season] .pc-season-stat-scroll .pc-season-stats .pc-vegas-line {
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-season-stat-scroll .pc-season-stats .pc-vegas-line {
+  flex: 0 0 62px !important;
   width: 62px !important;
   min-width: 62px !important;
   max-width: 62px !important;
