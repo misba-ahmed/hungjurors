@@ -1,6 +1,7 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import {readFileSync} from 'node:fs';
 const bannerRenderers=readFileSync(new URL('./banner-renderers.js',import.meta.url),'utf8');
+const projectionSummary=readFileSync(new URL('./projection-summary.js',import.meta.url),'utf8');
 function replaceOnce(html,pattern,replacement){
  if([...html.matchAll(pattern)].length!==1)throw Error('Weekly banner markup changed; review site preparation');
  return html.replace(pattern,()=>replacement);
@@ -13,7 +14,10 @@ export function prepareSite(html){
  html=replaceOnce(html,/^ const sideHTML=\(side,right=false\)=>[^\n]+$/gm,
   ' const sideHTML=(side,right=false)=>wireSummarySide(side,right);');
  html=replaceOnce(html,/function wireRecapCards\(data,week\)\{/g,bannerRenderers+'\nfunction wireRecapCards(data,week){');
+ html=replaceOnce(html,/function pcSeasonProjectionHTML\([^]*?\n}\n(?=async function pcRenderVegas)/g,projectionSummary+'\n');
+ html=replaceOnce(html,/  const label=`Week \$\{week\}`,panel=pcVegasPanel[^]*?(?=\n };\n for\(const kind of \['weekly','season'\])/g,
+  "  target.classList.add('pc-weekly-summary');\n  target.innerHTML=pcProjectionSummaryHTML(player,data,row,state.espn,!state.done.has(kind),'week',week);");
  return html.replace(old,'Date.now()-at<90*60*1000&&data.updated')
-  .replace('</head>','<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917c">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n</head>');
+  .replace('</head>','<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n</head>');
 }
 if(process.argv[2])await writeFile(process.argv[2],prepareSite(await readFile(process.argv[2],'utf8')));
