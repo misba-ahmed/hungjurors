@@ -77,7 +77,7 @@ function hjChShortName(p){
  return parts.length>1?`${parts[0][0]}. ${parts.slice(1).join(' ')}`:parts[0]||'Player';
 }
 function hjChBar(id,value,pct,label,inner=''){
- return `<div class="lineup-bar-wrap"><b class="lineup-bar-value">${label}</b><div class="lineup-bar${pct<18?' is-short':''}" data-bar-id="${esc(id)}" data-bar-value="${value}" style="--titty-pct:${pct.toFixed(2)}">${inner?`<span class="lineup-bar-inner">${inner}</span>`:''}</div></div>`;
+ return `<div class="lineup-bar-wrap"><b class="lineup-bar-value">${label}</b><div class="lineup-bar${pct<24?' is-short':''}" data-bar-id="${esc(id)}" data-bar-value="${value}" style="--titty-pct:${pct.toFixed(2)}">${inner?`<span class="lineup-bar-inner">${inner}</span>`:''}</div></div>`;
 }
 function hjChLeaders(rows){
  const top=rows[0];
@@ -97,9 +97,9 @@ function hjChMvp(model){
   return hjChLineupFigure({manager:n,index:i,key:'mvp',label:`${esc(n.short)}: ${r.total} MVP points, ${r.tie.toFixed(2)} MVP player points${crown?', current leader':''}`,above:hjChBar(n.id,r.total,pct,label,r.tie.toFixed(2)),crown});
  }).join('');
  const order=['QB','RB','WR','TE','K','D/ST','Overall'];
- const history=[...model.weeks].reverse().map(w=>{
+ const history=[...model.weeks].reverse().map((w,i)=>{
   const cards=[...w.awards].sort((a,b)=>order.indexOf(a.category)-order.indexOf(b.category)||b.points-a.points).map(hjChMvpCard).join('');
-  return `<details class="challenge-live-details mvp-week"><summary>Week ${w.week} <span>${w.final?'Final':'In progress'}</span></summary>${cards?`<div class="mvp-cards" role="list">${cards}</div>`:'<p>Waiting for complete player rankings.</p>'}</details>`;
+  return `<details class="challenge-live-details mvp-week"${i===0?' open':''}><summary>Week ${w.week} <span>${w.final?'Final':'In progress'}</span></summary>${cards?`<div class="mvp-cards" role="list">${cards}</div>`:'<p>Waiting for complete player rankings.</p>'}</details>`;
  }).join('');
  return `<div class="mvp-view">${hjChLineupView({id:'mvp-lineup',fitKey:'mvpFit',label:'MVP Special season totals by manager',figures,count:names.length})}${rows.some(r=>r.missing.length)?'<p class="challenge-live-note">* Partial total. Missing weeks stay pending until ESPN supplies the records.</p>':''}<div class="mvp-weeks">${history}</div></div>`;
 }
@@ -120,13 +120,13 @@ function hjChTitty(model){
  const heat=weeks.length?`<div class="heat-wrap"><table class="heat"><thead>${head}</thead><tbody>${body}</tbody></table></div>`:'<p class="challenge-live-note">The heatmap fills in when Week 1 kicks off.</p>';
  const legend=`<div class="legend"><span><span class="sw" style="background:rgba(185,138,46,.15)"></span>few</span><span><span class="sw" style="background:rgba(185,138,46,.9)"></span>many</span><span>${model.liveWeek?`Week ${model.liveWeek} in progress · updates live`:model.finalWeek?`Final through Week ${model.finalWeek}`:''}</span></div>`;
  // Collapsible weeks: each manager row expands to the players who scored the titties.
- const history=weeks.map(w=>{
+ const history=weeks.map((w,i)=>{
   const trs=[...w.teams].sort((a,b)=>(Number.isFinite(b.titty)?b.titty:-1)-(Number.isFinite(a.titty)?a.titty:-1)||a.short.localeCompare(b.short)).map(t=>{
    const key=`${w.week}:${t.id}`,scorers=(t.players||[]).filter(p=>p.tds>0).sort((a,b)=>b.tds-a.tds||a.name.localeCompare(b.name));
    const list=scorers.map(p=>`<li><button type="button" class="pc-player-trigger titty-player" ${hjChPlayerAttrs(p).attrs} aria-label="Open ${esc(p.name)} player card">${esc(hjChShortName(p))}</button><b>${p.tds}</b></li>`).join('')||`<li class="is-empty">No titties${w.final?'':' yet'}</li>`;
    return `<tr class="titty-row" data-titty-key="${key}" role="button" tabindex="0" aria-expanded="false"><td>${hjChManager(t.short)}</td><td class="num">${hjChFormat('titty',t.titty)}</td></tr><tr class="titty-detail" data-titty-key="${key}" hidden><td colspan="2"><ul class="titty-list">${list}</ul></td></tr>`;
   }).join('');
-  return `<details class="challenge-live-details"><summary>Week ${w.week} <span>${w.final?'Final':'In progress'}</span></summary>${hjChTable(['Manager','Week total'],trs)}</details>`;
+  return `<details class="challenge-live-details"${i===0?' open':''}><summary>Week ${w.week} <span>${w.final?'Final':'In progress'}</span></summary>${hjChTable(['Manager','Week total'],trs)}</details>`;
  }).join('');
  return `<div class="titty-view">${hjChLineupView({id:'titty-lineup',fitKey:'tittyFit',label:'Titty Special season totals by manager',figures,count:names.length})}${rows.some(r=>r.missing.length)?'<p class="challenge-live-note">* Partial total. Missing weeks stay pending until ESPN supplies the records.</p>':''}<h4 class="aw-sub challenge-sub">Week-by-Week Heatmap</h4>${heat}${weeks.length?legend:''}<div class="titty-weeks">${history}</div></div>`;
 }
@@ -238,12 +238,12 @@ function hjRenderChallenge(){
  const delayed=!!(state.error||HJ_LEAGUE_STATE.error),showStatus=ch.id==='lms'?false:delayed;
  const html=`${showStatus?`<div class="challenge-live-status${delayed?' is-delayed':''}" role="status">${esc(status)}</div>`:''}${body}`;
  // Preserve open weekly details and expanded rows, and avoid replacing identical content.
- const opened=[...out.querySelectorAll('details[open]')].map(n=>n.querySelector('summary')?.textContent);
+ const opened=[...out.querySelectorAll('details[open]')].map(n=>n.querySelector('summary')?.textContent),closed=[...out.querySelectorAll('details:not([open])')].map(n=>n.querySelector('summary')?.textContent);
  const expanded=[...out.querySelectorAll('.titty-row[aria-expanded="true"]')].map(n=>n.dataset.tittyKey);
  const bars=new Map([...out.querySelectorAll('.lineup-bar')].map(b=>[b.dataset.barId,{pct:b.style.getPropertyValue('--titty-pct'),value:b.dataset.barValue}]));
  if(out.innerHTML===html)return;
  out.innerHTML=html;
- out.querySelectorAll('details').forEach(n=>{if(opened.includes(n.querySelector('summary')?.textContent))n.open=true});
+ out.querySelectorAll('details').forEach(n=>{const label=n.querySelector('summary')?.textContent;if(opened.includes(label))n.open=true;else if(closed.includes(label))n.open=false;});
  out.querySelectorAll('.titty-row').forEach(n=>{if(expanded.includes(n.dataset.tittyKey))hjChToggleTitty(n,true)});
  // Grow bars from their previous height so a live titty visibly moves the graph.
  const motion=!matchMedia('(prefers-reduced-motion: reduce)').matches;
