@@ -199,8 +199,8 @@ function hjRenderChallenge(){
  const model=state.model,time=state.checkedAt?new Date(state.checkedAt).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
  const status=state.error||HJ_LEAGUE_STATE.error||(!model?'Loading ESPN season results…':`${model.liveWeek?`Week ${model.liveWeek} in progress`:model.finalWeek?`Final through Week ${model.finalWeek}`:'Season has not started'} · ${time?`ESPN checked ${time} · `:''}Updates automatically`);
  const body=!model?'<div class="empty">Loading scores and historical lineups…</div>':ch.id==='raffle'?hjChRaffle(model):ch.id==='lms'?hjChLms(model):ch.id==='titty'?hjChTitty(model):hjChSpecial(ch,model);
- // The lineup views carry no status line; the raffle still surfaces a delay so stale tickets are never silent.
- const delayed=!!(state.error||HJ_LEAGUE_STATE.error),showStatus=ch.id==='lms'?false:ch.id==='raffle'?delayed:true;
+ // No routine status line; a sync delay still surfaces so stale numbers are never silent.
+ const delayed=!!(state.error||HJ_LEAGUE_STATE.error),showStatus=ch.id==='lms'?false:delayed;
  const html=`${showStatus?`<div class="challenge-live-status${delayed?' is-delayed':''}" role="status">${esc(status)}</div>`:''}${body}`;
  // Preserve open weekly details and expanded rows, and avoid replacing identical content.
  const opened=[...out.querySelectorAll('details[open]')].map(n=>n.querySelector('summary')?.textContent);
