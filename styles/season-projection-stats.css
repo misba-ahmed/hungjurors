@@ -11,13 +11,15 @@
   height: 0;
 }
 .pc-modal [data-pc-vegas-season] .pc-season-stats {
-  grid-auto-columns: 62px;
+  /* Equal tracks use the widest label's intrinsic width, including padding. */
+  grid-auto-columns: 1fr;
+  width: max-content;
   gap: 7px !important;
   padding-bottom: 0;
 }
 .pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-season-stat-scroll .pc-season-stats .pc-vegas-line {
-  flex: 0 0 62px !important;
-  width: 62px !important;
-  min-width: 62px !important;
-  max-width: 62px !important;
+  flex: none !important;
+  width: auto !important;
+  min-width: max-content !important;
+  max-width: none !important;
 }
