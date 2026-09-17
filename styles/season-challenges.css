@@ -81,7 +81,7 @@
 .lineup-bar-wrap{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;width:100%;height:calc(var(--lineup-figure)*1.3 + 1.4em);margin-bottom:9%;font-size:15px}
 .lineup-bar-value{display:block;margin-bottom:.15em;font:900 1em/1.2 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:0;color:var(--navy)}
 .lineup-bar{position:relative;width:54%;height:calc(var(--lineup-figure)*1.3*var(--titty-pct,0)/100);border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--brass-bright),var(--brass) 70%,#9a7122);box-shadow:inset 0 1px 0 #fff6,0 2px 6px #5a3f0d2e;transition:height .9s cubic-bezier(.2,.7,.2,1)}
-.lineup-bar-inner{position:absolute;top:.4em;left:0;right:0;text-align:center;font:800 .68em/1 var(--sans);font-variant-numeric:tabular-nums;color:#fff;text-shadow:0 1px 1px #4a330a80;pointer-events:none}
+.lineup-bar-inner{position:absolute;top:.5em;left:0;right:0;text-align:center;font:500 .6em/1 var(--sans);font-variant-numeric:tabular-nums;color:#fff;text-shadow:0 1px 1px #4a330a80;pointer-events:none}
 .lineup-bar.is-short .lineup-bar-inner{display:none}
 .lineup-figure.is-leader .lineup-bar{background:linear-gradient(180deg,#f0cd5a,var(--brass-bright) 60%,var(--brass))}
 .lineup-figure.is-scored .lineup-bar{animation:lineup-scored 1.2s ease-out}
@@ -119,27 +119,35 @@
 .titty-list li b:before{content:"· ";color:#8c7138}
 .titty-list li.is-empty{color:#738497;font-weight:500}
 @media(max-width:600px){.titty-list{padding-left:38px}.titty-detail td{padding:0 8px 8px}.titty-weeks .challenge-live-details{width:100%}}
-/* MVP Special: one horizontally scrolling row of award cards per week. */
-.mvp-week .mvp-cards{display:flex;gap:10px;overflow-x:auto;padding:12px;scroll-snap-type:x proximity;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
-.mvp-card{position:relative;flex:0 0 148px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 10px 12px;border:1px solid var(--line);border-top:3px solid var(--brass);border-radius:10px;background:#fff;text-align:center;box-shadow:0 3px 10px #162f4508}
-.mvp-card.is-overall{border-top-color:var(--navy);background:linear-gradient(180deg,#f7f3e8,#fff 60%)}
-.mvp-card-photo{position:relative;width:72px;height:72px;border-radius:50%;overflow:hidden;background:var(--paper-dim);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;margin-bottom:4px}
-.mvp-card-photo:before{content:attr(data-pos);font:800 13px/1 var(--mono);letter-spacing:.06em;color:#8c7138}
+/* MVP Special: one horizontally scrolling row of award cards per week, headshots rising out of the card top. */
+.mvp-week .mvp-cards{display:flex;gap:12px;overflow-x:auto;padding:46px 14px 14px;scroll-snap-type:x proximity;scrollbar-width:thin;-webkit-overflow-scrolling:touch;background:var(--paper-dim)}
+.mvp-card{position:relative;flex:0 0 150px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;gap:3px;padding:44px 10px 14px;border:1px solid #ffffff1f;border-radius:16px;background:linear-gradient(180deg,var(--navy-ink) 0%,var(--navy) 45%,var(--navy-deep) 100%);color:var(--paper);text-align:center;box-shadow:0 8px 20px #0c223833,inset 0 1px 0 #ffffff1a;overflow:visible}
+.mvp-card.is-overall{background:linear-gradient(180deg,#8a6a24 0%,#4d3d17 30%,var(--navy-deep) 100%);border-color:var(--brass)}
+.mvp-card-photo{position:absolute;top:-36px;left:50%;transform:translateX(-50%);width:74px;height:74px;padding:0;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 35%,#2a4a6b,var(--navy-deep));border:3px solid var(--brass-bright);box-shadow:0 4px 12px #0c223866;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.mvp-card-photo:before{content:attr(data-pos);font:800 13px/1 var(--mono);letter-spacing:.06em;color:var(--brass-bright)}
 .mvp-card-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;background:#fff}
-.mvp-card-photo.is-logo img{object-fit:contain;padding:10px;object-position:center}
-.mvp-card.is-overall .mvp-card-photo{border-color:var(--brass)}
-.mvp-card-pos{font:700 9.5px/1.3 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
-.mvp-card.is-overall .mvp-card-pos{color:var(--navy);background:#e9dfbf;padding:2px 7px;border-radius:999px}
-.mvp-card-name{font:800 13.5px/1.25 var(--sans);color:var(--navy);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mvp-card-owner{display:flex;flex-direction:column;align-items:center;gap:2px;margin:2px 0 6px;min-height:44px;justify-content:flex-start}
-.mvp-card-owner b{font:700 10px/1.3 var(--sans);letter-spacing:.04em;color:var(--navy)}
-#challenge-out .mvp-card-owner>.av.mvp-card-av{width:28px;height:28px;flex-basis:28px;border-width:1.5px}
-.mvp-card-owner.is-status{justify-content:center;font:700 9px/1.35 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#738497;padding:0 4px}
-.mvp-card.is-unowned .mvp-card-name{color:var(--navy-ink)}
-.mvp-card-points{font:800 22px/1.1 var(--sans);font-variant-numeric:tabular-nums;color:var(--navy)}
-.mvp-card-team{font:700 10px/1.3 var(--mono);letter-spacing:.1em;color:#8c7138}
+.mvp-card-photo.is-logo img{object-fit:contain;padding:12px;object-position:center;background:var(--paper)}
+.mvp-card.is-overall .mvp-card-photo{border-color:#f3d266;box-shadow:0 0 0 3px #f3d26640,0 4px 12px #0c223866}
+.mvp-card-photo:focus-visible,.mvp-card-name:focus-visible,.mvp-card-owner:focus-visible{outline:2px solid var(--brass-bright);outline-offset:2px}
+.mvp-card-pos{font:700 9.5px/1.3 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--brass-bright)}
+.mvp-card.is-overall .mvp-card-pos{color:var(--navy-deep);background:var(--brass-bright);padding:2px 8px;border-radius:999px}
+.mvp-card-name{appearance:none;border:0;background:none;padding:0;cursor:pointer;font:800 13.5px/1.25 var(--sans);color:var(--paper);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mvp-card-name:hover{color:var(--brass-bright)}
+.mvp-card-owner{display:flex;flex-direction:column;align-items:center;gap:2px;margin:3px 0 7px;min-height:46px;justify-content:flex-start;cursor:pointer;border-radius:8px;padding:2px 6px}
+.mvp-card-owner:hover{background:#ffffff12}
+.mvp-card-owner b{font:700 10px/1.3 var(--sans);letter-spacing:.05em;color:var(--paper)}
+#challenge-out .mvp-card-owner>.av.mvp-card-av{width:28px;height:28px;flex-basis:28px;border:1.5px solid var(--brass-bright);background:var(--paper)}
+.mvp-card-owner.is-status{justify-content:center;font:700 9px/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:#c9c2ae}
+.mvp-card-owner.is-status:not(.manager-profile-trigger){cursor:default}
+.mvp-card-owner.is-status:not(.manager-profile-trigger):hover{background:none}
+.mvp-card-points{font:800 23px/1.1 var(--sans);font-variant-numeric:tabular-nums;color:#fff}
+.mvp-card-opp{font:600 11px/1.3 var(--sans);color:#c9c2ae}
 .mvp-week>p{padding:12px}
-@media(max-width:600px){.mvp-card{flex-basis:132px;padding:12px 8px 10px}.mvp-card-photo{width:62px;height:62px}.mvp-card-points{font-size:20px}.mvp-week .mvp-cards{padding:10px}}
+.titty-player{appearance:none;border:0;background:none;padding:0;cursor:pointer;font:inherit;color:inherit;text-align:left}
+.titty-player:hover{color:var(--brass);text-decoration:underline}
+.lineup-name.manager-profile-trigger,.lms-name.manager-profile-trigger{cursor:pointer;pointer-events:auto}
+.lineup-figure .lms-art,.lms-figure .lms-art{cursor:pointer}
+@media(max-width:600px){.mvp-card{flex-basis:136px;padding:40px 8px 12px}.mvp-card-photo{width:64px;height:64px;top:-32px}.mvp-card-points{font-size:20px}.mvp-week .mvp-cards{padding:40px 10px 10px;gap:10px}}
 @media(max-width:600px){.lineup{--lineup-pad:10px;padding-top:16px;padding-bottom:44px}}
 @media(prefers-reduced-motion:reduce){.raffle-ticket{animation:none}.lineup,.lineup-name,.lineup-stat,.lineup-bar,.lineup-bar-wrap{transition:none}.lineup-figure.is-scored .lineup-bar{animation:none}}
 .challenge-live-status{margin:0 0 12px;padding:9px 12px;border-left:3px solid var(--win-green);background:var(--paper-dim);color:var(--navy);font:600 11px/1.5 var(--sans)}
