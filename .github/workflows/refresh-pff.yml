@@ -3,7 +3,7 @@ on:
   push:
   workflow_dispatch:
   schedule:
-    - cron: '17 * * * *'
+    - cron: '7,22,37,52 * * * *'
 permissions:
   contents: read
   pages: write
@@ -18,22 +18,123 @@ jobs:
     timeout-minutes: 40
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.site-deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
       - uses: actions/configure-pages@v5
         id: pages
-      - name: Stage existing site files
+      - name: Stage site
         shell: bash
         run: |
           mkdir -p _site
           git archive HEAD | tar -x -C _site
           find _site -mindepth 1 -name ".*" -prune -exec rm -rf {} +
           touch _site/.nojekyll
+      - name: Refresh projections and advanced stats
+        env:
+          PAGES_BASE_URL: ${{ steps.pages.outputs.base_url }}
+        shell: bash
+        run: |
+          node --input-type=module <<'DATA_SCRIPT'
+          import {readFile,writeFile,mkdir} from 'node:fs/promises';
+          export const VEGAS_SCORING='.5tep';
+          export const vegasUrl=kind=>`https://www.winwithodds.com/${kind==='weekly'?'weekly_full_stats':'season_long_full_stats'}/${VEGAS_SCORING}`;
+          function applySourceScoring(raw,rows){
+           const selected=raw.match(/\bSCORING_SLUG\s*=\s*['"]([^'"]+)['"]/)?.[1];
+           if(selected!==VEGAS_SCORING)throw Error('WinWithOdds did not return the requested .5tep format');
+           // These pages send a PPR table, then apply TEP in calcNewProjection.
+           // Verify that source contract before reproducing its displayed calculation.
+           const formula=raw.match(/function\s+calcNewProjection\b[\s\S]*?return[^\n]+/)?.[0]?.replace(/\s+/g,'')||'';
+           if(!formula.includes("(stats.pos==='TE')?1.5:1.0")||!formula.includes('stats.recs*(mult-1.0))*10)/10'))throw Error('WinWithOdds .5tep scoring formula changed');
+           for(const row of rows){
+            row.sourceScoring=VEGAS_SCORING;
+            row.sourceReceptionPoints=row.position==='TE'?1.5:1;
+            const bonus=Number(row.receptions||0)*(row.sourceReceptionPoints-1);
+            for(const key of ['sourceProjection','ceiling','floor']){
+             if(row[key]!==undefined&&row[key]!=='')row[key]=Math.round((Number(row[key])+bonus)*10)/10;
+            }
+           }
+           rows.sort((a,b)=>b.sourceProjection-a.sourceProjection).forEach((row,index)=>{row.rank=index+1;});
+          }
+          const decode=s=>String(s).replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/g,' ').replace(/&amp;/g,'&').replace(/&#39;|&#x27;|&apos;/g,"'").replace(/&quot;/g,'"').replace(/&#(\d+);/g,(_,n)=>String.fromCodePoint(Number(n))).replace(/\s+/g,' ').trim();
+          export function parseCsv(text){
+           const result=[];let row=[],cell='',quoted=false;
+           for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(quoted&&text[i+1]==='"'){cell+='"';i++;}else quoted=!quoted;}else if(c===','&&!quoted){row.push(cell);cell='';}else if(c==='\n'&&!quoted){row.push(cell.replace(/\r$/,''));if(row.some(Boolean))result.push(row);row=[];cell='';}else cell+=c;}
+           if(cell||row.length){row.push(cell.replace(/\r$/,''));result.push(row);}const header=result.shift()||[];
+           return {header,rows:result.map(cells=>Object.fromEntries(header.map((field,i)=>[field.replace(/^\uFEFF/,''),cells[i]??''])))};
+          }
+          export function sourceTimestamp(label){
+           const m=label.match(/(\d{2})\/(\d{2})\/(\d{2,4})\s+(\d{1,2}):(\d{2})\s+(AM|PM)\s+ET/i);if(!m)throw Error('WinWithOdds publication timestamp missing');
+           const year=Number(m[3])+(m[3].length===2?2000:0),wall=Date.UTC(year,Number(m[1])-1,Number(m[2]),Number(m[4])%12+(m[6].toUpperCase()==='PM'?12:0),Number(m[5]));
+           const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',hourCycle:'h23'}).formatToParts(new Date(wall)),get=type=>Number(parts.find(p=>p.type===type)?.value);
+           const represented=Date.UTC(get('year'),get('month')-1,get('day'),get('hour'),get('minute'));return wall+(wall-represented);
+          }
+          export function nflWeek(at,season){
+           const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',year:'numeric',month:'numeric',day:'numeric'}).formatToParts(new Date(at)),get=type=>Number(parts.find(p=>p.type===type)?.value),serial=Date.UTC(get('year'),get('month')-1,get('day'));
+           // Week 2 follows the first regular-season weekend. Derive Labor Day each year.
+           const sep1=new Date(Date.UTC(season,8,1)),laborDay=1+(8-sep1.getUTCDay())%7,firstRollover=Date.UTC(season,8,laborDay+8);
+           return serial<firstRollover?1:Math.min(18,2+Math.floor((serial-firstRollover)/(7*86400000)));
+          }
+          export function parseVegas(raw,kind,season,now=Date.now()){
+           const table=[...raw.matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)].map(m=>m[1]).find(t=>/<th[^>]*>\s*Name\s*<\/th>/i.test(t)&&/Projections/.test(t));if(!table)throw Error('WinWithOdds table not found');
+           const trs=[...table.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map(m=>m[1]),headers=[...trs.shift().matchAll(/<th\b[^>]*>([\s\S]*?)<\/th>/gi)].map(m=>decode(m[1]).toLowerCase());
+           const keys={'#':'rank',name:'name',position:'position',attempts:'passAttempts',comps:'completions','pass yards':'passYards','pass tds':'passTds',ints:'interceptions',receptions:'receptions','rec yards':'recYards','rec tds':'recTds','rush attempts':'rushAttempts','rush yards':'rushYards','rush tds':'rushTds',fumbles:'fumbles',projections:'sourceProjection',ceiling:'ceiling',floor:'floor'};
+           const rows=trs.map(tr=>{const cells=[...tr.matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)].map(m=>decode(m[1]));return Object.fromEntries(headers.flatMap((h,i)=>keys[h]?[[keys[h],cells[i]??'']]:[]));}).filter(r=>r.name&&['QB','RB','WR','TE'].includes(r.position));
+           if(rows.length<10||!rows.some(r=>r.position==='QB'&&Number(r.passYards)>0)||rows.some(r=>r.sourceProjection===''||!Number.isFinite(Number(r.sourceProjection))))throw Error('Incomplete WinWithOdds table');
+           applySourceScoring(raw,rows);
+           const updated=decode(raw).match(/Updated\s+([0-9/]+\s+[0-9:]+\s+[AP]M\s+ET)/i)?.[1]||'',publishedAt=sourceTimestamp(updated),sourceYear=new Date(publishedAt).getUTCFullYear();
+           if(sourceYear!==season||publishedAt>now+5*60000)throw Error('Projection publication season/date mismatch');
+           const week=kind==='weekly'?Number(decode(raw).match(/\bWeek\s+(\d{1,2})\s+Player\s+Prop\s+Projections\b/i)?.[1]):0;
+           if(kind==='weekly'&&(!Number.isInteger(week)||week<1||week>18))throw Error('Weekly projection table has no confirmed NFL week');
+           if(kind==='weekly'&&week!==nflWeek(now,season))throw Error(`Weekly table is still Week ${week}; current week is ${nflWeek(now,season)}`);
+           return {source:'WinWithOdds',sourceUrl:vegasUrl(kind),scoring:VEGAS_SCORING,season,week,updated,publishedAt,checkedAt:now,rows};
+          }
+          async function request(url){const r=await fetch(url,{headers:{'User-Agent':'HungJurors-public-data/1.0'},cache:'no-store',signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error(`HTTP ${r.status}: ${new URL(url).pathname}`);return r;}
+          async function previous(path){try{const r=await request(new URL(path,process.env.PAGES_BASE_URL.replace(/\/$/,'')+'/'));return await r.json();}catch(_){return null;}}
+          export async function collectData(){
+           const html=await readFile('index.html','utf8'),season=Number(html.match(/const NFL_SEASON\s*=\s*(\d{4})/)?.[1]);if(!season)throw Error('Missing site season');
+           await mkdir('_site/data',{recursive:true});
+           const [oldProj,oldAdvanced,oldPff]=await Promise.all([previous('data/projections.json'),previous(`data/advanced-stats-${season}.json`),previous('data/pff-grades.json')]);
+           if(oldPff?.schema===1&&oldPff.season===season)await writeFile('_site/data/pff-grades.json',JSON.stringify(oldPff));
+           const projection={schema:1,season,generatedAt:Date.now(),errors:{}},advanced={schema:1,season,generatedAt:Date.now(),errors:{}};
+           let success=0;
+           await Promise.all(['weekly','season'].map(async kind=>{const field=kind==='season'?'seasonProjections':'weekly';try{const r=await request(vegasUrl(kind));projection[field]=parseVegas(await r.text(),kind,season);success++;console.log(`${kind}: ${projection[field].rows.length} players; source updated ${projection[field].updated}`);}catch(e){projection.errors[field]=e.message;console.warn(`::warning::${kind} projection refresh failed: ${e.message}`);const old=oldProj?.season===season?oldProj[field]:null;if(old?.season===season&&old.scoring===VEGAS_SCORING&&old.sourceUrl===vegasUrl(kind)&&old.week===(kind==='weekly'?nflWeek(Date.now(),season):0))projection[field]=old;}}));
+           await Promise.all(['stats','snaps'].map(async kind=>{try{const path=kind==='stats'?`stats_player/stats_player_week_${season}.csv`:`snap_counts/snap_counts_${season}.csv`,url=`https://github.com/nflverse/nflverse-data/releases/download/${path}`,response=await request(url),{header,rows}=parseCsv(await response.text()),required=kind==='stats'?['season','week','player_id','receiving_air_yards','target_share','passing_air_yards']:['season','week','player','offense_snaps','offense_pct'];if(!required.every(k=>header.includes(k))||!rows.length||rows.some(r=>Number(r.season)!==season))throw Error(`${kind} CSV schema/season mismatch`);const declared=html.match(kind==='stats'?/const PC_FIELDS=\[([^\]]+)\]/:/const PC_SNAP_FIELDS=\[([^\]]+)\]/)?.[1]||'',fields=[...declared.matchAll(/['"]([^'"]+)['"]/g)].map(m=>m[1]);if(fields.length<10)throw Error('Site stat field definitions missing');const compact=rows.filter(r=>kind==='snaps'||['QB','RB','WR','TE','K'].includes(r.position)).map(row=>Object.fromEntries(fields.map(k=>[k,row[k]??''])));advanced[kind]={source:'nflverse',sourceUrl:url,checkedAt:Date.now(),sourceModified:response.headers.get('last-modified'),rows:compact};success++;console.log(`${kind}: ${rows.length} rows; through Week ${Math.max(...rows.map(r=>Number(r.week)))}`);}catch(e){advanced.errors[kind]=e.message;console.warn(`::warning::${kind} refresh failed: ${e.message}`);if(oldAdvanced?.season===season&&oldAdvanced[kind])advanced[kind]=oldAdvanced[kind];}}));
+           await writeFile('_site/data/projections.json',JSON.stringify(projection));await writeFile(`_site/data/advanced-stats-${season}.json`,JSON.stringify(advanced));
+           if(!success)throw Error('All public data sources failed; the deployed site was preserved');
+          }
+          if(process.env.DATA_UNIT_TEST!=='1')await collectData();
+          DATA_SCRIPT
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          name: github-pages-fast
+          path: _site
+      - name: Publish site and fresh stats
+        uses: actions/deploy-pages@v4
+        id: site-deploy
+        with:
+          artifact_name: github-pages-fast
+      - name: Check whether PFF needs refreshing
+        id: freshness
+        shell: bash
+        run: |
+          node --input-type=module <<'CHECK_SCRIPT'
+          import {readFile,appendFile} from 'node:fs/promises';
+          let due=true;
+          try {
+            const html=await readFile('index.html','utf8'),season=Number(html.match(/const NFL_SEASON\s*=\s*(\d{4})/)?.[1]);
+            const feed=JSON.parse(await readFile('_site/data/pff-grades.json','utf8'));
+            const rows=Object.values(feed.players||{}),age=Date.now()-Number(feed.generatedAt);
+            due=!(feed.schema===1&&feed.collectorVersion===2&&feed.season===season&&age>=-60000&&age<3600000&&rows.length>0&&rows.every(r=>r.schema===4&&r.season===season&&Number.isFinite(r.checkedAt)&&Date.now()-r.checkedAt<7200000));
+          } catch (_) {}
+          await appendFile(process.env.GITHUB_OUTPUT,`pff=${due}\n`);
+          console.log(due?'PFF refresh starting. The site and other stats are already published.':'PFF is current. No player-page collection needed.');
+          CHECK_SCRIPT
       - name: Refresh public PFF grades
+        if: steps.freshness.outputs.pff == 'true'
         env:
           PAGES_BASE_URL: ${{ steps.pages.outputs.base_url }}
         shell: bash
@@ -87,18 +188,17 @@ jobs:
            base.grade=grade;base.status='available';const rank=String(field.rank??'').match(/^(\d+)(?:st|nd|rd|th)?$/);if(rank&&Number(rank[1])>=1&&Number(rank[1])<=32){base.positionRank=Number(rank[1]);base.rankTotal=32;}
            return base;
           }
-          
+
           import { readFile, writeFile, mkdir } from 'node:fs/promises';
           const PFF_COLLECTOR_VERSION=2;
-          
+
           export async function collectPff({html,request=fetch,previous=null,spacing=1000,now=Date.now}) {
            const mapMatch=html.match(/const HJ_PFF_PLAYERS=(\{[^\n]+\});/);
            const season=Number(html.match(/const NFL_SEASON\s*=\s*(\d{4})/)?.[1]);
            const league=html.match(/const ESPN_FANTASY_LEAGUE_ID\s*=\s*['"](\d+)/)?.[1];
            if(!mapMatch||!season||!league)throw Error('Cannot locate season, league, or PFF player IDs in index.html');
            const players=JSON.parse(mapMatch[1]);
-           // A normal HTML upload can reuse the recently published feed. Scheduled runs
-           // always fetch the public pages again.
+           // A verified feed stays reusable for one hour. The fast data publish runs independently.
            const oldRows=Object.entries(previous?.players||{});
            if(previous?.schema===1&&previous.collectorVersion===PFF_COLLECTOR_VERSION&&previous.season===season&&Number.isFinite(previous.generatedAt)&&previous.generatedAt<=now()+60000&&now()-previous.generatedAt<60*60*1000&&oldRows.length>0&&oldRows.every(([id,r])=>players[id]&&r.schema===4&&String(r.espnId)===id&&String(r.pffId)===String(players[id].pffId)&&r.season===season&&Number.isFinite(r.checkedAt)&&r.checkedAt<=previous.generatedAt+60000&&now()-r.checkedAt<2*60*60*1000))return previous;
            const filter={players:{filterSlotIds:{value:[0,2,4,6,16,17]},filterStatsForSourceIds:{value:[0]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForScoringPeriodIds:{value:Array.from({length:19},(_,i)=>i)},limit:2000,offset:0,sortPercOwned:{sortAsc:false,sortPriority:1}}};
@@ -150,10 +250,10 @@ jobs:
            console.log(`PFF refresh: ${count} checked players, ${Object.keys(result.errors).length} unavailable.`);
            return result;
           }
-          
+
           async function main(){
            const html=await readFile('index.html','utf8');let previous=null;
-           if(process.env.GITHUB_EVENT_NAME==='push'&&process.env.PAGES_BASE_URL){
+           if(process.env.PAGES_BASE_URL){
             try{const r=await fetch(new URL('./data/pff-grades.json',process.env.PAGES_BASE_URL.replace(/\/$/,'')+'/'),{signal:AbortSignal.timeout(10000)});if(r.ok)previous=await r.json();}catch(_){}
            }
            const result=await collectPff({html,previous});
@@ -162,8 +262,12 @@ jobs:
           if(process.env.PFF_UNIT_TEST!=='1')await main();
           PFF_SCRIPT
       - uses: actions/upload-pages-artifact@v4
+        if: steps.freshness.outputs.pff == 'true'
         with:
+          name: github-pages-pff
           path: _site
-      - name: Publish updated site
+      - name: Publish refreshed PFF grades
+        if: steps.freshness.outputs.pff == 'true'
         uses: actions/deploy-pages@v4
-        id: deployment
+        with:
+          artifact_name: github-pages-pff
