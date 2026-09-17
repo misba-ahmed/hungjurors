@@ -20,6 +20,16 @@ assert.equal(w.teams[0].mvp,3,'QB, RB and overall awards');assert.equal(w.teams[
 assert.equal(w.awards.find(a=>a.position==='WR').manager,null,'unstarted NFL positional high scorer earns no manager point');
 assert.equal(w.teams[0].titty,5);assert.equal(w.teams[0].overachiever,30);
 const first=c.hjChStandings([w],names),again=c.hjChStandings([w],names);assert.deepEqual(first,again,'repeated refreshes never add tickets or totals twice');assert.equal(first.tickets[0].total,1);
+const warmup=c.hjChLmsHistory(first,names);
+assert.equal(warmup[0].week,1);assert.equal(warmup[0].eliminated,false);assert.equal(warmup[0].pending,false);assert.equal(warmup[0].lowest[0].short,'B');assert.equal(warmup[0].lowest[0].score,20);
+assert.equal(c.hjChLmsHistory(c.hjChStandings([{...w,final:false}],names),names).length,0,'feed waits for final results');
+const eliminatedFeed=c.hjChLmsHistory(c.hjChStandings([w,{...w,week:5}],names),names);
+assert.equal(eliminatedFeed[1].eliminated,true);assert.equal(eliminatedFeed[1].lowest[0].short,'B');
+const three=[...names,{id:'3',short:'C'}],scoreWeek=(week,scores)=>({...w,week,teams:three.map((n,i)=>({...n,score:scores[i]}))});
+const twoOut=c.hjChStandings([scoreWeek(5,[1,2,3]),scoreWeek(6,[0,4,5])],three);
+assert.equal(c.hjChLmsHistory(twoOut,three)[1].lowest[0].short,'B','previously eliminated manager cannot be the next elimination');
+assert.equal(c.hjChLmsHistory(c.hjChStandings([scoreWeek(5,[1,1,2])],three),three)[0].pending,true,'a tie is pending, not no elimination');
+assert.equal(c.hjChLmsHistory(c.hjChStandings([scoreWeek(1,[null,2,3])],three),three)[0].lowest.length,0,'incomplete scores must not invent a lowest scorer');
 const live={...w,week:5,final:false};assert.equal(c.hjChStandings([live],names).eliminations.length,0,'live scores do not eliminate');
 assert.equal(c.hjChStandings([{...w,week:5}],names).alive.length,1);
 const tied={...w,week:5,teams:w.teams.map(t=>({...t,score:20}))};assert.match(c.hjChStandings([tied],names).lmsBlocked,/tied/);

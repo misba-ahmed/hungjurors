@@ -68,6 +68,19 @@ function hjChWeek(payload,{season,week,names,pool=[],poolReady=false,final=false
  for(const team of teams){if(team.mvp!==null)team.mvpTie=[...new Map(awards.filter(a=>a.manager===team.short).map(a=>[a.id,a.points])).values()].reduce((a,b)=>a+b,0);}
  return {week,final,checkedAt,teams,awards,complete:teams.every(t=>t.complete)};
 }
+function hjChLmsHistory(model,names){
+ const remaining=new Set(names.map(n=>n.id)),events=new Map(model.eliminations.map(e=>[e.week,e]));
+ return model.weeks.filter(w=>w.final&&w.week<=model.regularEnd).map(w=>{
+  const eliminated=events.get(w.week),eligible=w.teams.filter(t=>w.week<5||remaining.has(t.id));
+  const expected=w.week<5?names.length:remaining.size;
+  const complete=expected>0&&eligible.length===expected&&eligible.every(t=>Number.isFinite(t.score));
+  const low=complete?Math.min(...eligible.map(t=>t.score)):null;
+  const lowest=eliminated?[eliminated]:complete?eligible.filter(t=>Math.abs(t.score-low)<.00001):[];
+  const pending=!complete||(w.week>=5&&remaining.size>1&&!eliminated);
+  if(eliminated)remaining.delete(eliminated.id);
+  return {week:w.week,eliminated:!!eliminated,pending,lowest};
+ });
+}
 function hjChStandings(weeks,names,{regularEnd=14,finalEnd=16}={}){
  const ordered=[...weeks].filter(w=>w.week<=finalEnd).sort((a,b)=>a.week-b.week),totals={};
  for(const metric of ['titty','overachiever','mvp','optimizer'])totals[metric]=names.map(n=>({...n,total:0,tie:0,weeks:0,missing:[],live:0,history:[]}));
