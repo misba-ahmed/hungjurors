@@ -45,22 +45,24 @@
 .lms-feed-week.has-elimination .av{filter:grayscale(1)}
 @media(max-width:600px){#challenge-out .who-cell>.av{width:36px;height:36px;flex-basis:36px}#challenge-out .challenge-live-card .who-cell>.av{width:40px;height:40px;flex-basis:40px}.lms-feed-week{padding:15px;gap:14px;grid-template-columns:1fr}.lms-feed-meta{flex-direction:row;justify-content:space-between;align-items:center}.lms-feed-result>strong{font-size:24px}.lms-feed-result .who-cell{font-size:14px}.lms-lineup{--lms-top:22px}}
 @media(prefers-reduced-motion:reduce){.lms-upper,.lms-figure,.lms-standing-legs,.lms-seated-legs,.lms-lineup,.lms-name,.lms-zoom button{transition:none}}
-/* Highest Scorer Raffle: the shared lineup shell (zoom buttons, double tap, scroll stage) with tickets stacked above each head. */
-.raffle-view{margin-bottom:18px}
-.raffle-lineup{--raffle-pad:20px;--raffle-width:100cqi;--raffle-figure:min(120px,(var(--raffle-width) - 2px - 2*var(--raffle-pad))/var(--raffle-count));padding:22px var(--raffle-pad) 52px}
-.raffle-row{position:relative;display:flex;align-items:flex-end;justify-content:space-around;gap:0}
-.raffle-row:after{content:"";position:absolute;left:0;right:0;bottom:calc(var(--raffle-figure)*.1417);height:2px;background:linear-gradient(90deg,transparent,#b38b36 5%,#b38b36 95%,transparent);z-index:-1;box-shadow:0 8px 18px #a9883830}
-.raffle-figure{position:relative;display:flex;flex-direction:column;align-items:center;flex:1 1 0;max-width:120px;min-width:0;filter:drop-shadow(0 3px 2px #142c4210)}
-.raffle-figure .lms-art{display:block;width:100%;height:auto;overflow:visible}
-.raffle-label{position:absolute;top:calc(100% + 4px);left:-8%;width:116%;display:flex;flex-direction:column;align-items:center;gap:1px;text-align:center;white-space:nowrap}
-.raffle-name{font:800 10px/1.4 var(--sans);letter-spacing:.025em;color:var(--navy)}
-.raffle-stat{font:700 10.5px/1.4 var(--mono);letter-spacing:.04em;font-variant-numeric:tabular-nums;color:#8c7138}
+/* Shared fitted lineup (raffle tickets, titty bars): the Last Man Standing shell with zoom buttons, double tap and scroll stage. */
+.lineup-view{margin-bottom:18px}
+.lineup{--lineup-pad:20px;--lineup-width:100cqi;--lineup-figure:min(120px,(var(--lineup-width) - 2px - 2*var(--lineup-pad))/var(--lineup-count));padding:22px var(--lineup-pad) 52px}
+.lineup-row{position:relative;display:flex;align-items:flex-end;justify-content:space-around;gap:0}
+.lineup-row:after{content:"";position:absolute;left:0;right:0;bottom:calc(var(--lineup-figure)*.1417);height:2px;background:linear-gradient(90deg,transparent,#b38b36 5%,#b38b36 95%,transparent);z-index:-1;box-shadow:0 8px 18px #a9883830}
+.lineup-figure{position:relative;display:flex;flex-direction:column;align-items:center;flex:1 1 0;max-width:120px;min-width:0;filter:drop-shadow(0 3px 2px #142c4210)}
+.lineup-figure .lms-art{display:block;width:100%;height:auto;overflow:visible}
+.lineup-label{position:absolute;top:calc(100% + 4px);left:-8%;width:116%;display:flex;flex-direction:column;align-items:center;gap:1px;text-align:center;white-space:nowrap}
+.lineup-name{font:800 10px/1.4 var(--sans);letter-spacing:.025em;color:var(--navy)}
+.lineup-stat{font:700 10.5px/1.4 var(--mono);letter-spacing:.04em;font-variant-numeric:tabular-nums;color:#8c7138}
+.lineup-stat.is-bold{font:900 17px/1.2 var(--sans);letter-spacing:0;color:var(--navy)}
 @container lms (max-width:801px){
- .raffle-lineup{--raffle-width:800px;width:800px;transition:width .5s cubic-bezier(.22,.7,.2,1)}
- .lms-view.is-fit .raffle-lineup{--raffle-width:100cqi;width:100%}
- .raffle-name,.raffle-stat{transition:font-size .5s cubic-bezier(.22,.7,.2,1)}
- .lms-view.is-fit .raffle-name{font-size:clamp(5px,1.15cqi,10px)}
- .lms-view.is-fit .raffle-stat{font-size:clamp(5px,1.1cqi,10.5px)}
+ .lineup{--lineup-width:800px;width:800px;transition:width .5s cubic-bezier(.22,.7,.2,1)}
+ .lms-view.is-fit .lineup{--lineup-width:100cqi;width:100%}
+ .lineup-name,.lineup-stat{transition:font-size .5s cubic-bezier(.22,.7,.2,1)}
+ .lms-view.is-fit .lineup-name{font-size:clamp(5px,1.15cqi,10px)}
+ .lms-view.is-fit .lineup-stat{font-size:clamp(5px,1.1cqi,10.5px)}
+ .lms-view.is-fit .lineup-stat.is-bold{font-size:clamp(7px,2cqi,17px)}
 }
 .raffle-stack{display:flex;flex-direction:column-reverse;width:96%;margin-bottom:5%}
 .raffle-ticket{display:block;width:100%;height:auto;overflow:visible;margin-top:3%;--raffle-tilt:-2.5deg;transform:rotate(var(--raffle-tilt));animation:raffle-float 3.6s ease-in-out var(--raffle-delay,0s) infinite alternate;filter:drop-shadow(0 1px 1px #5a3f0d2e)}
@@ -73,8 +75,34 @@
 .raffle-ticket-score{font:800 15px/1 var(--sans);fill:var(--navy);text-anchor:middle;font-variant-numeric:tabular-nums}
 .raffle-empty{color:#738497;font:500 12px/1.5 var(--sans)}
 @keyframes raffle-float{from{transform:rotate(var(--raffle-tilt)) translateY(0)}to{transform:rotate(var(--raffle-tilt)) translateY(-4%)}}
-@media(max-width:600px){.raffle-lineup{--raffle-pad:10px;padding-top:16px;padding-bottom:44px}}
-@media(prefers-reduced-motion:reduce){.raffle-ticket{animation:none}.raffle-lineup,.raffle-name,.raffle-stat{transition:none}}
+/* Titty Special: live season-total bars above each head, crown on the leader, heatmap and expandable weekly rows. */
+.titty-bar-wrap{display:flex;align-items:flex-end;justify-content:center;width:100%;height:calc(var(--lineup-figure)*1.3);margin-bottom:9%}
+.titty-bar{width:54%;border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--brass-bright),var(--brass) 70%,#9a7122);box-shadow:inset 0 1px 0 #fff6,0 2px 6px #5a3f0d2e;transition:height .9s cubic-bezier(.2,.7,.2,1)}
+.lineup-figure.is-leader .titty-bar{background:linear-gradient(180deg,#f0cd5a,var(--brass-bright) 60%,var(--brass))}
+.lineup-figure.is-scored .titty-bar{animation:titty-scored 1.2s ease-out}
+@keyframes titty-scored{0%{filter:brightness(1)}30%{filter:brightness(1.45) drop-shadow(0 0 6px #d9a93f)}100%{filter:brightness(1)}}
+.lms-crown{filter:drop-shadow(0 1px 1px #0004)}
+.titty-view .aw-sub.challenge-sub{margin:22px 0 10px;font-size:17px}
+.titty-view .heat-wrap{margin-bottom:0}
+.titty-view table.heat{min-width:0}
+.titty-view table.heat th{position:static}
+.titty-view table.heat .who-cell{gap:8px}
+#challenge-out .titty-view table.heat .who-cell>.av{width:30px;height:30px;flex-basis:30px;border-width:1.5px}
+.titty-view table.heat td.is-missing{color:#b5bcc4}
+.titty-view .legend{margin-bottom:14px}
+.titty-weeks .challenge-live-details td.num{font-weight:800;color:var(--navy)}
+.titty-row{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.titty-row:hover td,.titty-row.is-open td{background:#fff8e8}
+.titty-row:focus-visible{outline:2px solid var(--brass);outline-offset:-2px}
+.titty-detail td{padding:0 14px 10px;background:#fff8e8;border-top:0;cursor:pointer}
+.titty-list{list-style:none;margin:0;padding:6px 0 0 53px;display:grid;gap:3px}
+.titty-list li{display:flex;align-items:baseline;gap:8px;font:600 12.5px/1.4 var(--sans);color:var(--navy-ink)}
+.titty-list li b{font:700 12.5px/1.4 var(--mono);color:var(--navy)}
+.titty-list li b:before{content:"· ";color:#8c7138}
+.titty-list li.is-empty{color:#738497;font-weight:500}
+@media(max-width:600px){.titty-list{padding-left:44px}.titty-detail td{padding:0 8px 10px}}
+@media(max-width:600px){.lineup{--lineup-pad:10px;padding-top:16px;padding-bottom:44px}}
+@media(prefers-reduced-motion:reduce){.raffle-ticket{animation:none}.lineup,.lineup-name,.lineup-stat,.titty-bar{transition:none}.lineup-figure.is-scored .titty-bar{animation:none}}
 .challenge-live-status{margin:0 0 12px;padding:9px 12px;border-left:3px solid var(--win-green);background:var(--paper-dim);color:var(--navy);font:600 11px/1.5 var(--sans)}
 .challenge-live-status.is-delayed,.challenge-live-warning{border-left:3px solid var(--brass);padding:9px 12px;background:var(--paper-dim)}
 .challenge-live-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
