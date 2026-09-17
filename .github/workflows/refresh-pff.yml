@@ -24,6 +24,8 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
+      - name: Verify projection feed contracts
+        run: node scripts/test-vegas-feed.mjs
       - uses: actions/configure-pages@v5
         id: pages
       - name: Stage site
@@ -31,20 +33,14 @@ jobs:
         run: |
           mkdir -p _site
           git archive HEAD | tar -x -C _site
+          node scripts/prepare-site.mjs _site/index.html
           find _site -mindepth 1 -name ".*" -prune -exec rm -rf {} +
           touch _site/.nojekyll
-      - name: Install projection browser
-        continue-on-error: true
-        shell: bash
-        run: |
-          npm install --prefix "$RUNNER_TEMP/hj-vegas-browser" --no-audit --no-fund --package-lock=false playwright@1.63.0
-          node "$RUNNER_TEMP/hj-vegas-browser/node_modules/playwright/cli.js" install --with-deps chromium
       - name: Refresh projections and advanced stats
         id: data-refresh
         continue-on-error: true
         env:
           PAGES_BASE_URL: ${{ steps.pages.outputs.base_url }}
-          VEGAS_PLAYWRIGHT_MODULE: ${{ runner.temp }}/hj-vegas-browser/node_modules/playwright/index.mjs
         shell: bash
         run: |
           node --input-type=module <<'DATA_SCRIPT'
@@ -184,12 +180,31 @@ jobs:
            }
            return r;
           }
+          export const VEGAS_FEED_MAX_AGE=90*60*1000;
+          export const VEGAS_BROWSER_FEED_URL='https://raw.githubusercontent.com/misba-ahmed/hungjurors/vegas-browser-feed/data/projections.json';
+          export function validBrowserVegas(data,kind,season,now=Date.now()){
+           if(!validSavedVegas(data,kind,season)||data.transport!=='scheduled-browser'||now-data.checkedAt>=VEGAS_FEED_MAX_AGE||data.checkedAt>now+60000||data.rows.length<(kind==='weekly'?150:200))return false;
+           if(data.publishedAt>data.checkedAt+300000||new Date(data.publishedAt).getUTCFullYear()!==season)return false;
+           try{if(sourceTimestamp(data.updated)!==data.publishedAt)return false;}catch(_){return false;}
+           const seen=new Set();
+           return data.rows.every(row=>{if(typeof row.name!=='string'||!row.name.trim())return false;const key=row.position+'|'+row.name.trim().toLowerCase();if(seen.has(key))return false;seen.add(key);return Number.isFinite(row.sourceProjection);});
+          }
+          export async function collectScheduledBrowserVegas(season,fetchFeed=async()=>{const response=await request(VEGAS_BROWSER_FEED_URL);return response.json();}){
+           try{
+            const feed=await fetchFeed(),now=Date.now();
+            if(feed?.schema!==1||feed.producer!=='chatgpt-scheduled-browser-v1'||feed.season!==season||!Number.isFinite(feed.generatedAt)||feed.generatedAt>now+60000||now-feed.generatedAt>VEGAS_FEED_MAX_AGE)throw Error('Scheduled browser feed is missing, expired, or invalid');
+            return Object.fromEntries(['weekly','season'].map(kind=>{
+             const data=feed[kind==='season'?'seasonProjections':'weekly'];
+             return [kind,validBrowserVegas(data,kind,season,now)&&data.checkedAt<=feed.generatedAt+60000?{data}:{error:Error(`No current validated ${kind} browser collection`)}];
+            }));
+           }catch(error){return {weekly:{error},season:{error}};}
+          }
           async function previous(path){try{const r=await request(new URL(path,process.env.PAGES_BASE_URL.replace(/\/$/,'')+'/'));return await r.json();}catch(_){return null;}}
           function validSavedVegas(data,kind,season){
            return data?.source==='WinWithOdds'&&data.season===season&&data.scoring===VEGAS_SCORING&&data.sourceUrl===vegasUrl(kind)&&data.week===(kind==='weekly'?nflWeek(Date.now(),season):0)&&Number.isFinite(data.checkedAt)&&data.checkedAt<=Date.now()+60000&&Number.isFinite(data.publishedAt)&&typeof data.updated==='string'&&Array.isArray(data.rows)&&data.rows.length>=10&&data.rows.every(r=>r.name&&['QB','RB','WR','TE'].includes(r.position)&&r.sourceScoring===VEGAS_SCORING&&r.sourceReceptionPoints===(r.position==='TE'?1.5:1)&&Number.isFinite(r.sourceProjection));
           }
           function validSavedAdvanced(data,season){return data?.source==='nflverse'&&Number.isFinite(data.checkedAt)&&data.checkedAt<=Date.now()+60000&&Array.isArray(data.rows)&&data.rows.length>0&&data.rows.every(r=>Number(r.season)===season);}
-          export async function collectData({loadVegasFeeds=collectBrowserVegas}={}){
+          export async function collectData({loadVegasFeeds=collectScheduledBrowserVegas}={}){
            const html=await readFile('index.html','utf8'),season=Number(html.match(/const NFL_SEASON\s*=\s*(\d{4})/)?.[1]);
            if(!season)throw Error('Missing site season');
            await mkdir('_site/data',{recursive:true});
@@ -198,7 +213,7 @@ jobs:
            ]);
            if(oldPff?.schema===1&&oldPff.season===season)await writeFile('_site/data/pff-grades.json',JSON.stringify(oldPff));
            const projection={schema:1,season,generatedAt:Date.now(),errors:{}},advanced={schema:1,season,generatedAt:Date.now(),errors:{}};
-           const status={schema:1,collector:'rendered-browser-v1',season,attemptedAt:Date.now(),ok:false,sources:{}};
+           const status={schema:1,collector:'scheduled-browser-feed-v1',season,attemptedAt:Date.now(),ok:false,sources:{}};
            function failed(key,error,saved){
             const message=String(error.message||error);
             status.sources[key]={status:error.status===403?'blocked':'failed',error:message,retained:!!saved,checkedAt:saved?.checkedAt||null,rows:saved?.rows?.length||0};
@@ -212,7 +227,7 @@ jobs:
              const result=browserFeeds[kind];if(result?.error)throw result.error;
              const data=result?.data;if(!validSavedVegas(data,kind,season))throw Error('Browser returned invalid projection data');
              projection[field]=data;
-             status.sources[field]={status:'updated',transport:data.transport||'unknown',checkedAt:data.checkedAt,updated:data.updated,rows:data.rows.length};
+             status.sources[field]={status:'available',transport:data.transport,checkedAt:data.checkedAt,publishedAt:data.publishedAt,updated:data.updated,rows:data.rows.length};
              console.log(`${kind}: ${data.rows.length} players; source updated ${data.updated}`);
             }catch(error){
              projection.errors[field]=String(error.message||error);
@@ -249,20 +264,20 @@ jobs:
            // Retained rows keep their original checkedAt and source publication date.
            if(projection.weekly||projection.seasonProjections)await writeFile('_site/data/projections.json',JSON.stringify(projection));
            if(advanced.stats||advanced.snaps)await writeFile(`_site/data/advanced-stats-${season}.json`,JSON.stringify(advanced));
-           const failures=Object.entries(status.sources).filter(([,result])=>result.status!=='updated');
+           const failures=Object.entries(status.sources).filter(([,result])=>!['updated','available'].includes(result.status));
            status.ok=failures.length===0;
            await writeFile('_site/data/source-status.json',JSON.stringify(status));
            if(process.env.GITHUB_STEP_SUMMARY){
             const clean=s=>String(s||'').replace(/[|\r\n]/g,' '),names={weekly:'Vegas weekly (.5 TEP)',seasonProjections:'Vegas season (.5 TEP)',stats:'Advanced stats',snaps:'Snap counts'};
             const lines=['## Data refresh','', '| Source | Result | Available rows | Last successful check |','| --- | --- | ---: | --- |'];
             for(const key of ['weekly','seasonProjections','stats','snaps']){
-             const r=status.sources[key],label=r.status==='updated'?'Updated':r.retained?`${r.status}; previous data retained`:`${r.status}; no valid saved data`;
+             const r=status.sources[key],label=r.status==='available'?'Verified browser feed':r.status==='updated'?'Updated':r.retained?`${r.status}; previous data retained`:`${r.status}; no valid saved data`;
              lines.push(`| ${names[key]} | ${label} | ${r.rows} | ${r.checkedAt?new Date(r.checkedAt).toISOString():'—'} |`);
             }
             if(failures.length){
              lines.push('','Site publishing and PFF collection can continue. This run will finish as failed because these source refreshes failed.');
              for(const [key,r] of failures)lines.push('',`- ${names[key]}: ${clean(r.error)}`);
-             if(failures.some(([,r])=>r.status==='blocked'))lines.push('','WinWithOdds refused this browser request. The collector stopped without attempting to solve or bypass the verification challenge.');
+             if(failures.some(([,r])=>r.status==='blocked'))lines.push('','A source refused the request. No source timestamp or successful retrieval time was advanced.');
             }
             await appendFile(process.env.GITHUB_STEP_SUMMARY,lines.join('\n')+'\n');
            }
