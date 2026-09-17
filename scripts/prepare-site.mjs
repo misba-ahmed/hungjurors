@@ -14,6 +14,6 @@ export function prepareSite(html){
   ' const sideHTML=(side,right=false)=>wireSummarySide(side,right);');
  html=replaceOnce(html,/function wireRecapCards\(data,week\)\{/g,bannerRenderers+'\nfunction wireRecapCards(data,week){');
  return html.replace(old,'Date.now()-at<90*60*1000&&data.updated')
-  .replace('</head>','<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917b">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n</head>');
+  .replace('</head>','<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917c">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n</head>');
 }
 if(process.argv[2])await writeFile(process.argv[2],prepareSite(await readFile(process.argv[2],'utf8')));
