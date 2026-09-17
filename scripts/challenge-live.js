@@ -71,13 +71,34 @@ function hjChLms(model){
  const figures=names.map((n,i)=>hjChLmsFigure(n,eliminated.get(n.id),i)).join('');
  const history=hjChLmsHistory(model,names).map(w=>`<li class="lms-feed-week${w.eliminated?' has-elimination':''}"><div class="lms-feed-meta"><b>Week ${w.week}</b><span>${w.eliminated?'ELIMINATED':w.pending?'PENDING':'NO ELIMINATION'}</span></div><div class="lms-feed-results">${w.lowest.map(t=>`<div class="lms-feed-result">${hjChManager(t.short)}<strong>${t.score.toFixed(2)}</strong></div>`).join('')}</div></li>`).join('');
  const fit=HJ_CHALLENGE_STATE.lmsFit;
- return `<div class="lms-view${fit?' is-fit':''}"><div class="lms-zoom" role="group" aria-label="Lineup zoom"><button type="button" data-lms-zoom="fit" aria-pressed="${fit}" aria-controls="lms-lineup" aria-label="Show entire lineup"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M7.5 10.5h6"/></svg></button><button type="button" data-lms-zoom="detail" aria-pressed="${!fit}" aria-controls="lms-lineup" aria-label="Zoom in on lineup"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M7.5 10.5h6M10.5 7.5v6"/></svg></button></div><div class="lms-stage" tabindex="0" role="group" aria-label="Last Man Standing manager lineup"><div class="lms-lineup" id="lms-lineup">${figures}</div></div></div><ol class="lms-feed" aria-label="Weekly elimination feed">${history}</ol>`;
+ return `<div class="lms-view${fit?' is-fit':''}"><div class="lms-zoom" role="group" aria-label="Lineup zoom"><button type="button" data-lms-zoom="fit" aria-pressed="${fit}" aria-controls="lms-lineup" aria-label="Show entire lineup"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M7.5 10.5h6"/></svg></button><button type="button" data-lms-zoom="detail" aria-pressed="${!fit}" aria-controls="lms-lineup" aria-label="Zoom in on lineup"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M7.5 10.5h6M10.5 7.5v6"/></svg></button></div><div class="lms-stage" style="touch-action:manipulation" tabindex="0" role="group" aria-label="Last Man Standing manager lineup"><div class="lms-lineup" id="lms-lineup">${figures}</div></div></div><ol class="lms-feed" aria-label="Weekly elimination feed">${history}</ol>`;
 }
 function hjChSetLmsZoom(view,fit){
  HJ_CHALLENGE_STATE.lmsFit=fit;
  view.classList.toggle('is-fit',fit);
  view.querySelectorAll('[data-lms-zoom]').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.lmsZoom==='fit')===fit)));
  if(fit)view.querySelector('.lms-stage').scrollTo({left:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+}
+function hjChBindLmsGestures(out){
+ let down=null,last=null;
+ out.addEventListener('pointerdown',e=>{
+  const stage=e.target.closest('.lms-stage');
+  if(!e.isPrimary||e.button!==0||!stage||stage.closest('.lms-view').clientWidth>801){down=null;last=null;return;}
+  down={stage,id:e.pointerId,x:e.clientX,y:e.clientY,at:e.timeStamp,scroll:stage.scrollLeft};
+ });
+ out.addEventListener('pointermove',e=>{
+  if(down&&e.pointerId===down.id&&Math.hypot(e.clientX-down.x,e.clientY-down.y)>12){down=null;last=null;}
+ });
+ out.addEventListener('pointercancel',()=>{down=null;last=null;});
+ out.addEventListener('pointerup',e=>{
+  const tap=down;down=null;
+  if(!tap||e.pointerId!==tap.id||e.timeStamp-tap.at>300||Math.hypot(e.clientX-tap.x,e.clientY-tap.y)>12||Math.abs(tap.stage.scrollLeft-tap.scroll)>2){last=null;return;}
+  if(last&&last.stage===tap.stage&&e.timeStamp-last.at<=350&&Math.hypot(e.clientX-last.x,e.clientY-last.y)<=28){
+   last=null;
+   const view=tap.stage.closest('.lms-view');
+   hjChSetLmsZoom(view,!view.classList.contains('is-fit'));
+  }else last={stage:tap.stage,x:e.clientX,y:e.clientY,at:e.timeStamp};
+ });
 }
 function hjChSpecial(ch,model){
  const rows=model.totals[ch.id],complete=rows.filter(r=>!r.missing.length),leader=complete[0],tiebreak=['titty','mvp'].includes(ch.id),tieLabel=ch.id==='titty'?'QB/RB/WR yards':'MVP player points';
@@ -110,6 +131,7 @@ function selectChallenge(id){
  const out=$('#challenge-out');out.setAttribute('role','tabpanel');out.setAttribute('aria-labelledby',`challenge-tab-${ch.id}`);hjRenderChallenge();
 }
 {
+ hjChBindLmsGestures($('#challenge-out'));
  $('#challenge-out').addEventListener('click',e=>{const button=e.target.closest('[data-lms-zoom]');if(button)hjChSetLmsZoom(button.closest('.lms-view'),button.dataset.lmsZoom==='fit')});
  const strip=$('#challenge-strip');
  strip.innerHTML=CHALLENGES.map(ch=>`<button type="button" id="challenge-tab-${ch.id}" role="tab" aria-controls="challenge-out" data-challenge="${ch.id}" aria-selected="false">${ch.label}</button>`).join('');
