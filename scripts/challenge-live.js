@@ -83,16 +83,17 @@ function hjChSigned(v){return `${v>0?'+':v<0?'−':''}${Math.abs(v).toFixed(2)}`
 function hjChOver(model){
  const names=HJ_CHALLENGE_STATE.names,rows=model.totals.overachiever,byId=new Map(rows.map(r=>[r.id,r])),leaders=hjChLeaders(rows),top=rows[0]?.total??0;
  const maxAbs=Math.max(0,...rows.map(r=>Math.abs(r.total)));
+ // The ground line is the projection: beat it and you rise on a pedestal, miss it and you sink into a pit.
  const figures=names.map((n,i)=>{
-  const r=byId.get(n.id)||{total:0,tie:0,missing:[],weeks:0},pct=maxAbs?100*Math.abs(r.total)/maxAbs:0,crown=leaders.has(n.id),behind=top-r.total;
-  const inner=crown?'<em>Leader</em>':`${behind.toFixed(2)}<em>Behind</em>`;
-  return hjChLineupFigure({manager:n,index:i,key:'over',label:`${esc(n.short)}: ${hjChSigned(r.total)} versus projections${crown?', current leader':`, ${behind.toFixed(2)} behind`}`,above:hjChBar(n.id,r.total,pct,`${hjChSigned(r.total)}${r.missing.length?'*':''}`,inner,r.total<0?'is-neg':'is-pos'),crown});
+  const r=byId.get(n.id)||{total:0,tie:0,missing:[],weeks:0},ratio=maxAbs?Math.abs(r.total)/maxAbs:0,neg=r.total<0,crown=leaders.has(n.id),behind=top-r.total;
+  const label=`${esc(n.short)}: ${hjChSigned(r.total)} versus projections${crown?', current leader':`, ${behind.toFixed(2)} behind`}`;
+  return `<div class="lineup-figure over-figure ${neg?'is-neg':'is-pos'}${crown?' is-leader':''}" role="group" aria-label="${label}" data-lineup-manager="${esc(n.id)}" data-over-id="${esc(n.id)}" style="${hjChJacket(i)};--over-shift:${ratio.toFixed(4)}"><b class="lineup-bar-value ${neg?'is-neg':'is-pos'}">${hjChSigned(r.total)}${r.missing.length?'*':''}</b><span class="${neg?'over-pit':'over-pedestal'}" aria-hidden="true"></span><div class="over-body">${hjChFigureArt(n,`over-head-${i}`,crown)}</div><span class="lineup-label"><span class="lineup-name manager-profile-trigger" data-manager="${esc(n.short)}" role="button" tabindex="0" aria-label="Open ${esc(n.short)} profile">${esc(n.short)}</span><span class="lineup-stat over-behind" aria-hidden="true">${crown?'Leader':`${behind.toFixed(2)} behind`}</span></span></div>`;
  }).join('');
  // Weekly over/under heatmap in the League Awards style; cells open a small projection card.
  const weeks=[...model.weeks].reverse(),cells=rows.flatMap(r=>r.history.map(h=>Math.abs(h.value))).filter(Number.isFinite),maxAbsV=Math.max(1,...cells);
  const shade=v=>v>=0?`rgba(46,125,79,${(0.1+0.75*Math.abs(v)/maxAbsV).toFixed(3)})`:`rgba(179,53,44,${(0.1+0.75*Math.abs(v)/maxAbsV).toFixed(3)})`;
  const head=`<tr><th>Manager</th><th>Total</th>${weeks.map((w,i)=>`<th class="wk${i===0?' new':''}">${w.week<=model.regularEnd?`W${w.week}`:`R${w.week-model.regularEnd}`}</th>`).join('')}</tr>`;
- const body=rows.map(r=>`<tr><td class="nm">${hjChManager(r.short)}</td><td class="tot ${r.total<0?'is-neg':'is-pos'}">${hjChSigned(r.total)}${r.missing.length?'*':''}</td>${weeks.map(w=>{const h=r.history.find(h=>h.week===w.week);return h&&Number.isFinite(h.value)?`<td><button type="button" class="over-cell" style="background:${shade(h.value)}" data-over-manager="${esc(r.short)}" data-over-week="${w.week}" data-over-proj="${Number.isFinite(h.projection)?h.projection.toFixed(2):'—'}" data-over-actual="${Number.isFinite(h.score)?h.score.toFixed(2):'—'}" aria-label="${esc(r.short)} Week ${w.week}: ${hjChSigned(h.value)}">${hjChSigned(h.value)}</button></td>`:'<td class="is-missing">—</td>'}).join('')}</tr>`).join('');
+ const body=rows.map(r=>`<tr><td class="nm">${hjChManager(r.short)}</td><td class="tot ${r.total<0?'is-neg':'is-pos'}">${hjChSigned(r.total)}${r.missing.length?'*':''}</td>${weeks.map(w=>{const h=r.history.find(h=>h.week===w.week);return h&&Number.isFinite(h.value)?`<td style="background:${shade(h.value)}"><button type="button" class="over-cell" data-over-manager="${esc(r.short)}" data-over-week="${w.week}" data-over-proj="${Number.isFinite(h.projection)?h.projection.toFixed(2):'—'}" data-over-actual="${Number.isFinite(h.score)?h.score.toFixed(2):'—'}" aria-label="${esc(r.short)} Week ${w.week}: ${hjChSigned(h.value)}">${hjChSigned(h.value)}</button></td>`:'<td class="is-missing">—</td>'}).join('')}</tr>`).join('');
  const heat=weeks.length?`<div class="heat-wrap over-heat"><table class="heat"><thead>${head}</thead><tbody>${body}</tbody></table></div>`:'<p class="challenge-live-note">The chart fills in when Week 1 kicks off.</p>';
  const legend=`<div class="legend"><span><span class="sw" style="background:rgba(46,125,79,.7)"></span>beat projection</span><span><span class="sw" style="background:rgba(179,53,44,.7)"></span>fell short</span><span>${model.liveWeek?`Week ${model.liveWeek} in progress · updates live`:model.finalWeek?`Final through Week ${model.finalWeek}`:''}</span></div>`;
  return `<div class="over-view">${hjChLineupView({id:'over-lineup',fitKey:'overFit',label:'Overachiever Special season totals by manager',figures,count:names.length})}${rows.some(r=>r.missing.length)?'<p class="challenge-live-note">* Partial total. Missing weeks stay pending until ESPN supplies the records.</p>':''}<h4 class="aw-sub challenge-sub">Weekly Over/Under</h4>${heat}${weeks.length?legend:''}</div>`;
@@ -276,6 +277,7 @@ function hjRenderChallenge(){
  const opened=[...out.querySelectorAll('details[open]')].map(n=>n.querySelector('summary')?.textContent),closed=[...out.querySelectorAll('details:not([open])')].map(n=>n.querySelector('summary')?.textContent);
  const expanded=[...out.querySelectorAll('.titty-row[aria-expanded="true"]')].map(n=>n.dataset.tittyKey);
  const bars=new Map([...out.querySelectorAll('.lineup-bar')].map(b=>[b.dataset.barId,{pct:b.style.getPropertyValue('--titty-pct'),value:b.dataset.barValue}]));
+ const shifts=new Map([...out.querySelectorAll('.over-figure')].map(f=>[f.dataset.overId,{shift:f.style.getPropertyValue('--over-shift'),neg:f.classList.contains('is-neg')}]));
  if(out.innerHTML===html)return;
  hjChCloseOverCard();
  out.innerHTML=html;
@@ -283,6 +285,10 @@ function hjRenderChallenge(){
  out.querySelectorAll('.titty-row').forEach(n=>{if(expanded.includes(n.dataset.tittyKey))hjChToggleTitty(n,true)});
  // Grow bars from their previous height so a live titty visibly moves the graph.
  const motion=!matchMedia('(prefers-reduced-motion: reduce)').matches;
+ out.querySelectorAll('.over-figure').forEach(f=>{
+  const prev=shifts.get(f.dataset.overId),target=f.style.getPropertyValue('--over-shift');if(!prev||!motion||prev.neg!==f.classList.contains('is-neg')||prev.shift===target)return;
+  f.classList.add('no-motion');f.style.setProperty('--over-shift',prev.shift);f.getBoundingClientRect();f.classList.remove('no-motion');f.style.setProperty('--over-shift',target);
+ });
  out.querySelectorAll('.lineup-bar').forEach(b=>{
   const prev=bars.get(b.dataset.barId),target=b.style.getPropertyValue('--titty-pct');if(!prev||!motion||prev.pct===target)return;
   b.style.transition='none';b.style.setProperty('--titty-pct',prev.pct);b.getBoundingClientRect();b.style.transition='';b.style.setProperty('--titty-pct',target);
