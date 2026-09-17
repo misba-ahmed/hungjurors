@@ -63,6 +63,8 @@
  .lms-view.is-fit .lineup-name{font-size:clamp(5px,1.15cqi,10px)}
  .lms-view.is-fit .lineup-stat{font-size:clamp(5px,1.1cqi,10.5px)}
  .lms-view.is-fit .lineup-stat.is-bold{font-size:clamp(7px,2cqi,17px)}
+ .titty-bar-wrap{transition:font-size .5s cubic-bezier(.22,.7,.2,1)}
+ .lms-view.is-fit .titty-bar-wrap{font-size:clamp(6px,1.9cqi,15px)}
 }
 .raffle-stack{display:flex;flex-direction:column-reverse;width:96%;margin-bottom:5%}
 .raffle-ticket{display:block;width:100%;height:auto;overflow:visible;margin-top:3%;--raffle-tilt:-2.5deg;transform:rotate(var(--raffle-tilt));animation:raffle-float 3.6s ease-in-out var(--raffle-delay,0s) infinite alternate;filter:drop-shadow(0 1px 1px #5a3f0d2e)}
@@ -76,15 +78,19 @@
 .raffle-empty{color:#738497;font:500 12px/1.5 var(--sans)}
 @keyframes raffle-float{from{transform:rotate(var(--raffle-tilt)) translateY(0)}to{transform:rotate(var(--raffle-tilt)) translateY(-4%)}}
 /* Titty Special: live season-total bars above each head, crown on the leader, heatmap and expandable weekly rows. */
-.titty-bar-wrap{display:flex;align-items:flex-end;justify-content:center;width:100%;height:calc(var(--lineup-figure)*1.3);margin-bottom:9%}
-.titty-bar{width:54%;border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--brass-bright),var(--brass) 70%,#9a7122);box-shadow:inset 0 1px 0 #fff6,0 2px 6px #5a3f0d2e;transition:height .9s cubic-bezier(.2,.7,.2,1)}
+.titty-bar-wrap{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;width:100%;height:calc(var(--lineup-figure)*1.3 + 1.4em);margin-bottom:9%;font-size:15px}
+.titty-bar-value{display:block;margin-bottom:.15em;font:900 1em/1.2 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:0;color:var(--navy)}
+.titty-bar{width:54%;height:calc(var(--lineup-figure)*1.3*var(--titty-pct,0)/100);border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--brass-bright),var(--brass) 70%,#9a7122);box-shadow:inset 0 1px 0 #fff6,0 2px 6px #5a3f0d2e;transition:height .9s cubic-bezier(.2,.7,.2,1)}
 .lineup-figure.is-leader .titty-bar{background:linear-gradient(180deg,#f0cd5a,var(--brass-bright) 60%,var(--brass))}
 .lineup-figure.is-scored .titty-bar{animation:titty-scored 1.2s ease-out}
 @keyframes titty-scored{0%{filter:brightness(1)}30%{filter:brightness(1.45) drop-shadow(0 0 6px #d9a93f)}100%{filter:brightness(1)}}
 .lms-crown{filter:drop-shadow(0 1px 1px #0004)}
 .titty-view .aw-sub.challenge-sub{margin:22px 0 10px;font-size:17px}
-.titty-view .heat-wrap{margin-bottom:0}
-.titty-view table.heat{min-width:0}
+.titty-view .heat-wrap{margin-bottom:0;width:max-content;max-width:100%}
+.titty-view table.heat{width:auto;min-width:0}
+.titty-view table.heat td.nm{padding-right:28px}
+.titty-view table.heat th.wk,.titty-view table.heat td{min-width:46px}
+.titty-view table.heat th:nth-child(2),.titty-view table.heat td.tot{min-width:64px;padding-left:12px;padding-right:12px}
 .titty-view table.heat th{position:static}
 .titty-view table.heat .who-cell{gap:8px}
 #challenge-out .titty-view table.heat .who-cell>.av{width:30px;height:30px;flex-basis:30px;border-width:1.5px}
@@ -102,7 +108,7 @@
 .titty-list li.is-empty{color:#738497;font-weight:500}
 @media(max-width:600px){.titty-list{padding-left:44px}.titty-detail td{padding:0 8px 10px}}
 @media(max-width:600px){.lineup{--lineup-pad:10px;padding-top:16px;padding-bottom:44px}}
-@media(prefers-reduced-motion:reduce){.raffle-ticket{animation:none}.lineup,.lineup-name,.lineup-stat,.titty-bar{transition:none}.lineup-figure.is-scored .titty-bar{animation:none}}
+@media(prefers-reduced-motion:reduce){.raffle-ticket{animation:none}.lineup,.lineup-name,.lineup-stat,.titty-bar,.titty-bar-wrap{transition:none}.lineup-figure.is-scored .titty-bar{animation:none}}
 .challenge-live-status{margin:0 0 12px;padding:9px 12px;border-left:3px solid var(--win-green);background:var(--paper-dim);color:var(--navy);font:600 11px/1.5 var(--sans)}
 .challenge-live-status.is-delayed,.challenge-live-warning{border-left:3px solid var(--brass);padding:9px 12px;background:var(--paper-dim)}
 .challenge-live-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
