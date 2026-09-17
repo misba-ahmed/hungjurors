@@ -1,4 +1,4 @@
-const HJ_CHALLENGE_STATE={data:null,weeks:new Map(),model:null,names:[],pending:null,active:'raffle',error:'',checkedAt:0,lmsFit:true};
+const HJ_CHALLENGE_STATE={data:null,weeks:new Map(),model:null,names:[],pending:null,active:'raffle',error:'',checkedAt:0,lmsFit:true,raffleFit:true};
 function hjChallengeNames(data){return (data.teams||[]).map(t=>({id:String(t.id),short:hjMatchManager(t,data)||hjOwnerName(t,data)||hjTeamName(t)}))}
 function hjChallengeWeekActive(data,week){
  return (data.schedule||[]).some(g=>Number(g.matchupPeriodId)===week&&['home','away'].some(k=>Math.abs(Number(g[k]?.pointsByScoringPeriod?.[week]??g[k]?.totalPointsLive??0))>0))||(typeof NFL_WEEK1!=='undefined'&&NFL_WEEK1.some(g=>Number(g.week)===week&&['in','post'].includes(g.state)));
@@ -54,7 +54,8 @@ function hjChRaffle(model){
  for(const w of model.raffle)for(const t of w.winners)earned.get(t.id)?.push({week:w.week,score:w.score});
  const figures=names.map((n,i)=>hjChRaffleFigure(n,i,earned.get(n.id)||[],total)).join('');
  const history=model.raffle.map(w=>`<tr><td>Week ${w.week}</td><td>${w.winners.map(t=>hjChManager(t.short)).join(' ')}</td><td class="num">${w.score.toFixed(2)}</td></tr>`).join('')||'<tr><td colspan="3" class="raffle-empty">Tickets appear when ESPN finalizes Week 1.</td></tr>';
- return `<div class="raffle-view"><div class="raffle-stage" role="group" aria-label="Highest Scorer Raffle tickets by manager"><div class="raffle-lineup" style="--raffle-count:${names.length||1}"><div class="raffle-row">${figures}</div></div></div></div>${hjChTable(['Week','Manager','Score'],history)}`;
+ const fit=HJ_CHALLENGE_STATE.raffleFit;
+ return `<div class="lms-view raffle-view${fit?' is-fit':''}" data-fit-key="raffleFit">${hjChZoomButtons(fit,'raffle-lineup')}<div class="lms-stage raffle-stage" style="touch-action:manipulation" tabindex="0" role="group" aria-label="Highest Scorer Raffle tickets by manager"><div class="raffle-lineup" id="raffle-lineup" style="--raffle-count:${names.length||1}"><div class="raffle-row">${figures}</div></div></div></div>${hjChTable(['Week','Manager','Score'],history)}`;
 }
 function hjChJacket(index){
  const palette=['#26546b','#426575','#1d405b','#4f6070','#345e65','#264a67','#53647a','#385d76','#41667c','#34475e'];
@@ -87,10 +88,13 @@ function hjChLms(model){
  const figures=names.map((n,i)=>hjChLmsFigure(n,eliminated.get(n.id),i)).join('');
  const history=hjChLmsHistory(model,names).map(w=>`<li class="lms-feed-week${w.eliminated?' has-elimination':''}"><div class="lms-feed-meta"><b>Week ${w.week}</b><span>${w.eliminated?'ELIMINATED':w.pending?'PENDING':'NO ELIMINATION'}</span></div><div class="lms-feed-results">${w.lowest.map(t=>`<div class="lms-feed-result">${hjChManager(t.short)}<strong>${t.score.toFixed(2)}</strong></div>`).join('')}</div></li>`).join('');
  const fit=HJ_CHALLENGE_STATE.lmsFit;
- return `<div class="lms-view${fit?' is-fit':''}"><div class="lms-zoom" role="group" aria-label="Lineup zoom"><button type="button" data-lms-zoom="fit" aria-pressed="${fit}" aria-controls="lms-lineup" aria-label="Show entire lineup"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M7.5 10.5h6"/></svg></button><button type="button" data-lms-zoom="detail" aria-pressed="${!fit}" aria-controls="lms-lineup" aria-label="Zoom in on lineup"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M7.5 10.5h6M10.5 7.5v6"/></svg></button></div><div class="lms-stage" style="touch-action:manipulation" tabindex="0" role="group" aria-label="Last Man Standing manager lineup"><div class="lms-lineup" id="lms-lineup">${figures}</div></div></div><ol class="lms-feed" aria-label="Weekly elimination feed">${history}</ol>`;
+ return `<div class="lms-view${fit?' is-fit':''}" data-fit-key="lmsFit">${hjChZoomButtons(fit,'lms-lineup')}<div class="lms-stage" style="touch-action:manipulation" tabindex="0" role="group" aria-label="Last Man Standing manager lineup"><div class="lms-lineup" id="lms-lineup">${figures}</div></div></div><ol class="lms-feed" aria-label="Weekly elimination feed">${history}</ol>`;
+}
+function hjChZoomButtons(fit,controls){
+ return `<div class="lms-zoom" role="group" aria-label="Lineup zoom"><button type="button" data-lms-zoom="fit" aria-pressed="${fit}" aria-controls="${controls}" aria-label="Show entire lineup"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M7.5 10.5h6"/></svg></button><button type="button" data-lms-zoom="detail" aria-pressed="${!fit}" aria-controls="${controls}" aria-label="Zoom in on lineup"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M7.5 10.5h6M10.5 7.5v6"/></svg></button></div>`;
 }
 function hjChSetLmsZoom(view,fit){
- HJ_CHALLENGE_STATE.lmsFit=fit;
+ HJ_CHALLENGE_STATE[view.dataset.fitKey||'lmsFit']=fit;
  view.classList.toggle('is-fit',fit);
  view.querySelectorAll('[data-lms-zoom]').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.lmsZoom==='fit')===fit)));
  if(fit)view.querySelector('.lms-stage').scrollTo({left:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
@@ -145,7 +149,7 @@ function hjRenderChallenge(){
 function selectChallenge(id){
  const ch=CHALLENGES.find(c=>c.id===id)||CHALLENGES[0];HJ_CHALLENGE_STATE.active=ch.id;
  document.querySelectorAll('#challenge-strip button').forEach(b=>{b.setAttribute('aria-selected',String(b.dataset.challenge===ch.id));b.tabIndex=b.dataset.challenge===ch.id?0:-1});
- const rule=$('#challenge-rule'),ruleText=ch.id==='raffle'?'':ch.rule;rule.textContent=ruleText;rule.hidden=!ruleText;$('#challenge-prize-badge').textContent=ch.prize;
+ $('#challenge-rule').textContent=ch.rule;$('#challenge-prize-badge').textContent=ch.prize;
  const out=$('#challenge-out');out.setAttribute('role','tabpanel');out.setAttribute('aria-labelledby',`challenge-tab-${ch.id}`);hjRenderChallenge();
 }
 {
