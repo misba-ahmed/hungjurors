@@ -76,8 +76,8 @@ function hjChTitty(model){
  const leaders=new Set(top&&top.total>0?rows.filter(r=>r.total===top.total&&r.tie===top.tie&&r.missing.length===top.missing.length).map(r=>r.id):[]);
  const figures=names.map((n,i)=>{
   const r=byId.get(n.id)||{total:0,tie:0,missing:[]},pct=max?100*r.total/max:0,crown=leaders.has(n.id);
-  const above=`<div class="titty-bar-wrap"><div class="titty-bar" data-bar-id="${esc(n.id)}" data-bar-value="${r.total}" style="height:${pct.toFixed(2)}%"></div></div>`;
-  return hjChLineupFigure({manager:n,index:i,key:'titty',label:`${esc(n.short)}: ${r.total} titties${crown?', current leader':''}`,above,stat:`${r.total}${r.missing.length?'*':''}`,statClass:'is-bold',crown});
+  const above=`<div class="titty-bar-wrap"><b class="titty-bar-value">${r.total}${r.missing.length?'*':''}</b><div class="titty-bar" data-bar-id="${esc(n.id)}" data-bar-value="${r.total}" style="--titty-pct:${pct.toFixed(2)}"></div></div>`;
+  return hjChLineupFigure({manager:n,index:i,key:'titty',label:`${esc(n.short)}: ${r.total} titties${crown?', current leader':''}`,above,crown});
  }).join('');
  // Week-by-week heatmap, newest week first, matching the League Awards card.
  const weeks=[...model.weeks].reverse(),cells=rows.flatMap(r=>r.history.map(h=>h.value)).filter(Number.isFinite),maxCell=Math.max(1,...cells);
@@ -205,7 +205,7 @@ function hjRenderChallenge(){
  // Preserve open weekly details and expanded rows, and avoid replacing identical content.
  const opened=[...out.querySelectorAll('details[open]')].map(n=>n.querySelector('summary')?.textContent);
  const expanded=[...out.querySelectorAll('.titty-row[aria-expanded="true"]')].map(n=>n.dataset.tittyKey);
- const bars=new Map([...out.querySelectorAll('.titty-bar')].map(b=>[b.dataset.barId,{height:b.style.height,value:b.dataset.barValue}]));
+ const bars=new Map([...out.querySelectorAll('.titty-bar')].map(b=>[b.dataset.barId,{pct:b.style.getPropertyValue('--titty-pct'),value:b.dataset.barValue}]));
  if(out.innerHTML===html)return;
  out.innerHTML=html;
  out.querySelectorAll('details').forEach(n=>{if(opened.includes(n.querySelector('summary')?.textContent))n.open=true});
@@ -213,8 +213,8 @@ function hjRenderChallenge(){
  // Grow bars from their previous height so a live titty visibly moves the graph.
  const motion=!matchMedia('(prefers-reduced-motion: reduce)').matches;
  out.querySelectorAll('.titty-bar').forEach(b=>{
-  const prev=bars.get(b.dataset.barId);if(!prev||!motion||prev.height===b.style.height)return;
-  const target=b.style.height;b.style.transition='none';b.style.height=prev.height;b.getBoundingClientRect();b.style.transition='';b.style.height=target;
+  const prev=bars.get(b.dataset.barId),target=b.style.getPropertyValue('--titty-pct');if(!prev||!motion||prev.pct===target)return;
+  b.style.transition='none';b.style.setProperty('--titty-pct',prev.pct);b.getBoundingClientRect();b.style.transition='';b.style.setProperty('--titty-pct',target);
   if(prev.value!==b.dataset.barValue){const fig=b.closest('.lineup-figure');fig.classList.remove('is-scored');fig.getBoundingClientRect();fig.classList.add('is-scored');}
  });
 }
