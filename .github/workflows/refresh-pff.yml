@@ -34,12 +34,14 @@ jobs:
           find _site -mindepth 1 -name ".*" -prune -exec rm -rf {} +
           touch _site/.nojekyll
       - name: Refresh projections and advanced stats
+        id: data-refresh
+        continue-on-error: true
         env:
           PAGES_BASE_URL: ${{ steps.pages.outputs.base_url }}
         shell: bash
         run: |
           node --input-type=module <<'DATA_SCRIPT'
-          import {readFile,writeFile,mkdir} from 'node:fs/promises';
+          import {readFile,writeFile,mkdir,appendFile} from 'node:fs/promises';
           export const VEGAS_SCORING='.5tep';
           export const vegasUrl=kind=>`https://www.winwithodds.com/${kind==='weekly'?'weekly_full_stats':'season_long_full_stats'}/${VEGAS_SCORING}`;
           function applySourceScoring(raw,rows){
@@ -92,19 +94,101 @@ jobs:
            if(kind==='weekly'&&week!==nflWeek(now,season))throw Error(`Weekly table is still Week ${week}; current week is ${nflWeek(now,season)}`);
            return {source:'WinWithOdds',sourceUrl:vegasUrl(kind),scoring:VEGAS_SCORING,season,week,updated,publishedAt,checkedAt:now,rows};
           }
-          async function request(url){const r=await fetch(url,{headers:{'User-Agent':'HungJurors-public-data/1.0'},cache:'no-store',signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error(`HTTP ${r.status}: ${new URL(url).pathname}`);return r;}
+          async function request(url,accept='application/json'){
+           const r=await fetch(url,{headers:{'User-Agent':'HungJurors-public-data/1.0','Accept':accept},cache:'no-store',signal:AbortSignal.timeout(20000)});
+           if(!r.ok){
+            const server=r.headers.get('server'),mitigation=r.headers.get('cf-mitigated');
+            const body=(await r.text()).slice(0,8192),title=decode(body.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]||'').slice(0,180);
+            const details=[server&&`server=${server}`,mitigation&&`mitigation=${mitigation}`,title&&`page=${title}`].filter(Boolean).join('; ');
+            const error=Error(`HTTP ${r.status}: ${new URL(url).pathname}${details?' ('+details+')':''}`);
+            error.status=r.status;
+            // A refusal is not retried through another identity, proxy, or endpoint.
+            throw error;
+           }
+           return r;
+          }
           async function previous(path){try{const r=await request(new URL(path,process.env.PAGES_BASE_URL.replace(/\/$/,'')+'/'));return await r.json();}catch(_){return null;}}
+          function validSavedVegas(data,kind,season){
+           return data?.source==='WinWithOdds'&&data.season===season&&data.scoring===VEGAS_SCORING&&data.sourceUrl===vegasUrl(kind)&&data.week===(kind==='weekly'?nflWeek(Date.now(),season):0)&&Number.isFinite(data.checkedAt)&&data.checkedAt<=Date.now()+60000&&Number.isFinite(data.publishedAt)&&typeof data.updated==='string'&&Array.isArray(data.rows)&&data.rows.length>=10&&data.rows.every(r=>r.name&&['QB','RB','WR','TE'].includes(r.position)&&r.sourceScoring===VEGAS_SCORING&&r.sourceReceptionPoints===(r.position==='TE'?1.5:1)&&Number.isFinite(r.sourceProjection));
+          }
+          function validSavedAdvanced(data,season){return data?.source==='nflverse'&&Number.isFinite(data.checkedAt)&&data.checkedAt<=Date.now()+60000&&Array.isArray(data.rows)&&data.rows.length>0&&data.rows.every(r=>Number(r.season)===season);}
           export async function collectData(){
-           const html=await readFile('index.html','utf8'),season=Number(html.match(/const NFL_SEASON\s*=\s*(\d{4})/)?.[1]);if(!season)throw Error('Missing site season');
+           const html=await readFile('index.html','utf8'),season=Number(html.match(/const NFL_SEASON\s*=\s*(\d{4})/)?.[1]);
+           if(!season)throw Error('Missing site season');
            await mkdir('_site/data',{recursive:true});
-           const [oldProj,oldAdvanced,oldPff]=await Promise.all([previous('data/projections.json'),previous(`data/advanced-stats-${season}.json`),previous('data/pff-grades.json')]);
+           const [oldProj,oldAdvanced,oldPff]=await Promise.all([
+            previous('data/projections.json'),previous(`data/advanced-stats-${season}.json`),previous('data/pff-grades.json')
+           ]);
            if(oldPff?.schema===1&&oldPff.season===season)await writeFile('_site/data/pff-grades.json',JSON.stringify(oldPff));
            const projection={schema:1,season,generatedAt:Date.now(),errors:{}},advanced={schema:1,season,generatedAt:Date.now(),errors:{}};
-           let success=0;
-           await Promise.all(['weekly','season'].map(async kind=>{const field=kind==='season'?'seasonProjections':'weekly';try{const r=await request(vegasUrl(kind));projection[field]=parseVegas(await r.text(),kind,season);success++;console.log(`${kind}: ${projection[field].rows.length} players; source updated ${projection[field].updated}`);}catch(e){projection.errors[field]=e.message;console.warn(`::warning::${kind} projection refresh failed: ${e.message}`);const old=oldProj?.season===season?oldProj[field]:null;if(old?.season===season&&old.scoring===VEGAS_SCORING&&old.sourceUrl===vegasUrl(kind)&&old.week===(kind==='weekly'?nflWeek(Date.now(),season):0))projection[field]=old;}}));
-           await Promise.all(['stats','snaps'].map(async kind=>{try{const path=kind==='stats'?`stats_player/stats_player_week_${season}.csv`:`snap_counts/snap_counts_${season}.csv`,url=`https://github.com/nflverse/nflverse-data/releases/download/${path}`,response=await request(url),{header,rows}=parseCsv(await response.text()),required=kind==='stats'?['season','week','player_id','receiving_air_yards','target_share','passing_air_yards']:['season','week','player','offense_snaps','offense_pct'];if(!required.every(k=>header.includes(k))||!rows.length||rows.some(r=>Number(r.season)!==season))throw Error(`${kind} CSV schema/season mismatch`);const declared=html.match(kind==='stats'?/const PC_FIELDS=\[([^\]]+)\]/:/const PC_SNAP_FIELDS=\[([^\]]+)\]/)?.[1]||'',fields=[...declared.matchAll(/['"]([^'"]+)['"]/g)].map(m=>m[1]);if(fields.length<10)throw Error('Site stat field definitions missing');const compact=rows.filter(r=>kind==='snaps'||['QB','RB','WR','TE','K'].includes(r.position)).map(row=>Object.fromEntries(fields.map(k=>[k,row[k]??''])));advanced[kind]={source:'nflverse',sourceUrl:url,checkedAt:Date.now(),sourceModified:response.headers.get('last-modified'),rows:compact};success++;console.log(`${kind}: ${rows.length} rows; through Week ${Math.max(...rows.map(r=>Number(r.week)))}`);}catch(e){advanced.errors[kind]=e.message;console.warn(`::warning::${kind} refresh failed: ${e.message}`);if(oldAdvanced?.season===season&&oldAdvanced[kind])advanced[kind]=oldAdvanced[kind];}}));
-           await writeFile('_site/data/projections.json',JSON.stringify(projection));await writeFile(`_site/data/advanced-stats-${season}.json`,JSON.stringify(advanced));
-           if(!success)throw Error('All public data sources failed; the deployed site was preserved');
+           const status={schema:1,season,attemptedAt:Date.now(),ok:false,sources:{}};
+           function failed(key,error,saved){
+            const message=String(error.message||error);
+            status.sources[key]={status:error.status===403?'blocked':'failed',error:message,retained:!!saved,checkedAt:saved?.checkedAt||null,rows:saved?.rows?.length||0};
+            // Emit an error annotation immediately, even though successful sources can publish.
+            console.error(`::error title=${key} refresh failed::${message.replace(/%/g,'%25').replace(/\r/g,'%0D').replace(/\n/g,'%0A')}`);
+           }
+           await Promise.all(['weekly','season'].map(async kind=>{
+            const field=kind==='season'?'seasonProjections':'weekly';
+            try{
+             const response=await request(vegasUrl(kind),'text/html');
+             const data=parseVegas(await response.text(),kind,season);projection[field]=data;
+             status.sources[field]={status:'updated',checkedAt:data.checkedAt,updated:data.updated,rows:data.rows.length};
+             console.log(`${kind}: ${data.rows.length} players; source updated ${data.updated}`);
+            }catch(error){
+             projection.errors[field]=String(error.message||error);
+             const candidate=oldProj?.schema===1&&oldProj.season===season?oldProj[field]:null;
+             const saved=validSavedVegas(candidate,kind,season)?candidate:null;
+             if(saved)projection[field]=saved;
+             failed(field,error,saved);
+            }
+           }));
+           await Promise.all(['stats','snaps'].map(async kind=>{
+            try{
+             const path=kind==='stats'?`stats_player/stats_player_week_${season}.csv`:`snap_counts/snap_counts_${season}.csv`;
+             const url=`https://github.com/nflverse/nflverse-data/releases/download/${path}`,response=await request(url,'text/csv');
+             const {header,rows}=parseCsv(await response.text());
+             const required=kind==='stats'?['season','week','player_id','receiving_air_yards','target_share','passing_air_yards']:['season','week','player','offense_snaps','offense_pct'];
+             if(!required.every(k=>header.includes(k))||!rows.length||rows.some(r=>Number(r.season)!==season))throw Error(`${kind} CSV schema/season mismatch`);
+             const declared=html.match(kind==='stats'?/const PC_FIELDS=\[([^\]]+)\]/:/const PC_SNAP_FIELDS=\[([^\]]+)\]/)?.[1]||'';
+             const fields=[...declared.matchAll(/['"]([^'"]+)['"]/g)].map(m=>m[1]);
+             if(fields.length<10)throw Error('Site stat field definitions missing');
+             const compact=rows.filter(r=>kind==='snaps'||['QB','RB','WR','TE','K'].includes(r.position)).map(row=>Object.fromEntries(fields.map(k=>[k,row[k]??''])));
+             if(!compact.length)throw Error(`${kind} feed has no applicable rows`);
+             advanced[kind]={source:'nflverse',sourceUrl:url,checkedAt:Date.now(),sourceModified:response.headers.get('last-modified'),rows:compact};
+             status.sources[kind]={status:'updated',checkedAt:advanced[kind].checkedAt,rows:compact.length};
+             console.log(`${kind}: ${compact.length} rows; through Week ${Math.max(...rows.map(r=>Number(r.week)))}`);
+            }catch(error){
+             advanced.errors[kind]=String(error.message||error);
+             const candidate=oldAdvanced?.schema===1&&oldAdvanced.season===season?oldAdvanced[kind]:null;
+             const saved=validSavedAdvanced(candidate,season)?candidate:null;
+             if(saved)advanced[kind]=saved;
+             failed(kind,error,saved);
+            }
+           }));
+           // An empty/error-only object must never replace the last successful feed.
+           // Retained rows keep their original checkedAt and source publication date.
+           if(projection.weekly||projection.seasonProjections)await writeFile('_site/data/projections.json',JSON.stringify(projection));
+           if(advanced.stats||advanced.snaps)await writeFile(`_site/data/advanced-stats-${season}.json`,JSON.stringify(advanced));
+           const failures=Object.entries(status.sources).filter(([,result])=>result.status!=='updated');
+           status.ok=failures.length===0;
+           await writeFile('_site/data/source-status.json',JSON.stringify(status));
+           if(process.env.GITHUB_STEP_SUMMARY){
+            const clean=s=>String(s||'').replace(/[|\r\n]/g,' '),names={weekly:'Vegas weekly (.5 TEP)',seasonProjections:'Vegas season (.5 TEP)',stats:'Advanced stats',snaps:'Snap counts'};
+            const lines=['## Data refresh','', '| Source | Result | Available rows | Last successful check |','| --- | --- | ---: | --- |'];
+            for(const key of ['weekly','seasonProjections','stats','snaps']){
+             const r=status.sources[key],label=r.status==='updated'?'Updated':r.retained?`${r.status}; previous data retained`:`${r.status}; no valid saved data`;
+             lines.push(`| ${names[key]} | ${label} | ${r.rows} | ${r.checkedAt?new Date(r.checkedAt).toISOString():'—'} |`);
+            }
+            if(failures.length){
+             lines.push('','Site publishing and PFF collection can continue. This run will finish as failed because these source refreshes failed.');
+             for(const [key,r] of failures)lines.push('',`- ${names[key]}: ${clean(r.error)}`);
+             if(failures.some(([,r])=>r.status==='blocked'))lines.push('','WinWithOdds returned HTTP 403 to this runner. The request was refused; changing display code cannot restore source access. Use a provider-supported feed or arrange permission for this collector.');
+            }
+            await appendFile(process.env.GITHUB_STEP_SUMMARY,lines.join('\n')+'\n');
+           }
+           if(failures.length)throw Error(`${failures.map(([key])=>key).join(', ')} refresh failed; successful sources and valid saved rows were preserved. See the Data refresh summary.`);
+           return status;
           }
           if(process.env.DATA_UNIT_TEST!=='1')await collectData();
           DATA_SCRIPT
@@ -112,7 +196,7 @@ jobs:
         with:
           name: github-pages-fast
           path: _site
-      - name: Publish site and fresh stats
+      - name: Publish site
         uses: actions/deploy-pages@v4
         id: site-deploy
         with:
@@ -131,7 +215,7 @@ jobs:
             due=!(feed.schema===1&&feed.collectorVersion===2&&feed.season===season&&age>=-60000&&age<3600000&&rows.length>0&&rows.every(r=>r.schema===4&&r.season===season&&Number.isFinite(r.checkedAt)&&Date.now()-r.checkedAt<7200000));
           } catch (_) {}
           await appendFile(process.env.GITHUB_OUTPUT,`pff=${due}\n`);
-          console.log(due?'PFF refresh starting. The site and other stats are already published.':'PFF is current. No player-page collection needed.');
+          console.log(due?'PFF refresh starting. The site is already published.':'PFF is current. No player-page collection needed.');
           CHECK_SCRIPT
       - name: Refresh public PFF grades
         if: steps.freshness.outputs.pff == 'true'
@@ -271,3 +355,9 @@ jobs:
         uses: actions/deploy-pages@v4
         with:
           artifact_name: github-pages-pff
+      - name: Report source refresh failures
+        if: always() && steps.data-refresh.outcome == 'failure'
+        shell: bash
+        run: |
+          echo '::error::A data source refresh failed. Publishing other site updates does not mean the missing feed was refreshed. See the Data refresh summary.'
+          exit 1
