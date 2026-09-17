@@ -38,19 +38,35 @@ function hjChManager(name){return `<span class="who-cell">${av(name,'challenge-a
 function hjChMetricCard(label,value,detail=''){return `<div class="challenge-live-card"><span>${esc(label)}</span><strong>${value}</strong>${detail?`<small>${esc(detail)}</small>`:''}</div>`}
 function hjChFormat(key,value){return Number.isFinite(value)?key==='titty'||key==='mvp'?String(value):(key==='overachiever'&&value>0?'+':'')+value.toFixed(2):'—'}
 function hjChTable(headers,rows){return `<div class="tbl-wrap challenge-live-table"><table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`}
+function hjChOdds(count,total){return total?`${Number((100*count/total).toFixed(1))}%`:'0%'}
+function hjChRaffleTicket(week,score){
+ // One raffle ticket: stub with perforation, side notches, week on top and that week's score under it.
+ return `<svg class="raffle-ticket" viewBox="0 0 120 48" aria-hidden="true" focusable="false"><path class="raffle-ticket-body" d="M8 3H112Q117 3 117 8V19A5 5 0 0 0 117 29V40Q117 45 112 45H8Q3 45 3 40V29A5 5 0 0 0 3 19V8Q3 3 8 3Z"/><path class="raffle-ticket-trim" d="M9.5 6.5H110.5Q113.5 6.5 113.5 9.5V17.5A7 7 0 0 0 113.5 30.5V38.5Q113.5 41.5 110.5 41.5H9.5Q6.5 41.5 6.5 38.5V30.5A7 7 0 0 0 6.5 17.5V9.5Q6.5 6.5 9.5 6.5Z"/><path class="raffle-ticket-perf" d="M30 7v34"/><text class="raffle-ticket-stub" transform="rotate(-90 18 24)" x="18" y="24">HJ</text><text class="raffle-ticket-week" x="73.5" y="21">WEEK ${week}</text><text class="raffle-ticket-score" x="73.5" y="39">${score.toFixed(2)}</text></svg>`;
+}
+function hjChRaffleFigure(manager,index,tickets,total){
+ const stack=tickets.map(t=>hjChRaffleTicket(t.week,t.score)).join('');
+ const label=`${esc(manager.short)}: ${tickets.length} raffle ticket${tickets.length===1?'':'s'}, ${hjChOdds(tickets.length,total)} odds${tickets.length?` (Week${tickets.length===1?'':'s'} ${tickets.map(t=>t.week).join(', ')})`:''}`;
+ return `<div class="raffle-figure" role="img" aria-label="${label}" data-raffle-manager="${esc(manager.id)}" style="${hjChJacket(index)};--raffle-delay:${(index*.37).toFixed(2)}s"><div class="raffle-stack">${stack}</div>${hjChFigureArt(manager,`raffle-head-${index}`)}<span class="raffle-label" aria-hidden="true"><span class="raffle-name">${esc(manager.short)}</span><span class="raffle-stat">${tickets.length} · ${hjChOdds(tickets.length,total)}</span></span></div>`;
+}
 function hjChRaffle(model){
- const total=model.tickets.reduce((n,t)=>n+t.total,0),live=model.weeks.find(w=>w.week===model.liveWeek&&w.week<=model.regularEnd),liveHigh=live?.teams.filter(t=>Number.isFinite(t.score)).sort((a,b)=>b.score-a.score)[0];
- const cards=hjChMetricCard('Tickets earned',String(total),`${model.raffle.length} final weeks`)+hjChMetricCard('Regular season',`Weeks 1–${model.regularEnd}`,'Tickets lock after final scores')+(liveHigh?hjChMetricCard(`Week ${live.week} leader`,hjChManager(liveHigh.short),`${liveHigh.score.toFixed(2)} points · provisional`):'');
- const rows=model.tickets.map(t=>`<tr><td>${hjChManager(t.short)}</td><td class="num">${t.total}</td><td class="num">${total?(100*t.total/total).toFixed(1)+'%':'—'}</td></tr>`).join('');
- const history=model.raffle.map(w=>`<tr><td>Week ${w.week}</td><td>${w.winners.map(t=>hjChManager(t.short)).join(' ')}</td><td class="num">${w.score.toFixed(2)}</td></tr>`).join('');
- return `<div class="challenge-live-cards">${cards}</div>${hjChTable(['Manager','Tickets','Current odds'],rows)}<details class="challenge-live-details"><summary>Weekly high scorers</summary>${history?hjChTable(['Week','Manager','Score'],history):'<p>Tickets appear when ESPN finalizes Week 1.</p>'}</details><p class="challenge-live-note">Ticket totals update automatically. Tied high scorers each earn a ticket. The end-of-season raffle draw determines the winner.</p>`;
+ const names=HJ_CHALLENGE_STATE.names,total=model.tickets.reduce((n,t)=>n+t.total,0);
+ const earned=new Map(names.map(n=>[n.id,[]]));
+ for(const w of model.raffle)for(const t of w.winners)earned.get(t.id)?.push({week:w.week,score:w.score});
+ const figures=names.map((n,i)=>hjChRaffleFigure(n,i,earned.get(n.id)||[],total)).join('');
+ const history=model.raffle.map(w=>`<tr><td>Week ${w.week}</td><td>${w.winners.map(t=>hjChManager(t.short)).join(' ')}</td><td class="num">${w.score.toFixed(2)}</td></tr>`).join('')||'<tr><td colspan="3" class="raffle-empty">Tickets appear when ESPN finalizes Week 1.</td></tr>';
+ return `<div class="raffle-view"><div class="raffle-stage" role="group" aria-label="Highest Scorer Raffle tickets by manager"><div class="raffle-lineup" style="--raffle-count:${names.length||1}"><div class="raffle-row">${figures}</div></div></div></div>${hjChTable(['Week','Manager','Score'],history)}`;
+}
+function hjChJacket(index){
+ const palette=['#26546b','#426575','#1d405b','#4f6070','#345e65','#264a67','#53647a','#385d76','#41667c','#34475e'];
+ return `--lms-jacket:${palette[index%palette.length]}`;
 }
 function hjChLmsFigure(manager,elimination,index){
- const palette=['#26546b','#426575','#1d405b','#4f6070','#345e65','#264a67','#53647a','#385d76','#41667c','#34475e'];
- const key=`lms-head-${index}`,out=!!elimination;
+ const out=!!elimination;
+ return `<div class="lms-figure${out?' is-eliminated':''}" role="img" aria-label="${esc(manager.short)}: ${out?`eliminated Week ${elimination.week}, seated`:'standing'}" data-lms-manager="${esc(manager.id)}" style="${hjChJacket(index)}">${hjChFigureArt(manager,`lms-head-${index}`)}<span class="lms-name" aria-hidden="true">${esc(manager.short)}</span></div>`;
+}
+function hjChFigureArt(manager,key){
  // Keep the original avatar pixels; clip off its shoulders to join the illustrated body.
- return `<div class="lms-figure${out?' is-eliminated':''}" role="img" aria-label="${esc(manager.short)}: ${out?`eliminated Week ${elimination.week}, seated`:'standing'}" data-lms-manager="${esc(manager.id)}" style="--lms-jacket:${palette[index%palette.length]}">
- <svg viewBox="0 0 120 240" aria-hidden="true" focusable="false">
+ return `<svg class="lms-art" viewBox="0 0 120 240" aria-hidden="true" focusable="false">
  <defs><clipPath id="${key}"><ellipse cx="60" cy="40" rx="30" ry="37"/></clipPath></defs>
  <ellipse class="lms-shadow" cx="60" cy="223" rx="35" ry="5"/>
  <g class="lms-standing-legs"><path d="M43 136 40 214M77 136 80 214" fill="none" stroke="#142c42" stroke-width="19" stroke-linecap="round"/><path d="M28 214h21v9H25q-5-5 3-9M72 214h21q8 4 3 9H72Z" fill="#0a1c2d"/><path d="M27 222h22M73 222h22" stroke="#c7d0d4" stroke-width="2"/></g>
@@ -64,7 +80,7 @@ function hjChLmsFigure(manager,elimination,index){
  <path d="M60 124v22M39 137h12M69 137h12" stroke="#11283c" stroke-width="2"/><circle cx="64" cy="131" r="1.5" fill="#cfb365"/>
  <path d="M70 91h9v2h-9Z" fill="#dfc778"/>
  <image href="data:image/png;base64,${AV[manager.short]||AV_DEFAULT}" x="12" y="-2" width="96" height="96" clip-path="url(#${key})"/>
- </g></svg><span class="lms-name" aria-hidden="true">${esc(manager.short)}</span></div>`;
+ </g></svg>`;
 }
 function hjChLms(model){
  const names=HJ_CHALLENGE_STATE.names,eliminated=new Map(model.eliminations.map(e=>[e.id,e]));
@@ -119,7 +135,9 @@ function hjRenderChallenge(){
  const model=state.model,time=state.checkedAt?new Date(state.checkedAt).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
  const status=state.error||HJ_LEAGUE_STATE.error||(!model?'Loading ESPN season results…':`${model.liveWeek?`Week ${model.liveWeek} in progress`:model.finalWeek?`Final through Week ${model.finalWeek}`:'Season has not started'} · ${time?`ESPN checked ${time} · `:''}Updates automatically`);
  const body=!model?'<div class="empty">Loading scores and historical lineups…</div>':ch.id==='raffle'?hjChRaffle(model):ch.id==='lms'?hjChLms(model):hjChSpecial(ch,model);
- const html=`${ch.id==='lms'?'':`<div class="challenge-live-status${state.error||HJ_LEAGUE_STATE.error?' is-delayed':''}" role="status">${esc(status)}</div>`}${body}`;
+ // The lineup views carry no status line; the raffle still surfaces a delay so stale tickets are never silent.
+ const delayed=!!(state.error||HJ_LEAGUE_STATE.error),showStatus=ch.id==='lms'?false:ch.id==='raffle'?delayed:true;
+ const html=`${showStatus?`<div class="challenge-live-status${delayed?' is-delayed':''}" role="status">${esc(status)}</div>`:''}${body}`;
  // Preserve open weekly details and avoid replacing identical content.
  const opened=[...out.querySelectorAll('details[open]')].map(n=>n.querySelector('summary')?.textContent);
  if(out.innerHTML!==html){out.innerHTML=html;out.querySelectorAll('details').forEach(n=>{if(opened.includes(n.querySelector('summary')?.textContent))n.open=true})}
@@ -127,7 +145,7 @@ function hjRenderChallenge(){
 function selectChallenge(id){
  const ch=CHALLENGES.find(c=>c.id===id)||CHALLENGES[0];HJ_CHALLENGE_STATE.active=ch.id;
  document.querySelectorAll('#challenge-strip button').forEach(b=>{b.setAttribute('aria-selected',String(b.dataset.challenge===ch.id));b.tabIndex=b.dataset.challenge===ch.id?0:-1});
- $('#challenge-rule').textContent=ch.rule;$('#challenge-prize-badge').textContent=ch.prize;
+ const rule=$('#challenge-rule'),ruleText=ch.id==='raffle'?'':ch.rule;rule.textContent=ruleText;rule.hidden=!ruleText;$('#challenge-prize-badge').textContent=ch.prize;
  const out=$('#challenge-out');out.setAttribute('role','tabpanel');out.setAttribute('aria-labelledby',`challenge-tab-${ch.id}`);hjRenderChallenge();
 }
 {
