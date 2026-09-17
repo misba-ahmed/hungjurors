@@ -28,7 +28,7 @@ function hjChOptimal(entries,counts,season,week){
  // An empty eligible slot can score zero, including when every available player is negative.
  return hjChRound(Math.max(...best.values()));
 }
-function hjChWeek(payload,{season,week,names,pool=[],poolReady=false,final=false,checkedAt=0}){
+function hjChWeek(payload,{season,week,names,pool=[],poolReady=false,final=false,checkedAt=0,opponents={}}){
  if(Number(payload.seasonId)!==season||Number(payload.scoringPeriodId)!==week)throw Error(`ESPN returned the wrong season/week (${week})`);
  const periods=payload.settings?.scheduleSettings?.matchupPeriods||{},period=Number(Object.keys(periods).find(k=>periods[k].includes(week))||week);
  const games=(payload.schedule||[]).filter(g=>Number(g.matchupPeriodId)===period),counts=payload.settings?.rosterSettings?.lineupSlotCounts;
@@ -46,14 +46,14 @@ function hjChWeek(payload,{season,week,names,pool=[],poolReady=false,final=false
   const projection=complete&&projections.every(n=>n!==null)?projections.reduce((a,b)=>a+b,0):null;
   const players=starters.map(e=>{
    const p=hjChPlayer(e),actual=hjChStat(e,season,week),value=hjChPoints(e,season,week),raw=actual?.stats||(value===0?{}:null),position=HJ_CH_POS[p.defaultPositionId];
-   return {id:String(p.id),name:p.fullName||'Player',position,points:value,tds:hjChTds(raw,position),yards:raw&&['QB','RB','WR'].includes(position)?[3,24,42].reduce((a,k)=>a+(Number(raw[k])||0),0):0};
+   return {id:String(p.id),name:p.fullName||'Player',position,proTeamId:p.proTeamId??null,opponent:opponents[String(p.proTeamId)]||null,points:value,tds:hjChTds(raw,position),yards:raw&&['QB','RB','WR'].includes(position)?[3,24,42].reduce((a,k)=>a+(Number(raw[k])||0),0):0};
   });
   const tds=complete&&players.every(p=>p.tds!==null)?players.reduce((a,p)=>a+p.tds,0):null;
   const optimal=complete?hjChOptimal(entries,counts,season,week):null;
   const bench=entries.filter(e=>[20,21].includes(Number(e.lineupSlotId))).map(e=>String(hjChPlayer(e).id));
   return {...manager,score,projection,complete,players,bench,titty:tds,yards:tds!==null?players.reduce((a,p)=>a+p.yards,0):null,overachiever:projection!==null?hjChRound(score-projection):null,optimizer:optimal!==null?hjChRound(Math.max(0,optimal-lineupScore)):null,optimal,mvp:null,mvpTie:null};
  });
- const allPlayers=pool.map(e=>{const p=hjChPlayer(e),s=hjChStat(e,season,week);return {id:String(p.id),name:p.fullName,position:HJ_CH_POS[p.defaultPositionId],proTeamId:p.proTeamId??null,points:hjChNumber(s?.appliedTotal),played:!!s&&((Number(s.stats?.[210])||0)>0||Object.values(s.stats||{}).some(n=>Number(n)!==0))}}).filter(p=>p.position&&p.points!==null&&p.played);
+ const allPlayers=pool.map(e=>{const p=hjChPlayer(e),s=hjChStat(e,season,week);return {id:String(p.id),name:p.fullName,position:HJ_CH_POS[p.defaultPositionId],proTeamId:p.proTeamId??null,opponent:opponents[String(p.proTeamId)]||null,points:hjChNumber(s?.appliedTotal),played:!!s&&((Number(s.stats?.[210])||0)>0||Object.values(s.stats||{}).some(n=>Number(n)!==0))}}).filter(p=>p.position&&p.points!==null&&p.played);
  const awards=[];
  if(poolReady&&teams.every(t=>t.complete)&&Object.values(HJ_CH_POS).every(pos=>allPlayers.some(p=>p.position===pos))){
   teams.forEach(t=>{t.mvp=0;t.mvpTie=0});
@@ -69,6 +69,17 @@ function hjChWeek(payload,{season,week,names,pool=[],poolReady=false,final=false
  for(const team of teams){if(team.mvp!==null)team.mvpTie=[...new Map(awards.filter(a=>a.manager===team.short).map(a=>[a.id,a.points])).values()].reduce((a,b)=>a+b,0);}
  return {week,final,checkedAt,teams,awards,complete:teams.every(t=>t.complete)};
 }
+function hjChOpponents(scoreboard){
+ const out={};
+ for(const event of scoreboard?.events||[]){
+  const comp=event.competitions?.[0],home=comp?.competitors?.find(c=>c.homeAway==='home'),away=comp?.competitors?.find(c=>c.homeAway==='away');
+  if(!home?.team||!away?.team)continue;
+  out[String(home.team.id)]={opp:String(away.team.abbreviation||'').toUpperCase(),home:true};
+  out[String(away.team.id)]={opp:String(home.team.abbreviation||'').toUpperCase(),home:false};
+ }
+ return out;
+}
+function hjChVs(o){return o?.opp?`${o.home?'vs':'@'} ${o.opp}`:''}
 function hjChLmsHistory(model,names){
  const remaining=new Set(names.map(n=>n.id)),events=new Map(model.eliminations.map(e=>[e.week,e]));
  return model.weeks.filter(w=>w.final&&w.week<=model.regularEnd).map(w=>{

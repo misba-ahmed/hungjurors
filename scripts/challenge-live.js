@@ -1,4 +1,4 @@
-const HJ_CHALLENGE_STATE={data:null,weeks:new Map(),model:null,names:[],pending:null,active:'raffle',error:'',checkedAt:0,lmsFit:true,raffleFit:true,tittyFit:true,mvpFit:true,tittyObserver:null};
+const HJ_CHALLENGE_STATE={data:null,weeks:new Map(),model:null,names:[],pending:null,active:'raffle',error:'',checkedAt:0,lmsFit:true,raffleFit:true,tittyFit:true,mvpFit:true,tittyObserver:null,profileTimer:null,suppressClickUntil:0};
 function hjChallengeNames(data){return (data.teams||[]).map(t=>({id:String(t.id),short:hjMatchManager(t,data)||hjOwnerName(t,data)||hjTeamName(t)}))}
 function hjChallengeWeekActive(data,week){
  return (data.schedule||[]).some(g=>Number(g.matchupPeriodId)===week&&['home','away'].some(k=>Math.abs(Number(g[k]?.pointsByScoringPeriod?.[week]??g[k]?.totalPointsLive??0))>0))||(typeof NFL_WEEK1!=='undefined'&&NFL_WEEK1.some(g=>Number(g.week)===week&&['in','post'].includes(g.state)));
@@ -25,7 +25,9 @@ async function hjRefreshChallenges(data){
      HJ_DATA.history.set(week,payload);
     }
     const final=week<latest||currentFinal;
-    state.weeks.set(week,hjChWeek(payload,{season,week,names:state.names,pool,poolReady,final,checkedAt}));
+    let opponents={};
+    try{opponents=hjChOpponents(await hjDataRequest(`nfl:${season}:${week}`,()=>hjDataJson(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${season}&seasontype=2&week=${week}&limit=100`),final?21600000:60000));}catch(error){}
+    state.weeks.set(week,hjChWeek(payload,{season,week,names:state.names,pool,poolReady,final,checkedAt,opponents}));
    }catch(error){errors.push(`Week ${week} unavailable; retrying automatically`);}
   }
   const weeks=Array.from({length:Math.max(0,through)},(_,i)=>state.weeks.get(i+1)||{week:i+1,final:i+1<latest,teams:[],awards:[],checkedAt:0});
@@ -34,7 +36,12 @@ async function hjRefreshChallenges(data){
  }).catch(error=>{HJ_CHALLENGE_STATE.error='ESPN challenge update delayed; retrying automatically';hjRenderChallenge();console.warn('Challenges refresh failed',error)}).finally(()=>{HJ_CHALLENGE_STATE.pending=null});
  return HJ_CHALLENGE_STATE.pending;
 }
-function hjChManager(name){return `<span class="who-cell">${av(name,'challenge-avatar')}<b>${esc(name)}</b></span>`}
+function hjChManager(name){return `<span class="who-cell manager-profile-trigger" data-manager="${esc(name)}" role="button" tabindex="0" aria-label="Open ${esc(name)} profile">${av(name,'challenge-avatar')}<b>${esc(name)}</b></span>`}
+function hjChTeamAbbr(proTeamId){return typeof HJ_PRO_TEAM_BY_ID!=='undefined'&&proTeamId!=null?HJ_PRO_TEAM_BY_ID[String(proTeamId)]||'':''}
+function hjChPlayerAttrs(p){
+ const team=hjChTeamAbbr(p.proTeamId),photo=p.position==='D/ST'?(team&&typeof nflLogo==='function'?nflLogo(team.toLowerCase()):''):(typeof nflHeadshot==='function'?nflHeadshot(p.id):'');
+ return {attrs:typeof ffnPlayerDataAttrs==='function'?ffnPlayerDataAttrs({id:p.id,name:p.name,team,position:p.position,photo}):`data-pc-id="${esc(p.id)}" data-pc-name="${esc(p.name)}" data-pc-team="${esc(team)}" data-pc-position="${esc(p.position)}" data-pc-photo="${esc(photo)}"`,photo,team};
+}
 function hjChMetricCard(label,value,detail=''){return `<div class="challenge-live-card"><span>${esc(label)}</span><strong>${value}</strong>${detail?`<small>${esc(detail)}</small>`:''}</div>`}
 function hjChFormat(key,value){return Number.isFinite(value)?key==='titty'||key==='mvp'?String(value):(key==='overachiever'&&value>0?'+':'')+value.toFixed(2):'—'}
 function hjChTable(headers,rows){return `<div class="tbl-wrap challenge-live-table"><table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`}
@@ -62,7 +69,7 @@ function hjChLineupView({id,fitKey,label,figures,count}){
  return `<div class="lms-view lineup-view${fit?' is-fit':''}" data-fit-key="${fitKey}">${hjChZoomButtons(fit,id)}<div class="lms-stage lineup-stage" style="touch-action:manipulation" tabindex="0" role="group" aria-label="${esc(label)}"><div class="lineup" id="${id}" style="--lineup-count:${count||1}"><div class="lineup-row">${figures}</div></div></div></div>`;
 }
 function hjChLineupFigure({manager,index,key,label,above='',stat='',statClass='',crown=false,style=''}){
- return `<div class="lineup-figure${crown?' is-leader':''}" role="img" aria-label="${label}" data-lineup-manager="${esc(manager.id)}" style="${hjChJacket(index)};${style}">${above}${hjChFigureArt(manager,`${key}-head-${index}`,crown)}<span class="lineup-label" aria-hidden="true"><span class="lineup-name">${esc(manager.short)}</span><span class="lineup-stat ${statClass}">${stat}</span></span></div>`;
+ return `<div class="lineup-figure${crown?' is-leader':''}" role="group" aria-label="${label}" data-lineup-manager="${esc(manager.id)}" style="${hjChJacket(index)};${style}">${above}${hjChFigureArt(manager,`${key}-head-${index}`,crown)}<span class="lineup-label"><span class="lineup-name manager-profile-trigger" data-manager="${esc(manager.short)}" role="button" tabindex="0" aria-label="Open ${esc(manager.short)} profile">${esc(manager.short)}</span><span class="lineup-stat ${statClass}" aria-hidden="true">${stat}</span></span></div>`;
 }
 function hjChShortName(p){
  if(p.position==='D/ST')return p.name;
@@ -77,16 +84,17 @@ function hjChLeaders(rows){
  return new Set(top&&top.total>0?rows.filter(r=>r.total===top.total&&r.tie===top.tie&&r.missing.length===top.missing.length).map(r=>r.id):[]);
 }
 function hjChMvpCard(p){
- const overall=p.category==='Overall',dst=p.position==='D/ST',abbr=typeof HJ_PRO_TEAM_BY_ID!=='undefined'&&p.proTeamId!=null?HJ_PRO_TEAM_BY_ID[String(p.proTeamId)]||'':'';
- const photo=dst?(abbr&&typeof nflLogo==='function'?nflLogo(abbr.toLowerCase()):''):(typeof nflHeadshot==='function'?nflHeadshot(p.id):'');
- const owner=p.manager?`<span class="mvp-card-owner">${av(p.manager,'mvp-card-av')}<b>${esc(p.manager)}</b></span>`:`<span class="mvp-card-owner is-status">${p.bench?`ON ${esc(p.bench)}’S BENCH`:'FREE AGENT'}</span>`;
- return `<article class="mvp-card${overall?' is-overall':''}${p.manager?'':' is-unowned'}"><div class="mvp-card-photo${dst?' is-logo':''}" data-pos="${esc(p.position)}">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">`:''}</div><span class="mvp-card-pos">${overall?'Overall MVP':esc(p.position)}</span><b class="mvp-card-name">${esc(hjChShortName(p))}</b>${owner}<strong class="mvp-card-points">${p.points.toFixed(2)}</strong>${abbr?`<span class="mvp-card-team">${esc(abbr)}</span>`:''}</article>`;
+ const overall=p.category==='Overall',dst=p.position==='D/ST',{attrs,photo}=hjChPlayerAttrs(p),vs=hjChVs(p.opponent);
+ const owner=p.manager?`<span class="mvp-card-owner manager-profile-trigger" data-manager="${esc(p.manager)}" role="button" tabindex="0" aria-label="Open ${esc(p.manager)} profile">${av(p.manager,'mvp-card-av')}<b>${esc(p.manager)}</b></span>`
+  :p.bench?`<span class="mvp-card-owner is-status manager-profile-trigger" data-manager="${esc(p.bench)}" role="button" tabindex="0" aria-label="Open ${esc(p.bench)} profile">On ${esc(p.bench)}’s bench</span>`
+  :'<span class="mvp-card-owner is-status">Free agent</span>';
+ return `<article class="mvp-card${overall?' is-overall':''}${p.manager?'':' is-unowned'}" role="listitem"><button type="button" class="mvp-card-photo pc-player-trigger${dst?' is-logo':''}" data-pos="${esc(p.position)}" ${attrs} aria-label="Open ${esc(p.name)} player card">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">`:''}</button><span class="mvp-card-pos">${overall?'Overall MVP':esc(p.position)}</span><button type="button" class="mvp-card-name pc-player-trigger" ${attrs}>${esc(hjChShortName(p))}</button>${owner}<strong class="mvp-card-points">${p.points.toFixed(2)}</strong>${vs?`<span class="mvp-card-opp">${esc(vs)}</span>`:''}</article>`;
 }
 function hjChMvp(model){
  const names=HJ_CHALLENGE_STATE.names,rows=model.totals.mvp,byId=new Map(rows.map(r=>[r.id,r])),max=Math.max(0,...rows.map(r=>r.total)),leaders=hjChLeaders(rows);
  const figures=names.map((n,i)=>{
   const r=byId.get(n.id)||{total:0,tie:0,missing:[]},pct=max?100*r.total/max:0,crown=leaders.has(n.id),label=`${r.total}${r.missing.length?'*':''}`;
-  return hjChLineupFigure({manager:n,index:i,key:'mvp',label:`${esc(n.short)}: ${r.total} MVP points${crown?', current leader':''}`,above:hjChBar(n.id,r.total,pct,label,label),crown});
+  return hjChLineupFigure({manager:n,index:i,key:'mvp',label:`${esc(n.short)}: ${r.total} MVP points, ${r.tie.toFixed(2)} MVP player points${crown?', current leader':''}`,above:hjChBar(n.id,r.total,pct,label,r.tie.toFixed(2)),crown});
  }).join('');
  const order=['QB','RB','WR','TE','K','D/ST','Overall'];
  const history=[...model.weeks].reverse().map(w=>{
@@ -108,14 +116,14 @@ function hjChTitty(model){
  const weeks=[...model.weeks].reverse(),cells=rows.flatMap(r=>r.history.map(h=>h.value)).filter(Number.isFinite),maxCell=Math.max(1,...cells);
  const shade=v=>`rgba(185,138,46,${v===0?0:(0.12+0.78*v/maxCell).toFixed(3)})`;
  const head=`<tr><th>Manager</th><th>Total</th>${weeks.map((w,i)=>`<th class="wk${i===0?' new':''}">${w.week<=model.regularEnd?`W${w.week}`:`R${w.week-model.regularEnd}`}</th>`).join('')}</tr>`;
- const body=rows.map(r=>`<tr><td class="nm"><span class="who-cell">${av(r.short)}<span class="mgr" style="font-size:13px">${esc(r.short)}</span></span></td><td class="tot">${r.total}${r.missing.length?'*':''}</td>${weeks.map(w=>{const v=r.history.find(h=>h.week===w.week)?.value;return Number.isFinite(v)?`<td style="background:${shade(v)}">${v}</td>`:'<td class="is-missing">—</td>'}).join('')}</tr>`).join('');
+ const body=rows.map(r=>`<tr><td class="nm">${hjChManager(r.short)}</td><td class="tot">${r.total}${r.missing.length?'*':''}</td>${weeks.map(w=>{const v=r.history.find(h=>h.week===w.week)?.value;return Number.isFinite(v)?`<td style="background:${shade(v)}">${v}</td>`:'<td class="is-missing">—</td>'}).join('')}</tr>`).join('');
  const heat=weeks.length?`<div class="heat-wrap"><table class="heat"><thead>${head}</thead><tbody>${body}</tbody></table></div>`:'<p class="challenge-live-note">The heatmap fills in when Week 1 kicks off.</p>';
  const legend=`<div class="legend"><span><span class="sw" style="background:rgba(185,138,46,.15)"></span>few</span><span><span class="sw" style="background:rgba(185,138,46,.9)"></span>many</span><span>${model.liveWeek?`Week ${model.liveWeek} in progress · updates live`:model.finalWeek?`Final through Week ${model.finalWeek}`:''}</span></div>`;
  // Collapsible weeks: each manager row expands to the players who scored the titties.
  const history=weeks.map(w=>{
   const trs=[...w.teams].sort((a,b)=>(Number.isFinite(b.titty)?b.titty:-1)-(Number.isFinite(a.titty)?a.titty:-1)||a.short.localeCompare(b.short)).map(t=>{
    const key=`${w.week}:${t.id}`,scorers=(t.players||[]).filter(p=>p.tds>0).sort((a,b)=>b.tds-a.tds||a.name.localeCompare(b.name));
-   const list=scorers.map(p=>`<li><span>${esc(hjChShortName(p))}</span><b>${p.tds}</b></li>`).join('')||`<li class="is-empty">No titties${w.final?'':' yet'}</li>`;
+   const list=scorers.map(p=>`<li><button type="button" class="pc-player-trigger titty-player" ${hjChPlayerAttrs(p).attrs} aria-label="Open ${esc(p.name)} player card">${esc(hjChShortName(p))}</button><b>${p.tds}</b></li>`).join('')||`<li class="is-empty">No titties${w.final?'':' yet'}</li>`;
    return `<tr class="titty-row" data-titty-key="${key}" role="button" tabindex="0" aria-expanded="false"><td>${hjChManager(t.short)}</td><td class="num">${hjChFormat('titty',t.titty)}</td></tr><tr class="titty-detail" data-titty-key="${key}" hidden><td colspan="2"><ul class="titty-list">${list}</ul></td></tr>`;
   }).join('');
   return `<details class="challenge-live-details"><summary>Week ${w.week} <span>${w.final?'Final':'In progress'}</span></summary>${hjChTable(['Manager','Week total'],trs)}</details>`;
@@ -147,7 +155,7 @@ function hjChJacket(index){
 }
 function hjChLmsFigure(manager,elimination,index){
  const out=!!elimination;
- return `<div class="lms-figure${out?' is-eliminated':''}" role="img" aria-label="${esc(manager.short)}: ${out?`eliminated Week ${elimination.week}, seated`:'standing'}" data-lms-manager="${esc(manager.id)}" style="${hjChJacket(index)}">${hjChFigureArt(manager,`lms-head-${index}`)}<span class="lms-name" aria-hidden="true">${esc(manager.short)}</span></div>`;
+ return `<div class="lms-figure${out?' is-eliminated':''}" role="group" aria-label="${esc(manager.short)}: ${out?`eliminated Week ${elimination.week}, seated`:'standing'}" data-lms-manager="${esc(manager.id)}" style="${hjChJacket(index)}">${hjChFigureArt(manager,`lms-head-${index}`)}<span class="lms-name manager-profile-trigger" data-manager="${esc(manager.short)}" role="button" tabindex="0" aria-label="Open ${esc(manager.short)} profile">${esc(manager.short)}</span></div>`;
 }
 function hjChFigureArt(manager,key,crown=false){
  // Keep the original avatar pixels; clip off its shoulders to join the illustrated body.
@@ -200,6 +208,8 @@ function hjChBindLmsGestures(out){
   if(!tap||e.pointerId!==tap.id||e.timeStamp-tap.at>300||Math.hypot(e.clientX-tap.x,e.clientY-tap.y)>12||Math.abs(tap.stage.scrollLeft-tap.scroll)>2){last=null;return;}
   if(last&&last.stage===tap.stage&&e.timeStamp-last.at<=350&&Math.hypot(e.clientX-last.x,e.clientY-last.y)<=28){
    last=null;
+   if(HJ_CHALLENGE_STATE.profileTimer){clearTimeout(HJ_CHALLENGE_STATE.profileTimer);HJ_CHALLENGE_STATE.profileTimer=null;}
+   HJ_CHALLENGE_STATE.suppressClickUntil=e.timeStamp+500;
    const view=tap.stage.closest('.lms-view');
    hjChSetLmsZoom(view,!view.classList.contains('is-fit'));
   }else last={stage:tap.stage,x:e.clientX,y:e.clientY,at:e.timeStamp};
@@ -253,6 +263,15 @@ function selectChallenge(id){
  hjChBindLmsGestures($('#challenge-out'));
  $('#challenge-out').addEventListener('click',e=>{
   const button=e.target.closest('[data-lms-zoom]');if(button)return hjChSetLmsZoom(button.closest('.lms-view'),button.dataset.lmsZoom==='fit');
+  if(e.target.closest('.pc-player-trigger,.manager-profile-trigger,.manager-profile-avatar'))return;
+  const art=e.target.closest('.lms-art'),figure=art&&art.closest('.lineup-figure,.lms-figure');
+  if(figure){
+   const name=figure.querySelector('.manager-profile-trigger'),view=figure.closest('.lms-view');if(!name)return;
+   if(e.timeStamp<(HJ_CHALLENGE_STATE.suppressClickUntil||0))return;
+   if(HJ_CHALLENGE_STATE.profileTimer){clearTimeout(HJ_CHALLENGE_STATE.profileTimer);HJ_CHALLENGE_STATE.profileTimer=null;return;}
+   if(view&&view.clientWidth<=801)HJ_CHALLENGE_STATE.profileTimer=setTimeout(()=>{HJ_CHALLENGE_STATE.profileTimer=null;name.click();},360);else name.click();
+   return;
+  }
   const detail=e.target.closest('.titty-detail'),row=e.target.closest('.titty-row')||(detail&&detail.parentElement.querySelector(`.titty-row[data-titty-key="${CSS.escape(detail.dataset.tittyKey)}"]`));
   if(row&&!e.target.closest('a'))hjChToggleTitty(row);
  });
