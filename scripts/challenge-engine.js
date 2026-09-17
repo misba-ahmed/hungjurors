@@ -50,17 +50,18 @@ function hjChWeek(payload,{season,week,names,pool=[],poolReady=false,final=false
   });
   const tds=complete&&players.every(p=>p.tds!==null)?players.reduce((a,p)=>a+p.tds,0):null;
   const optimal=complete?hjChOptimal(entries,counts,season,week):null;
-  return {...manager,score,projection,complete,players,titty:tds,yards:tds!==null?players.reduce((a,p)=>a+p.yards,0):null,overachiever:projection!==null?hjChRound(score-projection):null,optimizer:optimal!==null?hjChRound(Math.max(0,optimal-lineupScore)):null,optimal,mvp:null,mvpTie:null};
+  const bench=entries.filter(e=>[20,21].includes(Number(e.lineupSlotId))).map(e=>String(hjChPlayer(e).id));
+  return {...manager,score,projection,complete,players,bench,titty:tds,yards:tds!==null?players.reduce((a,p)=>a+p.yards,0):null,overachiever:projection!==null?hjChRound(score-projection):null,optimizer:optimal!==null?hjChRound(Math.max(0,optimal-lineupScore)):null,optimal,mvp:null,mvpTie:null};
  });
- const allPlayers=pool.map(e=>{const p=hjChPlayer(e),s=hjChStat(e,season,week);return {id:String(p.id),name:p.fullName,position:HJ_CH_POS[p.defaultPositionId],points:hjChNumber(s?.appliedTotal),played:!!s&&((Number(s.stats?.[210])||0)>0||Object.values(s.stats||{}).some(n=>Number(n)!==0))}}).filter(p=>p.position&&p.points!==null&&p.played);
+ const allPlayers=pool.map(e=>{const p=hjChPlayer(e),s=hjChStat(e,season,week);return {id:String(p.id),name:p.fullName,position:HJ_CH_POS[p.defaultPositionId],proTeamId:p.proTeamId??null,points:hjChNumber(s?.appliedTotal),played:!!s&&((Number(s.stats?.[210])||0)>0||Object.values(s.stats||{}).some(n=>Number(n)!==0))}}).filter(p=>p.position&&p.points!==null&&p.played);
  const awards=[];
  if(poolReady&&teams.every(t=>t.complete)&&Object.values(HJ_CH_POS).every(pos=>allPlayers.some(p=>p.position===pos))){
   teams.forEach(t=>{t.mvp=0;t.mvpTie=0});
   for(const pos of [...Object.values(HJ_CH_POS),'Overall']){
    const candidates=allPlayers.filter(p=>pos==='Overall'||p.position===pos),high=Math.max(...candidates.map(p=>p.points));
    for(const p of candidates.filter(p=>Math.abs(p.points-high)<.00001)){
-    const owner=teams.find(t=>t.players.some(s=>s.id===p.id));
-    awards.push({...p,category:pos,manager:owner?.short||null});
+    const owner=teams.find(t=>t.players.some(s=>s.id===p.id)),benched=owner?null:teams.find(t=>t.bench.includes(p.id));
+    awards.push({...p,category:pos,manager:owner?.short||null,bench:benched?.short||null});
     if(owner)owner.mvp++;
    }
   }
