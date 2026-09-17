@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 40
     environment:
       name: github-pages
-      url: ${{ steps.site-deploy.outputs.page_url }}
+      url: ${{ steps.site-deploy.outputs.page_url || steps.site-deploy-retry.outputs.page_url }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -230,6 +230,16 @@ jobs:
       - name: Publish site
         uses: actions/deploy-pages@v4
         id: site-deploy
+        continue-on-error: true
+        with:
+          artifact_name: github-pages-fast
+      - name: Allow previous Pages deployment to settle
+        if: steps.site-deploy.outcome == 'failure'
+        run: sleep 30
+      - name: Retry site publishing
+        if: steps.site-deploy.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        id: site-deploy-retry
         with:
           artifact_name: github-pages-fast
       - name: Check whether PFF needs refreshing
@@ -383,6 +393,16 @@ jobs:
           path: _site
       - name: Publish refreshed PFF grades
         if: steps.freshness.outputs.pff == 'true'
+        uses: actions/deploy-pages@v4
+        id: pff-deploy
+        continue-on-error: true
+        with:
+          artifact_name: github-pages-pff
+      - name: Allow Pages deployment to settle before PFF retry
+        if: steps.pff-deploy.outcome == 'failure'
+        run: sleep 30
+      - name: Retry PFF publishing
+        if: steps.pff-deploy.outcome == 'failure'
         uses: actions/deploy-pages@v4
         with:
           artifact_name: github-pages-pff
