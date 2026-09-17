@@ -33,11 +33,18 @@ jobs:
           git archive HEAD | tar -x -C _site
           find _site -mindepth 1 -name ".*" -prune -exec rm -rf {} +
           touch _site/.nojekyll
+      - name: Install projection browser
+        continue-on-error: true
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/hj-vegas-browser" --no-audit --no-fund --package-lock=false playwright@1.63.0
+          node "$RUNNER_TEMP/hj-vegas-browser/node_modules/playwright/cli.js" install --with-deps chromium
       - name: Refresh projections and advanced stats
         id: data-refresh
         continue-on-error: true
         env:
           PAGES_BASE_URL: ${{ steps.pages.outputs.base_url }}
+          VEGAS_PLAYWRIGHT_MODULE: ${{ runner.temp }}/hj-vegas-browser/node_modules/playwright/index.mjs
         shell: bash
         run: |
           node --input-type=module <<'DATA_SCRIPT'
@@ -94,6 +101,76 @@ jobs:
            if(kind==='weekly'&&week!==nflWeek(now,season))throw Error(`Weekly table is still Week ${week}; current week is ${nflWeek(now,season)}`);
            return {source:'WinWithOdds',sourceUrl:vegasUrl(kind),scoring:VEGAS_SCORING,season,week,updated,publishedAt,checkedAt:now,rows};
           }
+          // Read only the rendered public table after the page applies its scoring format.
+          export function extractRenderedVegasTable(){
+           const norm=n=>String(n?.textContent||'').replace(/\s+/g,' ').trim();
+           const table=Array.from(document.querySelectorAll('table')).find(t=>{
+            const labels=Array.from(t.querySelectorAll('thead th')).map(norm);
+            return labels.includes('Name')&&labels.includes('Position')&&labels.includes('Projections');
+           });
+           return {
+            url:location.href,title:norm(document.querySelector('h1')),updated:norm(document.querySelector('time')),
+            scoring:document.querySelector('button[data-scoring].active')?.getAttribute('data-scoring')||'',
+            range:document.querySelector('button[data-range].active')?.getAttribute('data-range')||'standard',
+            initialized:!!table?.classList.contains('dataTable'),
+            headers:table?Array.from(table.querySelectorAll('thead th')).map(norm):[],
+            rows:table?Array.from(table.querySelectorAll('tbody tr')).map(tr=>Array.from(tr.querySelectorAll('td')).map(norm)):[]
+           };
+          }
+          export function parseRenderedVegas(table,kind,season,now=Date.now()){
+           if(table?.url!==vegasUrl(kind)||table.scoring!==VEGAS_SCORING||table.range!=='standard'||!table.initialized)throw Error('Rendered page did not confirm the requested .5 TEP table');
+           const keys={'#':'rank',name:'name',position:'position',attempts:'passAttempts',comps:'completions','pass yards':'passYards','pass tds':'passTds',ints:'interceptions',receptions:'receptions','rec yards':'recYards','rec tds':'recTds','rush attempts':'rushAttempts','rush yards':'rushYards','rush tds':'rushTds',fumbles:'fumbles',projections:'sourceProjection'};
+           const headers=table.headers.map(h=>h.toLowerCase());
+           if(!['name','position','projections','receptions','pass yards'].every(h=>headers.includes(h)))throw Error('Rendered projection headers changed');
+           if(table.rows.some(r=>r.length!==headers.length))throw Error('Projection row columns do not match their headers');
+           const rows=table.rows.map(cells=>Object.fromEntries(headers.flatMap((h,i)=>keys[h]?[[keys[h],cells[i]]]:[]))).filter(r=>['QB','RB','WR','TE'].includes(r.position));
+           const minimum=kind==='weekly'?150:200;
+           if(rows.length<minimum||!rows.some(r=>r.position==='QB'&&Number(r.passYards)>0)||!rows.some(r=>r.position==='TE'&&Number(r.receptions)>0))throw Error('Incomplete rendered projection table');
+           const seen=new Set();
+           for(const row of rows){
+            const key=row.position+'|'+row.name.trim().toLowerCase();
+            if(!row.name||seen.has(key)||row.sourceProjection===''||!Number.isFinite(Number(row.sourceProjection)))throw Error('Invalid or duplicate player projection');
+            seen.add(key);row.sourceProjection=Number(row.sourceProjection);row.rank=Number(row.rank);
+            row.sourceScoring=VEGAS_SCORING;row.sourceReceptionPoints=row.position==='TE'?1.5:1;
+           }
+           const updated=table.updated.replace(/^Updated\s+/i,''),publishedAt=sourceTimestamp(updated);
+           if(new Date(publishedAt).getUTCFullYear()!==season||publishedAt>now+300000)throw Error('Projection publication season/date mismatch');
+           const week=kind==='weekly'?Number(table.title.match(/\bWeek\s+(\d{1,2})\s+Player\s+Prop\s+Projections\b/i)?.[1]):0;
+           if(kind==='weekly'&&week!==nflWeek(now,season))throw Error(`Projection week ${week||'missing'} does not match current week ${nflWeek(now,season)}`);
+           return {source:'WinWithOdds',sourceUrl:vegasUrl(kind),scoring:VEGAS_SCORING,season,week,updated,publishedAt,checkedAt:now,transport:'rendered-browser',rows};
+          }
+          export async function collectBrowserVegas(season,launch=null){
+           const results={};let browser;
+           try{
+            if(launch)browser=await launch();
+            else{const {chromium}=await import(process.env.VEGAS_PLAYWRIGHT_MODULE||'playwright');browser=await chromium.launch({headless:true});}
+            let block=null;
+            for(const kind of ['weekly','season']){
+             if(block){results[kind]={error:block};continue;}
+             const page=await browser.newPage();
+             try{
+              console.log(`Reading ${vegasUrl(kind)} in Chromium`);
+              const response=await page.goto(vegasUrl(kind),{waitUntil:'load',timeout:30000});
+              const code=response?.status(),headers=response?.headers()||{};
+              if(headers['cf-mitigated']==='challenge'||[401,403,429].includes(code)){
+               const error=Error(`WinWithOdds refused the browser request (HTTP ${code}; ${headers['cf-mitigated']||'access restriction'})`);error.status=code||403;block=error;throw error;
+              }
+              if(!response?.ok())throw Error(`Projection page HTTP ${code||'unknown'}`);
+              const title=await page.title();
+              if(/just a moment|verify you are human|access denied|checking your browser/i.test(title)){
+               const error=Error('WinWithOdds presented a verification challenge; collection stopped');error.status=403;block=error;throw error;
+              }
+              await page.locator('table.dataTable').waitFor({state:'attached',timeout:10000});
+              const table=await page.evaluate(extractRenderedVegasTable);
+              results[kind]={data:parseRenderedVegas(table,kind,season)};
+             }catch(error){results[kind]={error};}
+             finally{await page.close();}
+            }
+           }catch(error){for(const kind of ['weekly','season'])if(!results[kind])results[kind]={error};}
+           finally{if(browser)await browser.close();}
+           return results;
+          }
+
           async function request(url,accept='application/json'){
            const r=await fetch(url,{headers:{'User-Agent':'HungJurors-public-data/1.0','Accept':accept},cache:'no-store',signal:AbortSignal.timeout(20000)});
            if(!r.ok){
@@ -112,7 +189,7 @@ jobs:
            return data?.source==='WinWithOdds'&&data.season===season&&data.scoring===VEGAS_SCORING&&data.sourceUrl===vegasUrl(kind)&&data.week===(kind==='weekly'?nflWeek(Date.now(),season):0)&&Number.isFinite(data.checkedAt)&&data.checkedAt<=Date.now()+60000&&Number.isFinite(data.publishedAt)&&typeof data.updated==='string'&&Array.isArray(data.rows)&&data.rows.length>=10&&data.rows.every(r=>r.name&&['QB','RB','WR','TE'].includes(r.position)&&r.sourceScoring===VEGAS_SCORING&&r.sourceReceptionPoints===(r.position==='TE'?1.5:1)&&Number.isFinite(r.sourceProjection));
           }
           function validSavedAdvanced(data,season){return data?.source==='nflverse'&&Number.isFinite(data.checkedAt)&&data.checkedAt<=Date.now()+60000&&Array.isArray(data.rows)&&data.rows.length>0&&data.rows.every(r=>Number(r.season)===season);}
-          export async function collectData(){
+          export async function collectData({loadVegasFeeds=collectBrowserVegas}={}){
            const html=await readFile('index.html','utf8'),season=Number(html.match(/const NFL_SEASON\s*=\s*(\d{4})/)?.[1]);
            if(!season)throw Error('Missing site season');
            await mkdir('_site/data',{recursive:true});
@@ -121,19 +198,21 @@ jobs:
            ]);
            if(oldPff?.schema===1&&oldPff.season===season)await writeFile('_site/data/pff-grades.json',JSON.stringify(oldPff));
            const projection={schema:1,season,generatedAt:Date.now(),errors:{}},advanced={schema:1,season,generatedAt:Date.now(),errors:{}};
-           const status={schema:1,season,attemptedAt:Date.now(),ok:false,sources:{}};
+           const status={schema:1,collector:'rendered-browser-v1',season,attemptedAt:Date.now(),ok:false,sources:{}};
            function failed(key,error,saved){
             const message=String(error.message||error);
             status.sources[key]={status:error.status===403?'blocked':'failed',error:message,retained:!!saved,checkedAt:saved?.checkedAt||null,rows:saved?.rows?.length||0};
             // Emit an error annotation immediately, even though successful sources can publish.
             console.error(`::error title=${key} refresh failed::${message.replace(/%/g,'%25').replace(/\r/g,'%0D').replace(/\n/g,'%0A')}`);
            }
+           const browserFeeds=await loadVegasFeeds(season);
            await Promise.all(['weekly','season'].map(async kind=>{
             const field=kind==='season'?'seasonProjections':'weekly';
             try{
-             const response=await request(vegasUrl(kind),'text/html');
-             const data=parseVegas(await response.text(),kind,season);projection[field]=data;
-             status.sources[field]={status:'updated',checkedAt:data.checkedAt,updated:data.updated,rows:data.rows.length};
+             const result=browserFeeds[kind];if(result?.error)throw result.error;
+             const data=result?.data;if(!validSavedVegas(data,kind,season))throw Error('Browser returned invalid projection data');
+             projection[field]=data;
+             status.sources[field]={status:'updated',transport:data.transport||'unknown',checkedAt:data.checkedAt,updated:data.updated,rows:data.rows.length};
              console.log(`${kind}: ${data.rows.length} players; source updated ${data.updated}`);
             }catch(error){
              projection.errors[field]=String(error.message||error);
@@ -183,7 +262,7 @@ jobs:
             if(failures.length){
              lines.push('','Site publishing and PFF collection can continue. This run will finish as failed because these source refreshes failed.');
              for(const [key,r] of failures)lines.push('',`- ${names[key]}: ${clean(r.error)}`);
-             if(failures.some(([,r])=>r.status==='blocked'))lines.push('','WinWithOdds returned HTTP 403 to this runner. The request was refused; changing display code cannot restore source access. Use a provider-supported feed or arrange permission for this collector.');
+             if(failures.some(([,r])=>r.status==='blocked'))lines.push('','WinWithOdds refused this browser request. The collector stopped without attempting to solve or bypass the verification challenge.');
             }
             await appendFile(process.env.GITHUB_STEP_SUMMARY,lines.join('\n')+'\n');
            }
