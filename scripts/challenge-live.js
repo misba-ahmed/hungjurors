@@ -64,7 +64,7 @@ function hjChLmsFigure(manager,elimination,index){
  <path d="M60 124v22M39 137h12M69 137h12" stroke="#11283c" stroke-width="2"/><circle cx="64" cy="131" r="1.5" fill="#cfb365"/>
  <path d="M70 91h9v2h-9Z" fill="#dfc778"/>
  <image href="data:image/png;base64,${AV[manager.short]||AV_DEFAULT}" x="12" y="-2" width="96" height="96" clip-path="url(#${key})"/>
- </g></svg></div>`;
+ </g></svg><span class="lms-name" aria-hidden="true">${esc(manager.short)}</span></div>`;
 }
 function hjChLms(model){
  const names=HJ_CHALLENGE_STATE.names,eliminated=new Map(model.eliminations.map(e=>[e.id,e]));
