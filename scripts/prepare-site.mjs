@@ -2,12 +2,15 @@ import {readFile,writeFile} from 'node:fs/promises';
 import {readFileSync} from 'node:fs';
 const bannerRenderers=readFileSync(new URL('./banner-renderers.js',import.meta.url),'utf8');
 const projectionSummary=readFileSync(new URL('./projection-summary.js',import.meta.url),'utf8');
+const standingsScript=readFileSync(new URL('./standings-live.js',import.meta.url),'utf8');
 const challengeScripts=['challenge-engine.js','challenge-live.js'].map(file=>readFileSync(new URL(file,import.meta.url),'utf8')).join('\n');
 function replaceOnce(html,pattern,replacement){
  if([...html.matchAll(pattern)].length!==1)throw Error('Source markup changed; review site preparation');
  return html.replace(pattern,()=>replacement);
 }
 export function prepareSite(html){
+ // 2026 Standings: the compact light table replaces the old dark lane dashboard (same buildStandingsAnalytics inputs).
+ html=replaceOnce(html,/function standingsModeMetric\(p,mode\)\{[^]*?(?=\/\* ---- 2026 interactive league schedule ---- \*\/)/g,standingsScript+'\n');
  html=replaceOnce(html,/function renderRaffleChallenge\(out\)\{[^]*?(?=\/\* ---- Season Challenges nav dropdown ---- \*\/)/g,challengeScripts+'\n');
  const old='Date.now()-at<60*60*1000&&data.updated';
  if(html.split(old).length!==2)throw Error('Projection freshness setting changed; review site preparation');
@@ -24,6 +27,6 @@ export function prepareSite(html){
  html=replaceOnce(html,/<b>\$\{past\?'Final':winChance===null\?'Unavailable':'Est\. win chance'\}<\/b>/g,"<b>${past?'FINAL':winChance===null?'Unavailable':'Est. win chance'}</b>");
  // Hosted Vegas projections stay visible for 36 hours after the last verified retrieval so a collector hiccup never blanks the site.
  return html.replace(old,'Date.now()-at<36*60*60*1000&&data.updated')
-  .replace('</head>','<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20260918-a2">\n</head>');
+  .replace('</head>','<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20260918-a2">\n<link rel="stylesheet" href="/styles/standings.css?v=20260918-a1">\n</head>');
 }
 if(process.argv[2])await writeFile(process.argv[2],prepareSite(await readFile(process.argv[2],'utf8')));
