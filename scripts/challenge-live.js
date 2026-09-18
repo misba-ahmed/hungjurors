@@ -50,16 +50,18 @@ function hjChRaffleTicket(week,score){
  // One raffle ticket: stub with perforation, side notches, week on top and that week's score under it.
  return `<svg class="raffle-ticket" viewBox="0 0 120 48" aria-hidden="true" focusable="false"><path class="raffle-ticket-body" d="M8 3H112Q117 3 117 8V19A5 5 0 0 0 117 29V40Q117 45 112 45H8Q3 45 3 40V29A5 5 0 0 0 3 19V8Q3 3 8 3Z"/><path class="raffle-ticket-trim" d="M9.5 6.5H110.5Q113.5 6.5 113.5 9.5V17.5A7 7 0 0 0 113.5 30.5V38.5Q113.5 41.5 110.5 41.5H9.5Q6.5 41.5 6.5 38.5V30.5A7 7 0 0 0 6.5 17.5V9.5Q6.5 6.5 9.5 6.5Z"/><path class="raffle-ticket-perf" d="M30 7v34"/><text class="raffle-ticket-stub" transform="rotate(-90 18 24)" x="18" y="24">HJ</text><text class="raffle-ticket-week" x="73.5" y="21">WEEK ${week}</text><text class="raffle-ticket-score" x="73.5" y="39">${score.toFixed(2)}</text></svg>`;
 }
-function hjChRaffleFigure(manager,index,tickets,total){
+function hjChRaffleFigure(manager,index,tickets,total,leader=false){
  const stack=tickets.map(t=>hjChRaffleTicket(t.week,t.score)).join('');
  const label=`${esc(manager.short)}: ${tickets.length} raffle ticket${tickets.length===1?'':'s'}, ${hjChOdds(tickets.length,total)} odds${tickets.length?` (Week${tickets.length===1?'':'s'} ${tickets.map(t=>t.week).join(', ')})`:''}`;
- return hjChLineupFigure({manager,index,key:'raffle',label,above:`<div class="raffle-stack">${stack}</div>`,stat:`${tickets.length} · ${hjChOdds(tickets.length,total)}`,style:`--raffle-delay:${(index*.37).toFixed(2)}s`});
+ return hjChLineupFigure({manager,index,key:'raffle',label,above:`<div class="raffle-stack">${stack}</div>`,stat:`${tickets.length} · ${hjChOdds(tickets.length,total)}`,leader,style:`--raffle-delay:${(index*.37).toFixed(2)}s`});
 }
 function hjChRaffle(model){
  const names=HJ_CHALLENGE_STATE.names,total=model.tickets.reduce((n,t)=>n+t.total,0);
  const earned=new Map(names.map(n=>[n.id,[]]));
  for(const w of model.raffle)for(const t of w.winners)earned.get(t.id)?.push({week:w.week,score:w.score});
- const figures=names.map((n,i)=>hjChRaffleFigure(n,i,earned.get(n.id)||[],total)).join('');
+ // The best odds glow (ties share it); no crown, since a raffle has no leader until the draw.
+ const most=Math.max(0,...names.map(n=>(earned.get(n.id)||[]).length));
+ const figures=names.map((n,i)=>hjChRaffleFigure(n,i,earned.get(n.id)||[],total,most>0&&(earned.get(n.id)||[]).length===most)).join('');
  const history=model.raffle.map(w=>`<tr><td><b>Week ${w.week}</b></td><td>${w.winners.map(t=>hjChManager(t.short)).join(' ')}</td><td class="num"><b>${w.score.toFixed(2)}</b></td></tr>`).join('')||'<tr><td colspan="3" class="raffle-empty">Tickets appear when ESPN finalizes Week 1.</td></tr>';
  return hjChLineupView({id:'raffle-lineup',fitKey:'raffleFit',label:'Highest Scorer Raffle tickets by manager',figures,count:names.length})+`<h4 class="aw-sub challenge-sub">Weekly Highest Scorer</h4>`+hjChTable(['Week','Manager','Score'],history,'week-table');
 }
@@ -68,8 +70,8 @@ function hjChLineupView({id,fitKey,label,figures,count}){
  const fit=HJ_CHALLENGE_STATE[fitKey];
  return `<div class="lms-view lineup-view${fit?' is-fit':''}" data-fit-key="${fitKey}"><div class="lms-stage lineup-stage" style="touch-action:manipulation" tabindex="0" role="group" aria-label="${esc(label)}"><div class="lineup" id="${id}" style="--lineup-count:${count||1}"><div class="lineup-row">${figures}</div></div></div>${hjChZoomButtons(fit,id)}</div>`;
 }
-function hjChLineupFigure({manager,index,key,label,above='',stat='',statClass='',crown=false,style=''}){
- return `<div class="lineup-figure${crown?' is-leader':''}" role="group" aria-label="${label}" data-lineup-manager="${esc(manager.id)}" style="${hjChJacket(index)};${style}">${above}${hjChFigureArt(manager,`${key}-head-${index}`,crown)}<span class="lineup-label"><span class="lineup-name manager-profile-trigger" data-manager="${esc(manager.short)}" role="button" tabindex="0" aria-label="Open ${esc(manager.short)} profile">${esc(manager.short)}</span><span class="lineup-stat ${statClass}" aria-hidden="true">${stat}</span></span></div>`;
+function hjChLineupFigure({manager,index,key,label,above='',stat='',statClass='',crown=false,leader=crown,style=''}){
+ return `<div class="lineup-figure${leader?' is-leader':''}" role="group" aria-label="${label}" data-lineup-manager="${esc(manager.id)}" style="${hjChJacket(index)};${style}">${above}${hjChFigureArt(manager,`${key}-head-${index}`,crown)}<span class="lineup-label"><span class="lineup-name manager-profile-trigger" data-manager="${esc(manager.short)}" role="button" tabindex="0" aria-label="Open ${esc(manager.short)} profile">${esc(manager.short)}</span><span class="lineup-stat ${statClass}" aria-hidden="true">${stat}</span></span></div>`;
 }
 function hjChShortName(p){
  if(p.position==='D/ST')return p.name;
