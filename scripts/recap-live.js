@@ -38,26 +38,26 @@ function hjRcModel(chosen,weeks,data){
  const leaders=HJ_RC_POSITIONS.map(pos=>[...performers].filter(p=>p.pos===pos).sort((a,b)=>b.points-a.points)[0]).filter(Boolean).map(withOpp);
  const benchers=HJ_RC_POSITIONS.map(pos=>managers.flatMap(m=>m.bench).filter(p=>p.pos===pos).sort((a,b)=>b.points-a.points)[0]).filter(p=>p&&p.points>0).map(withOpp);
  const startersAll=managers.flatMap(m=>m.starters).map(withOpp);
- const falseStarters=startersAll.filter(p=>Number.isFinite(p.projection)&&p.projection>=8&&!['K','D/ST'].includes(p.pos)).map(p=>({...p,gap:p.points-p.projection})).sort((a,b)=>a.gap-b.gap).slice(0,3);
+ const falseStarters=startersAll.filter(p=>Number.isFinite(p.projection)&&p.projection>=8&&!['K','D/ST'].includes(p.pos)).map(p=>({...p,gap:p.points-p.projection})).sort((a,b)=>a.gap-b.gap).slice(0,5);
  let changer=null;
  for(const g of games){for(const p of g.winner.starters){if(!Number.isFinite(p.projection))continue;const surplus=p.points-p.projection;if(surplus<=0)continue;const flips=g.winner.pts-surplus<g.loser.pts;const score=(flips?1000:0)+surplus;if(!changer||score>changer.score)changer={...withOpp(p),surplus,flips,game:g,score}}}
  const awards=[];
  const push=(key,label,m,value,sub,tone='')=>m&&awards.push({key,label,manager:m.short,value,sub,tone});
  const blow=[...games].sort((a,b)=>b.margin-a.margin)[0],narrow=[...games].sort((a,b)=>a.margin-b.margin)[0];
- if(blow)push('blowout','Biggest blowout',blow.winner,pcFpts(blow.winner.pts),`vs ${blow.loser.short} · ${pcFpts(blow.loser.pts)}`,'win');
- if(narrow)push('narrow','Narrow victory',narrow.winner,pcFpts(narrow.winner.pts),`vs ${narrow.loser.short} · ${pcFpts(narrow.loser.pts)}`,'win');
+ if(blow)push('blowout','Biggest blowout',blow.winner,`by ${blow.margin.toFixed(2)}`,`${pcFpts(blow.winner.pts)}–${pcFpts(blow.loser.pts)} over ${blow.loser.short}`,'win');
+ if(narrow)push('narrow','Narrow victory',narrow.winner,`by ${narrow.margin.toFixed(2)}`,`${pcFpts(narrow.winner.pts)}–${pcFpts(narrow.loser.pts)} over ${narrow.loser.short}`,'win');
  const projected=managers.filter(m=>Number.isFinite(m.proj));
  const over=[...projected].sort((a,b)=>(b.pts-b.proj)-(a.pts-a.proj))[0],under=[...projected].sort((a,b)=>(a.pts-a.proj)-(b.pts-b.proj))[0];
- if(over)push('over','Overachiever',over,pcFpts(over.pts),`starter proj · ${pcFpts(over.proj)}`,'pos');
- if(under)push('under','Underachiever',under,pcFpts(under.pts),`starter proj · ${pcFpts(under.proj)}`,'neg');
+ if(over)push('over','Overachiever',over,`${hjRcSigned(over.pts-over.proj,2)} vs proj`,`${pcFpts(over.pts)} scored · ${pcFpts(over.proj)} projected`,'pos');
+ if(under)push('under','Underachiever',under,`${hjRcSigned(under.pts-under.proj,2)} vs proj`,`${pcFpts(under.pts)} scored · ${pcFpts(under.proj)} projected`,'neg');
  const efficient=managers.filter(m=>m.eff!==null);
  const most=[...efficient].sort((a,b)=>b.eff-a.eff)[0],least=[...efficient].sort((a,b)=>a.eff-b.eff)[0];
- if(most)push('most','Most efficient manager',most,pcFpts(most.pts),`max points · ${pcFpts(most.optimal)}`,'pos');
- if(least)push('least','Least efficient manager',least,pcFpts(least.pts),`max points · ${pcFpts(least.optimal)}`,'neg');
+ if(most)push('most','Most efficient manager',most,`${most.eff.toFixed(1)}%`,`${pcFpts(most.pts)} of ${pcFpts(most.optimal)} max · ${pcFpts(most.optimal-most.pts)} left on bench`,'pos');
+ if(least)push('least','Least efficient manager',least,`${least.eff.toFixed(1)}%`,`${pcFpts(least.pts)} of ${pcFpts(least.optimal)} max · ${pcFpts(least.optimal-least.pts)} left on bench`,'neg');
  const losers=managers.filter(m=>m.result==='L'),winners=managers.filter(m=>m.result==='W');
  const hiLoss=[...losers].sort((a,b)=>b.pts-a.pts)[0],loWin=[...winners].sort((a,b)=>a.pts-b.pts)[0];
- if(hiLoss)push('hiloss','Highest points in a loss',hiLoss,pcFpts(hiLoss.pts),`vs ${hiLoss.opp} · ${pcFpts(hiLoss.oppPts)}`,'neg');
- if(loWin)push('lowin','Lowest points in a win',loWin,pcFpts(loWin.pts),`vs ${loWin.opp} · ${pcFpts(loWin.oppPts)}`,'win');
+ if(hiLoss)push('hiloss','Highest points in a loss',hiLoss,pcFpts(hiLoss.pts),`lost to ${hiLoss.opp} ${pcFpts(hiLoss.oppPts)} · by ${(hiLoss.oppPts-hiLoss.pts).toFixed(2)}`,'neg');
+ if(loWin)push('lowin','Lowest points in a win',loWin,pcFpts(loWin.pts),`beat ${loWin.opp} ${pcFpts(loWin.oppPts)} · by ${(loWin.pts-loWin.oppPts).toFixed(2)}`,'win');
  const swings=extra?.games?.size?hjRcSwings(games,week,extra,data):null;
  return {week,managers,games,ordered,avg,complete,leaders,benchers,falseStarters,changer,awards,swings,extra};
 }
@@ -97,7 +97,7 @@ function hjRcTrack(player,game,plays){
  const sum=raw.reduce((a,b)=>a+b,0),target=player.points;
  let track;
  if(Math.abs(sum)>.01&&(sum>0)===(target>0)&&target!==0)track=raw.map(v=>v*target/sum);
- else track=new Array(n).fill(target/n); // D/ST, blanks and unmatched players accrue evenly through their game
+ else {track=new Array(n).fill(target/n);track.even=true} // D/ST, blanks and unmatched players accrue evenly through their game
  return track;
 }
 function hjRcSwings(games,week,extra,data){
@@ -115,15 +115,24 @@ function hjRcSwings(games,week,extra,data){
   const state=s=>{let score=0,exp=0,variance=0;for(const p of s.starters){score+=cur.get(p.id)||0;const frac=p.gameId&&played.has(p.gameId)?1-(done.get(p.id)||0)/played.get(p.gameId).plays.length:0;const proj=Number.isFinite(p.projection)?p.projection:0,rem=Math.max(0,proj*frac);exp+=rem;variance+=(.6*rem)**2+(frac>0?1:0)}return {score,exp,variance,remaining:s.starters.filter(p=>p.gameId&&played.has(p.gameId)&&(done.get(p.id)||0)<played.get(p.gameId).plays.length)}};
   const series=[];let peak=null,elimination=null;
   for(const ev of events){
-   for(const s of sides)for(const p of s.starters){if(p.gameId!==ev.gameId)continue;const tr=tracks.get(p.id);cur.set(p.id,(cur.get(p.id)||0)+(tr?tr[ev.i]:0));done.set(p.id,(done.get(p.id)||0)+1)}
+   let gain=0,who=[];
+   for(const s of sides)for(const p of s.starters){if(p.gameId!==ev.gameId)continue;const tr=tracks.get(p.id),d=tr?tr[ev.i]:0;cur.set(p.id,(cur.get(p.id)||0)+d);done.set(p.id,(done.get(p.id)||0)+1);if(Math.abs(d)>=.5&&tr&&!tr.even){gain+=d;who.push({side:s.short,name:p.name,pts:d})}}
    const L=state(g.loser),W=state(g.winner),diff=(L.score+L.exp)-(W.score+W.exp),sd=Math.sqrt(L.variance+W.variance);
    const p=sd>0?hjRcPhi(diff/sd):diff>0?1:diff<0?0:.5;
-   series.push({t:ev.t,p});
+   series.push({t:ev.t,p,ev,gameId:ev.gameId,who,loserScore:L.score,winnerScore:W.score,winnerRemaining:W.remaining.length,loserRemaining:L.remaining.length});
    if(!peak||p>peak.p)peak={p,t:ev.t,loserScore:L.score,winnerScore:W.score,winnerRemaining:W.remaining.map(x=>({id:x.id,name:x.name,at:cur.get(x.id)||0})),loserRemaining:L.remaining.length,ev};
    if(!elimination&&L.remaining.length===0&&W.score>L.score+.005)elimination={t:ev.t,ev,game:played.get(ev.gameId).game,loserScore:L.score,winnerScore:W.score};
   }
   if(peak)peak.winnerRemaining=peak.winnerRemaining.map(x=>({...x,after:(cur.get(x.id)||0)-x.at}));
-  out.push({game:g,series,peak,elimination});
+  // Point of no return: the last real fantasy play (a player actually scoring) after which the loser's win chance never got back above 5%.
+  let blow=null;
+  if(series.length&&series.at(-1).p<=.05){
+   let k=-1;for(let i=series.length-1;i>=0;i--){if(series[i].p>.05){k=i;break}}
+   let idx=-1;for(let i=k+1;i<series.length;i++){if(series[i].who.length){idx=i;break}}
+   if(idx<0)for(let i=k;i>=0;i--){if(series[i].who.length){idx=i;break}}
+   if(idx>=0){const s=series[idx];blow={t:s.t,ev:s.ev,game:played.get(s.gameId).game,who:s.who,loserScore:s.loserScore,winnerScore:s.winnerScore,winnerRemaining:s.winnerRemaining,loserRemaining:s.loserRemaining,before:series[idx-1]?.p??.5,after:s.p}}
+  }
+  out.push({game:g,series,peak,elimination,blow});
  }
  return out;
 }
@@ -138,7 +147,7 @@ function hjRcPodium(model){
 }
 function hjRcAwards(model){
  if(!model.awards.length)return '';
- return `<section class="rc-block"><h3 class="rc-h">League awards</h3><div class="rc-awards">${model.awards.map(a=>`<article class="rc-award is-${a.tone}"><header>${av(a.manager,'rc-av')}<span>${esc(a.label)}</span></header><div class="rc-award-body"><span class="rc-award-name manager-profile-trigger" data-manager="${esc(a.manager)}" role="button" tabindex="0">${esc(a.manager)}</span><b>${a.value}</b><small>${esc(a.sub)}</small></div></article>`).join('')}</div></section>`;
+ return `<section class="rc-block"><h3 class="rc-h">Weekly awards</h3><div class="rc-awards">${model.awards.map(a=>`<article class="rc-award is-${a.tone}"><header>${av(a.manager,'rc-av')}<span>${esc(a.label)}</span></header><div class="rc-award-body"><span class="rc-award-name manager-profile-trigger" data-manager="${esc(a.manager)}" role="button" tabindex="0">${esc(a.manager)}</span><b>${a.value}</b><small>${esc(a.sub)}</small></div></article>`).join('')}</div></section>`;
 }
 function hjRcPerformance(model){
  const max=Math.max(...model.managers.map(m=>Math.max(m.pts,Number.isFinite(m.optimal)?m.optimal:0)),1);
@@ -146,10 +155,14 @@ function hjRcPerformance(model){
   return `<div class="rc-perf-row"><span class="rc-perf-rank">${i+1}</span><span class="rc-perf-av manager-profile-trigger" data-manager="${esc(m.short)}" role="button" tabindex="0" aria-label="Open ${esc(m.short)} profile">${av(m.short,'rc-av-mid')}</span><div class="rc-perf-main"><div class="rc-perf-top"><b class="manager-profile-trigger" data-manager="${esc(m.short)}" role="button" tabindex="0">${esc(m.short)}</b>${m.team?`<small>${esc(m.team)}</small>`:''}<span class="rc-res is-${m.result.toLowerCase()}">${m.result}</span></div><div class="rc-perf-bar"><i class="max" style="width:${wo.toFixed(1)}%"></i><i class="got" style="width:${w.toFixed(1)}%"></i><span>${pcFpts(m.pts)}${opt?` of ${pcFpts(opt)} max`:''}</span></div><div class="rc-perf-foot"><em>${m.eff!==null?`${m.eff.toFixed(1)}%`:'—'}</em><span>vs ${esc(m.opp)} ${pcFpts(m.oppPts)} · all-play ${m.allPlay.label}${Number.isFinite(m.proj)?` · proj ${pcFpts(m.proj)}`:''}</span></div></div></div>`}).join('');
  return `<section class="rc-block"><h3 class="rc-h">Team performance <small>points scored against the best possible lineup</small></h3><div class="rc-perf">${rows}</div></section>`;
 }
+function hjRcPlayerCard(p){
+ const {attrs,photo}=hjRcHeadshot(p),dst=p.pos==='D/ST',vs=hjChVs(p.opponent);
+ const owner=p.manager?`<span class="rc-pcard-owner manager-profile-trigger" data-manager="${esc(p.manager)}" role="button" tabindex="0" aria-label="Open ${esc(p.manager)} profile">${av(p.manager,'rc-av')}<b>${esc(p.manager)}</b></span>`:p.benchOf?`<span class="rc-pcard-owner is-status manager-profile-trigger" data-manager="${esc(p.benchOf)}" role="button" tabindex="0">On ${esc(p.benchOf)}’s bench</span>`:'<span class="rc-pcard-owner is-status">Free agent</span>';
+ return `<article class="rc-pcard" role="listitem"><button type="button" class="rc-pcard-photo pc-player-trigger${dst?' is-logo':''}" data-pos="${esc(p.pos)}" ${attrs} aria-label="Open ${esc(p.name)} player card">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">`:''}</button><span class="rc-pcard-pos">${esc(p.pos)}</span><button type="button" class="rc-pcard-name pc-player-trigger" ${attrs}>${esc(hjChShortName({name:p.name,position:p.pos}))}</button>${owner}<strong class="rc-pcard-points">${p.points.toFixed(2)}</strong>${vs?`<span class="rc-pcard-opp">${esc(vs)}</span>`:''}</article>`;
+}
 function hjRcCardRow(title,sub,players){
  if(!players.length)return '';
- const cards=players.map(p=>hjChMvpCard({id:p.id,name:p.name,position:p.pos,proTeamId:p.proTeamId,points:p.points,opponent:p.opponent,manager:p.manager,bench:p.benchOf})).join('');
- return `<section class="rc-block"><h3 class="rc-h">${esc(title)}${sub?` <small>${esc(sub)}</small>`:''}</h3><div class="rc-cards mvp-week"><div class="mvp-cards" role="list">${cards}</div></div></section>`;
+ return `<section class="rc-block"><h3 class="rc-h">${esc(title)}${sub?` <small>${esc(sub)}</small>`:''}</h3><div class="rc-cards" role="list">${players.map(hjRcPlayerCard).join('')}</div></section>`;
 }
 function hjRcHeadshot(p){const {attrs,photo}=hjChPlayerAttrs({id:p.id,name:p.name,position:p.pos,proTeamId:p.proTeamId});return {attrs,photo}}
 function hjRcFeature(p,cls,right){
@@ -161,7 +174,7 @@ function hjRcFalseStarters(model){
  const list=model.falseStarters;if(!list.length)return '';
  const [lead,...rest]=list;
  const stat=p=>`<b>${p.points.toFixed(1)}<small>pts</small></b><span class="is-neg">▼ ${p.gap.toFixed(1)} <small>proj</small></span>`;
- const rows=rest.map(p=>{const {attrs,photo}=hjRcHeadshot(p);return `<div class="rc-mini"><button type="button" class="rc-mini-photo pc-player-trigger" ${attrs}>${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">`:''}</button><div class="rc-mini-copy"><button type="button" class="rc-mini-name pc-player-trigger" ${attrs}>${esc(hjChShortName({name:p.name,position:p.pos}))}</button><small>${esc(hjRcTeam(p.proTeamId))} <b>${esc(p.pos)}</b></small></div><span class="rc-mini-owner manager-profile-trigger" data-manager="${esc(p.manager)}" role="button" tabindex="0">${esc(p.manager)}</span><div class="rc-mini-stat">${stat(p)}</div></div>`}).join('');
+ const rows=rest.map(p=>{const {attrs,photo}=hjRcHeadshot(p);return `<div class="rc-mini"><button type="button" class="rc-mini-photo pc-player-trigger" ${attrs}>${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">`:''}</button><div class="rc-mini-copy"><button type="button" class="rc-mini-name pc-player-trigger" ${attrs}>${esc(hjChShortName({name:p.name,position:p.pos}))}</button><small>${esc(hjRcTeam(p.proTeamId))} <b>${esc(p.pos)}</b>${p.opponent?` · ${esc(hjChVs(p.opponent))}`:''}</small><span class="rc-mini-owner manager-profile-trigger" data-manager="${esc(p.manager)}" role="button" tabindex="0" aria-label="Open ${esc(p.manager)} profile">${av(p.manager,'rc-av')}<b>${esc(p.manager)}</b></span></div><div class="rc-mini-stat">${stat(p)}</div></div>`}).join('');
  return `<section class="rc-block"><h3 class="rc-h">False starters <small>these starters could have stayed on the bench</small></h3>${hjRcFeature(lead,'is-neg',stat(lead))}${rows}</section>`;
 }
 function hjRcVs(g,winnerFirst=true){
@@ -192,14 +205,21 @@ function hjRcSlipped(model){
  return `<section class="rc-block"><h3 class="rc-h">Slipped away <small>the highest win chance that still ended in a loss</small></h3><div class="rc-slip"><div class="rc-slip-num"><b>${hjRcPct(peak.p)}</b><small>peak win chance</small>${hjRcMgr(g.loser.short)}</div><div class="rc-slip-body">${hjRcChart(best)}<p class="rc-copy">${esc(text)}</p></div></div>${hjRcVs(g)}</section>`;
 }
 function hjRcPlayText(ev){return String(ev.text||'').replace(/^\(\d+:\d+\)\s*/,'').replace(/\s+/g,' ').trim()}
+function hjRcGameLabel(game){const c=game.header?.competitions?.[0],h=c?.competitors?.find(t=>t.homeAway==='home')?.team?.abbreviation||'',a=c?.competitors?.find(t=>t.homeAway==='away')?.team?.abbreviation||'';return `${a} @ ${h}`}
 function hjRcFinalBlow(model){
  const swings=model.swings;if(!swings)return '';
- const ends=swings.filter(s=>s.elimination).map(s=>({...s,night:hjRcNight(s.elimination.t)})).sort((a,b)=>b.elimination.t-a.elimination.t);if(!ends.length)return '';
- const lead=ends.find(s=>s.night)||ends[0],e=lead.elimination,comp=e.game.header?.competitions?.[0],home=comp?.competitors?.find(c=>c.homeAway==='home')?.team?.abbreviation||'',away=comp?.competitors?.find(c=>c.homeAway==='away')?.team?.abbreviation||'',q=Number(e.ev.period?.number),qLabel=q>4?'overtime':`Q${q}`;
- const lines=ends.map(s=>{const x=s.elimination,c=x.game.header?.competitions?.[0],h=c?.competitors?.find(t=>t.homeAway==='home')?.team?.abbreviation||'',a=c?.competitors?.find(t=>t.homeAway==='away')?.team?.abbreviation||'';return `<li${s===lead?' class="is-lead"':''}><span class="rc-end-time">${esc(hjRcTime(x.t,{weekday:'short',hour:'numeric',minute:'2-digit'}))}</span><span class="rc-end-who">${hjRcMgr(s.game.loser.short)}<small>by ${esc(s.game.winner.short)} · trailed ${pcFpts(x.loserScore)}–${pcFpts(x.winnerScore)}</small></span><span class="rc-end-game">${esc(a)} @ ${esc(h)}</span></li>`}).join('');
- return `<section class="rc-block"><h3 class="rc-h">The final blow <small>the exact play that mathematically ended a matchup</small></h3><div class="rc-final"><div class="rc-final-stamp"><b>${esc(hjRcClock(e.t))}</b><small>${esc(lead.night||hjRcDay(e.t))}</small></div><div class="rc-final-body"><p class="rc-copy">${hjRcMgr(lead.game.loser.short)} was mathematically eliminated at <b>${esc(hjRcClock(e.t))} ${esc(hjRcDay(e.t))}</b> during ${esc(away)} @ ${esc(home)} (${esc(qLabel)}, ${esc(e.ev.clock?.displayValue||'')} left): with no players left to score, ${esc(lead.game.loser.short)} trailed ${esc(lead.game.winner.short)} ${pcFpts(e.loserScore)}–${pcFpts(e.winnerScore)}. Final: ${pcFpts(lead.game.winner.pts)}–${pcFpts(lead.game.loser.pts)}.</p><blockquote class="rc-play">${esc(hjRcPlayText(e.ev))}</blockquote></div></div><ol class="rc-ends">${lines}</ol></section>`;
+ const ends=swings.filter(s=>s.blow).map(s=>({...s,night:hjRcNight(s.blow.t)})).sort((a,b)=>b.blow.t-a.blow.t);if(!ends.length)return '';
+ const lead=ends.find(s=>s.night)||ends[0],b=lead.blow,g=lead.game,q=Number(b.ev.period?.number),qLabel=q>4?'overtime':`Q${q}`,clock=b.ev.clock?.displayValue||'';
+ const scorers=b.who.filter(x=>x.side===g.winner.short),victim=b.who.filter(x=>x.side===g.loser.short);
+ const swingText=scorers.length?`${hjRcNames(scorers.map(x=>`${x.name} (${hjRcSigned(x.pts,1)})`))} for ${g.winner.short}`:victim.length?`${hjRcNames(victim.map(x=>`${x.name} (${hjRcSigned(x.pts,1)})`))} for ${g.loser.short}`:'';
+ const copy=`${esc(g.loser.short)}'s win chance went from ${hjRcPct(b.before)} to ${hjRcPct(b.after)} on this play and never got back above 5%. It put ${esc(g.winner.short)} ahead ${pcFpts(b.winnerScore)}–${pcFpts(b.loserScore)}${b.loserRemaining?` with ${b.loserRemaining} of ${esc(g.loser.short)}'s players still to play`:` with nothing left in ${esc(g.loser.short)}'s lineup`}${swingText?` · ${esc(swingText)}`:''}. Final: ${pcFpts(g.winner.pts)}–${pcFpts(g.loser.pts)}.${lead.elimination&&lead.elimination.t>b.t+60000?` Officially over at ${esc(hjRcClock(lead.elimination.t))} ${esc(hjRcDay(lead.elimination.t))} when ${esc(hjRcGameLabel(lead.elimination.game))} ended.`:''}`;
+ const lines=ends.map(s=>{const x=s.blow,sc=x.who.filter(w=>w.side===s.game.winner.short);return `<li${s===lead?' class="is-lead"':''}><span class="rc-end-time">${esc(hjRcTime(x.t,{weekday:'short',hour:'numeric',minute:'2-digit'}))}</span><span class="rc-end-who">${hjRcMgr(s.game.loser.short)}<small>out of reach vs ${esc(s.game.winner.short)} · ${esc(hjRcGameLabel(x.game))}${sc.length?` · ${esc(sc.map(w=>`${w.name} ${hjRcSigned(w.pts,1)}`).join(', '))}`:''}</small></span></li>`}).join('');
+ return `<section class="rc-block"><h3 class="rc-h">The final blow <small>the play that put a matchup out of reach for good</small></h3><div class="rc-final"><div class="rc-final-stamp"><b>${esc(hjRcClock(b.t))}</b><small>${esc(lead.night||hjRcDay(b.t))}</small></div><div class="rc-final-body"><p class="rc-copy">${hjRcMgr(g.loser.short)} was finished at <b>${esc(hjRcClock(b.t))} ${esc(hjRcDay(b.t))}</b> — ${esc(hjRcGameLabel(b.game))}, ${esc(qLabel)}${clock?`, ${esc(clock)} left`:''}.</p><blockquote class="rc-play">${esc(hjRcPlayText(b.ev))}</blockquote><p class="rc-copy">${copy}</p></div></div><ol class="rc-ends">${lines}</ol></section>`;
 }
-function hjRcStories(chosen,weeks){const html=hjRecapStoriesHTML(chosen,weeks);return html.includes('<article')?`<section class="rc-block"><h3 class="rc-h">Storylines <small>computed from the week's records</small></h3>${html}</section>`:''}
+function hjRcStories(chosen,weeks){
+ const stories=hjRecapStories(chosen,weeks);if(!stories.length)return '';
+ return `<section class="rc-block"><h3 class="rc-h">Storylines</h3><div class="rc-stories">${stories.map(s=>`<article class="rc-story"><small class="rc-eyebrow">${esc(s.kind)}</small><h4>${esc(s.title)}</h4><p>${esc(s.text)}</p><p class="rc-story-proof">${esc(s.proof)}</p></article>`).join('')}</div></section>`;
+}
 function hjRecapHTML(data){
  const weeks=hjCompletedWeeks(data),chosen=weeks.find(w=>w.week===HJ_DATA.recapWeek)||weeks.at(-1);
  if(!chosen)return '<div class="hq-module-body hj-recap"><div class="rc"><p class="hj-recap-empty">The first recap lands when this week’s matchups are final.</p></div></div>';
