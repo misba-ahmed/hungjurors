@@ -145,7 +145,7 @@ function hjChOpt(model){
   return `<div class="lineup-figure is-seated${crown?' is-leader':''}" role="group" aria-label="${esc(n.short)}: ${r.total.toFixed(2)} points left on the bench${crown?', current leader':''}" data-lineup-manager="${esc(n.id)}" style="${hjChJacket(i)}">${hjChBar(n.id,r.total,pct,`${r.total.toFixed(2)}${r.missing.length?'*':''}`)}${hjChFigureArt(n,`opt-head-${i}`,crown)}<span class="lineup-label"><span class="lineup-name manager-profile-trigger" data-manager="${esc(n.short)}" role="button" tabindex="0" aria-label="Open ${esc(n.short)} profile">${esc(n.short)}</span></span></div>`;
  }).join('');
  const legCount=Math.max(2,Math.ceil((names.length||1)/2)+1),legs=Array.from({length:legCount},(_,i)=>`<span class="opt-bench-leg" style="left:${(4+92*i/(legCount-1)).toFixed(2)}%"></span>`).join('');
- const bench=`<div class="opt-bench" aria-hidden="true"><span class="opt-bench-back"></span><span class="opt-bench-seat"></span>${legs}</div>`;
+ const bench=`<div class="opt-bench" aria-hidden="true"><span class="opt-bench-seat"></span>${legs}</div>`;
  const lineup=hjChLineupView({id:'opt-lineup',fitKey:'optFit',label:'Optimizer Special points left on the bench by manager',figures:bench+figures,count:names.length});
  // Weekly gap grid in the League Awards style; a cell expands a breakdown row beneath it.
  const weeks=[...model.weeks].reverse(),cells=rows.flatMap(r=>r.history.map(h=>h.value)).filter(Number.isFinite),maxV=Math.max(1,...cells);
@@ -261,6 +261,7 @@ function hjChFigureArt(manager,key,crown=false){
  <ellipse class="lms-shadow" cx="60" cy="223" rx="35" ry="5"/>
  <g class="lms-standing-legs"><path d="M43 136 40 214M77 136 80 214" fill="none" stroke="#142c42" stroke-width="19" stroke-linecap="round"/><path d="M28 214h21v9H25q-5-5 3-9M72 214h21q8 4 3 9H72Z" fill="#0a1c2d"/><path d="M27 222h22M73 222h22" stroke="#c7d0d4" stroke-width="2"/></g>
  <g class="lms-seated-legs"><path d="M43 194 26 211 56 218M77 194 94 211 65 218" fill="none" stroke="#142c42" stroke-width="18" stroke-linecap="round"/><path d="m43 213 18 2v8H40q-5-5 3-10M65 214l17-2q7 7 2 11H65Z" fill="#0a1c2d"/></g>
+ <g class="lms-bench-legs"><path d="M47 178 37 202M73 178l10 24" fill="none" stroke="#1d3b58" stroke-width="22" stroke-linecap="round"/><path d="M37 200v31M83 200v31" fill="none" stroke="#142c42" stroke-width="17" stroke-linecap="butt"/><path d="M25 230h22v9H22q-5-5 3-9M73 230h22q8 4 3 9H73Z" fill="#0a1c2d"/><path d="M24 238h22M74 238h22" stroke="#c7d0d4" stroke-width="2"/></g>
  <g class="lms-upper"><path d="M52 62h16v18H52Z" fill="#d7b69b"/>
  <path d="M42 77 27 88 21 125M78 77l15 11 6 37" fill="none" stroke="var(--lms-jacket)" stroke-width="17" stroke-linecap="round"/>
  <path d="m21 125 2 10M99 125l-2 10" stroke="#d7b69b" stroke-width="10" stroke-linecap="round"/>
