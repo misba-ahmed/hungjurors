@@ -14,19 +14,33 @@ function hjChTds(s,position){
  const longFg=hjChNumber(s[74])??(n(198)+n(201));
  return n(4)+n(25)+n(43)+n(63)+returns+(position==='K'?longFg:0);
 }
-function hjChOptimal(entries,counts,season,week){
+const HJ_CH_SLOT={0:'QB',1:'TQB',2:'RB',3:'RB/WR',4:'WR',5:'WR/TE',6:'TE',7:'OP',16:'D/ST',17:'K',20:'Bench',21:'IR',23:'FLEX'};
+function hjChOptimalLineup(entries,counts,season,week){
  const slots=Object.entries(counts||{}).filter(([id])=>![20,21].includes(Number(id))).flatMap(([id,n])=>Array.from({length:Number(n)},()=>Number(id)));
  if(!slots.length||slots.length>16)return null;
  const pool=entries.filter(e=>Number(e.lineupSlotId)!==21);
  if(pool.some(e=>!Array.isArray(hjChPlayer(e).eligibleSlots)||hjChPoints(e,season,week)===null))return null;
- // Assign each player once. Slot masks keep this small even for large benches.
- let best=new Map([[0,0]]);
- for(const e of pool){const next=new Map(best),eligible=hjChPlayer(e).eligibleSlots,points=hjChPoints(e,season,week);
-  for(const [mask,total] of best)slots.forEach((slot,i)=>{const bit=1<<i;if(!(mask&bit)&&eligible.includes(slot)){const key=mask|bit;next.set(key,Math.max(next.get(key)??-Infinity,total+points))}});
+ // Assign each player once. Slot masks keep this small even for large benches; records chain back so the lineup can be rebuilt.
+ let best=new Map([[0,{total:0,prev:null}]]);
+ pool.forEach((e,index)=>{const next=new Map(best),eligible=hjChPlayer(e).eligibleSlots,points=hjChPoints(e,season,week);
+  for(const [mask,rec] of best)slots.forEach((slot,i)=>{const bit=1<<i;if(!(mask&bit)&&eligible.includes(slot)){const key=mask|bit,total=rec.total+points;if(total>(next.get(key)?.total??-Infinity))next.set(key,{total,prev:{rec,index,slot}})}});
   best=next;
- }
+ });
  // An empty eligible slot can score zero, including when every available player is negative.
- return hjChRound(Math.max(...best.values()));
+ let top=null;for(const rec of best.values())if(!top||rec.total>top.total)top=rec;
+ const picks=[];for(let rec=top;rec?.prev;rec=rec.prev.rec){const e=pool[rec.prev.index],p=hjChPlayer(e);picks.push({slot:rec.prev.slot,id:String(p.id),name:p.fullName||'Player',position:HJ_CH_POS[p.defaultPositionId],proTeamId:p.proTeamId??null,points:hjChPoints(e,season,week)});}
+ return {total:hjChRound(top.total),picks:picks.reverse()};
+}
+function hjChOptimal(entries,counts,season,week){return hjChOptimalLineup(entries,counts,season,week)?.total??null}
+function hjChSwaps(starters,optimal,season,week){
+ // Players who should have sat versus players who should have started, paired by the slot the newcomer fills.
+ const actual=starters.map(e=>{const p=hjChPlayer(e);return {slot:Number(e.lineupSlotId),id:String(p.id),name:p.fullName||'Player',position:HJ_CH_POS[p.defaultPositionId],proTeamId:p.proTeamId??null,points:hjChPoints(e,season,week)}});
+ const inIds=new Set(optimal.picks.map(p=>p.id)),actualIds=new Set(actual.map(p=>p.id));
+ const outs=actual.filter(p=>!inIds.has(p.id)).sort((a,b)=>b.points-a.points),ins=optimal.picks.filter(p=>!actualIds.has(p.id)).sort((a,b)=>b.points-a.points);
+ const swaps=[];
+ for(const inn of ins){let i=outs.findIndex(o=>HJ_CH_SLOT[o.slot]===HJ_CH_SLOT[inn.slot]);if(i<0)i=outs.findIndex(o=>o.position===inn.position);if(i<0)i=outs.length?0:-1;const out=i>=0?outs.splice(i,1)[0]:null;swaps.push({slot:HJ_CH_SLOT[inn.slot]||`Slot ${inn.slot}`,out,in:inn,gain:hjChRound(inn.points-(out?.points||0))});}
+ for(const out of outs)swaps.push({slot:HJ_CH_SLOT[out.slot]||`Slot ${out.slot}`,out,in:null,gain:hjChRound(-out.points)});
+ return swaps.sort((a,b)=>b.gain-a.gain);
 }
 function hjChWeek(payload,{season,week,names,pool=[],poolReady=false,final=false,checkedAt=0,opponents={}}){
  if(Number(payload.seasonId)!==season||Number(payload.scoringPeriodId)!==week)throw Error(`ESPN returned the wrong season/week (${week})`);
@@ -49,9 +63,10 @@ function hjChWeek(payload,{season,week,names,pool=[],poolReady=false,final=false
    return {id:String(p.id),name:p.fullName||'Player',position,proTeamId:p.proTeamId??null,opponent:opponents[String(p.proTeamId)]||null,points:value,tds:hjChTds(raw,position),yards:raw&&['QB','RB','WR'].includes(position)?[3,24,42].reduce((a,k)=>a+(Number(raw[k])||0),0):0};
   });
   const tds=complete&&players.every(p=>p.tds!==null)?players.reduce((a,p)=>a+p.tds,0):null;
-  const optimal=complete?hjChOptimal(entries,counts,season,week):null;
+  const optimalLineup=complete?hjChOptimalLineup(entries,counts,season,week):null,optimal=optimalLineup?.total??null;
+  const swaps=optimalLineup?hjChSwaps(starters,optimalLineup,season,week):[];
   const bench=entries.filter(e=>[20,21].includes(Number(e.lineupSlotId))).map(e=>String(hjChPlayer(e).id));
-  return {...manager,score,projection,complete,players,bench,titty:tds,yards:tds!==null?players.reduce((a,p)=>a+p.yards,0):null,overachiever:projection!==null?hjChRound(score-projection):null,optimizer:optimal!==null?hjChRound(Math.max(0,optimal-lineupScore)):null,optimal,mvp:null,mvpTie:null};
+  return {...manager,score,projection,complete,players,bench,titty:tds,yards:tds!==null?players.reduce((a,p)=>a+p.yards,0):null,overachiever:projection!==null?hjChRound(score-projection):null,optimizer:optimal!==null?hjChRound(Math.max(0,optimal-lineupScore)):null,optimal,swaps,mvp:null,mvpTie:null};
  });
  const allPlayers=pool.map(e=>{const p=hjChPlayer(e),s=hjChStat(e,season,week);return {id:String(p.id),name:p.fullName,position:HJ_CH_POS[p.defaultPositionId],proTeamId:p.proTeamId??null,opponent:opponents[String(p.proTeamId)]||null,points:hjChNumber(s?.appliedTotal),played:!!s&&((Number(s.stats?.[210])||0)>0||Object.values(s.stats||{}).some(n=>Number(n)!==0))}}).filter(p=>p.position&&p.points!==null&&p.played);
  const awards=[];
