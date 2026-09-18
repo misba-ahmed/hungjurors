@@ -327,6 +327,10 @@ function selectChallenge(id){
  const ch=CHALLENGES.find(c=>c.id===id)||CHALLENGES[0];HJ_CHALLENGE_STATE.active=ch.id;
  document.querySelectorAll('#challenge-strip button').forEach(b=>{b.setAttribute('aria-selected',String(b.dataset.challenge===ch.id));b.tabIndex=b.dataset.challenge===ch.id?0:-1});
  $('#challenge-rule').textContent=ch.rule;$('#challenge-prize-badge').textContent=ch.prize;
+ const title=$('#challenge-title');if(title)title.textContent=ch.label;
+ const rules=$('#challenge-rule'),toggle=$('#challenge-rules-toggle');if(rules)rules.classList.remove('is-open');if(toggle){toggle.setAttribute('aria-expanded','false');toggle.textContent='Full rules';}
+ const strip=$('#challenge-strip'),tab=strip?.querySelector(`[data-challenge="${ch.id}"]`);
+ if(strip&&tab&&strip.scrollWidth>strip.clientWidth)strip.scrollTo({left:Math.max(0,tab.offsetLeft-(strip.clientWidth-tab.offsetWidth)/2),behavior:'smooth'});
  const out=$('#challenge-out');out.setAttribute('role','tabpanel');out.setAttribute('aria-labelledby',`challenge-tab-${ch.id}`);hjRenderChallenge();
 }
 {
@@ -346,7 +350,12 @@ function selectChallenge(id){
   }
  });
  const strip=$('#challenge-strip');
- strip.innerHTML=CHALLENGES.map(ch=>`<button type="button" id="challenge-tab-${ch.id}" role="tab" aria-controls="challenge-out" data-challenge="${ch.id}" aria-selected="false">${ch.label}</button>`).join('');
+ const HJ_CH_TAB_LINES={raffle:['High Score','Raffle'],lms:['Last Man','Standing'],titty:['Titty','Special'],overachiever:['Overachiever','Special'],mvp:['MVP','Special'],optimizer:['Optimizer','Special']};
+ strip.innerHTML=CHALLENGES.map(ch=>{const lines=HJ_CH_TAB_LINES[ch.id]||[ch.label];return `<button type="button" id="challenge-tab-${ch.id}" role="tab" aria-controls="challenge-out" data-challenge="${ch.id}" aria-selected="false" aria-label="${esc(ch.label)}">${lines.map(l=>`<span>${esc(l)}</span>`).join('')}</button>`}).join('');
+ // The rail sticks just under the site nav; keep the offset in step with the nav's real height.
+ const hjChNavOffset=()=>document.documentElement.style.setProperty('--hj-nav-h',`${document.querySelector('nav')?.offsetHeight||0}px`);
+ hjChNavOffset();addEventListener('resize',hjChNavOffset);
+ $('#challenge-rules-toggle')?.addEventListener('click',e=>{const rules=$('#challenge-rule'),open=!rules.classList.contains('is-open');rules.classList.toggle('is-open',open);e.currentTarget.setAttribute('aria-expanded',String(open));e.currentTarget.textContent=open?'Less':'Full rules';});
  strip.addEventListener('click',e=>{const b=e.target.closest('button[data-challenge]');if(b)selectChallenge(b.dataset.challenge)});
  strip.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const tabs=[...strip.querySelectorAll('button')],i=tabs.indexOf(document.activeElement),next=e.key==='Home'?0:e.key==='End'?tabs.length-1:(i+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;selectChallenge(tabs[next].dataset.challenge);tabs[next].focus()});
  const base=hjApplyLiveSeason;
