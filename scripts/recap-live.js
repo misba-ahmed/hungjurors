@@ -48,16 +48,16 @@ function hjRcModel(chosen,weeks,data){
  if(narrow)push('narrow','Narrow victory',narrow.winner,`by ${narrow.margin.toFixed(2)}`,`${pcFpts(narrow.winner.pts)}–${pcFpts(narrow.loser.pts)} over ${narrow.loser.short}`,'win');
  const projected=managers.filter(m=>Number.isFinite(m.proj));
  const over=[...projected].sort((a,b)=>(b.pts-b.proj)-(a.pts-a.proj))[0],under=[...projected].sort((a,b)=>(a.pts-a.proj)-(b.pts-b.proj))[0];
- if(over)push('over','Overachiever',over,`${hjRcSigned(over.pts-over.proj,2)} vs proj`,`${pcFpts(over.pts)} scored · ${pcFpts(over.proj)} projected`,'pos');
- if(under)push('under','Underachiever',under,`${hjRcSigned(under.pts-under.proj,2)} vs proj`,`${pcFpts(under.pts)} scored · ${pcFpts(under.proj)} projected`,'neg');
+ if(over)push('over','Overachiever vs projection',over,`${hjRcSigned(over.pts-over.proj,2)}`,`${pcFpts(over.pts)} scored, ${pcFpts(over.proj)} projected`,'pos');
+ if(under)push('under','Underachiever vs projection',under,`${hjRcSigned(under.pts-under.proj,2)}`,`${pcFpts(under.pts)} scored, ${pcFpts(under.proj)} projected`,'neg');
  const efficient=managers.filter(m=>m.eff!==null);
  const most=[...efficient].sort((a,b)=>b.eff-a.eff)[0],least=[...efficient].sort((a,b)=>a.eff-b.eff)[0];
- if(most)push('most','Most efficient manager',most,`${most.eff.toFixed(1)}%`,`${pcFpts(most.pts)} of ${pcFpts(most.optimal)} max · ${pcFpts(most.optimal-most.pts)} left on bench`,'pos');
- if(least)push('least','Least efficient manager',least,`${least.eff.toFixed(1)}%`,`${pcFpts(least.pts)} of ${pcFpts(least.optimal)} max · ${pcFpts(least.optimal-least.pts)} left on bench`,'neg');
+ if(most)push('most','Most efficient manager',most,`${most.eff.toFixed(1)}%`,`${pcFpts(most.pts)} of ${pcFpts(most.optimal)} max, ${pcFpts(most.optimal-most.pts)} left on bench`,'pos');
+ if(least)push('least','Least efficient manager',least,`${least.eff.toFixed(1)}%`,`${pcFpts(least.pts)} of ${pcFpts(least.optimal)} max, ${pcFpts(least.optimal-least.pts)} left on bench`,'neg');
  const losers=managers.filter(m=>m.result==='L'),winners=managers.filter(m=>m.result==='W');
  const hiLoss=[...losers].sort((a,b)=>b.pts-a.pts)[0],loWin=[...winners].sort((a,b)=>a.pts-b.pts)[0];
- if(hiLoss)push('hiloss','Highest points in a loss',hiLoss,pcFpts(hiLoss.pts),`lost to ${hiLoss.opp} ${pcFpts(hiLoss.oppPts)} · by ${(hiLoss.oppPts-hiLoss.pts).toFixed(2)}`,'neg');
- if(loWin)push('lowin','Lowest points in a win',loWin,pcFpts(loWin.pts),`beat ${loWin.opp} ${pcFpts(loWin.oppPts)} · by ${(loWin.pts-loWin.oppPts).toFixed(2)}`,'win');
+ if(hiLoss)push('hiloss','Highest points in a loss',hiLoss,pcFpts(hiLoss.pts),`lost to ${hiLoss.opp} ${pcFpts(hiLoss.oppPts)} by ${(hiLoss.oppPts-hiLoss.pts).toFixed(2)}`,'neg');
+ if(loWin)push('lowin','Lowest points in a win',loWin,pcFpts(loWin.pts),`beat ${loWin.opp} ${pcFpts(loWin.oppPts)} by ${(loWin.pts-loWin.oppPts).toFixed(2)}`,'win');
  const swings=extra?.games?.size?hjRcSwings(games,week,extra,data):null;
  return {week,managers,games,ordered,avg,complete,leaders,benchers,falseStarters,changer,awards,swings,extra};
 }
@@ -145,9 +145,15 @@ function hjRcPodium(model){
  const step=(m,place)=>m?`<div class="rc-step is-${place}"><span class="rc-place">${place}</span>${place===1?hjRcCrown():''}<span class="rc-step-av manager-profile-trigger" data-manager="${esc(m.short)}" role="button" tabindex="0" aria-label="Open ${esc(m.short)} profile">${av(m.short,'rc-av-big')}</span><b class="manager-profile-trigger" data-manager="${esc(m.short)}" role="button" tabindex="0">${esc(m.short)}</b><span class="rc-step-pts">${pcFpts(m.pts)}</span></div>`:'';
  return `<section class="rc-podium" aria-label="Top three scores">${step(second,2)}${step(first,1)}${step(third,3)}</section>`;
 }
+function hjRcCellar(model){
+ const n=model.ordered.length;if(n<4)return '';
+ const last=model.ordered.slice(-3),[eighth,ninth,tenth]=last;
+ const spot=(m,rank,depth)=>m?`<div class="rc-hole is-${depth}"><span class="rc-hole-av manager-profile-trigger" data-manager="${esc(m.short)}" role="button" tabindex="0" aria-label="Open ${esc(m.short)} profile">${av(m.short,'rc-av-big')}</span><span class="rc-hole-rank">${rank}${rank%10===1&&rank!==11?'st':rank%10===2&&rank!==12?'nd':rank%10===3&&rank!==13?'rd':'th'}${rank===n?' (last)':''}</span><b class="manager-profile-trigger" data-manager="${esc(m.short)}" role="button" tabindex="0">${esc(m.short)}</b><span class="rc-hole-pts">${pcFpts(m.pts)}</span><small>${(model.avg-m.pts).toFixed(1)} below avg</small></div>`:'';
+ return `<section class="rc-block"><h3 class="rc-h">The cellar <small>lowest scores of the week</small></h3><div class="rc-cellar">${spot(ninth,n-1,2)}${spot(tenth,n,3)}${spot(eighth,n-2,1)}<span class="rc-cellar-floor"></span></div></section>`;
+}
 function hjRcAwards(model){
  if(!model.awards.length)return '';
- return `<section class="rc-block"><h3 class="rc-h">Weekly awards</h3><div class="rc-awards">${model.awards.map(a=>`<article class="rc-award is-${a.tone}"><header>${av(a.manager,'rc-av')}<span>${esc(a.label)}</span></header><div class="rc-award-body"><span class="rc-award-name manager-profile-trigger" data-manager="${esc(a.manager)}" role="button" tabindex="0">${esc(a.manager)}</span><b>${a.value}</b><small>${esc(a.sub)}</small></div></article>`).join('')}</div></section>`;
+ return `<section class="rc-block"><h3 class="rc-h">Weekly awards</h3><div class="rc-awards">${model.awards.map(a=>`<article class="rc-award is-${a.tone}"><div class="rc-award-head">${av(a.manager,'rc-av')}<span>${esc(a.label)}</span></div><div class="rc-award-body"><span class="rc-award-name manager-profile-trigger" data-manager="${esc(a.manager)}" role="button" tabindex="0">${esc(a.manager)}</span><b>${a.value}</b><small>${esc(a.sub)}</small></div></article>`).join('')}</div></section>`;
 }
 function hjRcPerformance(model){
  const max=Math.max(...model.managers.map(m=>Math.max(m.pts,Number.isFinite(m.optimal)?m.optimal:0)),1);
@@ -158,7 +164,8 @@ function hjRcPerformance(model){
 function hjRcPlayerCard(p){
  const {attrs,photo}=hjRcHeadshot(p),dst=p.pos==='D/ST',vs=hjChVs(p.opponent);
  const owner=p.manager?`<span class="rc-pcard-owner manager-profile-trigger" data-manager="${esc(p.manager)}" role="button" tabindex="0" aria-label="Open ${esc(p.manager)} profile">${av(p.manager,'rc-av')}<b>${esc(p.manager)}</b></span>`:p.benchOf?`<span class="rc-pcard-owner is-status manager-profile-trigger" data-manager="${esc(p.benchOf)}" role="button" tabindex="0">On ${esc(p.benchOf)}’s bench</span>`:'<span class="rc-pcard-owner is-status">Free agent</span>';
- return `<article class="rc-pcard" role="listitem"><button type="button" class="rc-pcard-photo pc-player-trigger${dst?' is-logo':''}" data-pos="${esc(p.pos)}" ${attrs} aria-label="Open ${esc(p.name)} player card">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">`:''}</button><span class="rc-pcard-pos">${esc(p.pos)}</span><button type="button" class="rc-pcard-name pc-player-trigger" ${attrs}>${esc(hjChShortName({name:p.name,position:p.pos}))}</button>${owner}<strong class="rc-pcard-points">${p.points.toFixed(2)}</strong>${vs?`<span class="rc-pcard-opp">${esc(vs)}</span>`:''}</article>`;
+ // The photo and the name are both player triggers; they sit in separate wrappers because the live-refresh patcher keys siblings by player id.
+ return `<article class="rc-pcard" role="listitem"><span class="rc-pcard-top"><button type="button" class="rc-pcard-photo pc-player-trigger${dst?' is-logo':''}" data-pos="${esc(p.pos)}" ${attrs} aria-label="Open ${esc(p.name)} player card">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">`:''}</button></span><span class="rc-pcard-pos">${esc(p.pos)}</span><span class="rc-pcard-title"><button type="button" class="rc-pcard-name pc-player-trigger" ${attrs}>${esc(hjChShortName({name:p.name,position:p.pos}))}</button></span>${owner}<strong class="rc-pcard-points">${p.points.toFixed(2)}</strong>${vs?`<span class="rc-pcard-opp">${esc(vs)}</span>`:''}</article>`;
 }
 function hjRcCardRow(title,sub,players){
  if(!players.length)return '';
@@ -216,9 +223,20 @@ function hjRcFinalBlow(model){
  const lines=ends.map(s=>{const x=s.blow,sc=x.who.filter(w=>w.side===s.game.winner.short);return `<li${s===lead?' class="is-lead"':''}><span class="rc-end-time">${esc(hjRcTime(x.t,{weekday:'short',hour:'numeric',minute:'2-digit'}))}</span><span class="rc-end-who">${hjRcMgr(s.game.loser.short)}<small>out of reach vs ${esc(s.game.winner.short)} · ${esc(hjRcGameLabel(x.game))}${sc.length?` · ${esc(sc.map(w=>`${w.name} ${hjRcSigned(w.pts,1)}`).join(', '))}`:''}</small></span></li>`}).join('');
  return `<section class="rc-block"><h3 class="rc-h">The final blow <small>the play that put a matchup out of reach for good</small></h3><div class="rc-final"><div class="rc-final-stamp"><b>${esc(hjRcClock(b.t))}</b><small>${esc(lead.night||hjRcDay(b.t))}</small></div><div class="rc-final-body"><p class="rc-copy">${hjRcMgr(g.loser.short)} was finished at <b>${esc(hjRcClock(b.t))} ${esc(hjRcDay(b.t))}</b> — ${esc(hjRcGameLabel(b.game))}, ${esc(qLabel)}${clock?`, ${esc(clock)} left`:''}.</p><blockquote class="rc-play">${esc(hjRcPlayText(b.ev))}</blockquote><p class="rc-copy">${copy}</p></div></div><ol class="rc-ends">${lines}</ol></section>`;
 }
-function hjRcStories(chosen,weeks){
+function hjRcStoryManagers(story,names){
+ const text=`${story.subject||''} ${story.title} ${story.text}`,found=names.filter(n=>new RegExp(`(^|[^A-Za-z])${n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}(?![A-Za-z])`,'i').test(text));
+ const subject=String(story.subject||'').replace(/^rivalry:/,'');
+ return [...new Set([subject,...found])].filter(n=>names.includes(n)).slice(0,3);
+}
+function hjRcStories(chosen,weeks,model){
  const stories=hjRecapStories(chosen,weeks);if(!stories.length)return '';
- return `<section class="rc-block"><h3 class="rc-h">Storylines</h3><div class="rc-stories">${stories.map(s=>`<article class="rc-story"><small class="rc-eyebrow">${esc(s.kind)}</small><h4>${esc(s.title)}</h4><p>${esc(s.text)}</p><p class="rc-story-proof">${esc(s.proof)}</p></article>`).join('')}</div></section>`;
+ const names=model.managers.map(m=>m.short).sort((a,b)=>b.length-a.length);
+ const cards=stories.map(s=>{
+  const who=hjRcStoryManagers(s,names);
+  const proof=String(s.proof||'').split(/\s+·\s+|;\s+|(?<![A-Z]|\bSt|\bJr|\bSr|\bvs|\bNo)\.\s+(?=[A-Z0-9])/).map(x=>x.trim().replace(/\.$/,'')).filter(Boolean);
+  const faces=who.length?`<span class="rc-story-faces">${who.map(n=>`<span class="manager-profile-trigger" data-manager="${esc(n)}" role="button" tabindex="0" aria-label="Open ${esc(n)} profile">${av(n,'rc-av-mid')}</span>`).join('')}</span>`:'';
+  return `<article class="rc-story"><div class="rc-story-head">${faces}<span><small class="rc-eyebrow">${esc(s.kind)}</small><h4>${esc(s.title)}</h4></span></div><p>${esc(s.text)}</p>${proof.length>1?`<ul class="rc-story-proof">${proof.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:proof.length?`<p class="rc-story-proof">${esc(proof[0])}</p>`:''}</article>`}).join('');
+ return `<section class="rc-block"><h3 class="rc-h">Storylines</h3><div class="rc-stories">${cards}</div></section>`;
 }
 function hjRecapHTML(data){
  const weeks=hjCompletedWeeks(data),chosen=weeks.find(w=>w.week===HJ_DATA.recapWeek)||weeks.at(-1);
@@ -229,5 +247,5 @@ function hjRecapHTML(data){
  const select=`<label class="rc-week"><span class="sr-only">Recap week</span><select data-hj-recap-week aria-label="Recap week">${[...weeks].reverse().map(w=>`<option value="${w.week}"${w.week===week?' selected':''}>Week ${w.week}</option>`).join('')}</select></label>`;
  const head=`<div class="rc-head"><div><span class="rc-eyebrow">The weekly edition</span><h2>Week ${week} Recap</h2><p class="rc-sub">${model.managers.length} teams · league average ${pcFpts(model.avg)}${model.complete?'':' · some lineups still syncing'}</p></div>${select}</div>`;
  // The .rc wrapper sits inside the patched body so live refreshes keep the recap's own styling.
- return `<div class="hq-module-body hj-recap"><div class="rc">${head}${hjRcPodium(model)}${hjRcAwards(model)}${hjRcSlipped(model)}${hjRcFinalBlow(model)}${hjRcPerformance(model)}${hjRcCardRow('Players of the week','top scorer at each position',model.leaders)}${hjRcCardRow('Benchwarmers of the week','best scores left on a bench',model.benchers)}${hjRcFalseStarters(model)}${hjRcChanger(model)}${hjRcStories(chosen,weeks)}</div></div>`;
+ return `<div class="hq-module-body hj-recap"><div class="rc">${head}${hjRcPodium(model)}${hjRcAwards(model)}${hjRcSlipped(model)}${hjRcCellar(model)}${hjRcPerformance(model)}${hjRcCardRow('Players of the week','top scorer at each position',model.leaders)}${hjRcCardRow('Benchwarmers of the week','best scores left on a bench',model.benchers)}${hjRcFalseStarters(model)}${hjRcChanger(model)}${hjRcStories(chosen,weeks,model)}</div></div>`;
 }
