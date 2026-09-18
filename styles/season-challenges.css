@@ -258,3 +258,31 @@ tr.ch-detail>td{padding:0!important;border-top:0!important;background:transparen
 /* Sitewide: keep phone browsers from auto-inflating some text lines, and keep a player's game line and stat line the same size. */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .hj-game-context .hj-game-status,.hj-game-context .hj-game-stats{font-size:inherit!important;line-height:inherit!important}
+
+/* Season Challenges header: sticky two-line tab rail, title, prize stamp and rules card. */
+#challenges .ch-top{position:sticky;top:var(--hj-nav-h,42px);z-index:30;background:var(--paper);margin:-8px -20px 0;padding:0 20px;border-bottom:1px solid var(--line)}
+#challenges .ch-rail{display:flex;align-items:stretch;gap:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+#challenges .ch-rail::-webkit-scrollbar{display:none}
+#challenges .ch-rail button{appearance:none;flex:1 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:96px;padding:10px 12px 9px;background:none;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;border-radius:0;font:700 10.5px/1.15 var(--mono);letter-spacing:.12em;text-transform:uppercase;text-align:center;color:#6f8090;cursor:pointer;white-space:nowrap;scroll-snap-align:center;transition:color .15s,border-color .15s}
+#challenges .ch-rail button span{display:block}
+#challenges .ch-rail button:hover{color:var(--navy)}
+#challenges .ch-rail button[aria-selected="true"]{color:var(--navy);border-bottom-color:var(--brass)}
+#challenges .ch-rail button:focus-visible{outline:2px solid var(--brass-bright);outline-offset:-2px}
+#challenges .ch-card{padding:16px 0 4px;margin-bottom:12px}
+#challenges .ch-card-head{display:flex;align-items:center;justify-content:space-between;gap:14px}
+#challenges .ch-title{margin:0;font:900 22px/1.1 var(--serif);color:var(--navy);letter-spacing:-.01em}
+#challenges .ch-stamp{flex:0 0 auto;display:inline-block;transform:rotate(-8deg);padding:4px 10px;border:2px solid var(--brass);border-radius:6px;box-shadow:inset 0 0 0 1.5px var(--paper),inset 0 0 0 2.5px var(--brass);color:var(--brass);font:800 16px/1.2 var(--mono);letter-spacing:.06em;opacity:.92;background:transparent;user-select:none}
+#challenges .ch-rules{margin:9px 0 0;max-width:760px;font:400 13px/1.55 var(--sans);color:#4a5d70}
+#challenges .ch-rules-toggle{display:none;appearance:none;background:none;border:0;padding:8px 0 0;font:700 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--brass);cursor:pointer}
+#challenges .ch-rules-toggle::after{content:" ▾";font-size:11px}
+#challenges .ch-rules-toggle[aria-expanded="true"]::after{content:" ▴"}
+@media (max-width:640px){
+ #challenges .ch-top{margin:-8px -20px 0;padding:0 8px}
+ #challenges .ch-rail button{min-width:0;flex:1 0 calc(100%/3.5);padding:9px 6px 8px;font-size:9.5px;letter-spacing:.09em}
+ #challenges .ch-card{padding-top:14px}
+ #challenges .ch-title{font-size:20px}
+ #challenges .ch-stamp{font-size:14.5px;padding:3px 8px}
+ #challenges .ch-rules{font-size:12.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+ #challenges .ch-rules.is-open{display:block;-webkit-line-clamp:unset;overflow:visible}
+ #challenges .ch-rules-toggle{display:inline-block}
+}
