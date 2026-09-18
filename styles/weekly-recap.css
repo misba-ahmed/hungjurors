@@ -1,6 +1,6 @@
 /* League HQ · Weekly Recap tab. Light cream/navy/brass, graphic-first. */
 /* The tab's own header replaces the panel's generic 'Weekly Recap' head and sticky note. */
-#hq-panel-recap>.hq-module>.hq-module-head{display:none!important}
+#league-hq #hq-panel-recap .hq-module-head,#league-hq .hq-module:has(>.hq-module-body.hj-recap)>.hq-module-head{display:none!important}
 .hj-recap:has(>.rc){padding:0!important}
 .rc{padding:14px 14px 22px;font:400 14px/1.5 var(--sans);color:var(--navy);min-width:0}
 .rc .rc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
