@@ -18,7 +18,7 @@
 .lms-figure svg{display:block;width:100%;height:auto;overflow:visible}
 @container lms (max-width:801px){
  .lms-zoom{display:flex}
- .lms-lineup{--lms-top:48px;min-width:0;width:800px;transition:width .5s cubic-bezier(.22,.7,.2,1)}
+ .lms-lineup{--lms-top:64px;min-width:0;width:800px;transition:width .5s cubic-bezier(.22,.7,.2,1)}
  .lms-view.is-fit .lms-lineup{width:100%}
  .lms-name{transition:font-size .5s cubic-bezier(.22,.7,.2,1)}
  .lms-view.is-fit .lms-name{font-size:clamp(5px,1.15cqi,10px)}
@@ -31,7 +31,7 @@
 .lms-figure.is-eliminated .lms-upper{transform:translateY(57px)}
 .lms-figure.is-eliminated .lms-standing-legs{opacity:0}
 .lms-figure.is-eliminated .lms-seated-legs{opacity:1}
-@media(max-width:600px){#challenge-out .who-cell>.av{width:36px;height:36px;flex-basis:36px}#challenge-out .challenge-live-card .who-cell>.av{width:40px;height:40px;flex-basis:40px}.lms-feed-week{padding:15px;gap:14px;grid-template-columns:1fr}.lms-feed-meta{flex-direction:row;justify-content:space-between;align-items:center}.lms-feed-result>strong{font-size:24px}.lms-feed-result .who-cell{font-size:14px}.lms-lineup{--lms-top:22px}}
+@media(max-width:600px){#challenge-out .who-cell>.av{width:36px;height:36px;flex-basis:36px}#challenge-out .challenge-live-card .who-cell>.av{width:40px;height:40px;flex-basis:40px}.lms-feed-week{padding:15px;gap:14px;grid-template-columns:1fr}.lms-feed-meta{flex-direction:row;justify-content:space-between;align-items:center}.lms-feed-result>strong{font-size:24px}.lms-feed-result .who-cell{font-size:14px}}
 @media(prefers-reduced-motion:reduce){.lms-upper,.lms-figure,.lms-standing-legs,.lms-seated-legs,.lms-lineup,.lms-name,.lms-zoom button{transition:none}}
 /* Shared fitted lineup (raffle tickets, titty bars): the Last Man Standing shell with zoom buttons, double tap and scroll stage. */
 .lineup-view{margin-bottom:18px}
@@ -46,7 +46,7 @@
 .lineup-stat{font:700 10.5px/1.4 var(--mono);letter-spacing:.04em;font-variant-numeric:tabular-nums;color:#8c7138}
 .lineup-stat.is-bold{font:900 17px/1.2 var(--sans);letter-spacing:0;color:var(--navy)}
 @container lms (max-width:801px){
- .lineup{--lineup-width:800px;width:800px;padding-top:48px!important;transition:width .5s cubic-bezier(.22,.7,.2,1)}
+ .lineup{--lineup-width:800px;width:800px;padding-top:64px!important;transition:width .5s cubic-bezier(.22,.7,.2,1)}
  .lms-view.is-fit .lineup{--lineup-width:100cqi;width:100%}
  .lineup-name,.lineup-stat{transition:font-size .5s cubic-bezier(.22,.7,.2,1)}
  .lms-view.is-fit .lineup-name{font-size:clamp(5px,1.15cqi,10px)}
@@ -255,3 +255,6 @@ tr.ch-detail>td{padding:0!important;border-top:0!important;background:transparen
 .challenge-mvp-grid>div>strong{font:800 23px/1.2 var(--sans);color:var(--navy)}
 .challenge-mvp-grid small{color:#738497;font-size:11px}
 @media(max-width:600px){.challenge-live-cards{gap:8px;grid-template-columns:repeat(2,minmax(0,1fr))}.challenge-live-card{padding:12px}.challenge-live-card>strong{font-size:20px}.challenge-live-card .who-cell{font-size:13px}.challenge-mvp-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.challenge-live-table th,.challenge-live-table td{padding:10px 8px}}
+/* Sitewide: keep phone browsers from auto-inflating some text lines, and keep a player's game line and stat line the same size. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.hj-game-context .hj-game-status,.hj-game-context .hj-game-stats{font-size:inherit!important;line-height:inherit!important}
