@@ -83,7 +83,7 @@ function renderStandingsDashboard(animate=false){
  const metricHead=standingsMode==='standings'?(data.people.some(p=>Number.isFinite(p.playoffOdds))?'Odds':'PF rk'):STANDINGS_MODES[standingsMode].label;
  if(!hasSeasonData){out.innerHTML=`<div class="st"><div class="st-modes">${modeButtons}</div><p class="st-note">Standings fill in after Week 1. Here is the starting grid.</p>${standingsPreseasonHTML()}</div>`;return;}
  const ordered=standingsSort(data.people,standingsMode),officialSeed=Object.fromEntries(data.official.map((p,i)=>[p.short,i+1]));
- const opened=[...out.querySelectorAll('.standings-entry.is-open')].map(n=>n.dataset.standingEntry);
+ const opened=[...out.querySelectorAll('.standings-entry.is-open')].map(n=>n.dataset.standingEntry),raceOpen=out.querySelector('.st-race')?.open;
  const oldRects=animate?Object.fromEntries([...out.querySelectorAll('[data-standing-entry]')].map(el=>[el.dataset.standingEntry,el.getBoundingClientRect()])):{};
  out.innerHTML=`<div class="st">
   <div class="st-top"><div class="st-modes" role="tablist" aria-label="Standings view">${modeButtons}</div><p class="st-note">${esc(STANDINGS_MODES[standingsMode].note)}</p></div>
@@ -91,6 +91,7 @@ function renderStandingsDashboard(animate=false){
   ${standingsHistoryHTML(data)}
  </div>`;
  for(const name of opened){const el=out.querySelector(`.standings-entry[data-standing-entry="${CSS.escape(name)}"]`);if(el){el.classList.add('is-open');el.querySelector('.standings-lane')?.setAttribute('aria-expanded','true');}}
+ if(raceOpen!==undefined){const race=out.querySelector('.st-race');if(race)race.open=raceOpen;}
  if(animate&&Object.keys(oldRects).length&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
   [...out.querySelectorAll('[data-standing-entry]')].forEach((el,i)=>{const old=oldRects[el.dataset.standingEntry];if(!old)return;const dy=old.top-el.getBoundingClientRect().top;el.animate([{transform:`translateY(${dy}px)`,opacity:.72},{transform:'translateY(0)',opacity:1}],{duration:380+i*12,easing:'cubic-bezier(.2,.72,.25,1)'})});
  }
