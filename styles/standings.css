@@ -1,0 +1,133 @@
+/* 2026 Standings — compact light table (one phone screen), slim detail tray, collapsed season race. */
+#standings-out .st{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 1px 0 rgba(20,50,79,.04)}
+
+/* View switcher + one-line note */
+#standings-out .st-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--paper)}
+#standings-out .st-modes{display:flex;gap:2px;padding:3px;border-radius:9px;background:var(--paper-dim);flex:0 0 auto}
+#standings-out .st-mode{appearance:none;border:0;background:transparent;border-radius:7px;padding:6px 11px;font:800 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#5c6f82;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s}
+#standings-out .st-mode:hover{color:var(--navy)}
+#standings-out .st-mode.active{background:#fff;color:var(--navy);box-shadow:0 1px 2px rgba(20,50,79,.14)}
+#standings-out .st-mode:focus-visible{outline:2px solid var(--brass-bright);outline-offset:1px}
+#standings-out .st-note{margin:0;font:600 10.5px/1.35 var(--mono);color:#5c6f82;text-align:right;min-width:0}
+
+/* Table */
+#standings-out .st-table{display:block}
+#standings-out .st-row{display:grid;grid-template-columns:38px minmax(0,1fr) 64px 78px 78px 64px 80px 22px;gap:0 10px;align-items:center;min-height:46px;padding:0 12px;overflow:visible;cursor:pointer;outline:none;transition:background .15s}
+#standings-out .st-row::before,#standings-out .st-row::after{content:none!important;display:none!important}
+#standings-out .st-head{min-height:32px;background:var(--paper);cursor:default;font:900 9px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+#standings-out .st-head span{white-space:nowrap}
+#standings-out .st-head .st-rank,#standings-out .st-head .st-who{text-align:left}
+#standings-out .standings-entry{position:relative;z-index:1;border:0}
+#standings-out .standings-entry+.standings-entry{border-top:1px solid rgba(20,50,79,.10)}
+#standings-out .standings-entry.playoff-cut{border-bottom:2px solid var(--brass-bright)}
+#standings-out .standings-entry.playoff-cut::after{content:none!important;display:none!important}
+#standings-out .standings-entry>.st-row:hover,#standings-out .standings-entry>.st-row:focus-visible{background:rgba(185,138,46,.07)}
+#standings-out .standings-entry.is-open>.st-row{background:rgba(20,50,79,.05)}
+#standings-out .st-row:focus-visible{box-shadow:inset 0 0 0 2px var(--brass-bright)}
+
+#standings-out .st-rank{display:flex;align-items:baseline;gap:4px;font:900 17px/1 var(--serif);color:var(--navy);white-space:nowrap}
+#standings-out .st-move{font:800 9px/1 var(--mono);letter-spacing:.02em}
+#standings-out .st-move.up{color:#2f8a4c}
+#standings-out .st-move.down{color:var(--verdict-red)}
+#standings-out .st-who{display:flex;align-items:center;gap:9px;min-width:0;max-width:100%;justify-self:start;cursor:pointer}
+#standings-out .st-who>.av{width:30px;height:30px;flex:0 0 30px}
+#standings-out .st-who>span{display:flex;flex-direction:column;min-width:0;gap:2px}
+#standings-out .st-who b{font:800 13px/1.15 var(--sans);color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#standings-out .st-who small{font:600 9.5px/1.1 var(--mono);color:#6f8090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#standings-out .st-who:hover b{text-decoration:underline;text-decoration-color:var(--brass);text-underline-offset:2px}
+#standings-out .st-rec,#standings-out .st-num,#standings-out .st-metric{font:600 12.5px/1 var(--mono);color:var(--navy-ink);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+#standings-out .st-rec b{font-weight:800;color:var(--navy)}
+#standings-out .st-metric b{font-weight:800;color:var(--navy)}
+#standings-out .st-metric.is-pos b{color:#2f8a4c}
+#standings-out .st-metric.is-neg b{color:var(--verdict-red)}
+#standings-out .st-form{display:flex;justify-content:flex-end}
+#standings-out .st-dots{display:inline-flex;gap:4px;align-items:center}
+#standings-out .st-dots.is-empty{font:600 11px/1 var(--mono);color:#9aa7b3}
+#standings-out .st-dots i{width:9px;height:9px;border-radius:50%;background:#d8d2c2;display:inline-block}
+#standings-out .st-dots i.win{background:#3d9a5b}
+#standings-out .st-dots i.loss{background:var(--verdict-red)}
+#standings-out .st-dots i.tie{background:#9aa7b3}
+#standings-out .st-caret{justify-self:end;font:700 14px/1 var(--sans);color:#9aa7b3;transition:transform .25s ease,color .15s}
+#standings-out .standings-entry.is-open .st-caret{transform:rotate(180deg);color:var(--navy)}
+
+/* Sliding tray */
+#standings-out .st-tray-wrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .32s cubic-bezier(.2,.72,.25,1)}
+#standings-out .standings-entry.is-open .st-tray-wrap{grid-template-rows:1fr}
+#standings-out .st-tray-clip{min-height:0;overflow:hidden}
+#standings-out .st-tray{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:10px;padding:10px 12px 14px 60px;background:var(--paper);border-top:1px solid rgba(20,50,79,.08)}
+#standings-out .st-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+#standings-out .st-tile{display:flex;flex-direction:column;gap:3px;padding:8px 10px;background:#fff;border:1px solid rgba(20,50,79,.12);border-radius:8px;min-width:0}
+#standings-out .st-tile span{font:800 8.5px/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:#6f8090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#standings-out .st-tile b{font:800 15px/1.1 var(--mono);color:var(--navy);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#standings-out .st-tile small{font:600 9.5px/1.25 var(--mono);color:#6f8090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#standings-out .st-tile.is-pos b{color:#2f8a4c}
+#standings-out .st-tile.is-neg b{color:var(--verdict-red)}
+#standings-out .st-weeks{display:flex;align-items:flex-end;gap:3px;height:100%;min-height:72px;padding:6px 8px 16px;background:#fff;border:1px solid rgba(20,50,79,.12);border-radius:8px;position:relative}
+#standings-out .st-weeks i{position:relative;flex:1 1 0;min-width:0;border-radius:3px 3px 0 0;background:#c9c2ae}
+#standings-out .st-weeks i.win{background:var(--brass)}
+#standings-out .st-weeks i.loss{background:#c8746d}
+#standings-out .st-weeks i small{position:absolute;left:0;right:0;bottom:-14px;text-align:center;font:700 7.5px/1 var(--mono);color:#8a97a3}
+
+/* Season race (collapsed by default) */
+#standings-out .st-race{border-top:1px solid var(--line);background:var(--paper)}
+#standings-out .st-race summary{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 12px;cursor:pointer;list-style:none;font:800 10px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--navy)}
+#standings-out .st-race summary::-webkit-details-marker{display:none}
+#standings-out .st-race summary::before{content:"▸";font-size:11px;color:var(--brass);transition:transform .2s}
+#standings-out .st-race[open] summary::before{transform:rotate(90deg)}
+#standings-out .st-race summary span{font-weight:600;letter-spacing:.02em;text-transform:none;color:#6f8090}
+#standings-out .st-race-svg{display:block;width:100%;height:auto;padding:0 8px 8px}
+#standings-out .st-race-grid{stroke:rgba(20,50,79,.09);stroke-width:1}
+#standings-out .st-race-cut{stroke:var(--brass-bright);stroke-width:2;stroke-dasharray:6 5}
+#standings-out .st-race-axis{font:700 10px var(--mono);fill:#6f8090}
+#standings-out .st-race-line{fill:none;stroke:rgba(20,50,79,.16);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+#standings-out .st-race-line.active{stroke:var(--brass);stroke-width:3.5}
+#standings-out .st-race-dot{fill:var(--brass);stroke:#fff;stroke-width:2}
+
+/* Preseason grid */
+#standings-out .st-pre{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:12px}
+#standings-out .st-pre-person{display:grid;grid-template-columns:30px minmax(0,1fr);grid-template-rows:auto auto;column-gap:9px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--paper);cursor:pointer;min-width:0}
+#standings-out .st-pre-person .av{width:30px;height:30px;grid-row:1/3}
+#standings-out .st-pre-person b{font:800 12.5px/1.15 var(--sans);color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#standings-out .st-pre-person span{font:600 9.5px/1 var(--mono);color:#6f8090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+
+/* Tablet */
+@media (max-width:900px){
+ #standings-out .st-row{grid-template-columns:34px minmax(0,1fr) 58px 70px 70px 58px 70px 18px;gap:0 8px;padding:0 10px}
+ #standings-out .st-tray{grid-template-columns:1fr;padding-left:12px}
+ #standings-out .st-weeks{min-height:64px}
+}
+/* Phones: PA and Last 3 drop out so the table fits the width without cutting anything off. */
+@media (max-width:640px){
+ #standings-out .st-top{flex-direction:column;align-items:stretch;gap:6px;padding:8px 10px}
+ #standings-out .st-modes{display:grid;grid-template-columns:repeat(5,1fr)}
+ #standings-out .st-mode{padding:7px 0;font-size:8.5px;letter-spacing:.04em;text-align:center}
+ #standings-out .st-note{text-align:left;font-size:9.5px}
+ #standings-out .st-row{grid-template-columns:28px minmax(0,1fr) 44px 60px 58px 14px;gap:0 6px;min-height:42px;padding:0 8px}
+ #standings-out .st-pa,#standings-out .st-form{display:none}
+ #standings-out .st-head{min-height:28px;font-size:8px;letter-spacing:.1em}
+ #standings-out .st-rank{font-size:15px}
+ #standings-out .st-move{font-size:8px}
+ #standings-out .st-who{gap:6px}
+ #standings-out .st-who>.av{width:26px;height:26px;flex-basis:26px}
+ #standings-out .st-who b{font-size:12px}
+ #standings-out .st-who small{font-size:8.5px}
+ #standings-out .st-rec,#standings-out .st-num,#standings-out .st-metric{font-size:11.5px}
+ #standings-out .st-tray{padding:8px 8px 12px;gap:8px}
+ #standings-out .st-tiles{grid-template-columns:1fr 1fr;gap:5px}
+ #standings-out .st-tile{padding:7px 8px}
+ #standings-out .st-tile b{font-size:13.5px}
+ #standings-out .st-tile span{font-size:7.5px}
+ #standings-out .st-tile small{font-size:8.5px}
+ #standings-out .st-race summary{padding:8px 10px;font-size:9px}
+ #standings-out .st-race summary span{display:block;width:100%}
+ #standings-out .st-race-svg{padding:0 4px 6px}
+ #standings-out .st-race-axis{font-size:12px}
+ #standings-out .st-pre{grid-template-columns:1fr 1fr;gap:6px;padding:10px}
+}
+@media (max-width:360px){
+ #standings-out .st-who small{display:none}
+ #standings-out .st-row{grid-template-columns:26px minmax(0,1fr) 42px 56px 54px 12px;gap:0 5px}
+}
+@media (prefers-reduced-motion:reduce){
+ #standings-out .st-tray-wrap,#standings-out .st-caret{transition:none}
+}
