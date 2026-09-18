@@ -1,4 +1,4 @@
-const HJ_CHALLENGE_STATE={data:null,weeks:new Map(),model:null,names:[],pending:null,active:'raffle',error:'',checkedAt:0,lmsFit:true,raffleFit:true,tittyFit:true,mvpFit:true,overFit:true,optFit:true,tittyObserver:null,profileTimer:null,suppressClickUntil:0};
+const HJ_CHALLENGE_STATE={data:null,weeks:new Map(),model:null,names:[],pending:null,active:'raffle',error:'',checkedAt:0,lmsFit:true,raffleFit:true,tittyFit:true,mvpFit:true,overFit:true,optFit:true,profileTimer:null,suppressClickUntil:0};
 function hjChallengeNames(data){return (data.teams||[]).map(t=>({id:String(t.id),short:hjMatchManager(t,data)||hjOwnerName(t,data)||hjTeamName(t)}))}
 function hjChallengeWeekActive(data,week){
  return (data.schedule||[]).some(g=>Number(g.matchupPeriodId)===week&&['home','away'].some(k=>Math.abs(Number(g[k]?.pointsByScoringPeriod?.[week]??g[k]?.totalPointsLive??0))>0))||(typeof NFL_WEEK1!=='undefined'&&NFL_WEEK1.some(g=>Number(g.week)===week&&['in','post'].includes(g.state)));
@@ -44,7 +44,7 @@ function hjChPlayerAttrs(p){
 }
 function hjChMetricCard(label,value,detail=''){return `<div class="challenge-live-card"><span>${esc(label)}</span><strong>${value}</strong>${detail?`<small>${esc(detail)}</small>`:''}</div>`}
 function hjChFormat(key,value){return Number.isFinite(value)?key==='titty'||key==='mvp'?String(value):(key==='overachiever'&&value>0?'+':'')+value.toFixed(2):'—'}
-function hjChTable(headers,rows){return `<div class="tbl-wrap challenge-live-table"><table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`}
+function hjChTable(headers,rows,cls=''){return `<div class="tbl-wrap challenge-live-table${cls?` ${cls}`:''}"><table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`}
 function hjChOdds(count,total){return total?`${Number((100*count/total).toFixed(1))}%`:'0%'}
 function hjChRaffleTicket(week,score){
  // One raffle ticket: stub with perforation, side notches, week on top and that week's score under it.
@@ -60,13 +60,13 @@ function hjChRaffle(model){
  const earned=new Map(names.map(n=>[n.id,[]]));
  for(const w of model.raffle)for(const t of w.winners)earned.get(t.id)?.push({week:w.week,score:w.score});
  const figures=names.map((n,i)=>hjChRaffleFigure(n,i,earned.get(n.id)||[],total)).join('');
- const history=model.raffle.map(w=>`<tr><td>Week ${w.week}</td><td>${w.winners.map(t=>hjChManager(t.short)).join(' ')}</td><td class="num">${w.score.toFixed(2)}</td></tr>`).join('')||'<tr><td colspan="3" class="raffle-empty">Tickets appear when ESPN finalizes Week 1.</td></tr>';
- return hjChLineupView({id:'raffle-lineup',fitKey:'raffleFit',label:'Highest Scorer Raffle tickets by manager',figures,count:names.length})+hjChTable(['Week','Manager','Score'],history);
+ const history=model.raffle.map(w=>`<tr><td><b>Week ${w.week}</b></td><td>${w.winners.map(t=>hjChManager(t.short)).join(' ')}</td><td class="num"><b>${w.score.toFixed(2)}</b></td></tr>`).join('')||'<tr><td colspan="3" class="raffle-empty">Tickets appear when ESPN finalizes Week 1.</td></tr>';
+ return hjChLineupView({id:'raffle-lineup',fitKey:'raffleFit',label:'Highest Scorer Raffle tickets by manager',figures,count:names.length})+`<h4 class="aw-sub challenge-sub">Weekly Highest Scorer</h4>`+hjChTable(['Week','Manager','Score'],history,'week-table');
 }
 /* Shared fitted lineup: zoom buttons and double tap from Last Man Standing, something above each head, name and a stat beneath. */
 function hjChLineupView({id,fitKey,label,figures,count}){
  const fit=HJ_CHALLENGE_STATE[fitKey];
- return `<div class="lms-view lineup-view${fit?' is-fit':''}" data-fit-key="${fitKey}">${hjChZoomButtons(fit,id)}<div class="lms-stage lineup-stage" style="touch-action:manipulation" tabindex="0" role="group" aria-label="${esc(label)}"><div class="lineup" id="${id}" style="--lineup-count:${count||1}"><div class="lineup-row">${figures}</div></div></div></div>`;
+ return `<div class="lms-view lineup-view${fit?' is-fit':''}" data-fit-key="${fitKey}"><div class="lms-stage lineup-stage" style="touch-action:manipulation" tabindex="0" role="group" aria-label="${esc(label)}"><div class="lineup" id="${id}" style="--lineup-count:${count||1}"><div class="lineup-row">${figures}</div></div></div>${hjChZoomButtons(fit,id)}</div>`;
 }
 function hjChLineupFigure({manager,index,key,label,above='',stat='',statClass='',crown=false,style=''}){
  return `<div class="lineup-figure${crown?' is-leader':''}" role="group" aria-label="${label}" data-lineup-manager="${esc(manager.id)}" style="${hjChJacket(index)};${style}">${above}${hjChFigureArt(manager,`${key}-head-${index}`,crown)}<span class="lineup-label"><span class="lineup-name manager-profile-trigger" data-manager="${esc(manager.short)}" role="button" tabindex="0" aria-label="Open ${esc(manager.short)} profile">${esc(manager.short)}</span><span class="lineup-stat ${statClass}" aria-hidden="true">${stat}</span></span></div>`;
@@ -90,28 +90,13 @@ function hjChOver(model){
   return `<div class="lineup-figure over-figure ${neg?'is-neg':'is-pos'}${crown?' is-leader':''}" role="group" aria-label="${label}" data-lineup-manager="${esc(n.id)}" data-over-id="${esc(n.id)}" style="${hjChJacket(i)};--over-shift:${ratio.toFixed(4)}"><b class="lineup-bar-value ${neg?'is-neg':'is-pos'}">${hjChSigned(r.total)}${r.missing.length?'*':''}</b><span class="${neg?'over-pit':'over-pedestal'}" aria-hidden="true"></span><div class="over-body">${hjChFigureArt(n,`over-head-${i}`,crown)}</div><span class="lineup-label"><span class="lineup-name manager-profile-trigger" data-manager="${esc(n.short)}" role="button" tabindex="0" aria-label="Open ${esc(n.short)} profile">${esc(n.short)}</span><span class="lineup-stat over-behind" aria-hidden="true">${crown?'<em>Leader</em>':`<b>${behind.toFixed(2)}</b><em>Behind</em>`}</span></span></div>`;
  }).join('');
  // Weekly over/under heatmap in the League Awards style; cells open a small projection card.
- const weeks=[...model.weeks].reverse(),cells=rows.flatMap(r=>r.history.map(h=>Math.abs(h.value))).filter(Number.isFinite),maxAbsV=Math.max(1,...cells);
+ const weeks=model.weeks.filter(w=>w.final).reverse(),cells=rows.flatMap(r=>r.history.map(h=>Math.abs(h.value))).filter(Number.isFinite),maxAbsV=Math.max(1,...cells);
  const shade=v=>v>=0?`rgba(46,125,79,${(0.1+0.75*Math.abs(v)/maxAbsV).toFixed(3)})`:`rgba(179,53,44,${(0.1+0.75*Math.abs(v)/maxAbsV).toFixed(3)})`;
  const head=`<tr><th>Manager</th><th>Total</th>${weeks.map((w,i)=>`<th class="wk${i===0?' new':''}">${w.week<=model.regularEnd?`W${w.week}`:`R${w.week-model.regularEnd}`}</th>`).join('')}</tr>`;
- const body=rows.map(r=>`<tr><td class="nm">${hjChManager(r.short)}</td><td class="tot ${r.total<0?'is-neg':'is-pos'}">${hjChSigned(r.total)}${r.missing.length?'*':''}</td>${weeks.map(w=>{const h=r.history.find(h=>h.week===w.week);return h&&Number.isFinite(h.value)?`<td style="background:${shade(h.value)}"><button type="button" class="over-cell" data-over-manager="${esc(r.short)}" data-over-week="${w.week}" data-over-proj="${Number.isFinite(h.projection)?h.projection.toFixed(2):'—'}" data-over-actual="${Number.isFinite(h.score)?h.score.toFixed(2):'—'}" aria-label="${esc(r.short)} Week ${w.week}: ${hjChSigned(h.value)}">${hjChSigned(h.value)}</button></td>`:'<td class="is-missing">—</td>'}).join('')}</tr>`).join('');
- const heat=weeks.length?`<div class="heat-wrap over-heat"><table class="heat"><thead>${head}</thead><tbody>${body}</tbody></table></div>`:'<p class="challenge-live-note">The chart fills in when Week 1 kicks off.</p>';
- const legend=`<div class="legend"><span><span class="sw" style="background:rgba(46,125,79,.7)"></span>beat projection</span><span><span class="sw" style="background:rgba(179,53,44,.7)"></span>fell short</span><span>${model.liveWeek?`Week ${model.liveWeek} in progress · updates live`:model.finalWeek?`Final through Week ${model.finalWeek}`:''}</span></div>`;
+ const body=rows.map(r=>`<tr><td class="nm">${hjChManager(r.short)}</td><td class="tot ${r.total<0?'is-neg':'is-pos'}">${hjChSigned(r.total)}${r.missing.length?'*':''}</td>${weeks.map(w=>{const h=r.history.find(h=>h.week===w.week);return h&&Number.isFinite(h.value)?`<td style="background:${shade(h.value)}"><button type="button" class="ch-cell" data-ch-kind="over" data-ch-id="${esc(r.id)}" data-ch-week="${w.week}" aria-expanded="false" aria-label="${esc(r.short)} Week ${w.week}: ${hjChSigned(h.value)}">${hjChSigned(h.value)}</button></td>`:'<td class="is-missing">—</td>'}).join('')}</tr>`).join('');
+ const heat=weeks.length?`<div class="heat-wrap over-heat ch-heat"><table class="heat"><thead>${head}</thead><tbody>${body}</tbody></table></div>`:'<p class="challenge-live-note">The chart fills in when Week 1 is final.</p>';
+ const legend=`<div class="legend"><span><span class="sw" style="background:rgba(46,125,79,.7)"></span>beat projection</span><span><span class="sw" style="background:rgba(179,53,44,.7)"></span>fell short</span><span>${model.liveWeek?`Week ${model.liveWeek} locks after its last game`:model.finalWeek?`Final through Week ${model.finalWeek}`:''}</span></div>`;
  return `<div class="over-view">${hjChLineupView({id:'over-lineup',fitKey:'overFit',label:'Overachiever Special season totals by manager',figures,count:names.length})}${rows.some(r=>r.missing.length)?'<p class="challenge-live-note">* Partial total. Missing weeks stay pending until ESPN supplies the records.</p>':''}<h4 class="aw-sub challenge-sub">Weekly Over/Under</h4>${heat}${weeks.length?legend:''}</div>`;
-}
-function hjChCloseOverCard(){
- const card=document.querySelector('.over-card');if(card)card.remove();
- document.querySelectorAll('.over-cell.is-open').forEach(c=>c.classList.remove('is-open'));
-}
-function hjChOpenOverCard(cell){
- hjChCloseOverCard();
- const wrap=cell.closest('.heat-wrap');if(!wrap)return;
- const card=document.createElement('div');card.className='over-card';card.setAttribute('role','dialog');
- card.innerHTML=`<b>${esc(cell.dataset.overManager)} · Week ${esc(cell.dataset.overWeek)}</b><span>${esc(cell.dataset.overProj)} proj</span><span>${esc(cell.dataset.overActual)} actual</span>`;
- wrap.appendChild(card);cell.classList.add('is-open');
- const td=cell.closest('td'),left=td.offsetLeft+td.offsetWidth/2,cw=card.offsetWidth,above=td.offsetTop>card.offsetHeight+14;
- card.style.left=`${Math.max(6,Math.min(wrap.scrollWidth-cw-6,left-cw/2))}px`;
- card.style.top=above?`${td.offsetTop-card.offsetHeight-8}px`:`${td.offsetTop+td.offsetHeight+8}px`;
- card.classList.add(above?'is-above':'is-below');
 }
 function hjChLeaders(rows){
  const top=rows[0];
@@ -148,57 +133,66 @@ function hjChOpt(model){
  const bench=`<div class="opt-bench" aria-hidden="true"><span class="opt-bench-seat"></span>${legs}</div>`;
  const lineup=hjChLineupView({id:'opt-lineup',fitKey:'optFit',label:'Optimizer Special points left on the bench by manager',figures:bench+figures,count:names.length});
  // Weekly gap grid in the League Awards style; a cell expands a breakdown row beneath it.
- const weeks=[...model.weeks].reverse(),cells=rows.flatMap(r=>r.history.map(h=>h.value)).filter(Number.isFinite),maxV=Math.max(1,...cells);
+ const weeks=model.weeks.filter(w=>w.final).reverse(),cells=rows.flatMap(r=>r.history.map(h=>h.value)).filter(Number.isFinite),maxV=Math.max(1,...cells);
  const shade=v=>`rgba(179,53,44,${v===0?0:(0.08+0.75*v/maxV).toFixed(3)})`;
  const head=`<tr><th>Manager</th><th>Total</th>${weeks.map((w,i)=>`<th class="wk${i===0?' new':''}">${w.week<=model.regularEnd?`W${w.week}`:`R${w.week-model.regularEnd}`}</th>`).join('')}</tr>`;
- const body=rows.map(r=>`<tr data-opt-row="${esc(r.id)}"><td class="nm">${hjChManager(r.short)}</td><td class="tot">${r.total.toFixed(2)}${r.missing.length?'*':''}</td>${weeks.map(w=>{const h=r.history.find(h=>h.week===w.week);return h&&Number.isFinite(h.value)?`<td style="background:${shade(h.value)}"${h.value===0?' class="is-perfect"':''}><button type="button" class="opt-cell" data-opt-id="${esc(r.id)}" data-opt-week="${w.week}" aria-expanded="false" aria-label="${esc(r.short)} Week ${w.week}: ${h.value.toFixed(2)} left on the bench">${h.value.toFixed(2)}</button></td>`:'<td class="is-missing">—</td>'}).join('')}</tr>`).join('');
- const heat=weeks.length?`<div class="heat-wrap opt-heat"><table class="heat"><thead>${head}</thead><tbody>${body}</tbody></table></div>`:'<p class="challenge-live-note">The chart fills in when Week 1 kicks off.</p>';
- const legend=`<div class="legend"><span><span class="sw" style="background:rgba(179,53,44,.08)"></span>perfect lineup (0)</span><span><span class="sw" style="background:rgba(179,53,44,.8)"></span>left a lot behind</span><span>${model.liveWeek?`Week ${model.liveWeek} in progress · updates live`:model.finalWeek?`Final through Week ${model.finalWeek}`:''}</span></div>`;
- return `<div class="opt-view">${lineup}${rows.some(r=>r.missing.length)?'<p class="challenge-live-note">* Partial total. Missing weeks stay pending until ESPN supplies the records.</p>':''}<h4 class="aw-sub challenge-sub">Weekly Gap to Optimal Lineup</h4>${heat}${weeks.length?legend:''}</div>`;
+ const body=rows.map(r=>`<tr data-opt-row="${esc(r.id)}"><td class="nm">${hjChManager(r.short)}</td><td class="tot">${r.total.toFixed(2)}${r.missing.length?'*':''}</td>${weeks.map(w=>{const h=r.history.find(h=>h.week===w.week);return h&&Number.isFinite(h.value)?`<td style="background:${shade(h.value)}"${h.value===0?' class="is-perfect"':''}><button type="button" class="ch-cell" data-ch-kind="opt" data-ch-id="${esc(r.id)}" data-ch-week="${w.week}" aria-expanded="false" aria-label="${esc(r.short)} Week ${w.week}: ${h.value.toFixed(2)} left on the bench">${h.value.toFixed(2)}</button></td>`:'<td class="is-missing">—</td>'}).join('')}</tr>`).join('');
+ const heat=weeks.length?`<div class="heat-wrap opt-heat ch-heat"><table class="heat"><thead>${head}</thead><tbody>${body}</tbody></table></div>`:'<p class="challenge-live-note">The chart fills in when Week 1 is final.</p>';
+ const legend=`<div class="legend"><span><span class="sw" style="background:rgba(179,53,44,.08)"></span>perfect lineup (0)</span><span><span class="sw" style="background:rgba(179,53,44,.8)"></span>left a lot behind</span><span>${model.liveWeek?`Week ${model.liveWeek} locks after its last game`:model.finalWeek?`Final through Week ${model.finalWeek}`:''}</span></div>`;
+ return `<div class="opt-view">${lineup}${rows.some(r=>r.missing.length)?'<p class="challenge-live-note">* Partial total. Missing weeks stay pending until ESPN supplies the records.</p>':''}<h4 class="aw-sub challenge-sub">Weekly Points Left on the Bench</h4>${heat}${weeks.length?legend:''}</div>`;
 }
-function hjChOptPlayer(p){
+function hjChOptPlayer(p,points=true){
  if(!p)return '<span class="opt-empty">empty slot</span>';
- return `<button type="button" class="pc-player-trigger opt-player" ${hjChPlayerAttrs(p).attrs}>${esc(hjChShortName(p))}</button><span class="opt-pts">${p.points.toFixed(2)}</span>`;
+ return `<button type="button" class="pc-player-trigger opt-player" ${hjChPlayerAttrs(p).attrs}>${esc(hjChShortName(p))}</button>${points&&Number.isFinite(p.points)?`<span class="opt-pts">${p.points.toFixed(2)}</span>`:''}`;
 }
-function hjChOptDetailHTML(id,week){
+function hjChDetailHTML(kind,id,week){
  const model=HJ_CHALLENGE_STATE.model,w=model?.weeks.find(w=>w.week===week),t=w?.teams.find(t=>t.id===id);
  if(!t)return '';
+ const title=`<b class="ch-detail-title">${hjChManager(t.short)}<span>Week ${week}${w.final?'':' · in progress'}</span></b>`;
+ if(kind==='titty'){
+  const scorers=(t.players||[]).filter(p=>p.tds>0).sort((a,b)=>b.tds-a.tds||a.name.localeCompare(b.name));
+  const lines=scorers.map(p=>`<li><span class="opt-slot">${esc(p.position||'')}</span><span class="opt-in">${hjChOptPlayer(p,false)}</span><b class="opt-gain">${p.tds}</b></li>`).join('');
+  return `${title}${lines?`<ul class="opt-swaps is-simple">${lines}</ul>`:`<p class="ch-detail-note">No titties${w.final?'':' yet'}.</p>`}<div class="ch-detail-total"><span>Week total</span><b class="opt-gain">${Number.isFinite(t.titty)?t.titty:'—'}</b></div>`;
+ }
+ if(kind==='over'){
+  const diff=Number.isFinite(t.overachiever)?t.overachiever:null;
+  return `${title}<div class="ch-detail-total is-over"><span>Projected <b>${Number.isFinite(t.projection)?t.projection.toFixed(2):'—'}</b></span><span class="opt-arrow" aria-hidden="true">→</span><span>Actual <b>${Number.isFinite(t.score)?t.score.toFixed(2):'—'}</b></span><b class="opt-gain ${diff!==null&&diff<0?'is-neg':'is-pos'}">${diff===null?'—':hjChSigned(diff)}</b></div>`;
+ }
  const gap=Number.isFinite(t.optimizer)?t.optimizer:null;
- const title=`<b class="opt-detail-title">${hjChManager(t.short)}<span>Week ${week}${w.final?'':' · in progress'}</span></b>`;
- if(gap===null)return `${title}<p class="opt-detail-note">Waiting for complete ESPN lineups.</p>`;
- if(!t.swaps?.length||gap===0)return `${title}<p class="opt-detail-perfect">✓ Perfect lineup · <b>${t.score.toFixed(2)}</b></p>`;
+ if(gap===null)return `${title}<p class="ch-detail-note">Waiting for complete ESPN lineups.</p>`;
+ if(!t.swaps?.length||gap===0)return `${title}<p class="ch-detail-perfect">✓ Perfect lineup · <b>${t.score.toFixed(2)}</b></p>`;
  const lines=t.swaps.map(sw=>`<li><span class="opt-slot">${esc(sw.slot)}</span><span class="opt-out">${hjChOptPlayer(sw.out)}</span><span class="opt-arrow" aria-hidden="true">→</span><span class="opt-in">${hjChOptPlayer(sw.in)}</span><b class="opt-gain">+${sw.gain.toFixed(2)}</b></li>`).join('');
- return `${title}<ul class="opt-swaps">${lines}</ul><div class="opt-detail-total"><span>Actual <b>${t.score.toFixed(2)}</b></span><span class="opt-arrow" aria-hidden="true">→</span><span>Optimal <b>${t.optimal.toFixed(2)}</b></span><b class="opt-gain">+${gap.toFixed(2)}</b></div>`;
+ return `${title}<ul class="opt-swaps">${lines}</ul><div class="ch-detail-total"><span>Actual <b>${t.score.toFixed(2)}</b></span><span class="opt-arrow" aria-hidden="true">→</span><span>Optimal <b>${t.optimal.toFixed(2)}</b></span><b class="opt-gain">+${gap.toFixed(2)}</b></div>`;
 }
-function hjChPlaceOptArrow(){
- const panel=document.querySelector('.opt-detail-panel'),cell=document.querySelector('.opt-cell.is-open'),wrap=cell?.closest('.heat-wrap');if(!panel||!cell||!wrap)return;
+function hjChPlaceDetailArrow(){
+ const panel=document.querySelector('.ch-detail-panel'),cell=document.querySelector('.ch-cell.is-open'),wrap=cell?.closest('.heat-wrap');if(!panel||!cell||!wrap)return;
  const c=cell.getBoundingClientRect(),w=wrap.getBoundingClientRect();
  panel.style.setProperty('--panel-w',`${wrap.clientWidth}px`);
  panel.style.setProperty('--arrow-x',`${Math.max(14,Math.min(wrap.clientWidth-14,c.left+c.width/2-w.left))}px`);
 }
-function hjChCloseOptDetail(animate=true){
- const row=document.querySelector('tr.opt-detail');
- document.querySelectorAll('.opt-cell.is-open').forEach(c=>{c.classList.remove('is-open');c.setAttribute('aria-expanded','false')});
+function hjChCloseDetail(animate=true){
+ const row=document.querySelector('tr.ch-detail');
+ document.querySelectorAll('.ch-cell.is-open').forEach(c=>{c.classList.remove('is-open');c.setAttribute('aria-expanded','false')});
  if(!row)return;
- const wrap=row.querySelector('.opt-detail-wrap');
+ const wrap=row.querySelector('.ch-detail-wrap');
  if(!animate||!wrap||matchMedia('(prefers-reduced-motion: reduce)').matches){row.remove();return;}
  wrap.classList.remove('is-open');wrap.addEventListener('transitionend',()=>row.remove(),{once:true});setTimeout(()=>row.isConnected&&row.remove(),450);
 }
-function hjChOpenOptDetail(cell,animate=true){
- const tr=cell.closest('tr'),table=tr.closest('table'),existing=document.querySelector('tr.opt-detail'),sameRow=existing&&existing.previousElementSibling===tr;
- if(existing&&!sameRow)hjChCloseOptDetail(animate);
- document.querySelectorAll('.opt-cell.is-open').forEach(c=>{c.classList.remove('is-open');c.setAttribute('aria-expanded','false')});
+function hjChOpenDetail(cell,animate=true){
+ const tr=cell.closest('tr'),table=tr.closest('table'),existing=document.querySelector('tr.ch-detail'),sameRow=existing&&existing.previousElementSibling===tr;
+ if(existing&&!sameRow)hjChCloseDetail(animate);
+ document.querySelectorAll('.ch-cell.is-open').forEach(c=>{c.classList.remove('is-open');c.setAttribute('aria-expanded','false')});
  cell.classList.add('is-open');cell.setAttribute('aria-expanded','true');
- const html=hjChOptDetailHTML(cell.dataset.optId,Number(cell.dataset.optWeek));
+ const html=hjChDetailHTML(cell.dataset.chKind,cell.dataset.chId,Number(cell.dataset.chWeek));
  let row=sameRow?existing:null;
  if(!row){
-  row=document.createElement('tr');row.className='opt-detail';
-  row.innerHTML=`<td colspan="${tr.children.length}"><div class="opt-detail-wrap${animate?'':' is-open'}"><div class="opt-detail-inner"><div class="opt-detail-panel">${html}</div></div></div></td>`;
+  row=document.createElement('tr');row.className='ch-detail';
+  row.innerHTML=`<td colspan="${tr.children.length}"><div class="ch-detail-wrap${animate?'':' is-open'}"><div class="ch-detail-inner"><div class="ch-detail-panel">${html}</div></div></div></td>`;
   tr.after(row);
-  if(animate){row.getBoundingClientRect();requestAnimationFrame(()=>row.querySelector('.opt-detail-wrap').classList.add('is-open'));}
- }else row.querySelector('.opt-detail-panel').innerHTML=html;
- hjChPlaceOptArrow();
- const wrap=table.closest('.heat-wrap');if(wrap&&!wrap.dataset.optBound){wrap.dataset.optBound='1';wrap.addEventListener('scroll',hjChPlaceOptArrow,{passive:true});}
+  if(animate){row.getBoundingClientRect();requestAnimationFrame(()=>row.querySelector('.ch-detail-wrap').classList.add('is-open'));}
+ }else row.querySelector('.ch-detail-panel').innerHTML=html;
+ hjChPlaceDetailArrow();
+ const wrap=table.closest('.heat-wrap');if(wrap&&!wrap.dataset.chBound){wrap.dataset.chBound='1';wrap.addEventListener('scroll',hjChPlaceDetailArrow,{passive:true});}
 }
 function hjChTitty(model){
  const names=HJ_CHALLENGE_STATE.names,rows=model.totals.titty,byId=new Map(rows.map(r=>[r.id,r]));
@@ -213,38 +207,10 @@ function hjChTitty(model){
  const weeks=[...model.weeks].reverse(),cells=rows.flatMap(r=>r.history.map(h=>h.value)).filter(Number.isFinite),maxCell=Math.max(1,...cells);
  const shade=v=>`rgba(185,138,46,${v===0?0:(0.12+0.78*v/maxCell).toFixed(3)})`;
  const head=`<tr><th>Manager</th><th>Total</th>${weeks.map((w,i)=>`<th class="wk${i===0?' new':''}">${w.week<=model.regularEnd?`W${w.week}`:`R${w.week-model.regularEnd}`}</th>`).join('')}</tr>`;
- const body=rows.map(r=>`<tr><td class="nm">${hjChManager(r.short)}</td><td class="tot">${r.total}${r.missing.length?'*':''}</td>${weeks.map(w=>{const v=r.history.find(h=>h.week===w.week)?.value;return Number.isFinite(v)?`<td style="background:${shade(v)}">${v}</td>`:'<td class="is-missing">—</td>'}).join('')}</tr>`).join('');
- const heat=weeks.length?`<div class="heat-wrap"><table class="heat"><thead>${head}</thead><tbody>${body}</tbody></table></div>`:'<p class="challenge-live-note">The heatmap fills in when Week 1 kicks off.</p>';
+ const body=rows.map(r=>`<tr><td class="nm">${hjChManager(r.short)}</td><td class="tot">${r.total}${r.missing.length?'*':''}</td>${weeks.map(w=>{const v=r.history.find(h=>h.week===w.week)?.value;return Number.isFinite(v)?`<td style="background:${shade(v)}"><button type="button" class="ch-cell" data-ch-kind="titty" data-ch-id="${esc(r.id)}" data-ch-week="${w.week}" aria-expanded="false" aria-label="${esc(r.short)} Week ${w.week}: ${v} titties">${v}</button></td>`:'<td class="is-missing">—</td>'}).join('')}</tr>`).join('');
+ const heat=weeks.length?`<div class="heat-wrap ch-heat"><table class="heat"><thead>${head}</thead><tbody>${body}</tbody></table></div>`:'<p class="challenge-live-note">The heatmap fills in when Week 1 kicks off.</p>';
  const legend=`<div class="legend"><span><span class="sw" style="background:rgba(185,138,46,.15)"></span>few</span><span><span class="sw" style="background:rgba(185,138,46,.9)"></span>many</span><span>${model.liveWeek?`Week ${model.liveWeek} in progress · updates live`:model.finalWeek?`Final through Week ${model.finalWeek}`:''}</span></div>`;
- // Collapsible weeks: each manager row expands to the players who scored the titties.
- const history=weeks.map((w,i)=>{
-  const trs=[...w.teams].sort((a,b)=>(Number.isFinite(b.titty)?b.titty:-1)-(Number.isFinite(a.titty)?a.titty:-1)||a.short.localeCompare(b.short)).map(t=>{
-   const key=`${w.week}:${t.id}`,scorers=(t.players||[]).filter(p=>p.tds>0).sort((a,b)=>b.tds-a.tds||a.name.localeCompare(b.name));
-   const list=scorers.map(p=>`<li><button type="button" class="pc-player-trigger titty-player" ${hjChPlayerAttrs(p).attrs} aria-label="Open ${esc(p.name)} player card">${esc(hjChShortName(p))}</button><b>${p.tds}</b></li>`).join('')||`<li class="is-empty">No titties${w.final?'':' yet'}</li>`;
-   return `<tr class="titty-row" data-titty-key="${key}" role="button" tabindex="0" aria-expanded="false"><td>${hjChManager(t.short)}</td><td class="num">${hjChFormat('titty',t.titty)}</td></tr><tr class="titty-detail" data-titty-key="${key}" hidden><td colspan="2"><ul class="titty-list">${list}</ul></td></tr>`;
-  }).join('');
-  return `<details class="challenge-live-details"${i===0?' open':''}><summary>Week ${w.week} <span>${w.final?'Final':'In progress'}</span></summary>${hjChTable(['Manager','Week total'],trs)}</details>`;
- }).join('');
- return `<div class="titty-view">${hjChLineupView({id:'titty-lineup',fitKey:'tittyFit',label:'Titty Special season totals by manager',figures,count:names.length})}${rows.some(r=>r.missing.length)?'<p class="challenge-live-note">* Partial total. Missing weeks stay pending until ESPN supplies the records.</p>':''}<h4 class="aw-sub challenge-sub">Week-by-Week Heatmap</h4>${heat}${weeks.length?legend:''}<div class="titty-weeks">${history}</div></div>`;
-}
-function hjChToggleTitty(row,open){
- const out=row.closest('#challenge-out'),key=row.dataset.tittyKey,detail=out.querySelector(`.titty-detail[data-titty-key="${CSS.escape(key)}"]`);if(!detail)return;
- const next=open??detail.hidden;
- row.setAttribute('aria-expanded',String(next));row.classList.toggle('is-open',next);detail.hidden=!next;
- if(next)hjChWatchTitty(detail);else{delete detail.dataset.seen;HJ_CHALLENGE_STATE.tittyObserver?.unobserve(detail);}
-}
-function hjChWatchTitty(detail){
- // Collapse an expanded list once it has been on screen and then scrolls out of view.
- if(!('IntersectionObserver' in window))return;
- HJ_CHALLENGE_STATE.tittyObserver??=new IntersectionObserver(entries=>{
-  for(const e of entries){
-   if(e.isIntersecting){e.target.dataset.seen='1';continue;}
-   if(!e.target.dataset.seen||!e.target.isConnected)continue;
-   const row=e.target.parentElement?.querySelector(`.titty-row[data-titty-key="${CSS.escape(e.target.dataset.tittyKey)}"]`);
-   if(row)hjChToggleTitty(row,false);
-  }
- });
- HJ_CHALLENGE_STATE.tittyObserver.observe(detail);
+ return `<div class="titty-view">${hjChLineupView({id:'titty-lineup',fitKey:'tittyFit',label:'Titty Special season totals by manager',figures,count:names.length})}${rows.some(r=>r.missing.length)?'<p class="challenge-live-note">* Partial total. Missing weeks stay pending until ESPN supplies the records.</p>':''}<h4 class="aw-sub challenge-sub">Week-by-Week Heatmap</h4>${heat}${weeks.length?legend:''}</div>`;
 }
 function hjChJacket(index){
  const palette=['#26546b','#426575','#1d405b','#4f6070','#345e65','#264a67','#53647a','#385d76','#41667c','#34475e'];
@@ -277,9 +243,9 @@ function hjChFigureArt(manager,key,crown=false){
 function hjChLms(model){
  const names=HJ_CHALLENGE_STATE.names,eliminated=new Map(model.eliminations.map(e=>[e.id,e]));
  const figures=names.map((n,i)=>hjChLmsFigure(n,eliminated.get(n.id),i)).join('');
- const history=hjChLmsHistory(model,names).map(w=>`<li class="lms-feed-week${w.eliminated?' has-elimination':''}"><div class="lms-feed-meta"><b>Week ${w.week}</b><span>${w.eliminated?'ELIMINATED':w.pending?'PENDING':'NO ELIMINATION'}</span></div><div class="lms-feed-results">${w.lowest.map(t=>`<div class="lms-feed-result">${hjChManager(t.short)}<strong>${t.score.toFixed(2)}</strong></div>`).join('')}</div></li>`).join('');
+ const history=hjChLmsHistory(model,names).map(w=>`<tr class="${w.eliminated?'is-eliminated':w.pending?'is-pending':''}"><td><b>Week ${w.week}</b></td><td>${w.lowest.map(t=>hjChManager(t.short)).join(' ')||'—'}</td><td class="num"><b>${w.lowest.map(t=>t.score.toFixed(2)).join(' / ')||'—'}</b></td><td><span class="lms-result">${w.eliminated?'Eliminated':w.pending?'Pending':'Safe'}</span></td></tr>`).join('')||'<tr><td colspan="4" class="raffle-empty">The lowest score each week appears when ESPN finalizes Week 1.</td></tr>';
  const fit=HJ_CHALLENGE_STATE.lmsFit;
- return `<div class="lms-view${fit?' is-fit':''}" data-fit-key="lmsFit">${hjChZoomButtons(fit,'lms-lineup')}<div class="lms-stage" style="touch-action:manipulation" tabindex="0" role="group" aria-label="Last Man Standing manager lineup"><div class="lms-lineup" id="lms-lineup">${figures}</div></div></div><ol class="lms-feed" aria-label="Weekly elimination feed">${history}</ol>`;
+ return `<div class="lms-view${fit?' is-fit':''}" data-fit-key="lmsFit"><div class="lms-stage" style="touch-action:manipulation" tabindex="0" role="group" aria-label="Last Man Standing manager lineup"><div class="lms-lineup" id="lms-lineup">${figures}</div></div>${hjChZoomButtons(fit,'lms-lineup')}</div><h4 class="aw-sub challenge-sub">Weekly Low Score</h4>${hjChTable(['Week','Lowest','Score','Result'],history,'week-table')}`;
 }
 function hjChZoomButtons(fit,controls){
  return `<div class="lms-zoom" role="group" aria-label="Lineup zoom"><button type="button" data-lms-zoom="fit" aria-pressed="${fit}" aria-controls="${controls}" aria-label="Show entire lineup"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M7.5 10.5h6"/></svg></button><button type="button" data-lms-zoom="detail" aria-pressed="${!fit}" aria-controls="${controls}" aria-label="Zoom in on lineup"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M7.5 10.5h6M10.5 7.5v6"/></svg></button></div>`;
@@ -337,16 +303,14 @@ function hjRenderChallenge(){
  const html=`${showStatus?`<div class="challenge-live-status${delayed?' is-delayed':''}" role="status">${esc(status)}</div>`:''}${body}`;
  // Preserve open weekly details and expanded rows, and avoid replacing identical content.
  const opened=[...out.querySelectorAll('details[open]')].map(n=>n.querySelector('summary')?.textContent),closed=[...out.querySelectorAll('details:not([open])')].map(n=>n.querySelector('summary')?.textContent);
- const expanded=[...out.querySelectorAll('.titty-row[aria-expanded="true"]')].map(n=>n.dataset.tittyKey),openOpt=out.querySelector('.opt-cell.is-open'),openOptKey=openOpt?[openOpt.dataset.optId,openOpt.dataset.optWeek]:null;
+ const openDetail=out.querySelector('.ch-cell.is-open'),openDetailKey=openDetail?[openDetail.dataset.chKind,openDetail.dataset.chId,openDetail.dataset.chWeek]:null;
  const bars=new Map([...out.querySelectorAll('.lineup-bar')].map(b=>[b.dataset.barId,{pct:b.style.getPropertyValue('--titty-pct'),value:b.dataset.barValue}]));
  const shifts=new Map([...out.querySelectorAll('.over-figure')].map(f=>[f.dataset.overId,{shift:f.style.getPropertyValue('--over-shift'),neg:f.classList.contains('is-neg')}]));
  if(state.lastHtml===html)return;
  state.lastHtml=html;
- hjChCloseOverCard();
  out.innerHTML=html;
  out.querySelectorAll('details').forEach(n=>{const label=n.querySelector('summary')?.textContent;if(opened.includes(label))n.open=true;else if(closed.includes(label))n.open=false;});
- out.querySelectorAll('.titty-row').forEach(n=>{if(expanded.includes(n.dataset.tittyKey))hjChToggleTitty(n,true)});
- if(openOptKey){const cell=out.querySelector(`.opt-cell[data-opt-id="${CSS.escape(openOptKey[0])}"][data-opt-week="${openOptKey[1]}"]`);if(cell)hjChOpenOptDetail(cell,false);}
+ if(openDetailKey){const cell=out.querySelector(`.ch-cell[data-ch-kind="${openDetailKey[0]}"][data-ch-id="${CSS.escape(openDetailKey[1])}"][data-ch-week="${openDetailKey[2]}"]`);if(cell)hjChOpenDetail(cell,false);}
  // Grow bars from their previous height so a live titty visibly moves the graph.
  const motion=!matchMedia('(prefers-reduced-motion: reduce)').matches;
  out.querySelectorAll('.over-figure').forEach(f=>{
@@ -369,10 +333,8 @@ function selectChallenge(id){
  hjChBindLmsGestures($('#challenge-out'));
  $('#challenge-out').addEventListener('click',e=>{
   const button=e.target.closest('[data-lms-zoom]');if(button)return hjChSetLmsZoom(button.closest('.lms-view'),button.dataset.lmsZoom==='fit');
-  const optCell=e.target.closest('.opt-cell');
-  if(optCell){if(optCell.classList.contains('is-open'))hjChCloseOptDetail();else hjChOpenOptDetail(optCell);return;}
-  const overCell=e.target.closest('.over-cell');
-  if(overCell){if(overCell.classList.contains('is-open'))hjChCloseOverCard();else hjChOpenOverCard(overCell);return;}
+  const chCell=e.target.closest('.ch-cell');
+  if(chCell){if(chCell.classList.contains('is-open'))hjChCloseDetail();else hjChOpenDetail(chCell);return;}
   if(e.target.closest('.pc-player-trigger,.manager-profile-trigger,.manager-profile-avatar'))return;
   const art=e.target.closest('.lms-art'),figure=art&&art.closest('.lineup-figure,.lms-figure');
   if(figure){
@@ -382,11 +344,7 @@ function selectChallenge(id){
    if(view&&view.clientWidth<=801)HJ_CHALLENGE_STATE.profileTimer=setTimeout(()=>{HJ_CHALLENGE_STATE.profileTimer=null;name.click();},360);else name.click();
    return;
   }
-  const detail=e.target.closest('.titty-detail'),row=e.target.closest('.titty-row')||(detail&&detail.parentElement.querySelector(`.titty-row[data-titty-key="${CSS.escape(detail.dataset.tittyKey)}"]`));
-  if(row&&!e.target.closest('a'))hjChToggleTitty(row);
  });
- document.addEventListener('click',e=>{if(!e.target.closest('.over-cell,.over-card'))hjChCloseOverCard();},true);
- $('#challenge-out').addEventListener('keydown',e=>{const row=e.target.closest('.titty-row');if(row&&(e.key==='Enter'||e.key===' ')){e.preventDefault();hjChToggleTitty(row);}});
  const strip=$('#challenge-strip');
  strip.innerHTML=CHALLENGES.map(ch=>`<button type="button" id="challenge-tab-${ch.id}" role="tab" aria-controls="challenge-out" data-challenge="${ch.id}" aria-selected="false">${ch.label}</button>`).join('');
  strip.addEventListener('click',e=>{const b=e.target.closest('button[data-challenge]');if(b)selectChallenge(b.dataset.challenge)});

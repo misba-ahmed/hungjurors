@@ -108,6 +108,8 @@ function hjChLmsHistory(model,names){
   return {week:w.week,eliminated:!!eliminated,pending,lowest};
  });
 }
+// Only the Titty count moves during games; the other stat challenges wait for the week's final game.
+const HJ_CH_LIVE_METRICS=new Set(['titty']);
 function hjChStandings(weeks,names,{regularEnd=14,finalEnd=16}={}){
  const ordered=[...weeks].filter(w=>w.week<=finalEnd).sort((a,b)=>a.week-b.week),totals={};
  for(const metric of ['titty','overachiever','mvp','optimizer'])totals[metric]=names.map(n=>({...n,total:0,tie:0,weeks:0,missing:[],live:0,history:[]}));
@@ -115,6 +117,7 @@ function hjChStandings(weeks,names,{regularEnd=14,finalEnd=16}={}){
  let lmsBlocked='',nextElimination=5;
  for(const w of ordered){
   for(const metric of Object.keys(totals))for(const row of totals[metric]){
+   if(!w.final&&!HJ_CH_LIVE_METRICS.has(metric))continue;
    const t=w.teams.find(t=>t.id===row.id),value=t?.[metric];
    if(!Number.isFinite(value)){row.missing.push(w.week);continue;}
    row.total=hjChRound(row.total+value);row.weeks++;if(!w.final)row.live++;
