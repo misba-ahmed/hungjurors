@@ -59,7 +59,7 @@ function hjRcModel(chosen,weeks,data){
  if(hiLoss)push('hiloss','Highest points in a loss',hiLoss,pcFpts(hiLoss.pts),`lost to ${hiLoss.opp} ${pcFpts(hiLoss.oppPts)} by ${(hiLoss.oppPts-hiLoss.pts).toFixed(2)}`,'neg');
  if(loWin)push('lowin','Lowest points in a win',loWin,pcFpts(loWin.pts),`beat ${loWin.opp} ${pcFpts(loWin.oppPts)} by ${(loWin.pts-loWin.oppPts).toFixed(2)}`,'win');
  const swings=extra?.games?.size?hjRcSwings(games,week,extra,data):null;
- return {week,managers,games,ordered,avg,complete,leaders,benchers,falseStarters,changer,awards,swings,extra};
+ return {week,weeks,data,managers,games,ordered,avg,complete,leaders,benchers,falseStarters,changer,awards,swings,extra,opponents};
 }
 
 /* ---- play-by-play score timeline per matchup ---- */
@@ -158,7 +158,7 @@ function hjRcAwards(model){
 function hjRcPerformance(model){
  const max=Math.max(...model.managers.map(m=>Math.max(m.pts,Number.isFinite(m.optimal)?m.optimal:0)),1);
  const rows=model.ordered.map((m,i)=>{const opt=Number.isFinite(m.optimal)?m.optimal:null,w=100*m.pts/max,wo=opt?100*opt/max:w;
-  return `<div class="rc-perf-row"><span class="rc-perf-rank">${i+1}</span><span class="rc-perf-av manager-profile-trigger" data-manager="${esc(m.short)}" role="button" tabindex="0" aria-label="Open ${esc(m.short)} profile">${av(m.short,'rc-av-mid')}</span><div class="rc-perf-main"><div class="rc-perf-top"><b class="manager-profile-trigger" data-manager="${esc(m.short)}" role="button" tabindex="0">${esc(m.short)}</b>${m.team?`<small>${esc(m.team)}</small>`:''}<span class="rc-res is-${m.result.toLowerCase()}">${m.result}</span></div><div class="rc-perf-bar"><i class="max" style="width:${wo.toFixed(1)}%"></i><i class="got" style="width:${w.toFixed(1)}%"></i><span>${pcFpts(m.pts)}${opt?` of ${pcFpts(opt)} max`:''}</span></div><div class="rc-perf-foot"><em>${m.eff!==null?`${m.eff.toFixed(1)}%`:'—'}</em><span>vs ${esc(m.opp)} ${pcFpts(m.oppPts)} · all-play ${m.allPlay.label}${Number.isFinite(m.proj)?` · proj ${pcFpts(m.proj)}`:''}</span></div></div></div>`}).join('');
+  return `<div class="rc-perf-row"><span class="rc-perf-rank">${i+1}</span><span class="rc-perf-av manager-profile-trigger" data-manager="${esc(m.short)}" role="button" tabindex="0" aria-label="Open ${esc(m.short)} profile">${av(m.short,'rc-av-mid')}</span><div class="rc-perf-main"><div class="rc-perf-top"><b class="manager-profile-trigger" data-manager="${esc(m.short)}" role="button" tabindex="0">${esc(m.short)}</b>${m.team?`<small>${esc(m.team)}</small>`:''}<span class="rc-res is-${m.result.toLowerCase()}">${m.result}</span></div><div class="rc-perf-bar"><i class="max" style="width:${wo.toFixed(1)}%"></i><i class="got" style="width:${w.toFixed(1)}%"></i><span>${pcFpts(m.pts)}${opt?` of ${pcFpts(opt)} max`:''}</span></div><div class="rc-perf-foot"><em>${m.eff!==null?`${m.eff.toFixed(1)}%`:'—'}</em><span>vs ${esc(m.opp)} ${pcFpts(m.oppPts)}, all-play ${m.allPlay.label}${Number.isFinite(m.proj)?`, proj ${pcFpts(m.proj)}`:''}</span></div></div></div>`}).join('');
  return `<section class="rc-block"><h3 class="rc-h">Team performance <small>points scored against the best possible lineup</small></h3><div class="rc-perf">${rows}</div></section>`;
 }
 function hjRcPlayerCard(p){
@@ -175,13 +175,13 @@ function hjRcHeadshot(p){const {attrs,photo}=hjChPlayerAttrs({id:p.id,name:p.nam
 function hjRcFeature(p,cls,right){
  const team=hjRcTeam(p.proTeamId),color=HJ_RC_TEAM_COLORS[team]||'#14324F',{attrs,photo}=hjRcHeadshot(p);
  const owner=p.manager?`<span class="rc-feat-owner manager-profile-trigger" data-manager="${esc(p.manager)}" role="button" tabindex="0">${av(p.manager,'rc-av')}${esc(p.manager)}</span>`:p.benchOf?`<span class="rc-feat-owner">On ${esc(p.benchOf)}’s bench</span>`:'';
- return `<article class="rc-feat ${cls}" style="--team:${color}">${team&&typeof nflLogo==='function'?`<img class="rc-feat-logo" src="${esc(nflLogo(team.toLowerCase()))}" alt="" loading="lazy" onerror="this.remove()">`:''}<div class="rc-feat-copy"><button type="button" class="rc-feat-name pc-player-trigger" ${attrs}>${esc(p.name)}</button><span class="rc-feat-meta">${esc(team)} <b>${esc(p.pos)}</b>${p.opponent?` · ${esc(hjChVs(p.opponent))}`:''}</span>${owner}</div>${photo?`<button type="button" class="rc-feat-photo pc-player-trigger" ${attrs} aria-label="Open ${esc(p.name)} player card"><img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()"></button>`:''}<div class="rc-feat-stat">${right}</div></article>`;
+ return `<article class="rc-feat ${cls}" style="--team:${color}">${team&&typeof nflLogo==='function'?`<img class="rc-feat-logo" src="${esc(nflLogo(team.toLowerCase()))}" alt="" loading="lazy" onerror="this.remove()">`:''}<div class="rc-feat-copy"><button type="button" class="rc-feat-name pc-player-trigger" ${attrs}>${esc(p.name)}</button><span class="rc-feat-meta">${esc(team)} <b>${esc(p.pos)}</b>${p.opponent?` ${esc(hjChVs(p.opponent))}`:''}</span>${owner}</div>${photo?`<button type="button" class="rc-feat-photo pc-player-trigger" ${attrs} aria-label="Open ${esc(p.name)} player card"><img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()"></button>`:''}<div class="rc-feat-stat">${right}</div></article>`;
 }
 function hjRcFalseStarters(model){
  const list=model.falseStarters;if(!list.length)return '';
  const [lead,...rest]=list;
  const stat=p=>`<b>${p.points.toFixed(1)}<small>pts</small></b><span class="is-neg">▼ ${p.gap.toFixed(1)} <small>proj</small></span>`;
- const rows=rest.map(p=>{const {attrs,photo}=hjRcHeadshot(p);return `<div class="rc-mini"><button type="button" class="rc-mini-photo pc-player-trigger" ${attrs}>${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">`:''}</button><div class="rc-mini-copy"><button type="button" class="rc-mini-name pc-player-trigger" ${attrs}>${esc(hjChShortName({name:p.name,position:p.pos}))}</button><small>${esc(hjRcTeam(p.proTeamId))} <b>${esc(p.pos)}</b>${p.opponent?` · ${esc(hjChVs(p.opponent))}`:''}</small><span class="rc-mini-owner manager-profile-trigger" data-manager="${esc(p.manager)}" role="button" tabindex="0" aria-label="Open ${esc(p.manager)} profile">${av(p.manager,'rc-av')}<b>${esc(p.manager)}</b></span></div><div class="rc-mini-stat">${stat(p)}</div></div>`}).join('');
+ const rows=rest.map(p=>{const {attrs,photo}=hjRcHeadshot(p);return `<div class="rc-mini"><button type="button" class="rc-mini-photo pc-player-trigger" ${attrs}>${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">`:''}</button><div class="rc-mini-copy"><button type="button" class="rc-mini-name pc-player-trigger" ${attrs}>${esc(hjChShortName({name:p.name,position:p.pos}))}</button><small>${esc(hjRcTeam(p.proTeamId))} <b>${esc(p.pos)}</b>${p.opponent?` ${esc(hjChVs(p.opponent))}`:''}</small><span class="rc-mini-owner manager-profile-trigger" data-manager="${esc(p.manager)}" role="button" tabindex="0" aria-label="Open ${esc(p.manager)} profile">${av(p.manager,'rc-av')}<b>${esc(p.manager)}</b></span></div><div class="rc-mini-stat">${stat(p)}</div></div>`}).join('');
  return `<section class="rc-block"><h3 class="rc-h">False starters <small>these starters could have stayed on the bench</small></h3>${hjRcFeature(lead,'is-neg',stat(lead))}${rows}</section>`;
 }
 function hjRcVs(g,winnerFirst=true){
@@ -228,6 +228,30 @@ function hjRcStoryManagers(story,names){
  const subject=String(story.subject||'').replace(/^rivalry:/,'');
  return [...new Set([subject,...found])].filter(n=>names.includes(n)).slice(0,3);
 }
+function hjRcFindPlayer(model,text){
+ const all=model.managers.flatMap(m=>[...m.starters,...m.bench]);
+ let hit=all.filter(p=>p.name&&text.includes(p.name)).sort((a,b)=>b.name.length-a.name.length)[0];if(hit)return hit;
+ for(const e of model.extra?.pool||[]){const name=hjPlayer(e).fullName;if(name&&text.includes(name)){const p=hjRecapPlayer(e,model.week);if(p.points!==null)return {...p,proTeamId:p.stat?.proTeamId??hjPlayer(e).proTeamId}}}
+ return null;
+}
+function hjRcHeadshotHTML(p,cls='rc-mini-photo'){if(!p)return '';const {attrs,photo}=hjRcHeadshot(p);return `<button type="button" class="${cls} pc-player-trigger" ${attrs} aria-label="Open ${esc(p.name)} player card">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">`:''}</button>`}
+function hjRcOptimalBar(m){if(!m||!Number.isFinite(m.optimal)||m.optimal<=0)return '';const w=100*m.pts/m.optimal;return `<div class="rc-vis-bar"><div class="rc-perf-bar"><i class="max" style="width:100%"></i><i class="got" style="width:${w.toFixed(1)}%"></i><span>${pcFpts(m.pts)} of ${pcFpts(m.optimal)} max</span></div><small>${(m.optimal-m.pts).toFixed(2)} left on the bench</small></div>`}
+function hjRcStoryVisual(s,model){
+ const kind=String(s.kind||'').toUpperCase(),text=`${s.title} ${s.text} ${s.proof}`,subject=String(s.subject||'').replace(/^rivalry:/,''),m=model.managers.find(x=>x.short===subject),opp=m?model.managers.find(x=>x.short===m.opp):null,game=m?model.games.find(g=>g.a===m||g.b===m):null;
+ const player=hjRcFindPlayer(model,`${s.title} ${s.text}`);
+ if(['SCHEDULE CRUELTY','THE GREAT ESCAPE'].includes(kind)&&m){const others=model.managers.filter(x=>x.short!==m.short).sort((a,b)=>b.pts-a.pts);return `<div class="rc-vis rc-vis-allplay">${others.map(o=>`<span class="${m.pts>o.pts?'is-w':m.pts<o.pts?'is-l':'is-t'}${o.short===m.opp?' is-opp':''}" title="${esc(o.short)} ${pcFpts(o.pts)}">${av(o.short,'rc-av')}</span>`).join('')}<small>${m.allPlay.label} against the league, the outlined face is the actual opponent</small></div>`}
+ if(['LINEUP LEFT BEHIND','A STAR WITHOUT A START','THE EMPTY START','NOBODY CLAIMED THE WINNER','THE MOVE THAT CAME BACK'].includes(kind))return `<div class="rc-vis rc-vis-row">${hjRcHeadshotHTML(player)}${hjRcOptimalBar(m)}</div>`;
+ if(kind==='FORECAST FLIPPED'&&m&&opp){const max=Math.max(m.pts,opp.pts,m.proj||0,opp.proj||0,1);const bar=x=>`<div class="rc-vis-proj"><span>${av(x.short,'rc-av')}</span><div><i class="proj" style="width:${(100*(x.proj||0)/max).toFixed(1)}%"></i><i class="got" style="width:${(100*x.pts/max).toFixed(1)}%"></i></div><small>proj ${x.proj?x.proj.toFixed(1):'—'} → ${pcFpts(x.pts)}</small></div>`;return `<div class="rc-vis">${bar(m)}${bar(opp)}</div>`}
+ if(kind==='ONE-PLAYER ENGINE'&&player&&m){const pct=Math.max(0,Math.min(100,100*player.points/(m.pts||1)));return `<div class="rc-vis rc-vis-row"><span class="rc-ring" style="--pct:${pct.toFixed(1)}"><b>${pct.toFixed(0)}%</b></span>${hjRcHeadshotHTML(player)}<div class="rc-vis-copy"><b>${esc(player.name)}</b><small>${pcFpts(player.points)} of ${esc(m.short)}'s ${pcFpts(m.pts)}</small></div></div>`}
+ if(kind==='ON A RUN'&&m){const streak=hjRecapStreak(m,model.weeks,model.week);const runs=model.weeks.filter(w=>w.week<=model.week).map(w=>w.scores.find(r=>r.short===m.short)).filter(Boolean);return `<div class="rc-vis rc-vis-dots">${runs.map(r=>`<i class="${r.pts>r.oppPts?'is-w':r.pts<r.oppPts?'is-l':'is-t'}" title="Week ${runs.indexOf(r)+1}: ${pcFpts(r.pts)} vs ${esc(r.opp)} ${pcFpts(r.oppPts)}"></i>`).join('')}<small>${esc(streak.label)} and counting</small></div>`}
+ if(['WHERE THE MATCHUP TURNED','THE SUPPORTING CAST','THE RECEPTION DIVIDEND','WINNING SHORT-HANDED'].includes(kind)&&game)return `<div class="rc-vis rc-vis-battle"><span>${av(game.a.short,'rc-av')}</span>${hjRcBattleStrip(game)}<span>${av(game.b.short,'rc-av')}</span></div>`;
+ if(['RIVALRY RESET','A FAMILIAR RESULT'].includes(kind)&&m&&opp)return `<div class="rc-vis rc-vis-h2h"><span class="manager-profile-trigger" data-manager="${esc(m.short)}" role="button" tabindex="0">${av(m.short,'rc-av-mid')}</span><b>${pcFpts(m.pts)}</b><small>vs</small><b>${pcFpts(opp.pts)}</b><span class="manager-profile-trigger" data-manager="${esc(opp.short)}" role="button" tabindex="0">${av(opp.short,'rc-av-mid')}</span></div>`;
+ if(kind==='OUT OF CHARACTER'&&m){const series=[...model.weeks.filter(w=>w.week<model.week).map(w=>w.scores.find(r=>r.short===m.short)?.pts).filter(Number.isFinite),m.pts];return `<div class="rc-vis rc-vis-row">${hjRcSpark(series,m.pts,m.pts>=series.slice(0,-1).reduce((n,v)=>n+v,0)/Math.max(1,series.length-1)?'is-pos':'is-neg')}<small>${series.length} weeks, this week marked</small></div>`}
+ if(kind==='ONE GAME, MANY MATCHUPS'){const teams=String(s.title).match(/\b[A-Z]{2,3}\b/g)||[];const logos=teams.slice(0,2).map(t=>typeof nflLogo==='function'?`<img class="rc-vis-logo" src="${esc(nflLogo(t.toLowerCase()))}" alt="${esc(t)}" loading="lazy" onerror="this.remove()">`:'').join('<small>@</small>');const pct=String(s.text).match(/(\d+)%/);return logos?`<div class="rc-vis rc-vis-row">${logos}${pct?`<span class="rc-ring" style="--pct:${pct[1]}"><b>${pct[1]}%</b></span><small>of all league scoring came from this game</small>`:''}</div>`:''}
+ if(['GONE AFTER HALFTIME','SECOND-HALF ARRIVAL'].includes(kind)&&player){const first=Number((String(s.text).match(/([\d.]+) (?:of|FPTS before)/)||[])[1]),total=player.points,second=Number.isFinite(first)?total-first:null;return Number.isFinite(second)?`<div class="rc-vis rc-vis-row">${hjRcHeadshotHTML(player)}<div class="rc-vis-halves"><div><i style="width:${(100*Math.max(0,first)/Math.max(1,total)).toFixed(1)}%"></i></div><small>1st half ${first.toFixed(2)}, 2nd half ${second.toFixed(2)}</small></div></div>`:`<div class="rc-vis rc-vis-row">${hjRcHeadshotHTML(player)}</div>`}
+ if(['POINTS AFTER THE DAMAGE','A PLAY BIGGER THAN THE MARGIN'].includes(kind)&&player)return `<div class="rc-vis rc-vis-row">${hjRcHeadshotHTML(player)}<div class="rc-vis-copy"><b>${esc(player.name)}</b><small>${pcFpts(player.points)} this week</small></div></div>`;
+ return player?`<div class="rc-vis rc-vis-row">${hjRcHeadshotHTML(player)}<div class="rc-vis-copy"><b>${esc(player.name)}</b><small>${pcFpts(player.points)} this week</small></div></div>`:'';
+}
 function hjRcStories(chosen,weeks,model){
  const stories=hjRecapStories(chosen,weeks);if(!stories.length)return '';
  const names=model.managers.map(m=>m.short).sort((a,b)=>b.length-a.length);
@@ -235,8 +259,102 @@ function hjRcStories(chosen,weeks,model){
   const who=hjRcStoryManagers(s,names);
   const proof=String(s.proof||'').split(/\s+·\s+|;\s+|(?<![A-Z]|\bSt|\bJr|\bSr|\bvs|\bNo)\.\s+(?=[A-Z0-9])/).map(x=>x.trim().replace(/\.$/,'')).filter(Boolean);
   const faces=who.length?`<span class="rc-story-faces">${who.map(n=>`<span class="manager-profile-trigger" data-manager="${esc(n)}" role="button" tabindex="0" aria-label="Open ${esc(n)} profile">${av(n,'rc-av-mid')}</span>`).join('')}</span>`:'';
-  return `<article class="rc-story"><div class="rc-story-head">${faces}<span><small class="rc-eyebrow">${esc(s.kind)}</small><h4>${esc(s.title)}</h4></span></div><p>${esc(s.text)}</p>${proof.length>1?`<ul class="rc-story-proof">${proof.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:proof.length?`<p class="rc-story-proof">${esc(proof[0])}</p>`:''}</article>`}).join('');
+  return `<article class="rc-story"><div class="rc-story-head">${faces}<span><small class="rc-eyebrow">${esc(s.kind)}</small><h4>${esc(s.title)}</h4></span></div><p>${esc(s.text)}</p>${hjRcStoryVisual(s,model)}${proof.length>1?`<ul class="rc-story-proof">${proof.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:proof.length?`<p class="rc-story-proof">${esc(proof[0])}</p>`:''}</article>`}).join('');
  return `<section class="rc-block"><h3 class="rc-h">Storylines</h3><div class="rc-stories">${cards}</div></section>`;
+}
+/* ---- matchup win-chance charts ---- */
+function hjRcMiniChart(series,winner,loser){
+ if(!series||series.length<2)return '';
+ const w=300,h=80,l=4,r=4,top=6,bottom=6,t0=series[0].t,t1=series.at(-1).t,x=t=>l+(t-t0)/Math.max(1,t1-t0)*(w-l-r),y=p=>top+(1-p)*(h-top-bottom);
+ // Chart the eventual winner's chance so every line ends at the top.
+ const pts=series.map(o=>`${x(o.t).toFixed(1)},${y(1-o.p).toFixed(1)}`).join(' ');
+ return `<svg class="rc-mini-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(winner)} win chance against ${esc(loser)} through the week"><line class="rc-chart-mid" x1="${l}" x2="${w-r}" y1="${y(.5)}" y2="${y(.5)}"></line><polygon class="rc-mini-fill" points="${x(t0).toFixed(1)},${y(0)} ${pts} ${x(t1).toFixed(1)},${y(0)}"></polygon><polyline class="rc-chart-line" points="${pts}"></polyline></svg>`;
+}
+function hjRcMatchups(model){
+ if(!model.games.length)return '';
+ const cards=model.games.map(g=>{const sw=model.swings?.find(s=>s.game===g);const peak=sw?.peak;
+  const note=!sw?(model.swings?'game logs missing':'loading game logs…'):peak&&peak.p>=.5?`${g.loser.short} peaked at ${hjRcPct(peak.p)}`:peak?`${g.loser.short} never above ${hjRcPct(peak.p)}`:'';
+  return `<article class="rc-mu"><div class="rc-mu-side"><span class="manager-profile-trigger" data-manager="${esc(g.winner.short)}" role="button" tabindex="0">${av(g.winner.short,'rc-av-mid')}</span><b>${esc(g.winner.short)}</b><strong>${pcFpts(g.winner.pts)}</strong></div><div class="rc-mu-mid">${sw?hjRcMiniChart(sw.series,g.winner.short,g.loser.short):'<div class="rc-mu-empty"></div>'}<small>${esc(note)}</small></div><div class="rc-mu-side right"><span class="manager-profile-trigger" data-manager="${esc(g.loser.short)}" role="button" tabindex="0">${av(g.loser.short,'rc-av-mid')}</span><b>${esc(g.loser.short)}</b><strong>${pcFpts(g.loser.pts)}</strong></div></article>`}).join('');
+ return `<section class="rc-block"><h3 class="rc-h">How every game went <small>the winner's win chance, play by play, Thursday to Monday</small></h3><div class="rc-mus">${cards}</div></section>`;
+}
+/* ---- Sunday and Monday night sweat ---- */
+function hjRcWindows(model){
+ const events=model.extra?.schedule?.events||[],starts={sun:[],mon:[]};
+ for(const e of events){const t=Date.parse(e.date);if(!Number.isFinite(t))continue;const day=hjRcDay(t),hour=Number(hjRcTime(t,{hour:'numeric',hourCycle:'h23'}));if(day==='Sunday'&&hour>=18)starts.sun.push(t);if(day==='Monday')starts.mon.push(t)}
+ return [['Sunday night',starts.sun.length?Math.min(...starts.sun):null],['Monday night',starts.mon.length?Math.min(...starts.mon):null]].filter(w=>w[1]);
+}
+function hjRcSweat(model){
+ if(!model.swings)return '';
+ const windows=hjRcWindows(model);if(!windows.length)return '';
+ const blocks=windows.map(([label,at])=>{
+  const rows=model.games.map(g=>{const sw=model.swings.find(s=>s.game===g);if(!sw)return null;const before=[...sw.series].reverse().find(o=>o.t<at);if(!before)return {g,undecided:false,pre:true};
+   const left=before.winnerRemaining+before.loserRemaining;const p=1-before.p;const doubt=left>0&&p>.08&&p<.92;return {g,before,p,left,undecided:doubt,decided:left===0}}).filter(Boolean);
+  if(!rows.length)return '';
+  const n=rows.filter(r=>r.undecided).length;
+  const items=rows.map(r=>{if(r.pre)return '';const {g,before}=r;const lead=before.winnerScore>=before.loserScore?g.winner:g.loser,trail=lead===g.winner?g.loser:g.winner,ls=Math.max(before.winnerScore,before.loserScore),ts=Math.min(before.winnerScore,before.loserScore),leadP=lead===g.winner?r.p:1-r.p;
+   const leftText=r.left?`${before.winnerRemaining?`${g.winner.short} ${before.winnerRemaining}`:''}${before.winnerRemaining&&before.loserRemaining?', ':''}${before.loserRemaining?`${g.loser.short} ${before.loserRemaining}`:''} still to play`:'nothing left to play';
+   return `<li class="${r.undecided?'is-live':r.decided?'is-done':'is-safe'}"><span class="rc-sw-faces">${av(lead.short,'rc-av')}${av(trail.short,'rc-av')}</span><span class="rc-sw-copy"><b>${esc(lead.short)} ${pcFpts(ls)}, ${esc(trail.short)} ${pcFpts(ts)}</b><small>${r.decided?'already final':`${esc(lead.short)} ${hjRcPct(leadP)} to win, ${esc(leftText)}`}</small></span><span class="rc-sw-tag">${r.undecided?'in doubt':r.decided?'final':'safe'}</span></li>`}).join('');
+  return `<div class="rc-sweat"><div class="rc-sweat-head"><b>Going into ${esc(label)}</b><span>${n} of ${rows.length} games still in doubt</span></div><ul>${items}</ul></div>`}).join('');
+ return blocks?`<section class="rc-block"><h3 class="rc-h">Primetime sweat <small>what was still up for grabs at kickoff</small></h3>${blocks}</section>`:'';
+}
+/* ---- movers ---- */
+function hjRcStandingsThrough(weeks,week){
+ const rows=new Map();
+ for(const w of weeks.filter(w=>w.week<=week))for(const r of w.scores){const o=rows.get(r.short)||{short:r.short,w:0,l:0,t:0,pf:0};if(r.pts>r.oppPts)o.w++;else if(r.pts<r.oppPts)o.l++;else o.t++;o.pf+=r.pts;rows.set(r.short,o)}
+ const sorted=[...rows.values()].sort((a,b)=>b.w-a.w||b.pf-a.pf);sorted.forEach((r,i)=>r.rank=i+1);return sorted;
+}
+function hjRcMovers(model){
+ const now=hjRcStandingsThrough(model.weeks,model.week);if(!now.length)return '';
+ const prev=new Map(hjRcStandingsThrough(model.weeks,model.week-1).map(r=>[r.short,r]));
+ const chips=now.map(r=>{const p=prev.get(r.short),move=p?p.rank-r.rank:0,m=model.managers.find(x=>x.short===r.short),streak=m?hjRecapStreak(m,model.weeks,model.week):null;
+  return `<div class="rc-mover${move>0?' is-up':move<0?' is-down':''}"><span class="rc-mover-rank">${r.rank}</span><span class="manager-profile-trigger" data-manager="${esc(r.short)}" role="button" tabindex="0" aria-label="Open ${esc(r.short)} profile">${av(r.short,'rc-av-mid')}</span><b class="manager-profile-trigger" data-manager="${esc(r.short)}" role="button" tabindex="0">${esc(r.short)}</b><small>${r.w}–${r.l}${r.t?`–${r.t}`:''}</small><span class="rc-mover-move">${move>0?`▲${move}`:move<0?`▼${-move}`:'—'}</span>${streak&&streak.count>=2?`<span class="rc-mover-streak is-${streak.outcome.toLowerCase()}">${esc(streak.label)}</span>`:''}</div>`}).join('');
+ return `<section class="rc-block"><h3 class="rc-h">Movers <small>standings after Week ${model.week}, change from last week</small></h3><div class="rc-movers">${chips}</div></section>`;
+}
+/* ---- position battles ---- */
+function hjRcUnits(m){const u={};for(const pos of HJ_RC_POSITIONS)u[pos]=m.starters.filter(p=>p.pos===pos).reduce((n,p)=>n+p.points,0);return u}
+function hjRcBattleStrip(g){
+ const ua=hjRcUnits(g.a),ub=hjRcUnits(g.b);
+ return `<div class="rc-pb-strip">${HJ_RC_POSITIONS.map(pos=>{const d=ua[pos]-ub[pos],cls=Math.abs(d)<.005?'is-tie':d>0?'is-a':'is-b';return `<span class="rc-pb-cell ${cls}" title="${esc(pos)}: ${esc(g.a.short)} ${ua[pos].toFixed(2)}, ${esc(g.b.short)} ${ub[pos].toFixed(2)}"><small>${pos==='D/ST'?'DST':pos}</small><b>${Math.abs(d)<.005?'even':hjRcSigned(Math.abs(d),1).replace('+','')}</b></span>`}).join('')}</div>`;
+}
+function hjRcBattles(model){
+ const games=model.games.filter(g=>g.a.lineupComplete&&g.b.lineupComplete);if(!games.length)return '';
+ const rows=games.map(g=>{const ua=hjRcUnits(g.a),ub=hjRcUnits(g.b),won=HJ_RC_POSITIONS.filter(p=>ua[p]>ub[p]+.005).length,lost=HJ_RC_POSITIONS.filter(p=>ub[p]>ua[p]+.005).length;
+  return `<article class="rc-pb"><div class="rc-pb-side is-a"><span class="manager-profile-trigger" data-manager="${esc(g.a.short)}" role="button" tabindex="0">${av(g.a.short,'rc-av-mid')}</span><b>${esc(g.a.short)}</b><small>${won} of 6</small></div>${hjRcBattleStrip(g)}<div class="rc-pb-side is-b"><span class="manager-profile-trigger" data-manager="${esc(g.b.short)}" role="button" tabindex="0">${av(g.b.short,'rc-av-mid')}</span><b>${esc(g.b.short)}</b><small>${lost} of 6</small></div></article>`}).join('');
+ return `<section class="rc-block"><h3 class="rc-h">Position battles <small>who won each spot, and by how much</small></h3><div class="rc-pbs">${rows}</div></section>`;
+}
+/* ---- best pickup, drop that bit ---- */
+function hjRcPoolPlayer(model,id){
+ const entry=(model.extra?.pool||[]).find(e=>String(hjPlayer(e).id)===String(id));if(entry){const p=hjRecapPlayer(entry,model.week);if(p.points!==null&&p.name)return {...p,proTeamId:p.stat?.proTeamId??hjPlayer(entry).proTeamId}}
+ for(const m of model.managers){const p=[...m.starters,...m.bench].find(x=>x.id===String(id));if(p)return p}
+ return null;
+}
+function hjRcManagerOfTeam(model,teamId){const t=(model.data?.teams||[]).find(t=>String(t.id)===String(teamId));return t?(hjMatchManager(t,model.data)||hjOwnerName(t,model.data)):''}
+function hjRcPickups(model){
+ const txs=(model.extra?.transactions||[]).filter(tx=>tx.status==='EXECUTED'&&['WAIVER','FREEAGENT'].includes(tx.type));if(!txs.length)return '';
+ const adds=[],drops=[];
+ for(const tx of txs)for(const item of tx.items||[]){const p=hjRcPoolPlayer(model,item.playerId);if(!p)continue;
+  if(item.type==='ADD'){const who=hjRcManagerOfTeam(model,item.toTeamId||tx.teamId),m=model.managers.find(x=>x.short===who);adds.push({...p,who,started:!!m?.starters.some(x=>x.id===p.id),kind:tx.type})}
+  if(item.type==='DROP'){const who=hjRcManagerOfTeam(model,item.fromTeamId||tx.teamId);const owner=model.managers.find(m=>[...m.starters,...m.bench].some(x=>x.id===p.id));drops.push({...p,who,now:owner?owner.short:'',nowStarted:!!owner?.starters.some(x=>x.id===p.id)})}}
+ const best=[...adds].sort((a,b)=>b.points-a.points)[0],bite=[...drops].filter(d=>d.points>=8&&d.now!==d.who).sort((a,b)=>b.points-a.points)[0];
+ if(!best&&!bite)return '';
+ const row=(p,label,copy,tone)=>{const {attrs,photo}=hjRcHeadshot(p);return `<div class="rc-mini rc-pick ${tone}"><button type="button" class="rc-mini-photo pc-player-trigger" ${attrs}>${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">`:''}</button><div class="rc-mini-copy"><small class="rc-eyebrow">${esc(label)}</small><button type="button" class="rc-mini-name pc-player-trigger" ${attrs}>${esc(p.name)}</button><small>${esc(hjRcTeam(p.proTeamId))} <b>${esc(p.pos)}</b>${model.opponents[String(p.proTeamId)]?` ${esc(hjChVs(model.opponents[String(p.proTeamId)]))}`:''}</small><span class="rc-pick-copy">${copy}</span></div><div class="rc-mini-stat"><b>${p.points.toFixed(1)}<small>pts</small></b></div></div>`};
+ const bestHTML=best?row(best,'Best pickup',`${hjRcMgr(best.who)} ${best.kind==='WAIVER'?'claimed':'signed'} him this week${best.started?' and started him':', but left him on the bench'}`,'is-pos'):'';
+ const biteHTML=bite?row(bite,'The drop that bit',`${hjRcMgr(bite.who)} cut him this week${bite.now?`; ${bite.nowStarted?'he started for':'he sits on the bench of'} ${hjRcMgr(bite.now)}`:'; he went unclaimed and scored anyway'}`,'is-neg'):'';
+ return `<section class="rc-block"><h3 class="rc-h">Waiver wire <small>the add that paid off and the drop that hurt</small></h3>${bestHTML}${biteHTML}</section>`;
+}
+/* ---- out of character ---- */
+function hjRcSpark(values,current,cls=''){
+ if(values.length<2)return '';const w=160,h=44,l=3,r=3,top=5,bottom=5,min=Math.min(...values),max=Math.max(...values);
+ const x=i=>l+i/(values.length-1)*(w-l-r),y=v=>top+(1-(v-min)/Math.max(1,max-min))*(h-top-bottom);
+ const pts=values.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+ return `<svg class="rc-spark ${cls}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline points="${pts}"></polyline><circle cx="${x(values.length-1)}" cy="${y(current)}" r="4"></circle></svg>`;
+}
+function hjRcCharacter(model){
+ const rows=model.managers.map(m=>{const prior=model.weeks.filter(w=>w.week<model.week).map(w=>w.scores.find(r=>r.short===m.short)).filter(Boolean);if(prior.length<2)return null;const avg=prior.reduce((n,r)=>n+r.pts,0)/prior.length;return {m,avg,diff:m.pts-avg,series:[...prior.map(r=>r.pts),m.pts]}}).filter(Boolean);
+ if(!rows.length)return '';
+ const up=[...rows].sort((a,b)=>b.diff-a.diff)[0],down=[...rows].sort((a,b)=>a.diff-b.diff)[0];
+ const card=(r,tone)=>r?`<article class="rc-char ${tone}"><span class="manager-profile-trigger" data-manager="${esc(r.m.short)}" role="button" tabindex="0" aria-label="Open ${esc(r.m.short)} profile">${av(r.m.short,'rc-av-big')}</span><div class="rc-char-copy"><b>${esc(r.m.short)}'s ${pcFpts(r.m.pts)} was ${Math.abs(r.diff).toFixed(1)} ${r.diff>=0?'above':'below'} their average</b><small>${pcFpts(r.avg)} per week over the first ${r.series.length-1} week${r.series.length-1===1?'':'s'}</small>${hjRcSpark(r.series,r.m.pts,tone)}</div><strong>${hjRcSigned(r.diff,1)}</strong></article>`:'';
+ return `<section class="rc-block"><h3 class="rc-h">Out of character <small>biggest swings from a manager's own season average</small></h3><div class="rc-chars">${card(up,'is-pos')}${down&&down!==up&&down.diff<0?card(down,'is-neg'):''}</div></section>`;
 }
 function hjRecapHTML(data){
  const weeks=hjCompletedWeeks(data),chosen=weeks.find(w=>w.week===HJ_DATA.recapWeek)||weeks.at(-1);
@@ -247,5 +365,5 @@ function hjRecapHTML(data){
  const select=`<label class="rc-week"><span class="sr-only">Recap week</span><select data-hj-recap-week aria-label="Recap week">${[...weeks].reverse().map(w=>`<option value="${w.week}"${w.week===week?' selected':''}>Week ${w.week}</option>`).join('')}</select></label>`;
  const head=`<div class="rc-head"><div><span class="rc-eyebrow">The weekly edition</span><h2>Week ${week} Recap</h2><p class="rc-sub">${model.managers.length} teams · league average ${pcFpts(model.avg)}${model.complete?'':' · some lineups still syncing'}</p></div>${select}</div>`;
  // The .rc wrapper sits inside the patched body so live refreshes keep the recap's own styling.
- return `<div class="hq-module-body hj-recap"><div class="rc">${head}${hjRcPodium(model)}${hjRcAwards(model)}${hjRcSlipped(model)}${hjRcCellar(model)}${hjRcPerformance(model)}${hjRcCardRow('Players of the week','top scorer at each position',model.leaders)}${hjRcCardRow('Benchwarmers of the week','best scores left on a bench',model.benchers)}${hjRcFalseStarters(model)}${hjRcChanger(model)}${hjRcStories(chosen,weeks,model)}</div></div>`;
+ return `<div class="hq-module-body hj-recap"><div class="rc">${head}${hjRcPodium(model)}${hjRcAwards(model)}${hjRcMatchups(model)}${hjRcSweat(model)}${hjRcSlipped(model)}${hjRcCellar(model)}${hjRcMovers(model)}${hjRcPerformance(model)}${hjRcBattles(model)}${hjRcCardRow('Players of the week','top scorer at each position',model.leaders)}${hjRcCardRow('Benchwarmers of the week','best scores left on a bench',model.benchers)}${hjRcPickups(model)}${hjRcFalseStarters(model)}${hjRcChanger(model)}${hjRcCharacter(model)}${hjRcStories(chosen,weeks,model)}</div></div>`;
 }
