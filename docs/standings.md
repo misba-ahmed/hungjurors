@@ -1,0 +1,10 @@
+# 2026 Standings
+
+`scripts/standings-live.js` replaces the old dark lane dashboard. `scripts/prepare-site.mjs` swaps it into `index.html` in place of the original renderer (from `standingsModeMetric` through the click and key handlers) and links `styles/standings.css`. The analytics themselves (`buildStandingsAnalytics`, the five view modes, the four-team playoff cut, the ESPN live hook in `hjApplyLiveSeason`) are unchanged, so live syncs keep working and open trays survive a redraw.
+
+What the section shows now:
+
+- One light, compact table on the site's cream/navy/brass palette: rank (with the ▲/▼ move since last week in the Standings view only), manager portrait and name (both open the manager profile; the empty space to the right opens the tray instead), W–L, PF, PA, the last three results as dots, and the selected view's metric. Rows are 46px on desktop and 42px on phones, so all ten managers fit on one phone screen without any horizontal scrolling; PA and Last 3 drop out below 640px and the "Next" line drops below 360px so nothing gets cut off.
+- The view switcher (Standings / Power / Luck / Efficiency / Form) is a small segmented control above the table with its one-line note; on phones it spans the width in five equal cells. The gold line under seed 4 marks the playoff cut in the Standings view.
+- Clicking a row slides open a slim tray under it: nine stat tiles (expected record and luck, all-play, points against, lineup efficiency, vs ESPN projection, close games, strength of schedule, volatility, next three opponents) and a small weekly-score bar strip (brass for wins, red for losses). One tray is open at a time; clicking the same row closes it.
+- The Season Race rank-history chart is collapsed by default under the table (`<details>`), highlights the last row clicked and keeps its open/closed state across redraws. Before Week 1 has scores, the section shows the starting grid with each manager's Week 1 opponent.
