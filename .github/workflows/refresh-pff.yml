@@ -119,7 +119,7 @@ jobs:
            }
            return r;
           }
-          export const VEGAS_FEED_MAX_AGE=90*60*1000;
+          export const VEGAS_FEED_MAX_AGE=36*60*60*1000;
           export const VEGAS_BROWSER_FEED_URL='https://raw.githubusercontent.com/misba-ahmed/hungjurors/vegas-browser-feed/data/projections.json';
           export function validBrowserVegas(data,kind,season,now=Date.now()){
            if(!validSavedVegas(data,kind,season)||data.transport!=='scheduled-browser'||now-data.checkedAt>=VEGAS_FEED_MAX_AGE||data.checkedAt>now+60000||data.rows.length<(kind==='weekly'?150:200))return false;
@@ -131,11 +131,11 @@ jobs:
           export async function collectScheduledBrowserVegas(season,fetchFeed=async()=>{const response=await request(VEGAS_BROWSER_FEED_URL);return response.json();}){
            try{
             const feed=await fetchFeed(),now=Date.now();
-            if(feed?.schema!==1||feed.producer!=='chatgpt-scheduled-browser-v1'||feed.season!==season||!Number.isFinite(feed.generatedAt)||feed.generatedAt>now+60000||now-feed.generatedAt>VEGAS_FEED_MAX_AGE)throw Error('Scheduled browser feed is missing, expired, or invalid');
-            return Object.fromEntries(['weekly','season'].map(kind=>{
+            if(feed?.schema!==1||!['chatgpt-scheduled-browser-v1','hj-home-collector-v1'].includes(feed.producer)||feed.season!==season||!Number.isFinite(feed.generatedAt)||feed.generatedAt>now+60000||now-feed.generatedAt>VEGAS_FEED_MAX_AGE)throw Error('Scheduled browser feed is missing, expired, or invalid');
+            return Object.assign({producer:feed.producer},Object.fromEntries(['weekly','season'].map(kind=>{
              const data=feed[kind==='season'?'seasonProjections':'weekly'];
              return [kind,validBrowserVegas(data,kind,season,now)&&data.checkedAt<=feed.generatedAt+60000?{data}:{error:Error(`No current validated ${kind} browser collection`)}];
-            }));
+            })));
            }catch(error){return {weekly:{error},season:{error}};}
           }
           async function previous(path){try{const r=await request(new URL(path,process.env.PAGES_BASE_URL.replace(/\/$/,'')+'/'));return await r.json();}catch(_){return null;}}
@@ -152,14 +152,14 @@ jobs:
            ]);
            if(oldPff?.schema===1&&oldPff.season===season)await writeFile('_site/data/pff-grades.json',JSON.stringify(oldPff));
            const projection={schema:1,season,generatedAt:Date.now(),errors:{}},advanced={schema:1,season,generatedAt:Date.now(),errors:{}};
-           const status={schema:1,collector:'scheduled-browser-feed-v1',season,attemptedAt:Date.now(),ok:false,sources:{}};
+           const status={schema:1,collector:'scheduled-browser-feed-v1',producer:null,season,attemptedAt:Date.now(),ok:false,sources:{}};
            function failed(key,error,saved){
             const message=String(error.message||error);
             status.sources[key]={status:error.status===403?'blocked':'failed',error:message,retained:!!saved,checkedAt:saved?.checkedAt||null,rows:saved?.rows?.length||0};
             // Emit an error annotation immediately, even though successful sources can publish.
             console.error(`::error title=${key} refresh failed::${message.replace(/%/g,'%25').replace(/\r/g,'%0D').replace(/\n/g,'%0A')}`);
            }
-           const browserFeeds=await loadVegasFeeds(season);
+           const browserFeeds=await loadVegasFeeds(season);status.producer=browserFeeds.producer||null;
            await Promise.all(['weekly','season'].map(async kind=>{
             const field=kind==='season'?'seasonProjections':'weekly';
             try{
