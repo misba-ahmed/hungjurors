@@ -118,7 +118,7 @@ function hjChMvp(model){
  const order=['QB','RB','WR','TE','K','D/ST','Overall'];
  const history=[...model.weeks].reverse().map((w,i)=>{
   const cards=[...w.awards].sort((a,b)=>order.indexOf(a.category)-order.indexOf(b.category)||b.points-a.points).map(hjChMvpCard).join('');
-  return `<details class="challenge-live-details mvp-week"${i===0?' open':''}><summary>Week ${w.week} <span>${w.final?'Final':'In progress'}</span></summary>${cards?`<div class="mvp-cards" role="list">${cards}</div>`:'<p>Waiting for complete player rankings.</p>'}</details>`;
+  return `<details class="challenge-live-details mvp-week"${i===0?' open':''}><summary>Week ${w.week} <span>${w.final?'FINAL':'In progress'}</span></summary>${cards?`<div class="mvp-cards" role="list">${cards}</div>`:'<p>Waiting for complete player rankings.</p>'}</details>`;
  }).join('');
  return `<div class="mvp-view">${hjChLineupView({id:'mvp-lineup',fitKey:'mvpFit',label:'MVP Special season totals by manager',figures,count:names.length})}${rows.some(r=>r.missing.length)?'<p class="challenge-live-note">* Partial total. Missing weeks stay pending until ESPN supplies the records.</p>':''}<div class="mvp-weeks">${history}</div></div>`;
 }
@@ -243,7 +243,7 @@ function hjChFigureArt(manager,key,crown=false){
 function hjChLms(model){
  const names=HJ_CHALLENGE_STATE.names,eliminated=new Map(model.eliminations.map(e=>[e.id,e]));
  const figures=names.map((n,i)=>hjChLmsFigure(n,eliminated.get(n.id),i)).join('');
- const history=hjChLmsHistory(model,names).map(w=>`<tr class="${w.eliminated?'is-eliminated':w.pending?'is-pending':''}"><td><b>Week ${w.week}</b></td><td>${w.lowest.map(t=>hjChManager(t.short)).join(' ')||'—'}</td><td class="num"><b>${w.lowest.map(t=>t.score.toFixed(2)).join(' / ')||'—'}</b></td><td><span class="lms-result">${w.eliminated?'Eliminated':w.pending?'Pending':'Safe'}</span></td></tr>`).join('')||'<tr><td colspan="4" class="raffle-empty">The lowest score each week appears when ESPN finalizes Week 1.</td></tr>';
+ const history=hjChLmsHistory(model,names).map(w=>`<tr class="${w.eliminated?'is-eliminated':w.pending?'is-pending':''}"><td><b>Week ${w.week}</b></td><td>${w.lowest.map(t=>hjChManager(t.short)).join(' ')||'—'}</td><td class="num"><b>${w.lowest.map(t=>t.score.toFixed(2)).join(' / ')||'—'}</b></td><td><span class="lms-result">${w.eliminated?'Eliminated':w.pending?'Pending':'No Elimination'}</span></td></tr>`).join('')||'<tr><td colspan="4" class="raffle-empty">The lowest score each week appears when ESPN finalizes Week 1.</td></tr>';
  const fit=HJ_CHALLENGE_STATE.lmsFit;
  return `<div class="lms-view${fit?' is-fit':''}" data-fit-key="lmsFit"><div class="lms-stage" style="touch-action:manipulation" tabindex="0" role="group" aria-label="Last Man Standing manager lineup"><div class="lms-lineup" id="lms-lineup">${figures}</div></div>${hjChZoomButtons(fit,'lms-lineup')}</div><h4 class="aw-sub challenge-sub">Weekly Low Score</h4>${hjChTable(['Week','Lowest','Score','Result'],history,'week-table')}`;
 }

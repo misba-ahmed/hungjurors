@@ -34,7 +34,8 @@ try {
   vm.runInContext(html.slice(start,end),frontend);
   assert.ok(frontend.hjHostedVegasValid('weekly',feed.weekly));
   assert.ok(frontend.hjHostedVegasValid('weekly',{...feed.weekly,checkedAt:now-75*60000}),'Hourly collections need publication headroom');
-  assert.equal(frontend.hjHostedVegasValid('weekly',{...feed.weekly,checkedAt:now-91*60000}),false,'Old retrievals must expire');
+  assert.ok(frontend.hjHostedVegasValid('weekly',{...feed.weekly,checkedAt:now-20*3600000}),'A collector outage under a day keeps the last verified retrieval visible');
+  assert.equal(frontend.hjHostedVegasValid('weekly',{...feed.weekly,checkedAt:now-37*3600000}),false,'Old retrievals must expire');
   assert.equal(frontend.hjHostedVegasValid('season',feed.weekly),false);
   const load = candidate => collectScheduledBrowserVegas(season, async()=>candidate);
   const fresh = await load(feed);
