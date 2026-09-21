@@ -1,0 +1,72 @@
+/* The Wire · live week cards (Week N · Live, Live Matchup, Top Performer). Centered, portraits, live win chance. */
+.wc .wl-av{width:26px;height:26px;border-radius:50%;flex:0 0 26px;display:inline-block;vertical-align:middle}
+.wc .wl-av-big{width:64px;height:64px;flex-basis:64px;border:3px solid #fff;box-shadow:0 2px 8px rgba(12,34,56,.25)}
+.wc .wl-av-blank{display:inline-flex;align-items:center;justify-content:center;background:var(--paper-dim);color:var(--navy);font:800 10px/1 var(--mono)}
+
+/* Lead card */
+.wc.wl-lead .wc-body{display:flex;flex-direction:column;align-items:stretch}
+.wc.wl-lead .wl-head{text-align:center;margin:6px 0 10px}
+.wc.wl-lead .wl-title{font:900 24px/1.1 var(--serif);color:var(--paper);margin:0 0 8px}
+.wc.wl-lead .wl-sub{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.wc.wl-lead .wl-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 5px;border-radius:999px;background:rgba(247,243,232,.1);font:600 10.5px/1.2 var(--mono);color:rgba(247,243,232,.85);letter-spacing:.02em}
+.wc.wl-lead .wl-chip b{color:#fff;font-weight:800}
+.wc.wl-lead .wl-chip .wl-av{width:20px;height:20px;flex-basis:20px}
+.wc.wl-lead .wl-rows{display:grid;gap:4px;width:min(100%,640px);margin:0 auto}
+.wc.wl-lead .wl-row{appearance:none;display:grid;grid-template-columns:minmax(0,1fr) 92px minmax(0,1fr);align-items:center;gap:8px;width:100%;padding:7px 10px;border:1px solid rgba(247,243,232,.14);border-radius:10px;background:rgba(247,243,232,.06);color:var(--paper);cursor:pointer;text-align:left;transition:background .15s}
+.wc.wl-lead .wl-row:hover{background:rgba(247,243,232,.13)}
+.wc.wl-lead .wl-row-side{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.wc.wl-lead .wl-row-side.right{flex-direction:row-reverse}
+.wc.wl-lead .wl-row-side.right .wl-row-name{flex-direction:row-reverse}
+.wc.wl-lead .wl-row-name{display:flex;align-items:center;gap:7px;min-width:0}
+.wc.wl-lead .wl-row-name b{font:800 11.5px/1.1 var(--sans);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wc.wl-lead .wl-row-side strong{font:800 15px/1 var(--mono);font-variant-numeric:tabular-nums;color:rgba(247,243,232,.9)}
+.wc.wl-lead .wl-row-side strong.is-up{color:#83C991}
+.wc.wl-lead .wl-row-mid{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:4px}
+.wc.wl-lead .wl-row-mid small{font:700 8.5px/1 var(--mono);color:var(--brass-bright);min-width:22px;text-align:center}
+.wc.wl-lead .wl-row-bar{height:6px;border-radius:3px;background:rgba(217,169,63,.35);overflow:hidden}
+.wc.wl-lead .wl-row-bar i{display:block;height:100%;background:#83C991;border-radius:3px}
+.wc.wl-lead .wl-hint{margin-top:10px;text-align:center;font:600 9.5px/1.3 var(--mono);color:rgba(247,243,232,.55);letter-spacing:.04em}
+
+/* Live matchup card */
+.wc.wl-match .wc-body{display:flex;flex-direction:column;align-items:stretch}
+.wc .wl-vs{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:8px;width:min(100%,560px);margin:4px auto 0}
+.wc .wl-side{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;text-align:center}
+.wc .wl-side>span{cursor:pointer}
+.wc .wl-side b{font:800 11px/1.1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--navy);cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wc .wl-side strong{font:800 30px/1 var(--mono);color:var(--navy);font-variant-numeric:tabular-nums;margin-top:2px}
+.wc .wl-side small{font:600 10px/1.2 var(--mono);color:#6f8090;white-space:nowrap}
+.wc .wl-mid{align-self:center;font:800 11px/1 var(--mono);letter-spacing:.14em;color:var(--brass);padding-top:30px}
+.wc .wl-bar{display:flex;height:18px;border-radius:9px;overflow:hidden;width:min(100%,560px);margin:12px auto 0;background:var(--paper-dim)}
+.wc .wl-bar span{display:flex;align-items:center;min-width:0;transition:width .6s ease}
+.wc .wl-bar span.a{background:var(--navy);justify-content:flex-start;padding-left:8px}
+.wc .wl-bar span.b{flex:1;background:var(--brass);justify-content:flex-end;padding-right:8px}
+.wc .wl-bar i{font:800 9.5px/1 var(--mono);color:#fff;font-style:normal;white-space:nowrap}
+.wc .wl-status{margin:10px auto 0;text-align:center;font:500 13px/1.4 var(--sans);color:var(--navy-ink)}
+.wc .wl-status b{color:var(--navy)}
+.wc .wl-label{margin:12px 0 2px;font:800 9px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--brass)}
+.wc .wl-open{appearance:none;align-self:center;margin-top:12px;padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--paper);font:800 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--navy);cursor:pointer}
+.wc .wl-open:hover{background:var(--paper-dim)}
+.wc.is-lead .wl-open{background:rgba(247,243,232,.1);border-color:rgba(247,243,232,.2);color:var(--paper)}
+
+/* Top performer */
+.wc.wl-top .wl-center{display:flex;flex-direction:column;align-items:center;text-align:center}
+.wc.wl-top .wl-center .wc-player{width:auto;flex-direction:column;text-align:center}
+.wc.wl-top .wl-center .wl-status{display:inline-flex;align-items:center;gap:6px}
+.wc.wl-top .wl-center .wc-mgr{margin-top:0}
+
+@media (max-width:640px){
+ .wc .wl-av-big{width:54px;height:54px;flex-basis:54px}
+ .wc .wl-side strong{font-size:24px}
+ .wc.wl-lead .wl-title{font-size:20px}
+ .wc.wl-lead .wl-head{margin:2px 0 8px}
+ .wc.wl-lead .wl-rows{gap:3px}
+ .wc.wl-lead .wl-row{grid-template-columns:minmax(0,1fr) 68px minmax(0,1fr);gap:4px;padding:4px 6px}
+ .wc.wl-lead .wl-row-name{flex-direction:column;gap:1px;flex:0 0 auto;max-width:56px}
+ .wc.wl-lead .wl-row-side.right .wl-row-name{flex-direction:column-reverse}
+ .wc.wl-lead .wl-row-name b{font-size:7.5px;letter-spacing:.02em;max-width:56px}
+ .wc.wl-lead .wl-row-side strong{font-size:13.5px}
+ .wc.wl-lead .wl-row-mid small{min-width:20px;font-size:8px}
+ .wc.wl-lead .wl-av{width:24px;height:24px;flex-basis:24px}
+ .wc.wl-lead .wl-hint{display:none}
+ .wc.wl-lead .wl-chip .wl-av{width:20px;height:20px;flex-basis:20px}
+}
