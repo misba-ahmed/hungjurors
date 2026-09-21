@@ -25,7 +25,6 @@
 .wc.wl-lead .wl-row-mid small{font:700 8.5px/1 var(--mono);color:var(--brass-bright);min-width:22px;text-align:center}
 .wc.wl-lead .wl-row-bar{height:6px;border-radius:3px;background:rgba(217,169,63,.35);overflow:hidden}
 .wc.wl-lead .wl-row-bar i{display:block;height:100%;background:#83C991;border-radius:3px}
-.wc.wl-lead .wl-hint{margin-top:10px;text-align:center;font:600 9.5px/1.3 var(--mono);color:rgba(247,243,232,.55);letter-spacing:.04em}
 
 /* Live matchup card */
 .wc.wl-match .wc-body{display:flex;flex-direction:column;align-items:stretch}
@@ -67,6 +66,5 @@
  .wc.wl-lead .wl-row-side strong{font-size:13.5px}
  .wc.wl-lead .wl-row-mid small{min-width:20px;font-size:8px}
  .wc.wl-lead .wl-av{width:24px;height:24px;flex-basis:24px}
- .wc.wl-lead .wl-hint{display:none}
  .wc.wl-lead .wl-chip .wl-av{width:20px;height:20px;flex-basis:20px}
 }
