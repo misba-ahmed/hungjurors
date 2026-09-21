@@ -2,6 +2,7 @@ import {readFile,writeFile} from 'node:fs/promises';
 import {readFileSync} from 'node:fs';
 const bannerRenderers=readFileSync(new URL('./banner-renderers.js',import.meta.url),'utf8');
 const projectionSummary=readFileSync(new URL('./projection-summary.js',import.meta.url),'utf8');
+const wireLive=readFileSync(new URL('./wire-live.js',import.meta.url),'utf8');
 const layoutGuard=readFileSync(new URL('./layout-guard.js',import.meta.url),'utf8');
 const recapScript=readFileSync(new URL('./recap-live.js',import.meta.url),'utf8');
 const standingsScript=readFileSync(new URL('./standings-live.js',import.meta.url),'utf8');
@@ -47,7 +48,7 @@ export function prepareSite(html){
  // Hosted Vegas projections stay visible for 36 hours after the last verified retrieval so a collector hiccup never blanks the site.
  if(!/<\/body>\s*<\/html>\s*$/.test(html))throw Error('Page end changed; review layout guard injection');
  return html.replace(old,'Date.now()-at<36*60*60*1000&&data.updated')
-  .replace('</head>','<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/standings.css?v=20260918-a1">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20260918-b3">\n</head>')
-  .replace(/<\/body>\s*<\/html>\s*$/,'<script id="hj-layout-guard">'+layoutGuard+'</script>\n</body>\n</html>\n');
+  .replace('</head>','<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/standings.css?v=20260918-a1">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a2">\n</head>')
+  .replace(/<\/body>\s*<\/html>\s*$/,'<script id="hj-wire-live">'+wireLive+'</script>\n<script id="hj-layout-guard">'+layoutGuard+'</script>\n</body>\n</html>\n');
 }
 if(process.argv[2])await writeFile(process.argv[2],prepareSite(await readFile(process.argv[2],'utf8')));
