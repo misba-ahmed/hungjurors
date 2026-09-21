@@ -17,15 +17,10 @@
   const states=list.map(gameState),yet=states.filter(s=>s==='pre').length,playing=states.filter(s=>s==='in').length,done=states.filter(s=>s==='post').length;
   return {...side,proj,yet,playing,done,count:list.length};
  }
- function phi(z){const t=1/(1+.2316419*Math.abs(z)),d=.3989423*Math.exp(-z*z/2),p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return z>=0?1-p:p}
- // Win chance from the live projections: the gap between projected finals, with uncertainty that shrinks as the points still to come shrink.
+ // Same number as the League HQ matchup card: its "Est. win chance" bar, from ESPN's live projected totals.
  function winChance(a,b){
-  const finished=a.count&&b.count&&a.done===a.count&&b.done===b.count;
-  if(finished)return a.score>b.score?100:a.score<b.score?0:50;
   if(!Number.isFinite(a.proj)||!Number.isFinite(b.proj))return null;
-  const remaining=Math.max(0,a.proj-a.score)+Math.max(0,b.proj-b.score);
-  const sd=Math.max(2,2.3*Math.sqrt(remaining+4*((a.count-a.done)+(b.count-b.done))));
-  return Math.max(1,Math.min(99,Math.round(100*phi((a.proj-b.proj)/sd))));
+  return Math.max(1,Math.min(99,Math.round(100/(1+Math.exp(-(a.proj-b.proj)/15)))));
  }
  function matchupAttr(week,r){return `data-wire-matchup="${esc(`${week}:${r.home.teamId}:${r.away.teamId}`)}"`}
  function sideHTML(s,right){
