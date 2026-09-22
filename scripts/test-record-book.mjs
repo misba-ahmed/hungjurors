@@ -1,0 +1,114 @@
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import {prepareSite} from './prepare-site.mjs';
+const read=name=>readFileSync(new URL(name,import.meta.url),'utf8');
+const html=read('../index.html');
+const baseline=JSON.parse(html.match(/const HIST = (\{[^\n]+\});/)[1]);
+const engine=new Function(read('./record-book-engine.js')+';return {hjRecordSnapshot,hjBuildRecordHistory}')();
+const route=new Function(read('./direct-links.js').split('(function(){')[0]+';return hjDirectRoute')();
+function runRecordTests(engine, baseline, route) {
+ const {hjRecordSnapshot:snapshot,hjBuildRecordHistory:build}=engine;
+ let checks=0;const assert=(condition,message)=>{checks++;if(!condition)throw Error(message)};
+ const clone=o=>JSON.parse(JSON.stringify(o));
+ const data=(year=2026)=>({seasonId:year,teams:[{id:1,name:'MISBA'},{id:2,name:'GARRETT'},{id:3,name:'KAT'},{id:4,name:'BRYAN'}],settings:{scheduleSettings:{matchupPeriodCount:2,matchupPeriods:{1:[1],2:[2],3:[3],4:[4]}}},schedule:[]});
+ const game=(id,p,a,b,x,y,tier='NONE',winner=x>y?'HOME':x<y?'AWAY':'TIE')=>({id,matchupPeriodId:p,playoffTierType:tier,winner,home:{teamId:a,totalPoints:x},away:{teamId:b,totalPoints:y}});
+ const normalize=d=>snapshot(d,d.seasonId,t=>t.name);
+ const original=JSON.stringify(baseline),d=data();
+ d.schedule=[game(1,1,1,2,250,240),game(2,1,3,4,20,10)];
+ let h=build(baseline,[normalize(d)]);
+ assert(h.record_book.scoring.highest_raw_week.manager==='MISBA','new highest score');
+ assert(h.record_book.scoring.highest_scoring_loss.score===240,'highest loss');
+ assert(h.record_book.scoring.lowest_scoring_win.score===20,'lowest win');
+ assert(h.record_book.scoring.highest_combined_score_game.total===490,'combined score');
+ assert(h.record_book.regular_season.best_single_season_win_pct.year===2018,'partial season cannot win rate record');
+ assert(h.record_book.regular_season.best_all_play_season.year===2021,'partial season cannot win all-play record');
+ assert(h.career_profiles.find(c=>c.manager==='MISBA').wins===71,'career increments');
+ const again=build(baseline,[normalize(d),normalize(d)]);
+ assert(JSON.stringify(again)===JSON.stringify(h),'duplicate refresh is idempotent');
+ assert(JSON.stringify(baseline)===original,'baseline is immutable');
+ d.schedule[0].home.totalPoints=100;d.schedule[0].away.totalPoints=90;
+ h=build(baseline,[normalize(d)]);
+ assert(h.record_book.scoring.highest_raw_week.score===203.26,'score correction restores old record');
+ d.schedule[0].winner='UNDECIDED';d.schedule[0].home.totalPoints=999;
+ h=build(baseline,[normalize(d)]);
+ assert(h.record_book.scoring.highest_raw_week.score===203.26,'in-progress scores excluded');
+ d.schedule=[game(1,1,1,2,250,240),game(2,1,3,4,20,10),game(3,2,1,3,300,30),game(4,2,2,4,50,40)];
+ h=build(baseline,[normalize(d)]);
+ assert(h.record_book.regular_season.best_single_season_win_pct.win_pct===1,'complete perfect season qualifies');
+ assert(h.record_book.regular_season.best_all_play_season.all_play_pct===1,'all-play recalculation');
+ d.schedule.push(game(5,3,1,4,350,60,'WINNERS_BRACKET'),game(6,3,2,3,80,70,'WINNERS_BRACKET'),game(7,4,1,2,400,399.99,'WINNERS_BRACKET','UNDECIDED'),game(8,4,4,3,120,110,'WINNERS_CONSOLATION_LADDER','UNDECIDED'));
+ h=build(baseline,[normalize(d)]);
+ assert(h.record_book.playoffs.highest_single_week_playoff_score_2018_onward.round==='Semifinal','playoff round attribution');
+ assert(h.record_book.playoffs.highest_single_week_playoff_score_2018_onward.score===350,'only completed playoffs counted');
+ assert(h.career_profiles.find(c=>c.manager==='MISBA').championships===4,'unfinished final cannot award title');
+ assert(h.career_profiles.find(c=>c.manager==='BRYAN').playoff_appearances===baseline.career_profiles.find(c=>c.manager==='BRYAN').playoff_appearances+1,'playoff appearance counted');
+ d.schedule[6].winner='HOME';d.schedule[7].winner='HOME';
+ h=build(baseline,[normalize(d)]);
+ assert(h.record_book.playoffs.closest_championship_2018_onward.margin===.01,'championship margin');
+ assert(h.career_profiles.find(c=>c.manager==='MISBA').championships===5,'championship awarded');
+ assert(h.career_profiles.find(c=>c.manager==='GARRETT').runner_ups===3,'runner up awarded');
+ assert(h.career_profiles.find(c=>c.manager==='BRYAN').third_places===baseline.career_profiles.find(c=>c.manager==='BRYAN').third_places+1,'third place awarded');
+ const future=clone(d);future.seasonId=2027;
+ h=build(baseline,[normalize(d),normalize(future)]);
+ assert(h.career_profiles.find(c=>c.manager==='MISBA').championships===6,'future seasons accumulate');
+ assert(build(baseline,[{...normalize(d),year:2025}]).record_book.scoring.highest_raw_week.score===203.26,'archived baseline not counted twice');
+ const multi=data();multi.settings.scheduleSettings.matchupPeriods[1]=[1,2];multi.schedule=[game(1,1,1,2,500,450)];
+ multi.schedule[0].home.pointsByScoringPeriod={1:100,2:400};multi.schedule[0].away.pointsByScoringPeriod={1:200,2:250};
+ h=build(baseline,[normalize(multi)]);
+ assert(h.record_book.scoring.highest_raw_week.score===400,'multiweek total is not single-week record');
+ delete multi.schedule[0].home.pointsByScoringPeriod;
+ assert(build(baseline,[normalize(multi)]).record_book.scoring.highest_raw_week.score===203.26,'missing weekly points do not fall back to aggregate');
+ const zero=data();zero.schedule=[game(1,1,1,2,0,-1)];
+ assert(build(baseline,[normalize(zero)]).record_book.scoring.lowest_scoring_win.score===0,'zero scores remain valid');
+ const tied=data();tied.schedule=[game(1,1,1,2,100,100)];
+ h=build(baseline,[normalize(tied)]);
+ assert(h.career_profiles.find(c=>c.manager==='MISBA').wins===70,'tie does not count as win');
+ assert(h.record_book.scoring.closest_regular_season_game.margin===0,'tied closest game');
+ let rejected=false;try{snapshot(data(),2027,t=>t.name)}catch(_){rejected=true}assert(rejected,'wrong season rejected');
+ rejected=false;try{snapshot(data(),2026,t=>'SAME')}catch(_){rejected=true}assert(rejected,'ambiguous identity rejected');
+ const expected={rosters:['rosters','league-hq'],matchups:['matchups','league-hq'],players:['free-agents','league-hq'],'roster-strength':['strength','league-hq'],activity:['activity','league-hq'],'weekly-recap':['recap','league-hq']};
+ for(const [slug,[tab,target]] of Object.entries(expected)){const r=route('#'+slug);assert(r?.tab===tab&&r.target===target,'HQ route '+slug)}
+ for(const slug of ['raffle','lms','titty','overachiever','mvp','optimizer'])assert(route('#'+slug)?.challenge===slug,'challenge route '+slug);
+ for(const [slug,target] of Object.entries({'past-seasons':'champions-fold','record-book':'record-book-fold',awards:'league-awards-fold'}))assert(route('#'+slug)?.target===target&&route('#'+slug).fold,'history route '+slug);
+ assert(route('#record-book-fold').target==='record-book-fold','old record URL remains compatible');
+ assert(route('#unknown')===null&&route('#%E0%A4%A')===null,'unknown and malformed routes ignored');
+ return checks;
+}
+
+function runDirectLinkTests(code){
+ let checks=0;
+ const assert=(value,message)=>{checks++;if(!value)throw Error(message)};
+ const location={hash:'#weekly-recap',href:'https://hungjurors.com/#weekly-recap',origin:'https://hungjurors.com',pathname:'/',search:''};
+ const handlers={},frames=new Map(),selected=[],historyEntries=[],folds={};let frame=0,scrolls=0;
+ const window={scrollY:0,addEventListener:(name,fn)=>(handlers[name]??=[]).push(fn),scrollTo:()=>scrolls++};
+ const document={getElementById:id=>folds[id]??={open:false,getBoundingClientRect:()=>({top:500})},querySelector:()=>null,addEventListener:(name,fn)=>(handlers['document:'+name]??=[]).push(fn)};
+ const history={pushState:(_,__,hash)=>{location.hash=hash;historyEntries.push(hash)}};
+ const api=new Function('window','document','location','history','requestAnimationFrame','cancelAnimationFrame','hjSetHQTab','selectChallenge','hjRenderLeague',code+';return {tab:(t)=>hjSetHQTab(t),challenge:(t)=>selectChallenge(t),render:()=>hjRenderLeague()}')(
+  window,document,location,history,fn=>{frames.set(++frame,fn);return frame},id=>frames.delete(id),t=>selected.push(t),t=>selected.push(t),()=>{});
+ const flush=()=>{for(const [id,fn] of [...frames]){frames.delete(id);fn()}};
+ const emit=name=>(handlers[name]||[]).forEach(fn=>fn());
+ assert(selected.at(-1)==='recap','initial deep link selects recap before data');
+ assert(historyEntries.length===0,'initial navigation does not add history');
+ flush();const before=scrolls;api.render();flush();assert(scrolls>before,'late league render completes jump');
+ emit('wheel');const stopped=scrolls;api.render();flush();assert(scrolls===stopped,'manual scroll cancels pending jump');
+ api.tab('free-agents');assert(location.hash==='#players','tab click publishes canonical URL');
+ api.challenge('overachiever');assert(location.hash==='#overachiever','challenge click publishes URL');
+ location.hash='#roster-strength';emit('popstate');flush();assert(selected.at(-1)==='strength','Back/Forward selects matching tab');
+ location.hash='#record-book';emit('hashchange');flush();assert(folds['record-book-fold'].open,'record link opens fold');
+ location.hash='#awards';emit('hashchange');flush();assert(folds['league-awards-fold'].open,'awards link opens fold');
+ location.hash='#%E0%A4%A';emit('hashchange');assert(true,'malformed link is safe');
+ return checks;
+}
+
+const checks=runRecordTests(engine,baseline,route)+runDirectLinkTests(read('./direct-links.js'));
+const prepared=prepareSite(html);
+let scripts=0;
+for(const match of prepared.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)){
+ if(/type=["']application\/(?:json|ld\+json)/.test(match[1]))continue;
+ new vm.Script(match[2]);scripts++;
+}
+const start=prepared.indexOf('  const recordCategories=HIST=>{'),end=prepared.indexOf('  let categories=recordCategories(HIST);',start);
+const factory=new Function('esc','num','pct',prepared.slice(start,end)+';return recordCategories')(String,(v,d=1)=>Number(v).toFixed(d),v=>(Number(v)*100).toFixed(1)+'%');
+const categories=factory(baseline);
+if(Object.values(categories).reduce((n,c)=>n+c.rows.length,0)!==18)throw Error('Record rendering changed');
+console.log(checks+' record and route checks passed; '+scripts+' generated scripts parsed.');

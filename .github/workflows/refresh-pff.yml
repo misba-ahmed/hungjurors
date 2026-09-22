@@ -28,6 +28,7 @@ jobs:
         run: |
           node scripts/test-vegas-feed.mjs
           node scripts/test-challenges.mjs
+          node scripts/test-record-book.mjs
       - uses: actions/configure-pages@v5
         id: pages
       - name: Stage site

@@ -1,5 +1,8 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import {readFileSync} from 'node:fs';
+const recordEngine=readFileSync(new URL('./record-book-engine.js',import.meta.url),'utf8');
+const recordLive=readFileSync(new URL('./record-book-live.js',import.meta.url),'utf8');
+const directLinks=readFileSync(new URL('./direct-links.js',import.meta.url),'utf8');
 const bannerRenderers=readFileSync(new URL('./banner-renderers.js',import.meta.url),'utf8');
 const projectionSummary=readFileSync(new URL('./projection-summary.js',import.meta.url),'utf8');
 const wireLive=readFileSync(new URL('./wire-live.js',import.meta.url),'utf8');
@@ -12,6 +15,24 @@ function replaceOnce(html,pattern,replacement){
  return html.replace(pattern,()=>replacement);
 }
 export function prepareSite(html){
+ // Reuse the record book's existing markup with recalculated categories.
+ const recordPattern=/  \/\* League Record Book \*\/[^]*?(?=  let activeRecordCategory=)/g;
+ const originalRecord=html.match(recordPattern);
+ if(originalRecord?.length!==1)throw Error('Record book source changed');
+ const source=originalRecord[0],helperStart=source.indexOf('  const rbPersonHTML='),categoryStart=source.indexOf('  const categories=');
+ if(helperStart<0||categoryStart<0)throw Error('Record helpers changed');
+ const helpers=source.slice(helperStart,categoryStart);
+ let calculation=source.slice(0,helperStart)+source.slice(categoryStart);
+ calculation=calculation.replace('  const categories={','  return {')
+  .replace('const R=HIST.record_book;','const R=HIST.record_book;\n  const careerByName=Object.fromEntries(HIST.career_profiles.map(c=>[c.manager,c]));')
+  .replace("round:'Semifinal'","round:g.round||'Semifinal'")
+  .replace(/  const txAllRows=[^\n]+\n/,'')
+  .replace('    const g=p.championship;','    const g=p.championship;if(!g)return false;')
+  .replace('${playoffHigh.year} Championship','${playoffHigh.year} ${playoffHigh.round?playoffHigh.round[0].toUpperCase()+playoffHigh.round.slice(1):\'Championship\'}')
+  .replace('${R.regular_season.best_single_season_win_pct.losses}','${R.regular_season.best_single_season_win_pct.losses}${R.regular_season.best_single_season_win_pct.ties?\'–\'+R.regular_season.best_single_season_win_pct.ties:\'\'}');
+ html=replaceOnce(html,recordPattern,helpers+'  const recordCategories=HIST=>{\n'+calculation+'  };\n  let categories=recordCategories(HIST);\n');
+ html=replaceOnce(html,/  renderRecords\(\);\n  tabs\?\.addEventListener/g,
+  "  renderRecords();\n  document.addEventListener('hj:records',event=>{categories=recordCategories(event.detail);renderRecords();});\n  tabs?.addEventListener");
  // Season Challenges header: sticky two-line tab rail, then the challenge title, prize stamp and rules card.
  html=replaceOnce(html,/    <div class="sec-head"><h3>Season Challenges<\/h3><span class="pot" id="challenge-prize-badge">\$30<\/span><\/div>\n    <div class="tabs" id="challenge-strip" role="tablist" aria-label="Season Challenges"><\/div>\n    <div class="rules" id="challenge-rule"><\/div>\n/g,
   '    <div class="sec-head"><h3>Season Challenges</h3></div>\n    <div class="ch-top" id="challenge-top"><div class="ch-rail" id="challenge-strip" role="tablist" aria-label="Season Challenges"></div></div>\n    <div class="ch-card" id="challenge-card"><div class="ch-card-head"><h4 class="ch-title" id="challenge-title"></h4><span class="ch-stamp" id="challenge-prize-badge" aria-label="Prize">$30</span></div><p class="ch-rules" id="challenge-rule"></p><button type="button" class="ch-rules-toggle" id="challenge-rules-toggle" aria-expanded="false" aria-controls="challenge-rule">Full rules</button></div>\n');
@@ -49,6 +70,6 @@ export function prepareSite(html){
  if(!/<\/body>\s*<\/html>\s*$/.test(html))throw Error('Page end changed; review layout guard injection');
  return html.replace(old,'Date.now()-at<36*60*60*1000&&data.updated')
   .replace('</head>','<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/standings.css?v=20260918-a1">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3">\n</head>')
-  .replace(/<\/body>\s*<\/html>\s*$/,'<script id="hj-wire-live">'+wireLive+'</script>\n<script id="hj-layout-guard">'+layoutGuard+'</script>\n</body>\n</html>\n');
+  .replace(/<\/body>\s*<\/html>\s*$/,'<script id="hj-record-engine">'+recordEngine+'</script>\n<script id="hj-record-live">'+recordLive+'</script>\n<script id="hj-direct-links">'+directLinks+'</script>\n<script id="hj-wire-live">'+wireLive+'</script>\n<script id="hj-layout-guard">'+layoutGuard+'</script>\n</body>\n</html>\n');
 }
 if(process.argv[2])await writeFile(process.argv[2],prepareSite(await readFile(process.argv[2],'utf8')));
