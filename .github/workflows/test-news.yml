@@ -1,0 +1,22 @@
+name: Verify news expansion
+on:
+  push:
+    branches: [news-spin]
+permissions:
+  contents: read
+jobs:
+  news:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Inspect ESPN news schema
+        run: |
+          node --input-type=module <<'JS'
+          const r=await fetch('https://site.api.espn.com/apis/fantasy/v2/games/ffl/news/players?limit=3&playerId=4434153',{signal:AbortSignal.timeout(20000)});
+          if(!r.ok)throw Error('ESPN '+r.status);
+          const d=await r.json();
+          console.log(JSON.stringify({keys:Object.keys(d),feed:d.feed?.map(f=>Object.fromEntries(Object.entries(f).map(([k,v])=>[k,typeof v==='string'?v.slice(0,180):v])))},null,2));
+          JS
