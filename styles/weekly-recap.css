@@ -375,7 +375,7 @@
 .rc .rc-record-seal{display:grid;justify-items:center;gap:5px;width:88px;padding:12px 5px;border:1px solid #d9a93f80;outline:1px solid #d9a93f33;outline-offset:4px;border-radius:50%;color:var(--brass-bright)}
 .rc .rc-record-seal svg{position:static;transform:none;width:28px;height:20px}
 .rc .rc-record-seal span{font:800 9px/1.25 var(--mono);letter-spacing:.12em}
-.rc .rc-record-footer{position:relative;padding-top:8px;border-top:1px solid #d9a93f44}
+.rc .rc-record-footer{position:relative;padding:8px 0 0;border-top:1px solid #d9a93f44;background:none;letter-spacing:normal;text-transform:none}
 .rc .rc-record-footer p{margin:0;font:500 10px/1.5 var(--sans);color:#ddd7c9}
 .rc .rc-record-footer p>b{color:var(--paper)}
 .rc .rc-record-footer p button{font-weight:800;color:var(--paper)}
