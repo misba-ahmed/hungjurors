@@ -34,8 +34,12 @@ jobs:
           npm install --no-save --package-lock=false playwright@1.56.1
           npx playwright install --with-deps chromium webkit
       - name: Verify news expansion
+        run: node scripts/test-news-spin.mjs
+      - name: Verify records and recap navigation
+        if: ${{ !cancelled() }}
         run: |
-          node scripts/test-news-spin.mjs
           node scripts/test-record-book.mjs
           node scripts/test-display-fixes.mjs
-          node scripts/test-player-search.mjs
+      - name: Verify player search and recap rows
+        if: ${{ !cancelled() }}
+        run: node scripts/test-player-search.mjs

@@ -3,6 +3,24 @@ import assert from 'node:assert/strict';
 import {chromium,webkit} from 'playwright';
 import {prepareSite} from './prepare-site.mjs';
 const read=p=>readFileSync(new URL(p,import.meta.url),'utf8'),html=prepareSite(read('../index.html'));
+// Verify an actual browser page-scale change, in addition to keyboard-event traces.
+{
+ const browser=await chromium.launch();
+ try{
+  const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  await page.setContent('<meta name="viewport" content="width=device-width, initial-scale=1"><input id="hq-fa-search" style="font-size:11px">');
+  await page.addScriptTag({content:read('./player-search.js')});
+  await page.locator('#hq-fa-search').focus();
+  const protocol=await page.context().newCDPSession(page);
+  await protocol.send('Emulation.setPageScaleFactor',{pageScaleFactor:1.6});
+  await page.waitForFunction(()=>visualViewport.scale>1.5);
+  await page.locator('#hq-fa-search').press('Enter');
+  await page.waitForFunction(()=>visualViewport.scale<=1.02,{},{timeout:2000});
+  await page.waitForTimeout(500);
+  assert.ok(await page.evaluate(()=>visualViewport.scale<=1.02),'Real page scale remains restored after temporary bounds are removed');
+  console.log('Chromium: actual page zoom returns to its pre-search scale.');
+ }finally{await browser.close()}
+}
 for(const [name,engine] of [['Chromium',chromium],['WebKit',webkit]]){
  const browser=await engine.launch();
  try{
