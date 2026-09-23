@@ -44,11 +44,13 @@ try{
   assert.equal(dimensions.before,dimensions.original,'Collapsed Spin must add ZERO card height');
   assert.equal(dimensions.text,'','Collapsed control shows only a plus');
   const placement=await summary.evaluate(el=>{
-   const news=el.closest('.ffn-card').querySelector('.ffn-text').getBoundingClientRect(),plus=el.getBoundingClientRect();
-   return {below:plus.top>=news.bottom-1,right:Math.abs(plus.right-news.right)<1};
+   const card=el.closest('.ffn-card'),news=card.querySelector('.ffn-text').getBoundingClientRect(),plus=el.getBoundingClientRect(),related=card.querySelector('.ffn-related'),line=related.getBoundingClientRect(),bar=getComputedStyle(el,'::before');
+   return {below:plus.top>=news.bottom-1,left:Math.abs(plus.left-news.left)<1,aligned:Math.abs(plus.top+parseFloat(bar.top)+parseFloat(bar.height)/2-line.top-parseFloat(getComputedStyle(related).borderTopWidth)/2)<.5};
+
   });
   assert.equal(placement.below,true,'Plus sits below the actual news text');
-  assert.equal(placement.right,true,'Plus aligns with the right edge of the actual news');
+  assert.equal(placement.left,true,'Plus aligns with the left edge of the actual news');
+  assert.equal(placement.aligned,true,'Horizontal plus stroke aligns with the separator');
   await summary.click();
   await page.waitForFunction(()=>document.querySelector('.ffn-spin').open);
   assert.equal(await first.locator('p').isVisible(),true);
