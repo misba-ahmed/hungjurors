@@ -11,7 +11,7 @@
  };
  function releaseReset(){
   if(!reset)return;
-  const current=reset;reset=null;clearTimeout(current.timer);
+  const current=reset;reset=null;clearTimeout(current.timer);clearTimeout(current.fallback);cancelAnimationFrame(current.frame);
   current.meta.setAttribute('content',current.content);
  }
  function begin(input){
@@ -26,13 +26,18 @@
   releaseReset();
   const content=meta.getAttribute('content')||'width=device-width';
   const base=content.split(',').map(v=>v.trim()).filter(v=>! /^(initial-scale|minimum-scale|maximum-scale|user-scalable)\s*=/i.test(v)).join(', ');
-  reset={meta,content,scale:target,timer:0};
+  reset={meta,content,scale:target,timer:0,fallback:0,frame:0};
   // These bounds exist only during keyboard dismissal, never while typing.
   const current=reset,setScale=value=>meta.setAttribute('content',base+', initial-scale='+value+', minimum-scale='+value+', maximum-scale='+value);
   // A changed initial scale makes browsers re-evaluate a retained input zoom.
   setScale(target*.99);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(reset===current)setScale(target)}));
-  reset.timer=setTimeout(releaseReset,450);
+  let settled=false;
+  const settle=()=>{
+   if(reset!==current||settled)return;settled=true;clearTimeout(current.fallback);
+   setScale(target);current.timer=setTimeout(releaseReset,350);
+  };
+  current.frame=requestAnimationFrame(()=>{current.frame=requestAnimationFrame(settle)});
+  current.fallback=setTimeout(settle,80);
  }
  function finish(){
   const current=session;if(!current)return;
