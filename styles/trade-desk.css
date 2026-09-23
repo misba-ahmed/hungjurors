@@ -262,3 +262,57 @@
 }
 #hq-panel-strength .td-timing{margin:0 0 12px!important;padding:8px 11px;border-left:3px solid var(--brass,#d9a93f);border-radius:0 8px 8px 0;background:var(--paper-dim,#f1ecdc);font:400 11.5px/1.5 var(--sans);color:#4c637a}
 #hq-panel-strength .td-timing b{color:var(--navy,#14324f);font-weight:800}
+
+/* ---------- position chart: today in grey, the change in colour ---------- */
+#hq-panel-strength .td-units-key{display:flex;align-items:center;gap:5px;margin-bottom:6px;font:700 9px/1.2 var(--mono);color:#8494a1}
+#hq-panel-strength .td-units-key i{width:16px;height:6px;border-radius:3px;background:#c3ccd4}
+#hq-panel-strength .td-units-key .key-up{background:#2f7d4a}
+#hq-panel-strength .td-units-key .key-down{background:#c4564e}
+#hq-panel-strength .td-units-key .td-units-rankkey{margin-left:auto}
+#hq-panel-strength .td-unit{grid-template-columns:26px 62px minmax(0,1fr) 62px}
+#hq-panel-strength .td-unit-rank{font:800 9.5px/1 var(--mono);color:#5f7385;white-space:nowrap}
+#hq-panel-strength .td-unit-rank.is-strong{color:#2f7d4a}
+#hq-panel-strength .td-unit-rank.is-weak{color:#a8483f}
+#hq-panel-strength .td-unit-rank em{font-style:normal;margin-left:3px;color:var(--brass,#a87f22)}
+#hq-panel-strength .td-unit-track{height:12px;background:#eef1f3}
+#hq-panel-strength .td-unit-track i{position:absolute;top:2px;height:8px;border-radius:3px}
+#hq-panel-strength .td-unit-track .base{left:0;background:#c3ccd4}
+#hq-panel-strength .td-unit-track .gain{background:#2f7d4a}
+#hq-panel-strength .td-unit-track .loss{left:0;background:#c4564e}
+#hq-panel-strength .td-unit-track .gone{background:#c3ccd4}
+#hq-panel-strength .td-unit.is-same .td-unit-track .base{background:#c3ccd4}
+
+/* ---------- week-by-week usage ---------- */
+#hq-panel-strength .td-usage-block{margin:0 0 14px}
+#hq-panel-strength .td-usage-block h4{margin:0 0 3px;font:900 12px/1.2 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--brass,#a87f22)}
+#hq-panel-strength .td-usage-block p{margin:0 0 9px;font:400 11.5px/1.5 var(--sans);color:#5f7385;max-width:80ch}
+#hq-panel-strength .td-usage-list{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#hq-panel-strength .td-usage{border:1px solid var(--line,rgba(20,50,79,.14));border-radius:11px;padding:10px;background:#fff;min-width:0}
+#hq-panel-strength .td-usage-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;min-width:0}
+#hq-panel-strength .td-usage-face{appearance:none;border:0;padding:0;width:32px;height:32px;flex:0 0 32px;border-radius:50%;overflow:hidden;background:var(--paper-dim,#f1ecdc);cursor:pointer}
+#hq-panel-strength .td-usage-face img{width:100%;height:100%;object-fit:cover}
+#hq-panel-strength .td-usage-who{min-width:0}
+#hq-panel-strength .td-usage-who b{display:block;font:800 11.5px/1.2 var(--sans);color:var(--navy,#14324f);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hq-panel-strength .td-usage-who small{display:block;margin-top:1px;font:700 9px/1 var(--mono);color:#8494a1}
+#hq-panel-strength .td-usage-tag{margin-left:auto;flex:0 0 auto;padding:3px 8px;border-radius:999px;background:rgba(20,50,79,.07);color:#5f7385;font:800 9px/1.3 var(--mono);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+#hq-panel-strength .td-usage-tag.is-up{background:#e6f1e7;color:#2f7d4a}
+#hq-panel-strength .td-usage-tag.is-down{background:#f7e6e4;color:#a8483f}
+#hq-panel-strength .td-usage-grid{display:grid;gap:3px}
+#hq-panel-strength .td-usage-row{display:grid;grid-template-columns:70px repeat(var(--cols,5),minmax(0,1fr));align-items:end;gap:4px}
+#hq-panel-strength .td-usage-label{font:700 9px/1.2 var(--mono);color:#8494a1;white-space:nowrap;align-self:center}
+#hq-panel-strength .td-usage-cell{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:30px;border-radius:4px;background:var(--paper-dim,#f1ecdc);overflow:hidden}
+#hq-panel-strength .td-usage-cell i{position:absolute;left:0;right:0;bottom:0;background:rgba(45,110,163,.28)}
+#hq-panel-strength .td-usage-cell b{position:relative;font:800 9.5px/1 var(--mono);color:var(--navy,#14324f);padding-bottom:4px}
+#hq-panel-strength .td-usage-row.is-weeks .td-usage-cell{height:auto;background:none}
+#hq-panel-strength .td-usage-row.is-weeks b{font:700 9px/1 var(--mono);color:#8494a1;padding:0 0 2px}
+@media(max-width:760px){
+ #hq-panel-strength .td-usage-list{grid-template-columns:minmax(0,1fr)}
+ #hq-panel-strength .td-unit{grid-template-columns:24px 56px minmax(0,1fr) 56px}
+ #hq-panel-strength .td-usage-row{grid-template-columns:62px repeat(var(--cols,5),minmax(0,1fr))}
+}
+
+/* ---------- roster pool grouped by position ---------- */
+#hq-panel-strength .td-group+.td-group{margin-top:8px}
+#hq-panel-strength .td-group-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;position:sticky;top:0;z-index:1;padding:4px 4px 3px;background:#fff;border-bottom:1px solid rgba(20,50,79,.1)}
+#hq-panel-strength .td-group-head span{font:900 9.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--brass,#a87f22)}
+#hq-panel-strength .td-group-head b{font:700 9px/1 var(--mono);color:#94a1ac}
