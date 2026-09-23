@@ -1,22 +1,29 @@
 name: Verify news expansion
 on:
   push:
-    branches: [news-spin]
+    branches: [news-spin, main]
+    paths:
+      - 'scripts/news-spin.js'
+      - 'scripts/test-news-spin.mjs'
+      - 'styles/news-spin.css'
+      - 'scripts/prepare-site.mjs'
+      - '.github/workflows/test-news.yml'
 permissions:
   contents: read
 jobs:
   news:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - name: Inspect ESPN news schema
+      - name: Install browser test tools
         run: |
-          node --input-type=module <<'JS'
-          const r=await fetch('https://site.api.espn.com/apis/fantasy/v2/games/ffl/news/players?limit=3&playerId=4434153',{signal:AbortSignal.timeout(20000)});
-          if(!r.ok)throw Error('ESPN '+r.status);
-          const d=await r.json();
-          console.log(JSON.stringify({keys:Object.keys(d),feed:d.feed?.map(f=>Object.fromEntries(Object.entries(f).map(([k,v])=>[k,typeof v==='string'?v.slice(0,180):v])))},null,2));
-          JS
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Verify news expansion
+        run: |
+          node scripts/test-news-spin.mjs
+          node scripts/test-record-book.mjs

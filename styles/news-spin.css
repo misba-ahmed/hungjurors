@@ -1,0 +1,7 @@
+#ffn-scroll .ffn-spin{margin:12px 0 0;border-top:1px solid var(--line);color:var(--navy)}
+#ffn-scroll .ffn-spin summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:40px;cursor:pointer;list-style:none;font:700 10.5px/1.4 var(--sans);color:var(--navy);user-select:none}
+#ffn-scroll .ffn-spin summary::-webkit-details-marker{display:none}
+#ffn-scroll .ffn-spin summary::after{content:'+';font-size:18px;font-weight:600;color:var(--brass)}
+#ffn-scroll .ffn-spin[open] summary::after{content:'−'}
+#ffn-scroll .ffn-spin summary:focus-visible{outline:2px solid var(--brass);outline-offset:3px;border-radius:3px}
+#ffn-scroll .ffn-spin-text{margin:0 0 12px;font:400 10.5px/1.45 var(--sans);overflow-wrap:anywhere}
