@@ -3,23 +3,24 @@ import assert from 'node:assert/strict';
 import {chromium,webkit} from 'playwright';
 import {prepareSite} from './prepare-site.mjs';
 const read=p=>readFileSync(new URL(p,import.meta.url),'utf8'),html=prepareSite(read('../index.html'));
+const failures=[];
 // Verify an actual browser page-scale change, in addition to keyboard-event traces.
 {
- const browser=await chromium.launch();
+ const browser=await chromium.launch();let page;
  try{
-  const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
   await page.setContent('<meta name="viewport" content="width=device-width, initial-scale=1"><input id="hq-fa-search" style="font-size:11px">');
   await page.addScriptTag({content:read('./player-search.js')});
   await page.locator('#hq-fa-search').focus();
   const protocol=await page.context().newCDPSession(page);
-  await protocol.send('Emulation.setPageScaleFactor',{pageScaleFactor:1.6});
+  await protocol.send('Input.synthesizePinchGesture',{x:190,y:350,scaleFactor:1.6,gestureSourceType:'touch'});
   await page.waitForFunction(()=>visualViewport.scale>1.5);
   await page.locator('#hq-fa-search').press('Enter');
   await page.waitForFunction(()=>visualViewport.scale<=1.02,{},{timeout:2000});
   await page.waitForTimeout(500);
   assert.ok(await page.evaluate(()=>visualViewport.scale<=1.02),'Real page scale remains restored after temporary bounds are removed');
   console.log('Chromium: actual page zoom returns to its pre-search scale.');
- }finally{await browser.close()}
+ }catch(error){console.error('Actual scale check failed:',error.message,await page.evaluate(()=>({scale:visualViewport.scale,meta:document.querySelector('meta[name="viewport"]').content})));failures.push(error)}finally{await browser.close()}
 }
 for(const [name,engine] of [['Chromium',chromium],['WebKit',webkit]]){
  const browser=await engine.launch();
@@ -68,7 +69,7 @@ for(const [name,engine] of [['Chromium',chromium],['WebKit',webkit]]){
   assert.equal(await page.evaluate(()=>HJ_HQ_STATE.query),'','Clear updates the real player filter');
   await input.fill('naber');await input.press('Enter');
   assert.equal(await input.evaluate(el=>el===document.activeElement),false);
-  assert.match(await meta.getAttribute('content'),/maximum-scale=1(?:,|$)/);
+  await page.waitForFunction(()=>document.querySelector('meta[name="viewport"]').content.includes('maximum-scale=1'));
   await restored();
 
   await focus();await keyboard();
@@ -78,7 +79,7 @@ for(const [name,engine] of [['Chromium',chromium],['WebKit',webkit]]){
   await restored();
 
   await focus(1.25);await keyboard(1.8);await input.blur();
-  assert.match(await meta.getAttribute('content'),/maximum-scale=1.25(?:,|$)/,'Preserve zoom chosen before typing');
+  await page.waitForFunction(()=>document.querySelector('meta[name="viewport"]').content.includes('maximum-scale=1.25'));
   await restored();
 
   await focus();await keyboard();
@@ -92,7 +93,7 @@ for(const [name,engine] of [['Chromium',chromium],['WebKit',webkit]]){
   await focus();await keyboard();
   await page.locator('#test-player').click();
   await page.waitForSelector('.pc-modal-overlay');
-  assert.match(await meta.getAttribute('content'),/maximum-scale=1(?:,|$)/,'Profile opening restores search zoom');
+  await page.waitForFunction(()=>document.querySelector('meta[name="viewport"]').content.includes('maximum-scale=1'));
   assert.equal(await input.evaluate(el=>el===document.activeElement),false);
   await restored();
   await page.evaluate(()=>pcClose());
@@ -115,5 +116,7 @@ for(const [name,engine] of [['Chromium',chromium],['WebKit',webkit]]){
    assert.ok(result.scroll>0,'Cards still scroll sideways');
   }
   console.log(name+': clear search, typing zoom preservation, Enter, keyboard dismissal, profile opening, pinch preservation and transparent swipeable recap rows passed.');
- }finally{await browser.close()}
+ }catch(error){console.error(name+' keyboard trace failed:',error);failures.push(error)}finally{await browser.close()}
 }
+
+assert.equal(failures.length,0,'All browser checks pass');

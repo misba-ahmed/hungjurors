@@ -28,7 +28,10 @@
   const base=content.split(',').map(v=>v.trim()).filter(v=>! /^(initial-scale|minimum-scale|maximum-scale|user-scalable)\s*=/i.test(v)).join(', ');
   reset={meta,content,scale:target,timer:0};
   // These bounds exist only during keyboard dismissal, never while typing.
-  meta.setAttribute('content',base+', initial-scale='+target+', minimum-scale='+target+', maximum-scale='+target);
+  const current=reset,setScale=value=>meta.setAttribute('content',base+', initial-scale='+value+', minimum-scale='+value+', maximum-scale='+value);
+  // A changed initial scale makes browsers re-evaluate a retained input zoom.
+  setScale(target*.99);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(reset===current)setScale(target)}));
   reset.timer=setTimeout(releaseReset,450);
  }
  function finish(){
