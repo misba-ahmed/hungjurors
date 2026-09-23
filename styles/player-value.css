@@ -157,5 +157,6 @@
 /* Five model controls need the whole row on a phone, or the labels clip. */
 @media(max-width:760px){
  #hq-panel-strength .hj15-toolbar .hj15-group:has([data-hq-strength-model]){grid-column:1/-1!important}
+ #hq-panel-strength .hj15-toolbar .hj15-group:has([data-hq-strength-view]){grid-column:1/-1!important}
  #hq-panel-strength .hj15-toolbar .hj15-group:has([data-hq-strength-model]) .hj15-toggle{padding:0 3px!important;font-size:7.4px!important}
 }
