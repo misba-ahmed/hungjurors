@@ -1,7 +1,5 @@
-#ffn-scroll .ffn-body{position:relative}
-#ffn-scroll .ffn-body:has(.ffn-spin) .ffn-tag{transform:translateX(-18px)}
-#ffn-scroll .ffn-spin{margin:0;padding:0;border:0;color:var(--navy)}
-#ffn-scroll .ffn-spin summary{position:absolute;top:4px;right:3px;width:24px;height:24px;padding:0;margin:0;display:grid;place-items:center;cursor:pointer;list-style:none;color:var(--brass);font:600 16px/1 var(--sans);user-select:none}
+#ffn-scroll .ffn-spin{position:relative;margin:0;padding:0;border:0;color:var(--navy)}
+#ffn-scroll .ffn-spin summary{position:absolute;top:0;right:0;width:18px;height:15px;background:#fff;padding:0;margin:0;display:grid;place-items:center;cursor:pointer;list-style:none;color:var(--brass);font:600 16px/1 var(--sans);user-select:none}
 #ffn-scroll .ffn-spin summary::-webkit-details-marker{display:none}
 #ffn-scroll .ffn-spin summary::after{content:'+'}
 #ffn-scroll .ffn-spin[open] summary::after{content:'−'}
