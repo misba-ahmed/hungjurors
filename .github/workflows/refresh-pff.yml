@@ -201,6 +201,51 @@ jobs:
              failed(kind,error,saved);
             }
            }));
+           // Market Value: a consensus price per player, taken from completed trades in
+           // real leagues. Settings are pinned to this league's format (redraft, 10 teams,
+           // 1 QB, full PPR, tight-end premium) so the figures published here are comparable.
+           const MARKET_URL='https://api.fantasycalc.com/values/current?isDynasty=false&numQbs=1&numTeams=10&ppr=1&tep=te%2B';
+           const MARKET_COUNT_URL='https://api.fantasycalc.com/trades/count';
+           const oldMarket=await previous('data/player-values.json');
+           const savedMarket=oldMarket?.schema===1&&Array.isArray(oldMarket.players)&&oldMarket.players.length>=50?oldMarket:null;
+           try{
+            const response=await request(MARKET_URL,'application/json');
+            const list=await response.json();
+            if(!Array.isArray(list))throw Error('Market value feed is not a list');
+            const players=list.map(row=>({
+             espnId:String(row?.player?.espnId??''),
+             sleeperId:String(row?.player?.sleeperId??''),
+             name:String(row?.player?.name??''),
+             pos:String(row?.player?.position??'').toUpperCase(),
+             team:String(row?.player?.maybeTeam??''),
+             value:Number(row?.value),
+             trend30:Number.isFinite(Number(row?.trend30Day))?Number(row.trend30Day):null,
+             tier:Number.isFinite(Number(row?.maybeTier))?Number(row.maybeTier):null,
+             rostered:Number.isFinite(Number(row?.maybeRosterPercent))?Number(row.maybeRosterPercent):null
+            })).filter(row=>row.name&&['QB','RB','WR','TE'].includes(row.pos)&&Number.isFinite(row.value)&&row.value>0);
+            if(players.length<50)throw Error(`Market value feed returned ${players.length} usable players`);
+            // Ranks are derived from the published values so a rank never disagrees with its number.
+            players.sort((a,b)=>b.value-a.value||a.name.localeCompare(b.name));
+            const perPosition={};
+            players.forEach((row,index)=>{row.overallRank=index+1;perPosition[row.pos]=(perPosition[row.pos]||0)+1;row.positionRank=perPosition[row.pos]});
+            let trades=null;
+            try{const counted=Number(String(await (await request(MARKET_COUNT_URL,'text/plain')).text()).replace(/[^0-9]/g,''));if(Number.isFinite(counted)&&counted>0)trades=counted;}catch(error){console.log(`market value trade count unavailable: ${error.message}`);}
+            if(!trades&&Number.isFinite(savedMarket?.trades))trades=savedMarket.trades;
+            const market={schema:1,season,generatedAt:Date.now(),format:{type:'redraft',teams:10,quarterbacks:1,ppr:1,tep:'te+'},trades,count:players.length,players};
+            await writeFile('_site/data/player-values.json',JSON.stringify(market));
+            status.sources.marketValues={status:'updated',checkedAt:market.generatedAt,rows:players.length};
+            console.log(`market values: ${players.length} players; ${trades?trades.toLocaleString('en-US'):'unknown'} trades`);
+           }catch(error){
+            const message=String(error.message||error);
+            if(savedMarket){
+             await writeFile('_site/data/player-values.json',JSON.stringify(savedMarket));
+             status.sources.marketValues={status:'available',error:message,retained:true,checkedAt:savedMarket.generatedAt,rows:savedMarket.players.length};
+             console.log(`::warning title=marketValues refresh failed::${message} (previous values retained)`);
+            }else{
+             status.sources.marketValues={status:'failed',error:message,retained:false,checkedAt:null,rows:0};
+             console.error(`::error title=marketValues refresh failed::${message}`);
+            }
+           }
            // An empty/error-only object must never replace the last successful feed.
            // Retained rows keep their original checkedAt and source publication date.
            if(projection.weekly||projection.seasonProjections)await writeFile('_site/data/projections.json',JSON.stringify(projection));
@@ -209,10 +254,10 @@ jobs:
            status.ok=failures.length===0;
            await writeFile('_site/data/source-status.json',JSON.stringify(status));
            if(process.env.GITHUB_STEP_SUMMARY){
-            const clean=s=>String(s||'').replace(/[|\r\n]/g,' '),names={weekly:'Vegas weekly (.5 TEP)',seasonProjections:'Vegas season (.5 TEP)',stats:'Advanced stats',snaps:'Snap counts'};
+            const clean=s=>String(s||'').replace(/[|\r\n]/g,' '),names={weekly:'Vegas weekly (.5 TEP)',seasonProjections:'Vegas season (.5 TEP)',stats:'Advanced stats',snaps:'Snap counts',marketValues:'Market values'};
             const lines=['## Data refresh','', '| Source | Result | Available rows | Last successful check |','| --- | --- | ---: | --- |'];
-            for(const key of ['weekly','seasonProjections','stats','snaps']){
-             const r=status.sources[key],label=r.status==='available'?'Verified browser feed':r.status==='updated'?'Updated':r.retained?`${r.status}; previous data retained`:`${r.status}; no valid saved data`;
+            for(const key of ['weekly','seasonProjections','stats','snaps','marketValues']){
+             const r=status.sources[key];if(!r)continue;const label=r.status==='available'?'Verified browser feed':r.status==='updated'?'Updated':r.retained?`${r.status}; previous data retained`:`${r.status}; no valid saved data`;
              lines.push(`| ${names[key]} | ${label} | ${r.rows} | ${r.checkedAt?new Date(r.checkedAt).toISOString():'—'} |`);
             }
             if(failures.length){
