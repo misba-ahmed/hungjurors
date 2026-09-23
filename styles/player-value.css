@@ -1,0 +1,119 @@
+/* =====================================================================
+   MARKET VALUE
+   Profile strip, League HQ directory column, Roster Strength model note.
+   ===================================================================== */
+
+/* --- shared --- */
+.hjmv-info{color:#8a97a2}
+#hj-mv-explanation{position:fixed;inset:0;margin:auto;width:min(330px,calc(100vw - 40px));box-sizing:border-box;padding:16px 18px;border:1px solid #d5d9dd;border-radius:12px;background:#fffdf7;color:#17344c;box-shadow:0 8px 32px rgba(16,47,73,.2);font:400 13px/1.55 var(--sans)}
+#hj-mv-explanation::backdrop{background:rgba(16,47,73,.1)}
+#hj-mv-explanation strong{display:block;font:800 13px/1.3 var(--sans);letter-spacing:.01em}
+#hj-mv-explanation p{margin:8px 0 0}
+#hj-mv-explanation p b{font-variant-numeric:tabular-nums}
+#hj-mv-explanation .hj-pff-info-close{float:right;border:0;background:transparent;color:#718292;font-size:20px;line-height:1;padding:0 3px;cursor:pointer}
+
+/* --- Surface 1: player profile strip --- */
+.pc-modal .hjmv-strip,.hjmv-strip{
+ position:relative;margin:0 0 10px;padding:9px 12px 10px;
+ border:1px solid rgba(20,50,79,.14);border-radius:10px;
+ background:linear-gradient(180deg,#fffdf6,var(--paper-dim,#f1ecdc));
+ overflow:hidden;
+}
+.hjmv-strip:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--brass,#d9a93f),rgba(217,169,63,.35))}
+.hjmv-strip-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
+.hjmv-strip .hjmv-label{display:inline-flex;align-items:center;gap:2px;font:800 8.6px/1.2 var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--brass,#a87f22)}
+.hjmv-strip .hjmv-state{font:600 9px/1.2 var(--sans);color:#8a98a4}
+.hjmv-strip .hjmv-state:empty{display:none}
+.hjmv-strip-body{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.hjmv-strip .hjmv-figure strong{font:800 26px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--navy,#14324f)}
+.hjmv-strip .hjmv-facts{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.hjmv-strip .hjmv-chip{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;background:var(--navy,#14324f);color:#fff;font:800 10px/1 var(--mono);letter-spacing:.06em}
+.hjmv-strip .hjmv-fact{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:44px}
+.hjmv-strip .hjmv-fact small{font:650 7.6px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:#8a98a4}
+.hjmv-strip .hjmv-fact b{font:800 12px/1 var(--mono);font-variant-numeric:tabular-nums;color:var(--navy,#14324f)}
+.hjmv-strip .hjmv-fact b.is-up{color:#2f7d4a}
+.hjmv-strip .hjmv-fact b.is-down{color:#9d4b45}
+@media(max-width:420px){
+ .hjmv-strip .hjmv-figure strong{font-size:22px}
+ .hjmv-strip .hjmv-fact{min-width:40px}
+ .hjmv-strip .hjmv-fact b{font-size:11px}
+}
+
+/* --- Surface 2: League HQ · Players tab column --- */
+.hq-player-directory .hq-player-card.hq40-card.has-mv-column{
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ grid-template-areas:"head head head" "week season mv" "stats stats stats"!important;
+}
+.hq-player-directory .hq-player-card.hq40-card.has-mv-column.has-pff-column{
+ grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ grid-template-areas:"head head head head" "week season pff mv" "stats stats stats stats"!important;
+}
+.hq40-card .hjmv-col{grid-area:mv!important;position:relative;margin-left:-1px!important;border-radius:0 8px 8px 0!important;color:var(--navy)!important;font-family:var(--sans);cursor:pointer}
+.hq40-card.has-mv-column .hq40-season-proj{border-radius:0!important}
+.hq40-card.has-mv-column.has-pff-column .hq40-pff-proj{border-radius:0!important}
+.hq40-card .hjmv-col[aria-pressed="true"]{box-shadow:inset 0 -2px var(--brass)!important}
+.hq40-card .hjmv-col .hq-player-proj-main{font-variant-numeric:tabular-nums}
+.hq40-card .hjmv-col .hjmv-col-sub{grid-area:sub!important;justify-self:center!important;font:700 8px/1 var(--mono)!important;letter-spacing:.06em;color:#7d8b98!important}
+.hq40-card .hjmv-col .hjmv-col-sub:empty{display:none}
+.hq40-card .hjmv-col>.hq-player-proj-label,.hq40-card .hjmv-col>.hq42-proj-primary,.hq40-card .hjmv-col>.hjmv-col-sub{pointer-events:none}
+.hq40-card .hjmv-col .hj-pff-info{pointer-events:auto}
+@media(max-width:620px){
+ .hq-player-directory .hq-player-card.hq40-card.has-mv-column.has-pff-column{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-template-areas:"head head" "week season" "pff mv" "stats stats"!important;
+ }
+ .hq40-card.has-mv-column.has-pff-column .hq40-week-proj{border-radius:8px 0 0 0!important}
+ .hq40-card.has-mv-column.has-pff-column .hq40-season-proj{border-radius:0 8px 0 0!important}
+ .hq40-card.has-mv-column.has-pff-column .hq40-pff-proj{margin-left:0!important;margin-top:-1px!important;border-radius:0 0 0 8px!important}
+ .hq40-card.has-mv-column.has-pff-column .hjmv-col{margin-top:-1px!important;border-radius:0 0 8px 0!important}
+}
+@media(max-width:420px){
+ .hq40-card.has-mv-column .hq-player-proj{column-gap:4px!important;padding-left:3px!important;padding-right:3px!important}
+ .hq40-card .hjmv-col{grid-template-columns:1fr!important;grid-template-areas:"label" "primary" "sub"!important;justify-items:center!important}
+}
+
+/* --- Surface 3: Roster Strength model note --- */
+#hq-panel-strength .hjmv-note{display:flex;align-items:stretch;gap:10px;margin:0;padding:10px 14px 11px;background:#fffdf7;border-bottom:1px solid var(--line,rgba(20,50,79,.12))}
+#hq-panel-strength .hjmv-note-rule{flex:0 0 2px;border-radius:2px;background:linear-gradient(180deg,var(--brass,#d9a93f),rgba(217,169,63,.2))}
+#hq-panel-strength .hjmv-note-copy{min-width:0}
+#hq-panel-strength .hjmv-note-copy strong{display:flex;align-items:center;gap:2px;font:800 8.4px/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--brass,#a87f22)}
+#hq-panel-strength .hjmv-note-copy p{margin:4px 0 0;font:400 11.6px/1.5 var(--sans);color:#4c637a;max-width:74ch}
+@media(max-width:760px){
+ #hq-panel-strength .hjmv-note{padding:8px 11px 9px;gap:8px}
+ #hq-panel-strength .hjmv-note-copy p{font-size:10.6px;line-height:1.45}
+}
+
+/* --- Value model rows --- */
+#hq-panel-strength .hjmv-shell .hj15-overall strong{font-variant-numeric:tabular-nums}
+#hq-panel-strength .hj15-ribbon.hjmv-ribbon{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+#hq-panel-strength .hjmv-prank{display:inline-block;margin-left:4px;vertical-align:1px;padding:1px 4px;border-radius:999px;background:rgba(20,50,79,.08);color:#5d7186;font:800 6.4px/1.35 var(--mono);letter-spacing:.05em}
+#hq-panel-strength .hjmv-shell .hj15-player .pv{font-variant-numeric:tabular-nums}
+@media(max-width:760px){
+ #hq-panel-strength .hj15-ribbon.hjmv-ribbon{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+ #hq-panel-strength .hj15-card.is-open .hj15-ribbon.hjmv-ribbon{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:430px){
+ #hq-panel-strength .hj15-ribbon.hjmv-ribbon{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+ #hq-panel-strength .hj15-card.is-open .hj15-ribbon.hjmv-ribbon{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+/* --- Surface: League Activity tag --- */
+.hq-activity-copy .hjmv-tag{display:inline-flex;align-items:baseline;gap:5px;margin-left:8px;padding:2px 8px;border-radius:999px;background:rgba(20,50,79,.06);white-space:nowrap;vertical-align:1px}
+.hq-activity-copy .hjmv-tag small{font:700 7.4px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:#8391a0}
+.hq-activity-copy .hjmv-tag b{font:800 10.5px/1 var(--mono);font-variant-numeric:tabular-nums;color:var(--navy,#14324f)}
+.hq-activity-copy .hjmv-tag em{font:700 8px/1 var(--mono);font-style:normal;color:var(--brass,#a87f22)}
+@media(max-width:520px){
+ .hq-activity-copy .hjmv-tag{display:flex;width:max-content;margin:4px 0 0}
+}
+
+/* --- Surface: Weekly Recap waiver wire --- */
+.rc .rc-mini-copy .rc-mv{display:inline-flex;align-items:baseline;gap:5px;margin-top:3px;padding:2px 8px;border-radius:999px;background:rgba(20,50,79,.06);width:max-content}
+.rc .rc-mini-copy .rc-mv small{font:700 7.2px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:#8391a0}
+.rc .rc-mini-copy .rc-mv b{font:800 10px/1 var(--mono);font-variant-numeric:tabular-nums;color:var(--navy,#14324f)}
+.rc .rc-mini-copy .rc-mv em{font:700 7.8px/1 var(--mono);font-style:normal;color:var(--brass,#a87f22)}
+
+/* Five model controls need the whole row on a phone, or the labels clip. */
+@media(max-width:760px){
+ #hq-panel-strength .hj15-toolbar .hj15-group:has([data-hq-strength-model]){grid-column:1/-1!important}
+ #hq-panel-strength .hj15-toolbar .hj15-group:has([data-hq-strength-model]) .hj15-toggle{padding:0 3px!important;font-size:7.4px!important}
+}
