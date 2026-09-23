@@ -175,6 +175,12 @@
   });
   const teamCount=leagueUnits.length||1;
   sides.forEach(side=>{side.teamCount=teamCount});
+  /* Kickers and defences have no market value, so their league rank comes from projections. */
+  const special=teams().map(t=>{const list=rosterOf(t.id).filter(e=>!isIR(e));const sum=pos=>list.filter(e=>hjPlayerPosition(e)===pos).reduce((n,e)=>n+(projOf(e)||0),0);return {id:String(t.id),K:sum('K'),'D/ST':sum('D/ST')}});
+  sides.forEach(side=>{
+   side.specialRank={};
+   ['K','D/ST'].forEach(pos=>{const list=special.slice().sort((a,b)=>b[pos]-a[pos]);const at=list.findIndex(r=>r.id===String(side.team?.id));side.specialRank[pos]=at>=0&&list[at][pos]>0?at+1:null});
+  });
 
   const band=!give.length&&!take.length?'empty':gap<.04?'even':gap<.10?'slight':gap<.22?'clear':'wide';
   /* Which side the extra market value lands on. Not a winner — the write-up decides that. */
@@ -198,19 +204,39 @@
   return {letter,tone,score};
  }
 
- /* ---------- sweetener ---------- */
- function sweetener(m){
+ /* ---------- balancing the deal ----------
+    Several ways to close the gap: the side ahead adds one player or two
+    cheaper ones, or the side behind keeps one of the pieces it was sending. */
+ function balanceOptions(m){
   if(!m.winner||m.band==='even'||m.band==='empty')return null;
-  const loser=m.winner==='a'?'b':'a';
-  const side=m.sides.find(s=>s.key===loser);
+  const ahead=m.sides.find(s=>s.key===m.winner),behind=m.sides.find(s=>s.key!==m.winner);
   const holder=m.winner==='a'?m.aAll:m.bAll;
   const already=new Set([...m.give,...m.take].map(entryId));
-  const target=Math.abs(m.net);
-  const options=holder.filter(e=>!already.has(entryId(e))&&Number.isFinite(valueOf(e)))
-   .map(e=>({entry:e,value:valueOf(e),miss:Math.abs(valueOf(e)-target)}))
-   .sort((x,y)=>x.miss-y.miss);
-  const hit=options.find(o=>o.miss<=target*.45);
-  return hit?{entry:hit.entry,value:hit.value,from:m.winner,to:loser,fromName:m.sides.find(s=>s.key===m.winner).manager,gap:target}:null;
+  const target=Math.abs(m.net),base=Math.max(m.outA,m.outB,1);
+  const pool=holder.filter(e=>!already.has(entryId(e))&&!isIR(e)&&Number.isFinite(valueOf(e))&&valueOf(e)>0).map(e=>({e,v:valueOf(e)}));
+  const gapAfter=v=>Math.abs(target-v)/base;
+  const opts=[];
+  pool.forEach(x=>{if(gapAfter(x.v)<=.12)opts.push({kind:'add',from:ahead,to:behind,entries:[x.e],value:x.v,gap:gapAfter(x.v)})});
+  for(let i=0;i<pool.length;i++)for(let j=i+1;j<pool.length;j++){const v=pool[i].v+pool[j].v;if(pool[i].v<target&&pool[j].v<target&&gapAfter(v)<=.08)opts.push({kind:'add',from:ahead,to:behind,entries:[pool[i].e,pool[j].e],value:v,gap:gapAfter(v)})}
+  behind.out.forEach(e=>{const v=valueOf(e);if(Number.isFinite(v)&&v>0&&behind.out.length>1&&gapAfter(v)<=.12)opts.push({kind:'keep',from:behind,to:ahead,entries:[e],value:v,gap:gapAfter(v)})});
+  opts.sort((x,y)=>x.gap-y.gap||x.entries.length-y.entries.length);
+  const singles=opts.filter(o=>o.kind==='add'&&o.entries.length===1).slice(0,3);
+  const pairs=opts.filter(o=>o.kind==='add'&&o.entries.length===2).slice(0,2);
+  const keeps=opts.filter(o=>o.kind==='keep').slice(0,2);
+  const list=[...singles,...pairs,...keeps];
+  return list.length?{target,ahead,behind,options:list}:null;
+ }
+ function balancePanel(m){
+  const bal=balanceOptions(m);
+  if(!bal)return '';
+  const row=o=>{
+   const names=join(o.entries.map(entryName)),val=money(o.value);
+   const left=Math.round(Math.abs(bal.target-o.value));
+   const text=o.kind==='add'?`<b>${E(o.from.manager)}</b> adds ${E(names)} (${val})`:`<b>${E(o.from.manager)}</b> keeps ${E(names)} (${val})`;
+   const btn=`<button type="button" class="td-sweet-add" data-td-toggle="${o.from.key}:${E(o.entries.map(entryId).join(','))}">${o.kind==='add'?(o.entries.length>1?'Add both':'Add '+E(entryName(o.entries[0]).split(' ').slice(-1)[0])):'Keep '+E(entryName(o.entries[0]).split(' ').slice(-1)[0])}</button>`;
+   return `<li><span>${text} — the sides land ${money(left)} apart (${(o.gap*100).toFixed(0)}%).</span>${btn}</li>`;
+  };
+  return `<section class="td-balance"><div class="td-balance-head"><h3>Balance it</h3><p>${money(bal.target)} more market value is landing with ${E(bal.ahead.manager)}. Ways to close it:</p></div><ul>${bal.options.map(row).join('')}</ul></section>`;
  }
 
  /* ---------- risk flags ---------- */
@@ -356,7 +382,9 @@
    .filter(g=>g.players.length);
   const rest=matching.filter(e=>!ORDER.includes(hjPlayerPosition(e)));
   if(rest.length)groups.push({pos:'Other',players:rest});
-  const list=groups.length?groups.map(g=>`<div class="td-group"><div class="td-group-head"><span>${E(g.pos)}</span><b>${g.players.length}</b></div>${g.players.map(e=>playerChip(e,{side:key,action:true})).join('')}</div>`).join(''):'';
+  const rankOf=pos=>UNITS.includes(pos)?side.unitRankBefore?.[pos]:side.specialRank?.[pos];
+  const rankTone=r=>!Number.isFinite(r)?'':r<=3?'is-strong':r>=Math.max(2,side.teamCount-2)?'is-weak':'';
+  const list=groups.length?groups.map(g=>{const r=rankOf(g.pos);return `<div class="td-group"><div class="td-group-head"><span>${E(g.pos)}</span>${Number.isFinite(r)?`<b class="${rankTone(r)}" title="Where this ${E(g.pos)} group ranks across the league">#${r} in league</b>`:''}</div>${g.players.map(e=>playerChip(e,{side:key,action:true})).join('')}</div>`}).join(''):'';
   const grade=gradeFor(side,m);
   const teamOptions=teams().filter(t=>key==='a'||String(t.id)!==String(HJTD.a)).map(t=>`<option value="${E(t.id)}"${String(t.id)===String(key==='a'?HJTD.a:HJTD.b)?' selected':''}>${E(managerOf(t))}</option>`).join('');
   return `<section class="td-side td-side-${key}">
@@ -475,19 +503,23 @@
     .slice().sort((a,b)=>Number(a.week)-Number(b.week));
    if(rows.length){
     const statName=baseName(rows[0].player_display_name||rows[0].player_name||like.name);
-    const weeks=rows.slice(-5).map(r=>{
+    const series=rows.map(r=>{
      const total=USAGE.teamCarries.get(`${String(r.team||'').toUpperCase()}|${Number(r.week)}`);
+     const tt=USAGE.teamTargets.get(`${String(r.team||'').toUpperCase()}|${Number(r.week)}`);
      const hit=USAGE.snaps&&typeof pcSnap==='function'?pcSnap(r,USAGE.snaps):null;
+     const own=num(r.target_share);
      return {week:Number(r.week),snap:num(hit?.offense_pct),carries:num(r.carries)||0,targets:num(r.targets)||0,attempts:num(r.attempts)||0,
-      target:num(r.target_share),carryShare:total>0?(num(r.carries)||0)/total:null};
+      target:Number.isFinite(own)?own:(tt>0?(num(r.targets)||0)/tt:null),carryShare:total>0?(num(r.carries)||0)/total:null,
+      pts:typeof pcPoints==='function'?pcPoints(r):null,team:String(r.team||'').toUpperCase()};
     });
+    const weeks=series.slice(-5);
     const points=rows.map(r=>({week:Number(r.week),pts:typeof pcPoints==='function'?pcPoints(r):null,
      rank:USAGE.weekRank.get(`${Number(r.week)}|${pos}|${statName}`)||null}));
     const vals=points.map(p=>p.pts).filter(Number.isFinite);
     const ppg=mean(vals);
     const sd=vals.length>1&&Number.isFinite(ppg)?Math.sqrt(vals.reduce((s,v)=>s+(v-ppg)**2,0)/vals.length):null;
     const boomAt=pos==='QB'||pos==='TE'?5:10,bustAt=pos==='QB'||pos==='TE'?15:30;
-    out={pos,season:summarise(rows,pos),recent:summarise(rows.slice(-3),pos),games:rows.length,weeks,points,
+    out={pos,season:summarise(rows,pos),recent:summarise(rows.slice(-3),pos),games:rows.length,weeks,series,points,
      ppg,sd,floor:vals.length?Math.min(...vals):null,ceiling:vals.length?Math.max(...vals):null,
      boom:points.filter(p=>p.rank&&p.rank<=boomAt).length,bust:points.filter(p=>Number.isFinite(p.pts)&&(!p.rank||p.rank>bustAt)).length,boomAt,bustAt,
      seasonRank:USAGE.seasonRank.get(`${pos}|${statName}`)||null,
@@ -638,9 +670,12 @@
     const wk=Number(g.week);if(!Number.isFinite(wk))continue;
     const home=T(g.home_team),away=T(g.away_team);
     if(!home||!away)continue;
-    add(home,{week:wk,opp:away,home:true});add(away,{week:wk,opp:home,home:false});
+    const roof=String(g.roof||'').toLowerCase(),roofWord=roof==='dome'||roof==='closed'?'indoors':roof==='outdoors'||roof==='open'?'outdoors':'';
+    const hm=num(g.home_moneyline),am=num(g.away_moneyline);
+    add(home,{week:wk,opp:away,home:true,roof:roofWord,line:Number.isFinite(hm)&&Number.isFinite(am)?(hm<am?'favoured':hm>am?'underdog':''):''});
+    add(away,{week:wk,opp:home,home:false,roof:roofWord,line:Number.isFinite(hm)&&Number.isFinite(am)?(am<hm?'favoured':am>hm?'underdog':''):''});
    }
-   SCHED.byTeam.forEach(list=>list.sort((a,b)=>a.week-b.week));
+   SCHED.byTeam.forEach((list,team)=>{const seen=new Set();SCHED.byTeam.set(team,list.filter(g=>{if(seen.has(g.week))return false;seen.add(g.week);return true}).sort((a,b)=>a.week-b.week))});
   }
   return SCHED.byTeam;
  }
@@ -682,7 +717,7 @@
    const g=games.find(x=>x.week===pw);
    if(!g)return {week:pw,bye:true};
    const d=dvp?.map.get(g.opp);
-   return {week:pw,opp:g.opp,home:g.home,rank:d?.rank||null,of:dvp?.list.length||null};
+   return {week:pw,opp:g.opp,home:g.home,rank:d?.rank||null,of:dvp?.list.length||null,dvp:d||null,roof:g.roof||'',line:g.line||''};
   });
   return {team,pos,bye:byeOf(team),remaining:games.filter(g=>g.week>=w&&g.week<=SEASON_WEEKS-1).length,
    rest:windowSos(pos,w,SEASON_WEEKS-1)?.get(team)||null,
@@ -756,12 +791,160 @@
   return {...lineupPoints(items),covered,total_:items.length};
  }
 
+ /* ---------- player news and NFL injury reports ----------
+    Rotowire blurbs through ESPN's fantasy news feed and ESPN's team injury
+    report, for every player in the deal and for the teammates whose health
+    decides his role. Both are cached for ten minutes and the desk re-renders
+    when they land. */
+ const NEWS={items:new Map(),fetchedAt:new Map(),pending:new Set(),injuries:new Map(),injPending:new Set()};
+ const espnJson=url=>typeof fetchEspnJson==='function'?fetchEspnJson(url):fetch(url,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(String(r.status));return r.json()});
+ const stripHtml=s=>String(s||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').replace(/^Spin:\s*/i,'').trim();
+ const rerenderIfTrade=()=>{if(HJ_HQ_STATE?.activeTab==='strength'&&HJ_STRENGTH_STATE.view==='trade')rerender()};
+ function newsItemFrom(raw){
+  const text=String(raw?.description||raw?.headline||'').replace(/\s+/g,' ').trim();
+  if(!text)return null;
+  return {id:String(raw.id||raw.nowId||''),playerId:String(raw.playerId||''),text,spin:stripHtml(raw.story),at:Date.parse(raw.published||raw.lastModified||'')||0};
+ }
+ /* Everything known about one player right now: fetched items plus the site's own news rail. */
+ function newsFor(id){
+  const own=NEWS.items.get(String(id))||[];
+  const rail=(typeof ffnItems!=='undefined'&&Array.isArray(ffnItems)?ffnItems:[]).filter(i=>String(i.espn_id||'')===String(id))
+   .map(i=>({id:String(i.id||''),playerId:String(id),text:String(i.text||i.headline||'').trim(),spin:String(i.spin||'').trim(),at:Date.parse(i.published_at||'')||0}));
+  const seen=new Set(),out=[];
+  [...own,...rail].filter(i=>i.text).sort((a,b)=>b.at-a.at).forEach(i=>{const k=i.text.slice(0,90).toLowerCase();if(seen.has(k))return;seen.add(k);out.push(i)});
+  return out;
+ }
+ function ensureNews(ids){
+  const fresh=Date.now()-10*60*1000;
+  const want=[...new Set(ids.map(String).filter(id=>id&&!/^-/.test(id)))].filter(id=>!(NEWS.fetchedAt.get(id)>fresh)&&!NEWS.pending.has(id)).slice(0,40);
+  if(!want.length)return;
+  want.forEach(id=>NEWS.pending.add(id));
+  const params=new URLSearchParams({limit:'80',offset:'0'});
+  want.forEach(id=>params.append('playerId',id));
+  espnJson(`https://site.api.espn.com/apis/fantasy/v2/games/ffl/news/players?${params.toString()}`).then(data=>{
+   const feed=Array.isArray(data?.feed)?data.feed:[];
+   const by=new Map();want.forEach(id=>by.set(id,[]));
+   feed.map(newsItemFrom).filter(Boolean).forEach(item=>{if(by.has(item.playerId))by.get(item.playerId).push(item)});
+   by.forEach((list,id)=>{NEWS.items.set(id,list.sort((a,b)=>b.at-a.at));NEWS.fetchedAt.set(id,Date.now())});
+   rerenderIfTrade();
+  }).catch(()=>{want.forEach(id=>NEWS.fetchedAt.set(id,Date.now()-8*60*1000))}).finally(()=>want.forEach(id=>NEWS.pending.delete(id)));
+ }
+ function parseInjuries(data){
+  const flat=[];
+  (Array.isArray(data?.injuries)?data.injuries:[]).forEach(item=>{if(Array.isArray(item?.injuries))flat.push(...item.injuries);else flat.push(item)});
+  const byId=new Map(),byName=new Map();
+  flat.forEach(inj=>{
+   const a=inj?.athlete||inj?.player||{};
+   const rec={id:String(a.id||''),name:a.displayName||a.fullName||a.name||'',pos:String(a.position?.abbreviation||a.position||'').toUpperCase(),
+    status:String(inj?.status?.description||inj?.status?.name||(typeof inj?.status==='string'?inj.status:'')||'').trim(),
+    kind:String(inj?.details?.type||inj?.type?.description||'').trim(),detail:String(inj?.details?.detail||'').trim(),
+    returnDate:String(inj?.details?.returnDate||'').trim(),comment:String(inj?.longComment||inj?.shortComment||'').replace(/\s+/g,' ').trim(),
+    at:Date.parse(inj?.date||'')||0};
+   if(!rec.status||/^active$/i.test(rec.status)||/not specified/i.test(rec.kind))rec.kind=/not specified/i.test(rec.kind)?'':rec.kind;
+   if(!rec.status||/^active$/i.test(rec.status))return;
+   if(rec.id)byId.set(rec.id,rec);
+   if(rec.name)byName.set(baseName(rec.name),rec);
+  });
+  return {byId,byName};
+ }
+ function ensureInjuries(list){
+  const fresh=Date.now()-10*60*1000;
+  [...new Set(list.map(T).filter(Boolean))].filter(t=>!(NEWS.injuries.get(t)?.at>fresh)&&!NEWS.injPending.has(t)).forEach(team=>{
+   const id=typeof NFL_TEAM_IDS!=='undefined'?NFL_TEAM_IDS[team.toLowerCase().replace(/^was$/,'wsh')]:null;
+   if(!id)return;
+   NEWS.injPending.add(team);
+   espnJson(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${id}/injuries`).then(data=>{
+    NEWS.injuries.set(team,{at:Date.now(),...parseInjuries(data)});rerenderIfTrade();
+   }).catch(()=>{NEWS.injuries.set(team,{at:Date.now()-8*60*1000,byId:new Map(),byName:new Map()})}).finally(()=>NEWS.injPending.delete(team));
+  });
+ }
+ const injuryReport=(team,id,name)=>{const r=NEWS.injuries.get(T(team));return r?(r.byId.get(String(id))||r.byName.get(baseName(name))||null):null};
+ /* Test hooks. */
+ HJTD.injectNews=map=>{Object.entries(map||{}).forEach(([id,list])=>{NEWS.items.set(String(id),(list||[]).map(x=>x.text?{id:String(x.id||''),playerId:String(id),text:x.text,spin:x.spin||'',at:x.at||Date.now()}:newsItemFrom({...x,playerId:id})).filter(Boolean).sort((a,b)=>b.at-a.at));NEWS.fetchedAt.set(String(id),Date.now())})};
+ HJTD.injectInjuries=(team,data)=>{NEWS.injuries.set(T(team),{at:Date.now(),...parseInjuries(data)})};
+
+ const INJ_RE=/(injur|\bIR\b|reserve|out for|miss(?:ed|es|ing)?\b|weeks?\b|surgery|concussion|hamstring|ankle|knee|groin|calf|quad|shoulder|\bback\b|foot|toe|wrist|hand|thumb|rib|oblique|achilles|\bacl\b|\bmcl\b|questionable|doubtful|ruled out|activated|returns?\b|designated|placed on|carted|\bMRI\b|sidelined|day-to-day|limited|did not practice|\bDNP\b|inactive|healthy scratch|\bPUP\b|suspen)/i;
+ const SIT_RE=/(traded|acquir|signed|released|waived|\bcut\b|starter|starting|start(?:s|ed)? (?:over|ahead)|depth chart|promot|demot|benched|named|coordinator|head coach|play-?call|fired|hired|\brole\b|workload|committee|split|lead back|WR1|No\. 1|top option|rotation|red zone|two-minute|first-team|QB1|under center)/i;
+ /* "Injured Reserve" → "on injured reserve", "Out" → "out"; never lower-cases IR. */
+ const statusPhrase=st=>{const x=String(st||'').trim();if(!x)return '';if(/injured reserve|\bIR\b/i.test(x))return 'on injured reserve';if(/^out$/i.test(x))return 'out';if(/questionable/i.test(x))return 'questionable';if(/doubtful/i.test(x))return 'doubtful';if(/suspend/i.test(x))return 'suspended';if(/PUP/i.test(x))return 'on the PUP list';return x.toLowerCase().replace(/\bir\b/g,'IR')};
+ const ago=at=>{if(!at)return '';const d=Math.round((Date.now()-at)/864e5);return d<=0?'today':d===1?'yesterday':d<14?`${d} days ago`:d<60?`${Math.round(d/7)} weeks ago`:''};
+ const dateShort=iso=>{const t=Date.parse(iso);if(!Number.isFinite(t))return '';return new Date(t).toLocaleDateString('en-US',{month:'short',day:'numeric'})};
+ const blurb=(n,max=260)=>{if(!n)return '';let t=n.text;if(t.length>max){const cut=t.slice(0,max);t=cut.slice(0,Math.max(cut.lastIndexOf('. '),cut.lastIndexOf(', '),max-40)+1).trim()}return `“${t}”${ago(n.at)?` (${ago(n.at)})`:''}`};
+
+ /* The teammates whose health decides a player's role: the same room, the
+    quarterback throwing to him, and the other pass catchers he shares targets with. */
+ function teammatesOf(p){
+  const roster=(typeof ffnRosterByTeam!=='undefined'&&ffnRosterByTeam?.get)?(ffnRosterByTeam.get(p.team)||[]):[];
+  const byPos=pos=>roster.filter(x=>String(x.position).toUpperCase()===pos).sort((a,b)=>(a.positionRank||99)-(b.positionRank||99));
+  const out=[];
+  const push=(x,why)=>{if(x&&String(x.id)!==String(p.id)&&!out.some(o=>String(o.id)===String(x.id)))out.push({id:String(x.id),name:x.name,position:String(x.position).toUpperCase(),depth:x.positionRank||null,why})};
+  if(p.pos==='QB'){byPos('WR').slice(0,2).forEach(x=>push(x,'targets'));byPos('TE').slice(0,1).forEach(x=>push(x,'targets'));byPos('RB').slice(0,1).forEach(x=>push(x,'backfield'))}
+  else{
+   byPos(p.pos).slice(0,3).forEach(x=>push(x,'room'));
+   byPos('QB').slice(0,1).forEach(x=>push(x,'qb'));
+   if(p.pos!=='RB')['WR','TE'].filter(k=>k!==p.pos).forEach(k=>byPos(k).slice(0,k==='WR'?2:1).forEach(x=>push(x,'targets')));
+   if(p.pos==='RB')['WR','TE'].forEach(k=>byPos(k).slice(0,1).forEach(x=>push(x,'targets')));
+  }
+  return out.slice(0,7);
+ }
+ const teamWeeksOf=team=>[...USAGE.teamCarries.keys()].filter(k=>k.startsWith(T(team)+'|')).map(k=>Number(k.split('|')[1])).sort((a,b)=>a-b);
+ /* What is wrong with a teammate, if anything: the injury report, this league's
+    designation, the games he has missed, and the latest blurb about him. */
+ function teammateSignal(p,t){
+  const report=injuryReport(p.team,t.id,t.name);
+  const code=injuryMap().get(String(t.id))?.code||'';
+  const u=usageFor({id:t.id,name:t.name,position:t.position,team:p.team});
+  const teamWeeks=USAGE.ready?teamWeeksOf(p.team):[];
+  const played=new Set((u?.points||[]).map(x=>x.week));
+  const missed=teamWeeks.filter(w=>!played.has(w));
+  const news=newsFor(t.id).filter(n=>n.at>Date.now()-21*864e5);
+  const injuryNews=news.filter(n=>INJ_RE.test(n.text));
+  const hurt=Boolean(report)||INJURED.has(code)||code==='QUESTIONABLE'||(missed.length&&teamWeeks.length)||injuryNews.length;
+  if(!hurt)return null;
+  const status=report?.status||(code?injuryLabel(code):'')||'';
+  return {t,report,code,u,missed,teamWeeks,news:injuryNews[0]||null,status,games:u?.games||0};
+ }
+ const weeksList=list=>list.length===1?`Week ${list[0]}`:`Weeks ${list.slice(0,-1).join(', ')} and ${list.at(-1)}`;
+ /* A player's numbers in the games a teammate played against the games he sat out. */
+ function splitWithWithout(p,t){
+  const s=p.u?.series;if(!s||!s.length||!USAGE.ready)return null;
+  const uT=usageFor({id:t.id,name:t.name,position:t.position,team:p.team});
+  const tPlayed=new Set((uT?.points||[]).map(x=>x.week));
+  const teamWeeks=new Set(teamWeeksOf(p.team));
+  const withT=s.filter(w=>tPlayed.has(w.week)),without=s.filter(w=>!tPlayed.has(w.week)&&teamWeeks.has(w.week));
+  if(!withT.length||!without.length)return null;
+  const sum=(list,k)=>mean(list.map(w=>w[k]));
+  const line=list=>{
+   const bits=[];
+   if(p.pos==='RB'&&Number.isFinite(sum(list,'carryShare')))bits.push(`${pct(sum(list,'carryShare'))} of carries`);
+   if(p.pos!=='QB'&&Number.isFinite(sum(list,'target')))bits.push(`${pct(sum(list,'target'))} target share`);
+   if(Number.isFinite(sum(list,'snap')))bits.push(`${pct(sum(list,'snap'))} of snaps`);
+   if(Number.isFinite(sum(list,'pts')))bits.push(`${pts(sum(list,'pts'))} ppg`);
+   return bits.join(', ');
+  };
+  return {withLine:line(withT),withoutLine:line(without),withGames:withT.length,withoutGames:without.length,
+   withPts:sum(withT,'pts'),withoutPts:sum(without,'pts')};
+ }
+ function ensureContext(profiles){
+  const ids=[],teamsList=[];
+  profiles.forEach(p=>{ids.push(p.id);teamsList.push(p.team);teammatesOf(p).forEach(t=>ids.push(t.id))});
+  ensureNews(ids);ensureInjuries(teamsList);
+ }
+
  /* One profile per player in the deal, shared by every section of the write-up. */
  function profileOf(entry,from,to){
   const row=marketRow(entry),u=usageOfEntry(entry),pos=hjPlayerPosition(entry),code=injuryOf(entry);
   const status=isIR(entry)?{key:'bad',label:'On IR'}:INJURED.has(code)?{key:'bad',label:injuryLabel(code)}:code==='QUESTIONABLE'?{key:'warn',label:'Questionable'}:onBye(entry)?{key:'warn',label:'Bye this week'}:{key:'ok',label:'Healthy'};
-  return {entry,id:entryId(entry),name:entryName(entry),last:entryName(entry).split(' ').slice(-1)[0],pos,team:T(hjPlayerTeam(entry)),row,value:valueOf(entry),
-   proj:projOf(entry),grade:gradeOf(entry),u,code,status,from,to,sched:scheduleOf(entry),rep:POS.includes(pos)?replacementFor(pos):null};
+  const pr=model_=>{const v=hj6Projection(entry,model_,'season',week(),HJ_LEAGUE_SEASON);return Number.isFinite(v)?v:null};
+  const p={entry,id:entryId(entry),name:entryName(entry),last:entryName(entry).split(' ').slice(-1)[0],pos,team:T(hjPlayerTeam(entry)),row,value:valueOf(entry),
+   proj:projOf(entry),espn:pr('espn'),vegas:pr('vegas'),grade:gradeOf(entry),u,code,status,from,to,sched:scheduleOf(entry),rep:POS.includes(pos)?replacementFor(pos):null};
+  p.report=injuryReport(p.team,p.id,p.name);
+  p.news=newsFor(p.id);
+  p.injuryNews=p.news.filter(n=>n.at>Date.now()-21*864e5&&INJ_RE.test(n.text))[0]||null;
+  p.sitNews=p.news.filter(n=>n.at>Date.now()-21*864e5&&SIT_RE.test(n.text)&&n!==p.injuryNews)[0]||null;
+  p.mates=POS.includes(pos)?teammatesOf(p).map(t=>({t,sig:teammateSignal(p,t)})).filter(x=>x.sig):[];
+  p.mates.forEach(x=>{x.split=splitWithWithout(p,x.t)});
+  return p;
  }
  const nameOf=p=>p.name;
  const posRank=p=>p.row?`${p.row.position}${p.row.positionRank}`:'';
@@ -777,6 +960,7 @@
   const [A,B]=rows;
   A.profiles=A.out.map(e=>profileOf(e,A,B));B.profiles=B.out.map(e=>profileOf(e,B,A));
   A.gets=B.profiles;B.gets=A.profiles;
+  try{ensureContext([...A.profiles,...B.profiles])}catch(_){ }
 
   const lean=(a,b,margin)=>Math.abs(a-b)<=margin?'even':a>b?'a':'b';
   const unitGain=side=>UNITS.map(k=>({k,d:(side.unitsAfter[k]||0)-(side.unitsBefore[k]||0)})).sort((x,y)=>y.d-x.d);
@@ -790,6 +974,10 @@
    note:`${A.manager} ${A.weekDelta>=0?'+':'−'}${pts(Math.abs(A.weekDelta))}, ${B.manager} ${B.weekDelta>=0?'+':'−'}${pts(Math.abs(B.weekDelta))} in Week ${week()} starters.`});
   factors.push({label:'Rest of season',lean:lean(A.lineupDelta,B.lineupDelta,1),
    note:`${A.manager} ${A.lineupDelta>=0?'+':'−'}${pts(Math.abs(A.lineupDelta))}, ${B.manager} ${B.lineupDelta>=0?'+':'−'}${pts(Math.abs(B.lineupDelta))} projected starters.`});
+  const sumProj=(list,k)=>list.reduce((n,p)=>n+(Number.isFinite(p[k])?p[k]:0),0);
+  const eA=sumProj(A.gets,'espn'),eB=sumProj(B.gets,'espn'),vA=sumProj(A.gets,'vegas'),vB=sumProj(B.gets,'vegas');
+  if(eA||eB)factors.push({label:'ESPN projections',lean:lean(eA,eB,4),note:`Rest of season, players received: ${A.manager} ${pts(eA)}, ${B.manager} ${pts(eB)}.`});
+  if(vA||vB)factors.push({label:'Vegas projections',lean:lean(vA,vB,4),note:`Rest of season, players received: ${A.manager} ${pts(vA)}, ${B.manager} ${pts(vB)}.`});
   const fitScore=side=>{const weak=worstUnitBefore(side);return ((side.unitsAfter[weak.k]||0)-(side.unitsBefore[weak.k]||0))};
   const sc=scarcity();
   const steep=Object.entries(sc).sort((x,y)=>y[1]-x[1])[0];
@@ -806,14 +994,18 @@
    if(Math.abs(tA)+Math.abs(tB)>0)factors.push({label:'Opportunity trend',lean:lean(tA,tB,.03),
     note:[best(A)?`${A.manager} gets ${best(A)}`:'',best(B)?`${B.manager} gets ${best(B)}`:''].filter(Boolean).join('; ')+'.'});
   }
+  const healthScore=side=>side.gets.reduce((n,p)=>n-(p.status.key==='bad'?2:p.status.key==='warn'?1:0)-(p.mates.some(x=>x.sig.report||INJURED.has(x.sig.code))?0:0),0);
+  const roleScore=side=>side.gets.reduce((n,p)=>n+p.mates.filter(x=>x.sig&&(x.sig.report||INJURED.has(x.sig.code)||x.sig.missed.length)&&x.t.why==='room').length,0);
+  if(A.gets.some(p=>p.mates.length)||B.gets.some(p=>p.mates.length))factors.push({label:'Injury ecosystem',lean:lean(roleScore(A)+healthScore(A),roleScore(B)+healthScore(B),0),
+   note:[A,B].map(s=>`${s.manager} gets ${join(s.gets.map(p=>{const r=p.mates.filter(x=>x.t.why==='room'&&(x.sig.report||INJURED.has(x.sig.code)||x.sig.missed.length));return r.length?`${p.last} with ${join(r.map(x=>x.t.name.split(' ').at(-1)))} out`:`${p.last}${p.status.key!=='ok'?` (${p.status.label.toLowerCase()})`:''}`}))||'nothing'}`).join('; ')+'.'});
+  const poScore=side=>mean(side.gets.map(p=>p.sched?.po?p.sched.po.of+1-p.sched.po.rank:null));
+  const pA=poScore(A),pB=poScore(B);
+  if(Number.isFinite(pA)&&Number.isFinite(pB))factors.push({label:'Playoff schedule',lean:lean(pA,pB,3),
+   note:`Weeks ${PLAYOFF_WEEKS[0]}–${PLAYOFF_WEEKS.at(-1)} matchups for the players received: ${[A,B].map(s=>`${s.manager} ${join(s.gets.filter(p=>p.sched?.po).map(p=>`${p.last} ${ordinal(p.sched.po.rank)} easiest`))}`).join('; ')}.`});
   const aboveRep=side=>side.gets.reduce((n,p)=>n+(p.rep&&Number.isFinite(p.value)?p.value-p.rep.value:0),0);
   const arA=aboveRep(A),arB=aboveRep(B);
   if(arA||arB)factors.push({label:'Above the wire',lean:lean(arA,arB,300),
    note:`Measured against the best free agent at each position: ${A.manager} ${arA>=0?'+':'−'}${money(Math.abs(arA))}, ${B.manager} ${arB>=0?'+':'−'}${money(Math.abs(arB))}.`});
-  const formScore=side=>side.gets.reduce((n,p)=>n+(p.row&&Number.isFinite(p.row.trend30)?p.row.trend30:0),0)
-   -side.profiles.reduce((n,p)=>n+(p.row&&Number.isFinite(p.row.trend30)?p.row.trend30:0),0);
-  factors.push({label:'Market form',lean:lean(formScore(A),formScore(B),120),
-   note:'Which side ends up holding the players the market is moving toward.'});
   const gradeAvg=list=>{const g=list.map(p=>p.grade).filter(Number.isFinite);return g.length?g.reduce((a,b)=>a+b,0)/g.length:null};
   const gA=gradeAvg(A.gets),gB=gradeAvg(B.gets);
   if(Number.isFinite(gA)&&Number.isFinite(gB))factors.push({label:'Play quality (PFF)',lean:lean(gA,gB,2),
@@ -829,6 +1021,7 @@
  const para=items=>items.filter(Boolean).map(x=>`<p>${x}</p>`).join('');
  const B_=s=>`<b>${E(s)}</b>`;
  const section=(key,title,body,note)=>body?`<article class="td-sec td-sec-${key}"><h4>${E(title)}</h4>${note?`<p class="td-sec-note">${E(note)}</p>`:''}${body}</article>`:'';
+ const depthTag=t=>t.depth?`${t.position}${t.depth}`:t.position;
 
  function breakdownCard(p){
   const s=p.u?.season,rank=p.u?.seasonRank;
@@ -838,17 +1031,40 @@
   if(rank)facts.push(['Points rank',`${p.pos}${rank.rank} of ${rank.of}`]);
   const role=shareLine(p.u,'season');
   if(role)facts.push(['Role',role]);
-  if(Number.isFinite(p.proj))facts.push(['Projection',`${pts(p.proj)} rest of season`]);
+  const projBits=[Number.isFinite(p.espn)?`ESPN ${pts(p.espn)}`:'',Number.isFinite(p.vegas)?`Vegas ${pts(p.vegas)}`:''].filter(Boolean);
+  if(projBits.length)facts.push(['Rest of season',projBits.join(' · ')]);
   if(Number.isFinite(p.grade))facts.push(['PFF',p.grade.toFixed(1)]);
+  if(p.sched?.bye)facts.push(['Bye',`Week ${p.sched.bye}`]);
   const attrs=ffnPlayerDataAttrs({id:p.id,name:p.name,team:p.team,position:p.pos,photo:hjPlayerPhoto(p.entry)});
   const photo=hjPlayerPhoto(p.entry);
+  const statusLabel=p.report&&p.status.key!=='ok'?`${p.status.label}${p.report.kind?` · ${p.report.kind}`:''}`:p.status.label;
   return `<div class="td-bd-player">
    <button type="button" class="td-bd-face pc-player-trigger" ${attrs} data-ini="${E(initials(p.name))}" aria-label="Open ${E(p.name)}">${photo?`<img src="${E(photo)}" alt="" loading="lazy" onerror="hjTdFallback(this)">`:`<span class="td-chip-ini">${E(initials(p.name))}</span>`}</button>
    <div class="td-bd-body">
-    <div class="td-bd-name"><b>${E(p.name)}</b><span><i class="td-pos td-pos-${E(p.pos.replace('/',''))}">${E(p.pos)}</i> ${E(p.team)}</span><em class="td-status is-${p.status.key}">${E(p.status.label)}</em></div>
+    <div class="td-bd-name"><b>${E(p.name)}</b><span><i class="td-pos td-pos-${E(p.pos.replace('/',''))}">${E(p.pos)}</i> ${E(p.team)}</span><em class="td-status is-${p.status.key}">${E(statusLabel)}</em></div>
     <dl class="td-bd-facts">${facts.map(([k,v])=>`<div><dt>${E(k)}</dt><dd>${E(v)}</dd></div>`).join('')}</dl>
    </div>
   </div>`;
+ }
+
+ /* The one thing that most changes how a player should be valued right now. */
+ function keyContext(p){
+  const out=[];
+  if(p.status.key==='bad')out.push(`${p.last} is ${statusPhrase(p.status.label)}${p.report?.returnDate?` (return ${dateShort(p.report.returnDate)})`:''}`);
+  else if(p.status.key==='warn'&&p.status.label==='Questionable')out.push(`${p.last} is questionable this week${p.report?.kind?` (${p.report.kind.toLowerCase()})`:''}`);
+  p.mates.forEach(x=>{
+   const s=x.sig;
+   const out_=INJURED.has(s.code)||/reserve|\bout\b|IR/i.test(s.status)||s.missed.length>=2;
+   if(x.t.why==='room'&&out_)out.push(`${x.t.name} (${depthTag(x.t)}) is ${s.status?statusPhrase(s.status):'sidelined'}${s.report?.returnDate?`, expected back ${dateShort(s.report.returnDate)}`:''} — the ${p.pos} room is ${p.last}’s for now`);
+   else if(x.t.why==='qb'&&out_)out.push(`his quarterback ${x.t.name} is ${s.status?statusPhrase(s.status):'sidelined'}`);
+   else if(x.t.why==='targets'&&out_)out.push(`${x.t.name} (${depthTag(x.t)}) is ${s.status?statusPhrase(s.status):'out'}, which frees up targets`);
+  });
+  const mv=roleMoves(p.u);
+  if(mv.up.length)out.push(`his ${mv.up[0]}`);else if(mv.down.length)out.push(`his ${mv.down[0]}`);
+  const q=p.pos!=='QB'?qbChange(p.team):null;
+  if(q)out.push(`${p.team} changed quarterback to ${q.now} in Week ${q.since}`);
+  if(p.sched?.po)out.push(`he draws the ${ordinal(p.sched.po.rank)} easiest playoff-week schedule for ${p.pos}s`);
+  return out;
  }
 
  function report(m,a){
@@ -859,17 +1075,18 @@
   const more=m.winner?a.rows.find(r=>r.key===m.winner):null,less=m.winner?a.rows.find(r=>r.key!==m.winner):null;
   const pkg=side=>side.profiles.length?join(side.profiles.map(nameOf)):'nothing';
   const worth=v=>v>0?money(v):'no market value';
-  const sweet=sweetener(m);
 
   /* ---- Summary ---- */
   const summary=[];
   summary.push(`${B_(A.manager)} sends ${E(pkg(A))} (${worth(m.outA)}) to ${B_(B.manager)} for ${E(pkg(B))} (${worth(m.outB)}).`);
-  if(m.band==='even')summary.push(m.outA+m.outB>0?`The two packages are within ${(m.gap*100).toFixed(1)}% on market value, so this is balanced on the numbers and the argument is about fit.`:`Neither package carries market value (kickers and defences are not valued), so the argument is entirely about fit.`);
-  else summary.push(`The packages are ${(m.gap*100).toFixed(0)}% apart on market value — ${money(Math.abs(m.net))} more lands with ${E(more.manager)}, which is a ${m.band==='slight'?'slight':m.band==='clear'?'clear':'wide'} tilt in a ${m.count.give}-for-${m.count.take}.`);
+  if(m.band==='even')summary.push(E(m.outA+m.outB>0?`The two packages are within ${(m.gap*100).toFixed(1)}% on market value, so the argument is about fit, health and schedule rather than the numbers.`:`Neither package carries market value (kickers and defences are not valued), so the argument is entirely about fit.`));
+  else summary.push(E(`The packages are ${(m.gap*100).toFixed(0)}% apart on market value — ${money(Math.abs(m.net))} more lands with ${more.manager}.`));
   const lineupWord=side=>side.lineupDelta>.5?`lifts ${side.manager}’s projected starters by ${pts(side.lineupDelta)}`:side.lineupDelta<-.5?`lowers ${side.manager}’s projected starters by ${pts(Math.abs(side.lineupDelta))}`:`leaves ${side.manager}’s projected starters about where they are`;
   summary.push(E(`On this league’s projections the deal ${lineupWord(A)} and ${lineupWord(B)}.`));
   if(inSeason)summary.push(E(`${standingLine(A)}; ${standingLine(B)}.`));
-  const summaryHTML=para(summary.map(s=>s));
+  const contexts=all.map(p=>{const k=keyContext(p)[0];return k?`${p.name}: ${k}`:''}).filter(Boolean);
+  if(contexts.length)summary.push(E(`Context that moves the needle — ${contexts.join('; ')}.`));
+  const summaryHTML=para(summary);
 
   /* ---- Breakdown ---- */
   const breakdownHTML=`<div class="td-break">
@@ -877,11 +1094,13 @@
    <div class="td-break-side is-b"><h5>${E(B.manager)} sends</h5>${B.profiles.length?B.profiles.map(breakdownCard).join(''):'<p class="td-empty">Nothing yet.</p>'}</div>
   </div>`;
 
+  /* ---- Factor scorecard, straight after the breakdown ---- */
+  const scoreHTML=`<p class="td-sec-note">Each row leans toward the manager the factor favours.</p>${scorecard(a)}`;
+
   /* ---- Is it a good value? ---- */
   const value=[];
   if(m.band==='even')value.push(m.outA+m.outB>0?`${money(m.outA)} against ${money(m.outB)} — the market calls this a balanced swap.`:'Nothing in this deal carries a market value.');
   else value.push(`${money(m.outA)} from ${A.manager} against ${money(m.outB)} from ${B.manager}: ${less.manager} gives up ${money(Math.abs(m.net))} more market value than comes back.`);
-  /* Value over replacement: in a 10-team league the extra bodies in a package are worth what they beat on the wire by, not their sticker. */
   const vor=side=>side.profiles.reduce((n,p)=>n+(Number.isFinite(p.value)?Math.max(0,p.value-(p.rep?.value||0)):0),0);
   const vA=vor(A),vB=vor(B);
   if((A.profiles.some(p=>p.rep)||B.profiles.some(p=>p.rep))&&m.count.give!==m.count.take){
@@ -904,46 +1123,52 @@
    const best=Math.min(...tiers.map(p=>p.row.tier)),worst=Math.max(...tiers.map(p=>p.row.tier));
    if(worst-best>=2)value.push(`The pieces sit ${worst-best} market tiers apart (${join(tiers.map(p=>`${p.name} tier ${p.row.tier}`))}), so the deal trades a class of player rather than a like-for-like.`);
   }
-  let valueHTML=para(value.map(E));
-  if(sweet)valueHTML+=`<div class="td-sweet"><span class="td-extra-tag">Balance it</span><p>Adding <b>${E(entryName(sweet.entry))}</b> (${money(sweet.value)}) from ${E(sweet.fromName)} brings the two sides within a few hundred of each other.<button type="button" class="td-sweet-add" data-td-toggle="${sweet.from}:${E(entryId(sweet.entry))}">Add to the deal</button></p></div>`;
+  const valueHTML=para(value.map(E));
 
-  /* ---- Injury ecosystem ---- */
+  /* ---- Injury ecosystem, grouped by player ---- */
   const injury=[];
-  const hurt=injuryMap();
   all.forEach(p=>{
-   if(isIR(p.entry))injury.push(`${B_(p.name)} is on injured reserve — ${E(p.to.manager)} would be taking on a player who cannot start until he is activated.`);
-   else if(INJURED.has(p.code))injury.push(`${B_(p.name)} is ${E(injuryLabel(p.code))} right now, so ${E(p.to.manager)} is buying the return, not the player as he is today.`);
-   else if(p.code==='QUESTIONABLE')injury.push(`${B_(p.name)} is questionable for Week ${w}.`);
-   /* Borrowed share: succeeding because a teammate is hurt. */
-   competition(p.entry).forEach(rival=>{
-    const h=hurt.get(rival.espnId);
-    const theirs=usageFor({name:rival.name,position:rival.position,team:rival.team});
-    const mine=shareLine(p.u),rivalLine=shareLine(theirs,'season');
-    const rivalLast=rival.name.split(' ').slice(-1)[0];
-    if(h)injury.push(`${B_(p.name)}${mine?` is on ${E(mine)}`:' is seeing the work'} while ${E(rival.name)} (${money(rival.value)}) is ${E(injuryLabel(h.code)||'out')}${rivalLine?` — ${E(rivalLast)} had ${E(rivalLine)} on the season`:''}. Part of that role is borrowed and goes back when he does; ${E(p.to.manager)} should count on the return.`);
-    else if(mine||rivalLine)injury.push(`${B_(p.name)} shares the ${E(rival.team)} ${E(rival.position)} room with ${E(rival.name)} (${money(rival.value)})${mine?` — ${E(p.last)} on ${E(mine)}`:''}${rivalLine?`, ${E(rivalLast)} on ${E(rivalLine)}`:''}. Neither has the job to himself.`);
-   });
-   /* The quarterback behind a pass catcher. */
-   if(['WR','TE'].includes(p.pos)){
-    const qb=teamQbStatus(p.team);
-    if(qb&&(qb.ir||INJURED.has(qb.code)))injury.push(`${B_(p.name)}’s quarterback, ${E(qb.name)}, is ${E(qb.ir?'on IR':injuryLabel(qb.code))} — his targets are coming from a backup until that changes.`);
-    else if(qb&&qb.code==='QUESTIONABLE')injury.push(`${B_(p.name)}’s quarterback, ${E(qb.name)}, is questionable this week.`);
+   const lines=[];
+   if(p.status.key==='ok'&&!p.injuryNews)lines.push(`${B_(p.name)} carries no designation.`);
+   /* Him. */
+   if(isIR(p.entry))lines.push(`${B_(p.name)} is on injured reserve${p.report?.kind?` (${E(p.report.kind.toLowerCase())})`:''}${p.report?.returnDate?`, expected back ${E(dateShort(p.report.returnDate))}`:''} — ${E(p.to.manager)} is taking on a player who cannot start until he is activated.`);
+   else if(INJURED.has(p.code)||(p.report&&/out|reserve|doubtful/i.test(p.report.status)))lines.push(`${B_(p.name)} is ${E(statusPhrase(p.report?.status||injuryLabel(p.code)||'out'))}${p.report?.kind?` with a ${E(p.report.kind.toLowerCase())} injury`:''}${p.report?.returnDate?`, expected back ${E(dateShort(p.report.returnDate))}`:''} — ${E(p.to.manager)} is buying the return, not the player as he is today.`);
+   else if(p.code==='QUESTIONABLE'||(p.report&&/questionable/i.test(p.report.status)))lines.push(`${B_(p.name)} is questionable for Week ${w}${p.report?.kind?` (${E(p.report.kind.toLowerCase())})`:''}.`);
+   if(p.injuryNews)lines.push(`${lines.length?'':B_(p.name)+': '}${E(blurb(p.injuryNews))}${p.injuryNews.spin?` ${E(blurb({text:p.injuryNews.spin,at:0},220))}`:''}`);
+   if(p.u&&USAGE.ready){
+    const teamWeeks=teamWeeksOf(p.team),played=new Set(p.u.points.map(x=>x.week)),missed=teamWeeks.filter(x=>!played.has(x));
+    if(missed.length&&p.u.games)lines.push(`${lines.length?E(p.last):B_(p.name)} has missed ${E(weeksList(missed))} this season.`);
    }
-   /* Filling in on the fantasy roster: an IR player at the same spot who will come back. */
+   /* Them: the teammates whose absence or return moves his role. */
+   p.mates.forEach(x=>{
+    const s=x.sig,t=x.t;
+    const bits=[];
+    const statusText=s.report?`${statusPhrase(s.report.status)}${s.report.kind?` (${s.report.kind.toLowerCase()})`:''}${s.report.returnDate?`, expected back ${dateShort(s.report.returnDate)}`:''}`:s.code?statusPhrase(injuryLabel(s.code)):'';
+    if(statusText)bits.push(`is ${statusText}`);
+    if(s.missed.length&&s.teamWeeks.length)bits.push(s.games?`has missed ${weeksList(s.missed)}`:`has not played this season`);
+    if(!bits.length&&s.news)bits.push('is in the injury news');
+    const relation=t.why==='room'?`shares the ${p.team} ${p.pos} room`:t.why==='qb'?`is ${p.last}’s quarterback`:t.why==='targets'?`competes for ${p.team} targets`:`shares the ${p.team} backfield`;
+    let line=`${B_(t.name)} (${E(depthTag(t))}) ${E(relation)} and ${E(bits.join(', '))}.`;
+    if(s.news)line+=` ${E(blurb(s.news))}${s.news.spin?` ${E(blurb({text:s.news.spin,at:0},220))}`:''}`;
+    if(x.split)line+=` ${E(`${p.last} with ${t.name.split(' ').slice(-1)[0]} on the field: ${x.split.withLine} over ${plural(x.split.withGames,'game')}; without him: ${x.split.withoutLine} over ${plural(x.split.withoutGames,'game')}.`)}`;
+    if(t.why==='room'&&(s.report||INJURED.has(s.code)||s.missed.length))line+=` ${E(`That is the swing in ${p.last}’s value: ${p.to.manager} gets the expanded role while ${t.name.split(' ').slice(-1)[0]} is out and should count on it shrinking when he returns.`)}`;
+    lines.push(line);
+   });
+   /* The fantasy roster: an IR player at the same spot who will come back. */
    const returning=p.to.after.filter(e=>isIR(e)&&hjPlayerPosition(e)===p.pos&&entryId(e)!==p.id);
-   if(returning.length)injury.push(`${E(p.to.manager)} has ${E(join(returning.map(entryName)))} on IR at ${E(p.pos)}. ${B_(p.name)} covers that spot now, and when ${returning.length===1?'he comes':'they come'} back ${E(p.last)} slides down the depth chart — the value of this piece is front-loaded.`);
-   /* Or the sending manager creating a hole they cannot cover. */
+   if(returning.length)lines.push(`${E(p.to.manager)} has ${E(join(returning.map(entryName)))} on IR at ${E(p.pos)}. ${B_(p.name)} covers that spot now, and when ${returning.length===1?'he comes':'they come'} back ${E(p.last)} slides down the depth chart — the value of this piece is front-loaded.`);
    const leftIR=p.from.after.filter(e=>isIR(e)&&hjPlayerPosition(e)===p.pos);
    const leftHealthy=(p.from.countsAfter[p.pos]||0);
-   if(leftIR.length&&leftHealthy<=MINIMUMS[p.pos])injury.push(`Sending ${B_(p.name)} leaves ${E(p.from.manager)} with ${leftHealthy} healthy ${E(p.pos)}${leftHealthy===1?'':'s'} and ${E(join(leftIR.map(entryName)))} still on IR — thin until that return.`);
+   if(leftIR.length&&leftHealthy<=MINIMUMS[p.pos])lines.push(`Sending ${B_(p.name)} leaves ${E(p.from.manager)} with ${leftHealthy} healthy ${E(p.pos)}${leftHealthy===1?'':'s'} and ${E(join(leftIR.map(entryName)))} still on IR — thin until that return.`);
+   if(lines.length)injury.push(`<div class="td-group-block"><h5>${E(p.name)} <span>${E(p.pos)} · ${E(p.team)} · to ${E(p.to.manager)}</span></h5>${li(lines)}</div>`);
   });
-  const injuryHTML=injury.length?li(injury):'<p>No injury designations on either side of the deal, and nobody involved is holding a role that belongs to an injured teammate, as far as this league’s rosters and the market feed can see.</p>';
+  const injuryHTML=injury.length?injury.join(''):'';
 
   /* ---- Usage & opportunity ---- */
   const usage=[];
   all.forEach(p=>{
    const u=p.u;
-   if(!u||!u.season){usage.push(`${B_(p.name)}: no weekly usage on file yet this season.`);return}
+   if(!u||!u.season)return;
    const s=u.season,r=u.recent,bits=[];
    if(u.pos==='QB'){
     if(Number.isFinite(s.attempts)&&s.attempts>0)bits.push(`${one(s.attempts)} attempts a game`);
@@ -954,6 +1179,7 @@
     if(u.pos==='RB'){if(Number.isFinite(s.carryShare))bits.push(`${pct(s.carryShare)} of the team’s carries (${one(s.carries)} a game)`);if(Number.isFinite(s.targets))bits.push(`${one(s.targets)} targets a game`)}
     else{if(Number.isFinite(s.target))bits.push(`${pct(s.target)} target share (${one(s.targets)} a game)`);if(Number.isFinite(s.air))bits.push(`${pct(s.air)} of the air yards`);if(Number.isFinite(s.wopr))bits.push(`WOPR ${s.wopr.toFixed(2)}`)}
    }
+   if(!bits.length)return;
    let line=`${B_(p.name)} — ${E(bits.join(', '))} over ${plural(u.games,'game')}.`;
    const median=USAGE.posPPO.get(u.pos);
    if(Number.isFinite(s.ppo)&&Number.isFinite(median)){
@@ -964,12 +1190,18 @@
    if(r&&u.games>=4){
     const mv=roleMoves(u),moves=[...mv.up,...mv.down];
     const t=trendSentence(p.entry);
-    if(moves.length)line+=` ${E(`Trend: ${moves.join(', ')}${t?`. ${t}`:'.'}`)} ${E(mv.up.length&&!mv.down.length?'Usage moves a week or two before the points do — this is a buy signal.':mv.down.length&&!mv.up.length?'A shrinking role is the classic sell-high tell.':'Mixed signals.')}`;
-    else if(t)line+=` ${E(`Steady role. ${t}`)}`;
+    if(moves.length){
+     line+=` ${E(`Trend: ${moves.join(', ')}${t?`. ${t}`:'.'}`)}`;
+     /* Why: a teammate missing the recent games explains a jump. */
+     const recentWeeks=new Set(u.weeks.slice(-3).map(x=>x.week));
+     const why=p.mates.filter(x=>x.t.why==='room'||x.t.why==='targets').filter(x=>x.sig.missed.some(wk=>recentWeeks.has(wk)));
+     if(mv.up.length&&why.length)line+=` ${E(`The jump lines up with ${join(why.map(x=>x.t.name))} missing ${join(why.map(x=>weeksList(x.sig.missed.filter(wk=>recentWeeks.has(wk)))))} — it is borrowed until ${why.length===1?'he is':'they are'} back.`)}`;
+     else line+=` ${E(mv.up.length&&!mv.down.length?'Usage moves a week or two before the points do — a buy signal.':mv.down.length&&!mv.up.length?'A shrinking role is the classic sell-high tell.':'Mixed signals.')}`;
+    }else if(t)line+=` ${E(`Steady role. ${t}`)}`;
    }
    usage.push(line);
   });
-  const usageHTML=li(usage)+'<p class="td-fine">Route participation, first-read share, red-zone splits and offensive-line grades are not in this site’s feeds, so they are not scored here.</p>';
+  const usageHTML=usage.length?li(usage):'';
 
   /* ---- Situational changes ---- */
   const situation=[];
@@ -981,23 +1213,38 @@
     const q=qbChange(p.team);
     if(q)situation.push(`${E(p.team)} has had ${E(q.now)} taking the snaps at quarterback since Week ${q.since}, not ${E(q.was)} — every ${E(p.team)} pass catcher and back in this deal (${E(join(all.filter(x=>x.team===p.team).map(nameOf)))}) is playing in a changed offence.`);
    }
+   if(p.sitNews)situation.push(`${B_(p.name)}: ${E(blurb(p.sitNews))}${p.sitNews.spin?` ${E(blurb({text:p.sitNews.spin,at:0},220))}`:''}`);
+   /* The quarterback's own situation, when it is not an injury. */
+   const qb=p.mates.find(x=>x.t.why==='qb');
+   if(!qb&&p.pos!=='QB'){
+    const qb1=teammatesOf(p).find(t=>t.why==='qb');
+    const n=qb1?newsFor(qb1.id).filter(x=>x.at>Date.now()-14*864e5&&SIT_RE.test(x.text)&&!INJ_RE.test(x.text))[0]:null;
+    if(n&&!situation.some(x=>x.includes(E(blurb(n))))) situation.push(`${B_(qb1.name)} (${E(p.team)} QB): ${E(blurb(n))}`);
+   }
    if(onBye(p.entry))situation.push(`${B_(p.name)} has no game in Week ${w}.`);
   });
-  const situationHTML=situation.length?li(situation):'<p>No mid-season team changes or quarterback changes show up in the weekly stats for the clubs involved. Coaching and play-caller changes are not in the feeds.</p>';
+  const situationHTML=situation.length?li(situation):'';
 
   /* ---- Schedule & playoff leverage ---- */
   const sched=[];
-  const schedReady=all.some(p=>p.sched);
   all.forEach(p=>{
    const sc=p.sched;if(!sc)return;
    const bits=[];
    if(sc.bye)bits.push(sc.bye<w?`bye already used (Week ${sc.bye})`:sc.bye===w?`on bye this week`:`bye in Week ${sc.bye}`);
-   if(sc.rest)bits.push(`the remaining schedule ranks ${ordinal(sc.rest.rank)} easiest of ${sc.rest.of} for ${p.pos}s`);
-   const po=sc.playoffs.map(x=>x.bye?`Week ${x.week}: bye`:`Week ${x.week} ${x.home?'vs':'at'} ${x.opp}${Number.isFinite(x.rank)?` (${allowWord(x.rank,x.of)} points to ${p.pos}s)`:''}`);
-   if(po.length)bits.push(`playoff weeks — ${po.join('; ')}${sc.po?` — the ${ordinal(sc.po.rank)} easiest playoff draw of ${sc.po.of}`:''}`);
+   if(sc.remaining)bits.push(`${plural(sc.remaining,'regular-season game')} left`);
+   if(sc.rest)bits.push(`the remaining schedule ranks ${ordinal(sc.rest.rank)} easiest of ${sc.rest.of} for ${p.pos}s (opponents allow ${pts(sc.rest.avg)} a game to the position)`);
+   const po=sc.playoffs.map(x=>{
+    if(x.bye)return `Week ${x.week}: bye`;
+    const d=x.dvp;
+    let t=`Week ${x.week} ${x.home?'vs':'at'} ${x.opp}`;
+    if(d)t+=` — ${allowWord(x.rank,x.of)} points to ${p.pos}s (${pts(d.avg)} a game${Number.isFinite(d.last3)&&d.avg>0&&Math.abs(d.last3-d.avg)/d.avg>=.15?`, ${d.last3>d.avg?'more':'less'} generous lately at ${pts(d.last3)}`:''})`;
+    if(x.roof)t+=`, ${x.roof}`;
+    if(x.line)t+=`, ${x.line}`;
+    return t;
+   });
+   if(po.length)bits.push(`playoff weeks — ${po.join('; ')}${sc.po?` — the ${ordinal(sc.po.rank)} easiest playoff draw of ${sc.po.of} for ${p.pos}s`:''}`);
    if(bits.length)sched.push(`${B_(p.name)}: ${E(bits.map(cap).join('. '))}.`);
   });
-  /* Overlapping byes among the players a manager takes on, and against the starters he already has at that spot. */
   a.rows.forEach(side=>{
    const incoming=side.gets.filter(p=>p.sched&&p.sched.bye&&p.sched.bye>=w);
    const byWeek={};
@@ -1010,9 +1257,14 @@
   });
   a.rows.forEach(side=>{
    const s=side.stand;
-   if(s&&inSeason&&Number.isFinite(s.remainingSOSRank))sched.push(`${E(side.manager)}’s own run-in is the ${E(s.remainingSOSRank===1?'toughest':`${ordinal(s.remainingSOSRank)} toughest`)} left in the league${Array.isArray(s.next3)&&s.next3.length?` (next up: ${E(s.next3.join(', '))})`:''}.`);
+   if(s&&inSeason){
+    const bits=[];
+    if(Number.isFinite(s.remainingSOSRank))bits.push(`${side.manager}’s own run-in is the ${s.remainingSOSRank===1?'toughest':`${ordinal(s.remainingSOSRank)} toughest`} left in the league${Array.isArray(s.next3)&&s.next3.length?` (next up: ${s.next3.join(', ')})`:''}`);
+    if(Number.isFinite(s.playoffOdds))bits.push(`${Math.round(s.playoffOdds)}% to reach the four-team playoff that starts in Week ${PLAYOFF_WEEKS[0]}`);
+    if(bits.length)sched.push(E(bits.join('; ')+'.'));
+   }
   });
-  const schedHTML=sched.length?li(sched)+(schedReady&&!all.some(p=>p.sched?.rest)?'<p class="td-fine">Strength-of-schedule ranks appear once four weeks of stats are in.</p>':''):'<p>The NFL schedule has not loaded yet, so byes and playoff-week matchups are not shown.</p>';
+  const schedHTML=sched.length?li(sched):'';
 
   /* ---- Positional arbitration ---- */
   const arb=[];
@@ -1031,38 +1283,7 @@
    const touched=all.filter(p=>p.pos===steep[0]);
    if(touched.length)arb.push(`${E(steep[0])} is the steepest cliff in this league — ${Math.round(steep[1]*100)}% of value falls away between the last starter and the next man up — so ${E(join(touched.map(nameOf)))} ${touched.length===1?'is':'are'} worth more here than a flat value chart says.`);
   }
-  const arbHTML=arb.length?li(arb):'<p>Neither roster’s positional standing moves.</p>';
-
-  /* ---- Risk profile ---- */
-  const risk=[];
-  const needWord=side=>{
-   const s=side.stand;
-   if(!s||!inSeason)return '';
-   if(side.post.key==='contender')return `${side.manager} is ${recordOf(s)} and ${s.playoffOdds>=85?'close to locked in':'in the playoff picture'} — that roster wants floor and depth, not variance`;
-   if(side.post.key==='fading')return `${side.manager} is ${recordOf(s)} and needs ceiling — a safe floor does not change that season`;
-   return `${side.manager} is ${recordOf(s)} and on the bubble — a balance of floor and upside, leaning to whichever wins the next three`;
-  };
-  a.rows.forEach(side=>{
-   const nw=needWord(side);
-   const got=side.gets.filter(p=>p.u&&p.u.games>=3);
-   const profile=got.map(p=>{
-    const u=p.u,cv=Number.isFinite(u.sd)&&u.ppg>0?u.sd/u.ppg:null;
-    const shape=cv===null?'':cv<=.35?(u.bust>=u.games*.5?'steady but low':'steady'):cv<=.6?'up and down':'boom-or-bust';
-    return `${p.name} ${pts(u.ppg)} ppg, floor ${pts(u.floor)}, ceiling ${pts(u.ceiling)}${shape?` (${shape})`:''}, ${p.pos==='QB'||p.pos==='TE'?'top-5':'top-10'} ${p.pos} in ${u.boom} of ${u.games} weeks, outside the top ${u.bustAt} in ${u.bust}`;
-   });
-   if(profile.length)risk.push(`${B_(side.manager)} takes on ${E(join(profile))}.${nw?` ${E(nw)}.`:''}`);
-   else if(nw)risk.push(`${B_(side.manager)}: ${E(nw)}.`);
-   const s=side.stand;
-   if(s&&inSeason&&Number.isFinite(s.volatility)&&Number.isFinite(s.last3Avg))risk.push(`${E(side.manager)}’s weekly scores swing ${pts(s.volatility)} either side of average, ${pts(s.last3Avg)} over the last three.`);
-   /* Does the shape fit the record? */
-   const highVar=got.filter(p=>Number.isFinite(p.u.sd)&&p.u.ppg>0&&p.u.sd/p.u.ppg>.6);
-   const lowVar=got.filter(p=>Number.isFinite(p.u.sd)&&p.u.ppg>0&&p.u.sd/p.u.ppg<=.35&&p.u.bust<p.u.games*.5);
-   if(inSeason&&side.post.key==='contender'&&highVar.length&&!lowVar.length)risk.push(`That is the wrong shape for ${E(side.manager)}: ${E(join(highVar.map(nameOf)))} ${highVar.length===1?'is':'are'} boom-or-bust and a team protecting a lead wants the safe week.`);
-   if(inSeason&&side.post.key==='fading'&&lowVar.length&&!highVar.length)risk.push(`${E(side.manager)} is buying safety when the season calls for upside — ${E(join(lowVar.map(nameOf)))} ${lowVar.length===1?'raises':'raise'} the floor, not the ceiling.`);
-   if(inSeason&&side.post.key==='fading'&&highVar.length)risk.push(`${E(join(highVar.map(nameOf)))} ${highVar.length===1?'is':'are'} the kind of swing ${E(side.manager)} needs at ${E(recordOf(s))}.`);
-   if(inSeason&&side.post.key==='contender'&&lowVar.length)risk.push(`${E(join(lowVar.map(nameOf)))} ${lowVar.length===1?'is':'are'} the steady week ${E(side.manager)} wants at ${E(recordOf(s))}.`);
-  });
-  const riskHTML=risk.length?li(risk):'<p>Not enough weeks on file yet to read floor and ceiling.</p>';
+  const arbHTML=arb.length?li(arb):'';
 
   /* ---- Is this a good move? (reasons to accept and decline, per manager) ---- */
   const reasons=side=>{
@@ -1081,7 +1302,7 @@
    const countsBefore=countByPos(side.before);
    for(const [pos,min] of Object.entries(MINIMUMS)){
     const have=side.countsAfter[pos]||0;
-    if(have>=(countsBefore[pos]||0))continue;   // the deal did not thin this spot
+    if(have>=(countsBefore[pos]||0))continue;
     if(have<min){dec.push(`Cannot fill ${pos} — only ${have} healthy.`);continue}
     if(have===min&&!['K','D/ST'].includes(pos))dec.push(`Leaves exactly ${have} healthy ${pos}${have===1?'':'s'} — one injury and a starting spot is empty.`);
    }
@@ -1091,26 +1312,39 @@
     if(Number.isFinite(s.luck)&&s.luck>=.8&&side.lineupDelta<=0)dec.push(`The ${recordOf(s)} record is ${pts(s.luck)} wins better than the scoring — this roster needs real help, not a sideways move.`);
     if(Number.isFinite(s.remainingSOSRank)&&s.remainingSOSRank<=3&&side.lineupDelta>0)acc.push(`The run-in is the ${s.remainingSOSRank===1?'toughest':`${ordinal(s.remainingSOSRank)} toughest`} left, so a stronger starting lineup matters more than bench cover.`);
     if(Number.isFinite(s.benchGap)&&s.benchGap>=12&&side.in.length>side.out.length)dec.push(`${side.manager} already leaves ${pts(s.benchGap)} a week on the bench, so extra depth is worth less than it looks.`);
-    if(side.post.key==='fading'&&side.valueDelta>0)acc.push(`With the season slipping away, banking ${money(side.valueDelta)} of surplus value is the right shape of deal.`);
-    if(side.post.key==='contender'&&side.lineupDelta>0&&side.valueDelta<0)acc.push(`A contender paying a value premium for lineup points is a normal trade — the surplus is worth nothing in December if the lineup falls short.`);
+    if(side.post.key==='contender'&&side.lineupDelta>0&&side.valueDelta<0)acc.push(`A contender paying a premium for lineup points is a normal trade — surplus is worth nothing in December if the lineup falls short.`);
    }
    side.gets.forEach(p=>{
     const r=p.row;
+    const rooms=p.mates.filter(x=>x.t.why==='room'&&(x.sig.report||INJURED.has(x.sig.code)||x.sig.missed.length>=1));
+    rooms.forEach(x=>{
+     const back=x.sig.report?.returnDate?dateShort(x.sig.report.returnDate):'';
+     acc.push(`${p.name} has the ${p.team} ${p.pos} room to himself while ${x.t.name} is ${x.sig.status?statusPhrase(x.sig.status):'out'}${back?` (expected back ${back})`:''}.`);
+     dec.push(`${p.name}’s role is borrowed from ${x.t.name}${back?`, who is expected back ${back}`:''} — the numbers shrink when he returns.`);
+    });
+    const qbHurt=p.mates.find(x=>x.t.why==='qb'&&(x.sig.report||INJURED.has(x.sig.code)));
+    if(qbHurt)dec.push(`${p.name}’s quarterback ${qbHurt.t.name} is ${qbHurt.sig.status?statusPhrase(qbHurt.sig.status):'out'}.`);
+    const tgtOut=p.mates.filter(x=>x.t.why==='targets'&&(x.sig.report||INJURED.has(x.sig.code)||x.sig.missed.length>=1));
+    if(tgtOut.length)acc.push(`${join(tgtOut.map(x=>x.t.name))} ${tgtOut.length===1?'is':'are'} out of the ${p.team} passing game, which leaves more targets for ${p.last}.`);
+    if(Number.isFinite(p.espn)&&Number.isFinite(p.vegas)&&p.vegas>p.espn*1.12)acc.push(`Vegas has ${p.name} at ${pts(p.vegas)} rest of season, ${pts(p.vegas-p.espn)} above ESPN — the books like him more than the house.`);
+    if(Number.isFinite(p.espn)&&Number.isFinite(p.vegas)&&p.espn>p.vegas*1.12)dec.push(`Vegas has ${p.name} at ${pts(p.vegas)} rest of season, ${pts(p.espn-p.vegas)} below ESPN — the books are cooler on him than the house.`);
     if(r&&Number.isFinite(r.trend30)&&r.trend30<=-Math.max(120,r.value*.03))acc.push(`${p.name} is down ${money(Math.abs(r.trend30))} in 30 days — this is the window to buy if the drop was noise.`);
     if(r&&Number.isFinite(r.trend30)&&r.trend30>=Math.max(150,r.value*.04))dec.push(`${p.name} is up ${money(r.trend30)} in 30 days — buying at the top of his range.`);
     if(Number.isFinite(p.grade)&&p.grade>=78&&r&&r.positionRank>12)acc.push(`${p.name} grades ${p.grade.toFixed(1)} at PFF while valued as ${r.position}${r.positionRank} — the tape is ahead of the market.`);
     if(Number.isFinite(p.grade)&&p.grade<62&&r&&r.positionRank<=18)dec.push(`${p.name} is valued as ${r.position}${r.positionRank} on a ${p.grade.toFixed(1)} PFF grade — the market is ahead of the tape.`);
     if(p.rep&&Number.isFinite(p.value)&&p.value>=p.rep.value*1.6)acc.push(`${p.name} is worth ${money(p.value-p.rep.value)} more than the best ${p.pos} on the wire (${p.rep.name}) — a real upgrade, not a lateral move.`);
     if(p.rep&&Number.isFinite(p.value)&&p.value<=p.rep.value*1.15)dec.push(`${p.name} is valued within touching distance of ${p.rep.name}, who is sitting on the wire — giving up a real asset for that is the wrong trade.`);
-    if(p.status.key==='bad')dec.push(`${p.name} is ${p.status.label.toLowerCase()} right now.`);
+    if(p.status.key==='bad')dec.push(`${p.name} is ${statusPhrase(p.status.label)} right now${p.report?.returnDate?` (expected back ${dateShort(p.report.returnDate)})`:''}.`);
     if(p.sched?.po&&p.sched.po.rank<=8)acc.push(`${p.name} draws the ${ordinal(p.sched.po.rank)} easiest playoff-week schedule for ${p.pos}s.`);
     if(p.sched?.po&&p.sched.po.rank>=p.sched.po.of-7)dec.push(`${p.name} draws the ${ordinal(p.sched.po.of+1-p.sched.po.rank)} hardest playoff-week schedule for ${p.pos}s.`);
+    if(p.sched?.rest&&p.sched.rest.rank<=6)acc.push(`${p.name}’s remaining schedule is the ${ordinal(p.sched.rest.rank)} easiest for ${p.pos}s.`);
+    if(p.sched?.rest&&p.sched.rest.rank>=p.sched.rest.of-5)dec.push(`${p.name}’s remaining schedule is the ${ordinal(p.sched.rest.of+1-p.sched.rest.rank)} hardest for ${p.pos}s.`);
     if(p.sched?.playoffs?.some(x=>x.bye))dec.push(`${p.name} has a bye in a playoff week.`);
     const mv=roleMoves(p.u);
     if(mv.up.length)acc.push(`${p.name}’s role is growing — ${mv.up[0]}.`);
     if(mv.down.length)dec.push(`${p.name}’s role is shrinking — ${mv.down[0]}.`);
    });
-   return {acc:acc.slice(0,6),dec:dec.slice(0,6)};
+   return {acc:acc.slice(0,7),dec:dec.slice(0,7)};
   };
   const moveHTML=`<div class="td-move">${a.rows.map(side=>{const r=reasons(side);return `<div class="td-move-side is-${side.key}">
    <div class="td-move-head">${av(side.manager,'td-av-sm')}<b>${E(side.manager)}</b>${side.post.key!=='preseason'&&side.post.key!=='unknown'?`<span class="td-post td-post-${side.post.key}">${E(side.post.label)}</span>`:''}</div>
@@ -1119,36 +1353,40 @@
   </div>`}).join('')}</div>`;
 
   /* ---- Why each side does this ---- */
+  const story=p=>{
+   const bits=[];
+   const proj=[Number.isFinite(p.espn)?`ESPN ${pts(p.espn)}`:'',Number.isFinite(p.vegas)?`Vegas ${pts(p.vegas)}`:''].filter(Boolean);
+   if(proj.length)bits.push(`projects ${proj.join(' / ')} rest of season${p.u?.ppg?` on ${pts(p.u.ppg)} ppg so far`:''}`);
+   keyContext(p).slice(0,3).forEach(k=>bits.push(k));
+   return bits;
+  };
   const why=a.rows.map(side=>{
    const s=side.stand,weak=a.worstUnitBefore(side),gain=(side.unitsAfter[weak.k]||0)-(side.unitsBefore[weak.k]||0);
-   const parts=[];
-   if(side.valueDelta<-150&&side.lineupDelta>0)parts.push(`${side.manager} is paying a value premium (${money(Math.abs(side.valueDelta))}) to add lineup points now`);
-   else if(side.valueDelta>150&&side.lineupDelta<=0)parts.push(`${side.manager} is banking ${money(side.valueDelta)} of market value and accepting a weaker starting lineup for it`);
-   else if(side.valueDelta>150&&side.lineupDelta>0)parts.push(`${side.manager} gains on both counts — ${money(side.valueDelta)} in value and ${pts(side.lineupDelta)} in projected lineup points — which is the part the other side should question`);
-   else if(side.lineupDelta>0)parts.push(`${side.manager} gets a better starting lineup at roughly even value`);
-   else parts.push(`${side.manager} is not improving the starting lineup here`);
+   const parts=[],sentences=[];
+   side.gets.forEach(p=>{const b=story(p);sentences.push(`${side.manager} gets ${p.name}${b.length?`, who ${b.join('; ')}`:''}.`)});
+   side.profiles.forEach(p=>{
+    const b=[];
+    const proj=[Number.isFinite(p.espn)?`ESPN ${pts(p.espn)}`:'',Number.isFinite(p.vegas)?`Vegas ${pts(p.vegas)}`:''].filter(Boolean);
+    if(proj.length)b.push(`${proj.join(' / ')} rest of season`);
+    const k=keyContext(p)[0];if(k)b.push(k);
+    sentences.push(`${side.manager} gives up ${p.name}${b.length?` (${b.join('; ')})`:''}.`);
+   });
+   if(side.lineupDelta>.5)parts.push(`the starting lineup projects ${pts(side.lineupDelta)} better after the deal`);
+   else if(side.lineupDelta<-.5)parts.push(`the starting lineup projects ${pts(Math.abs(side.lineupDelta))} worse after the deal, so this only works if the incoming player’s situation beats his projection`);
    if(gain>200&&Number.isFinite(weak.rank)&&weak.rank>=side.teamCount-3)parts.push(`it fixes the roster’s weakest unit (${weak.k}, #${weak.rank} in the league)`);
    if(!side.in.length)parts.push(`nothing comes back — this only makes sense as a roster-spot clearance`);
    else if(!side.out.length)parts.push(`nothing goes out — a free addition, at the cost of a roster spot`);
    else if(side.in.length<side.out.length)parts.push(`it turns ${side.out.length} pieces into ${side.in.length} — the consolidation move a team with a full bench makes`);
    else if(side.in.length>side.out.length)parts.push(`it spreads one asset across ${side.in.length} spots — the depth move a team with injuries or byes makes`);
    if(s&&inSeason){
-    if(side.post.key==='contender'&&side.lineupDelta>0)parts.push(`at ${recordOf(s)} the season is about the playoff weeks, so short-term lineup points outrank surplus value`);
-    else if(side.post.key==='contender'&&side.valueDelta>0)parts.push(`at ${recordOf(s)} that surplus only helps if it is flipped for a starter before the playoffs — it does not score points on its own`);
-    else if(side.post.key==='contender')parts.push(`at ${recordOf(s)} this does not add lineup points, which is the only thing a contender should be buying`);
-    else if(side.post.key==='fading'&&side.valueDelta>0)parts.push(`at ${recordOf(s)} banking value and taking a swing on upside is the right shape`);
-    else if(side.post.key==='fading'&&side.lineupDelta>0)parts.push(`at ${recordOf(s)} paying a premium for this week’s points is a hard sell unless the next three are winnable`);
+    if(side.post.key==='contender'&&side.lineupDelta>0)parts.push(`at ${recordOf(s)} the season is about Weeks ${PLAYOFF_WEEKS[0]}–${PLAYOFF_WEEKS.at(-1)}, so lineup points now and the playoff-week matchups matter more than anything else`);
+    else if(side.post.key==='contender')parts.push(`at ${recordOf(s)} a contender should only be buying lineup points, and this does not add them on projection`);
+    else if(side.post.key==='fading'&&side.gets.some(p=>keyContext(p).length))parts.push(`at ${recordOf(s)} this is a swing on the situation changing, which is the right kind of bet for a team that needs upside`);
     else if(side.post.key==='fading')parts.push(`at ${recordOf(s)} nothing about this changes the season`);
     else parts.push(`at ${recordOf(s)} the next few weeks decide the season, so the immediate lineup matters most`);
    }
-   const sells=side.profiles.map(p=>{
-    const td=p.u?.season?.tdShare>=.45&&p.u.games>=3,hot=p.row&&Number.isFinite(p.row.trend30)&&p.row.trend30>=Math.max(150,p.value*.04);
-    return td||hot?`${p.name} (${[td?`${Math.round(p.u.season.tdShare*100)}% of his points from touchdowns`:'',hot?`up ${money(p.row.trend30)} in 30 days`:''].filter(Boolean).join(', ')})`:'';
-   }).filter(Boolean);
-   if(sells.length)parts.push(`${join(sells)} ${sells.length===1?'is':'are'} being sold near the top, which is when a seller moves`);
-   const buys=side.gets.filter(p=>p.row&&Number.isFinite(p.row.trend30)&&p.row.trend30<=-Math.max(120,p.value*.03));
-   if(buys.length)parts.push(`${join(buys.map(nameOf))} ${buys.length===1?'is':'are'} being bought after a dip, which is when a buyer moves`);
-   return `<p>${B_(side.manager)}: ${E(parts.join('; '))}.</p>`;
+   if(m.band!=='even')parts.push(side.valueDelta>0?`it banks ${money(side.valueDelta)} of market value on the way`:`it costs ${money(Math.abs(side.valueDelta))} of market value to do it`);
+   return `<p>${sentences.map(x=>{const i=x.indexOf(' ');return B_(x.slice(0,i))+E(x.slice(i))}).join(' ')} ${E(cap(parts.join('; '))+'.')}</p>`;
   }).join('');
 
   /* ---- The read ---- */
@@ -1159,36 +1397,57 @@
    if((side.unitsAfter[weak.k]||0)-(side.unitsBefore[weak.k]||0)>200)sc+=2;
    if(side.lineupDelta>.5)sc+=1.5;else if(side.lineupDelta<-.5)sc-=1.5;
    if(side.gets.some(p=>p.status.key==='bad'))sc-=2;
+   if(side.gets.some(p=>p.mates.some(x=>x.t.why==='room'&&(x.sig.report||INJURED.has(x.sig.code)))))sc+=1;
    return {score:sc,label:sc>=6?'Likely':sc>=-2.5?'Could go either way':sc>=-9?'Needs a sweetener':'Unlikely',
     verb:sc>=6?'is likely':sc>=-2.5?'could go either way':sc>=-9?'would want a sweetener':'is unlikely',key:sc>=6?'good':sc>=-2.5?'even':'bad'};
   };
   const accA=accept(A),accB=accept(B);
   const read=[];
-  const shape=side=>!side.in.length?'a giveaway':!side.out.length?'a free pickup':side.in.length<side.out.length?'a consolidation':side.in.length>side.out.length?'a depth play':'a straight swap';
-  read.push(shape(A)==='a straight swap'&&shape(B)==='a straight swap'?`This is a straight ${m.count.give}-for-${m.count.take} swap.`:`For ${A.manager} this is ${shape(A)}; for ${B.manager} it is ${shape(B)}.`);
-  if(m.band==='even')read.push(`On the numbers it is balanced, so what separates the two sides is fit, and the fit reads ${A.lineupDelta>B.lineupDelta+1?`better for ${A.manager}`:B.lineupDelta>A.lineupDelta+1?`better for ${B.manager}`:'about even'}.`);
-  else read.push(`On market value ${more.manager} comes out ${money(Math.abs(m.net))} ahead. ${less.manager} is ${less.lineupDelta>.5?`getting the better starting lineup for it (+${pts(less.lineupDelta)} projected), which is a fair reason to pay`:less.lineupDelta<-.5?`also getting the weaker starting lineup (−${pts(Math.abs(less.lineupDelta))} projected), so the value gap is not being bought back in points`:'not moving the starting lineup either way, so the value gap is the whole story'}.`);
-  const keyRisk=side=>{const r=reasons(side);return r.dec[0]||''};
-  const rA=keyRisk(A),rB=keyRisk(B);
-  if(rA||rB)read.push(`The thing each side has to be comfortable with — ${A.manager}: ${rA||'nothing that stands out.'} ${B.manager}: ${rB||'nothing that stands out.'}`);
+  /* 1. the biggest swing factor */
+  const swings=[];
+  all.forEach(p=>{
+   p.mates.filter(x=>x.t.why==='room'&&(x.sig.report||INJURED.has(x.sig.code)||x.sig.missed.length>=2)).forEach(x=>{
+    const back=x.sig.report?.returnDate?dateShort(x.sig.report.returnDate):'';
+    const backWeek=x.sig.report?.returnDate?Math.round((Date.parse(x.sig.report.returnDate)-Date.now())/(7*864e5)):null;
+    swings.push(`${p.name}’s current role exists because ${x.t.name} is ${x.sig.status?statusPhrase(x.sig.status):'out'}${back?` — expected back ${back}${Number.isFinite(backWeek)?`, about ${plural(Math.max(0,backWeek),'week')} away${backWeek>0&&w+backWeek<PLAYOFF_WEEKS[0]?', before the playoffs':w+backWeek>=PLAYOFF_WEEKS[0]?', which runs into the playoff weeks':''}`:''}`:''}. ${p.to.manager} is buying that window; ${p.from.manager} is selling it at its widest`);
+   });
+   const q=p.pos!=='QB'?qbChange(p.team):null;
+   if(q)swings.push(`${p.name} is playing in an offence that changed quarterback to ${q.now} in Week ${q.since}, so his season numbers before that are the wrong baseline`);
+   if(p.status.key==='bad')swings.push(`${p.name} is ${statusPhrase(p.status.label)}${p.report?.returnDate?` until about ${dateShort(p.report.returnDate)}`:''}, so ${p.to.manager} is paying for games that have not happened yet`);
+  });
+  if(swings.length)read.push(`The biggest thing${swings.length>1?'s':''} in this deal: ${swings.slice(0,3).map(x=>x+'.').join(' ')}`);
+  /* 2. projections and schedule, both packages */
+  const sumK=(list,k)=>list.reduce((n,p)=>n+(Number.isFinite(p[k])?p[k]:0),0);
+  const projLine=[];
+  if(sumK(A.gets,'espn')||sumK(B.gets,'espn'))projLine.push(`ESPN projects the players ${A.manager} receives at ${pts(sumK(A.gets,'espn'))} rest of season against ${pts(sumK(B.gets,'espn'))} for ${B.manager}’s side`);
+  if(sumK(A.gets,'vegas')||sumK(B.gets,'vegas'))projLine.push(`Vegas has it ${pts(sumK(A.gets,'vegas'))} to ${pts(sumK(B.gets,'vegas'))}`);
+  const poA=A.gets.filter(p=>p.sched?.po),poB=B.gets.filter(p=>p.sched?.po);
+  if(poA.length||poB.length)projLine.push(`for Weeks ${PLAYOFF_WEEKS[0]}–${PLAYOFF_WEEKS.at(-1)} ${join([...poA,...poB].map(p=>`${p.last} has the ${ordinal(p.sched.po.rank)} easiest draw for ${p.pos}s`))}`);
+  if(projLine.length)read.push(`${projLine.join('; ')}.`);
+  /* 3. usage read */
+  const usageRead=all.map(p=>{const mv=roleMoves(p.u);if(mv.up.length)return `${p.name}’s ${mv.up[0]}`;if(mv.down.length)return `${p.name}’s ${mv.down[0]}`;return ''}).filter(Boolean);
+  if(usageRead.length)read.push(`Usage: ${join(usageRead)}.`);
+  /* 4. fit */
   if(inSeason){
-   const fits=side=>side.post.key==='contender'?(side.lineupDelta>0?`It fits ${side.manager}’s season.`:`It does not fit ${side.manager}’s season (a contender needs the lineup points, not the surplus).`):side.post.key==='fading'?(side.valueDelta>0||side.gets.some(p=>Number.isFinite(p.u?.sd)&&p.u.ppg>0&&p.u.sd/p.u.ppg>.6)?`It fits ${side.manager}’s season.`:`It does not do much for ${side.manager}’s season.`):(side.lineupDelta>0?`It helps ${side.manager} in the weeks that decide the season.`:`It does not help ${side.manager} in the weeks that decide the season.`);
+   const fits=side=>side.post.key==='contender'?(side.lineupDelta>0?`It fits ${side.manager}’s season.`:`It does not fit ${side.manager}’s season on projection (a contender needs the lineup points).`):side.post.key==='fading'?(side.gets.some(p=>keyContext(p).length)||side.valueDelta>0?`It fits ${side.manager}’s season.`:`It does not do much for ${side.manager}’s season.`):(side.lineupDelta>0?`It helps ${side.manager} in the weeks that decide the season.`:`It does not help ${side.manager} in the weeks that decide the season.`);
    read.push(`Where each team is: ${fits(A)} ${fits(B)}`);
   }
+  /* 5. verdict */
   const gA=gradeFor(A,m),gB=gradeFor(B,m);
-  read.push(`Grades: ${A.manager} ${gA.letter}, ${B.manager} ${gB.letter}. ${A.manager} ${accA.verb}${accA.verb==='could go either way'?'':' to accept'}; ${B.manager} ${accB.verb}${accB.verb==='could go either way'?'':' to accept'}.${sweet?` ${sweet.fromName} adding ${entryName(sweet.entry)} is the version both sides can say yes to.`:''}`);
+  const bal=balanceOptions(m);
+  read.push(`Grades: ${A.manager} ${gA.letter}, ${B.manager} ${gB.letter}. ${A.manager} ${accA.verb}${accA.verb==='could go either way'?'':' to accept'}; ${B.manager} ${accB.verb}${accB.verb==='could go either way'?'':' to accept'}.${bal?` ${bal.options[0].from.manager} ${bal.options[0].kind==='add'?'adding':'keeping'} ${join(bal.options[0].entries.map(entryName))} is the version both sides can say yes to.`:''}`);
   const readHTML=para(read.map(E))+`<div class="td-accept">${[[A,accA],[B,accB]].map(([side,ac])=>`<span class="td-accept-pill tone-${ac.key}">${av(side.manager,'td-av-sm')}<b>${E(side.manager)}</b><i>${E(ac.label)}</i></span>`).join('')}</div>`;
 
   return `<div class="td-report">
    ${section('summary','Summary',summaryHTML)}
    ${section('breakdown','Breakdown',breakdownHTML)}
+   ${section('score','Factor scorecard',scoreHTML)}
    ${section('value','Is it a good value?',valueHTML)}
    ${section('injury','Injury ecosystem',injuryHTML)}
    ${section('usage','Usage and opportunity',usageHTML)}
    ${section('situation','Situational changes',situationHTML)}
-   ${section('schedule','Schedule and playoff leverage',schedHTML,`This league’s playoffs run NFL Weeks ${PLAYOFF_WEEKS[0]}–${PLAYOFF_WEEKS.at(-1)}.`)}
+   ${section('schedule','Schedule and playoff leverage',schedHTML,`This league’s playoffs are NFL Weeks ${PLAYOFF_WEEKS[0]} and ${PLAYOFF_WEEKS.at(-1)}.`)}
    ${section('arb','Positional arbitration',arbHTML)}
-   ${section('risk','Risk profile',riskHTML)}
    ${section('move','Is this a good move?',moveHTML)}
    ${section('why','Why each side does this',why)}
    ${section('read','The read',readHTML)}
@@ -1234,7 +1493,7 @@
   const w=v=>`${(100*Math.max(0,v)/scale).toFixed(1)}%`;
   const rankTone=r=>!Number.isFinite(r)?'':r<=3?'is-strong':r>=Math.max(2,side.teamCount-2)?'is-weak':'';
   return `<div class="td-units">
-   <div class="td-units-key"><i class="key-before"></i><span>Today</span><i class="key-up"></i><span>Added</span><i class="key-down"></i><span>Left with</span><span class="td-units-rankkey">rank in league</span></div>
+   <div class="td-units-key"><i class="key-before"></i><span>Today</span><i class="key-up"></i><span>Added by trade</span><i class="key-down"></i><span>After trade</span><i class="key-gone"></i><span>Traded away</span><span class="td-units-rankkey">rank in league</span></div>
    ${UNITS.map(key=>{
    const before=side.unitsBefore[key]||0,after=side.unitsAfter[key]||0,d=after-before;
    const rb=side.unitRankBefore?.[key],ra=side.unitRankAfter?.[key];
@@ -1268,12 +1527,6 @@
   </section>`;
  }
 
- /* ---------- roster warnings that belong above the write-up ---------- */
- function warnings(m){
-  const risks=flags(m);
-  if(!risks.length)return '';
-  return `<section class="td-extras"><div class="td-risks"><span class="td-extra-tag">Watch out</span><ul>${risks.map(f=>`<li class="tone-${f.tone}">${E(f.text)}</li>`).join('')}</ul></div></section>`;
- }
 
  /* ---------- analysis panel ---------- */
  function scorecard(a){
@@ -1290,7 +1543,6 @@
   return `<section class="td-analysis">
    <div class="td-analysis-head"><h3>Trade analysis</h3><p class="td-timing"><b>Week ${week()}.</b> ${E(timingNote().copy)}</p></div>
    ${report(m,a)}
-   <div class="td-score-wrap"><h4>Factor scorecard</h4><p class="td-sec-note">Each row leans toward the manager the factor favours.</p>${scorecard(a)}</div>
   </section>`;
  }
 
@@ -1341,7 +1593,7 @@
   warmWeek();ensureUsage();ensureSchedule();
   const m=model();
   const body=HJTD.mode==='finder'?finderPanel()
-   :`${verdict(m)}<div class="td-board">${sideColumn(m.sides[0],m)}<div class="td-mid"><button type="button" class="td-swap" data-td-swap aria-label="Swap sides">⇄</button><button type="button" class="td-clear" data-td-clear>Clear</button></div>${sideColumn(m.sides[1],m)}</div><div class="td-impacts">${m.sides.map(s=>impact(s,m)).join('')}</div>${warnings(m)}${analysisPanel(m)}`;
+   :`${verdict(m)}<div class="td-board">${sideColumn(m.sides[0],m)}<div class="td-mid"><button type="button" class="td-swap" data-td-swap aria-label="Swap sides">⇄</button><button type="button" class="td-clear" data-td-clear>Clear</button></div>${sideColumn(m.sides[1],m)}</div><div class="td-impacts">${m.sides.map(s=>impact(s,m)).join('')}</div>${balancePanel(m)}${analysisPanel(m)}`;
   return `<section class="hq-module hj15-shell td-shell"><div class="hq-module-head"><h3 class="hq-module-title">Trade Desk</h3><span class="hq-module-note">Built on Market Value</span></div>${toolbar()}${body}</section>`;
  }
 
@@ -1375,9 +1627,9 @@
    const toggle=t.closest?.('[data-td-toggle]');
    if(toggle){
     event.preventDefault();event.stopPropagation();
-    const [side,id]=String(toggle.dataset.tdToggle).split(':');
+    const [side,ids]=String(toggle.dataset.tdToggle).split(':');
     const set=side==='a'?HJTD.give:HJTD.get;
-    set.has(id)?set.delete(id):set.add(id);
+    String(ids).split(',').filter(Boolean).forEach(id=>{set.has(id)?set.delete(id):set.add(id)});
     rerender();return;
    }
    const mode=t.closest?.('[data-td-mode]');
