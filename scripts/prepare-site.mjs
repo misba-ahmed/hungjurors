@@ -1,5 +1,6 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import {readFileSync} from 'node:fs';
+const playerSearch=readFileSync(new URL('./player-search.js',import.meta.url),'utf8');
 const playerNews=readFileSync(new URL('./player-news.js',import.meta.url),'utf8');
 const recapLoader=readFileSync(new URL('./recap-loader.js',import.meta.url),'utf8');
 const wireInteraction=readFileSync(new URL('./wire-interaction.js',import.meta.url),'utf8');
@@ -19,6 +20,12 @@ function replaceOnce(html,pattern,replacement){
  return html.replace(pattern,()=>replacement);
 }
 export function prepareSite(html){
+ // Every version of the Players toolbar shares the same search control.
+ const searchInputs=/<input class="hq-fa-control" id="hq-fa-search"[^>]*>/g;
+ if([...html.matchAll(searchInputs)].length!==3)throw Error('Player search markup changed');
+ html=html.replace(searchInputs,input=>'<span class="hj-player-search">'+input+'<button type="button" class="hj-player-search-clear" data-hj-search-clear aria-label="Clear player search"${HJ_HQ_STATE.query?\'\':\' hidden\'}>×</button></span>');
+ html=replaceOnce(html,/function pcOpen\(trigger\)\{/g,'function pcOpen(trigger){\n  window.hjFinishPlayerSearch?.();');
+
  html=replaceOnce(html,/function wireBuild\(data\)\{/g,"function wireBuild(data){\n  if(!data)return {cards:[{section:'loading',html:'<div class=\"wire-loading\" role=\"status\">Loading league updates…</div>'}],headline:{eyebrow:'',title:'',sub:'',kicker:'The Wire',live:false}};");
  html=replaceOnce(html,/function wireCloseExpanded\(\)\{/g,wireInteraction+"\nfunction wireCloseExpanded(){");
  html=replaceOnce(html,/  stage.append\(clone,close\);overlay.append\(stage\);/g,"  wireBindCollapse(clone);\n  stage.append(clone,close);overlay.append(stage);");
@@ -88,7 +95,7 @@ export function prepareSite(html){
  // Hosted Vegas projections stay visible for 36 hours after the last verified retrieval so a collector hiccup never blanks the site.
  if(!/<\/body>\s*<\/html>\s*$/.test(html))throw Error('Page end changed; review layout guard injection');
  return html.replace(old,'Date.now()-at<36*60*60*1000&&data.updated')
-  .replace('</head>','<link rel="stylesheet" href="/styles/wire-interaction.css?v=20260923b">\n<link rel="stylesheet" href="/styles/news-spin.css?v=20260923d">\n<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/standings.css?v=20260918-a1">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3">\n</head>')
-  .replace(/<\/body>\s*<\/html>\s*$/,'<script>ffnInstallSpin();</script>\n<script id="hj-record-engine">'+recordEngine+'</script>\n<script id="hj-record-live">'+recordLive+'</script>\n<script id="hj-direct-links">'+directLinks+'</script>\n<script id="hj-wire-live">'+wireLive+'</script>\n<script id="hj-layout-guard">'+layoutGuard+'</script>\n</body>\n</html>\n');
+  .replace('</head>','<link rel="stylesheet" href="/styles/player-search.css?v=20260924a">\n<link rel="stylesheet" href="/styles/wire-interaction.css?v=20260923b">\n<link rel="stylesheet" href="/styles/news-spin.css?v=20260924a">\n<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/standings.css?v=20260918-a1">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20260924a">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3">\n</head>')
+  .replace(/<\/body>\s*<\/html>\s*$/,'<script id="hj-player-search">'+playerSearch+'</script>\n<script>ffnInstallSpin();</script>\n<script id="hj-record-engine">'+recordEngine+'</script>\n<script id="hj-record-live">'+recordLive+'</script>\n<script id="hj-direct-links">'+directLinks+'</script>\n<script id="hj-wire-live">'+wireLive+'</script>\n<script id="hj-layout-guard">'+layoutGuard+'</script>\n</body>\n</html>\n');
 }
 if(process.argv[2])await writeFile(process.argv[2],prepareSite(await readFile(process.argv[2],'utf8')));

@@ -1,0 +1,8 @@
+.hj-player-search{position:relative;display:flex;min-width:0;width:100%;flex:1 1 0}
+.hq-players-controls>.hj-player-search{grid-column:1/-1}
+.hj-player-search #hq-fa-search,#league-hq #league-hq-tools #hq-panel-free-agents .hq49-controls .hj-player-search #hq-fa-search{width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;padding-right:28px!important}
+.hj-player-search input::-webkit-search-cancel-button{-webkit-appearance:none}
+.hj-player-search-clear{position:absolute;right:2px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:24px;height:24px;margin:0;padding:0;border:0;border-radius:50%;background:transparent;color:var(--navy-ink);font:400 18px/1 var(--sans);cursor:pointer}
+.hj-player-search-clear[hidden]{display:none}
+.hj-player-search-clear:hover{background:var(--paper-dim)}
+.hj-player-search-clear:focus-visible{outline:2px solid var(--brass);outline-offset:-2px}

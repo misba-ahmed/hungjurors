@@ -69,7 +69,7 @@
 .rc .rc-perf-foot span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* Player card rows reuse the MVP Special cards */
-.rc .rc-cards{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.rc .rc-cards{border:0;border-radius:0;overflow:hidden}
 .rc .rc-cards .mvp-cards{margin:0}
 
 /* Feature cards (False starters, Game changer) */
@@ -169,7 +169,7 @@
 }
 
 /* Player cards (photo sits inside the card so nothing depends on overflow) */
-.rc .rc-cards{display:flex;gap:10px;overflow-x:auto;padding:50px 12px 12px;scroll-snap-type:x proximity;scrollbar-width:thin;-webkit-overflow-scrolling:touch;background:var(--paper-dim)}
+.rc .rc-cards{display:flex;gap:10px;overflow-x:auto;padding:50px 12px 12px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch;background:transparent}
 .rc .rc-pcard{position:relative;flex:0 0 150px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;gap:3px;padding:44px 10px 14px;border:1px solid #ffffff1f;border-radius:16px;background:linear-gradient(180deg,#1E3A57,#14324F 60%,#0C2238);color:#fff;text-align:center;box-shadow:0 6px 16px rgba(12,34,56,.25)}
 .rc .rc-pcard-photo{width:74px;height:74px;padding:0;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 35%,#2a4a6b,var(--navy-deep));border:3px solid var(--brass);box-shadow:0 4px 12px #0c223866;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative}
 .rc .rc-pcard-photo:before{content:attr(data-pos);font:800 13px/1 var(--mono);letter-spacing:.06em;color:var(--brass-bright)}
@@ -349,3 +349,6 @@
  .rc .rc-char{grid-template-columns:auto minmax(0,1fr);gap:10px}.rc .rc-char strong{grid-column:2;justify-self:start;font-size:18px}
  .rc .rc-char .rc-av-big{width:56px;height:56px;flex-basis:56px}
 }
+
+/* Keep the two player rows swipeable without a visible scrollbar. */
+.rc .rc-cards::-webkit-scrollbar{display:none;width:0;height:0}

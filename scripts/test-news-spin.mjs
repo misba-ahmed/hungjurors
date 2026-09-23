@@ -12,12 +12,44 @@ const response=await fetch('https://site.api.espn.com/apis/fantasy/v2/games/ffl/
 assert.equal(response.ok,true,'ESPN news available');
 const feed=(await response.json()).feed.find(f=>f.type==='Rotowire'&&f.story);
 assert.ok(feed,'ESPN supplies the Spin story field');
+// Use the site's actual font when checking glyph-to-divider pixel alignment.
+const fontCSS=await (await fetch('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600&display=swap')).text();
+const fontURLs=[...new Set([...fontCSS.matchAll(/url\(([^)]+)\)/g)].map(m=>m[1]))];
+let embeddedFonts=fontCSS;
+for(const url of fontURLs){
+ const response=await fetch(url),bytes=Buffer.from(await response.arrayBuffer());
+ embeddedFonts=embeddedFonts.replaceAll(url,'data:font/ttf;base64,'+bytes.toString('base64'));
+}
+async function checkDividerPixels(page,summary){
+ const bytes=await summary.screenshot({type:'png'});
+ const metrics=await page.evaluate(async base64=>{
+  const image=new Image();image.src='data:image/png;base64,'+base64;await image.decode();
+  const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
+  const ctx=canvas.getContext('2d');ctx.drawImage(image,0,0);
+  const {data}=ctx.getImageData(0,0,canvas.width,canvas.height),rows=[],line=[];
+  const pixel=(x,y)=>{const i=4*(y*canvas.width+x);return [data[i],data[i+1],data[i+2]]};
+  const dpr=devicePixelRatio;
+  for(let y=0;y<canvas.height;y++){
+   let count=0;
+   for(let x=0;x<Math.ceil(11*dpr);x++){const [r,g,b]=pixel(x,y);if(r>130&&r<220&&g>75&&g<180&&b<110)count++}
+   rows.push(count);
+   const [r,g,b]=pixel(canvas.width-4,y);
+   if(r>180&&r<250&&g>180&&g<250&&b>180&&b<250)line.push(y);
+  }
+  const max=Math.max(...rows),bar=rows.flatMap((n,y)=>n>=max*.8?[y]:[]);
+  return {glyph:(bar[0]+bar.at(-1))/2/dpr,line:(line[0]+line.at(-1))/2/dpr,counts:rows.filter(x=>x>0),dpr};
+ },bytes.toString('base64'));
+ assert.ok(Number.isFinite(metrics.glyph)&&Number.isFinite(metrics.line),'Both glyph and divider render');
+ assert.ok(Math.abs(metrics.glyph-metrics.line)<=.75,'Glyph stroke aligns with divider: '+JSON.stringify(metrics));
+ assert.equal(await summary.evaluate(el=>getComputedStyle(el).columnGap),'1px','Divider starts close to glyph');
+}
+
 const browser=await chromium.launch();
 try{
  for(const width of [1280,390]){
-  const page=await browser.newPage({viewport:{width,height:850}});
+  const page=await browser.newPage({viewport:{width,height:850},deviceScaleFactor:3});
   await page.route('**/*',route=>route.abort());
-  await page.setContent('<style>'+style+'</style><button id="outside">Outside</button><div class="ffn-scroll" id="ffn-scroll"></div>');
+  await page.setContent('<style>'+embeddedFonts+style+'</style><button id="outside">Outside</button><div class="ffn-scroll" id="ffn-scroll"></div>');
   await page.addScriptTag({content:`
    const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
    const ffnPhoto=()=>'',ffnTeamLogo=()=>'',ffnOwnershipBadgeHTML=()=>'',ffnPlayerDataAttrs=()=>'',ffnInitials=()=>'TB',hjNewsGameHTML=()=>'<span class="hj-game-context"><span class="hj-game-status">SUN 12 PM vs DEN (20)</span><span class="hj-game-stats">3 REC, 32 REY, 1 RETD</span></span>',ffnRelative=()=>'Today',ffnRelatedHTML=()=>'',ffnClassify=()=>'update',ffnRelatedFor=()=>[];
@@ -34,7 +66,9 @@ try{
    document.getElementById('ffn-scroll').innerHTML=items.map(ffnCardHTML).join('');
    ffnInstallSpin();ffnInstallSpin();
   },feed);
+  await page.evaluate(()=>document.fonts.ready);
   const first=page.locator('.ffn-spin').first(),summary=first.locator('summary');
+  await checkDividerPixels(page,summary);
   assert.equal(await page.locator('.ffn-spin').count(),7);
   assert.equal(await page.locator('.ffn-spin[open]').count(),0);
   const dimensions=await first.evaluate(panel=>{
@@ -62,6 +96,7 @@ try{
   await summary.click();
   await page.waitForFunction(()=>document.querySelector('.ffn-spin').open);
   assert.equal(await first.locator('p').isVisible(),true);
+  await checkDividerPixels(page,summary);
   const gap=await first.evaluate(panel=>panel.querySelector('p').getBoundingClientRect().top-panel.querySelector('summary').getBoundingClientRect().bottom);
   assert.ok(gap>=0,'Expanded analysis never overlaps its divider/control');
   assert.equal(await summary.evaluate(el=>getComputedStyle(el,'::before').content),'"−"');
@@ -101,6 +136,7 @@ try{
   const profilePanel=page.locator('#profile-test .ffn-spin').first(),profileSummary=profilePanel.locator('summary');
   await profileSummary.click();await page.waitForFunction(()=>document.querySelector('#profile-test .ffn-spin').open);
   assert.equal(await profilePanel.locator('p').textContent(),'Player analysis 0');
+  await checkDividerPixels(page,profileSummary);
   assert.ok(await profilePanel.evaluate(panel=>panel.querySelector('p').getBoundingClientRect().top>=panel.querySelector('summary').getBoundingClientRect().bottom),'Profile Spin clears divider');
   await profilePanel.locator('p').click();assert.equal(await profilePanel.getAttribute('open'),'');
   await page.keyboard.press('Escape');assert.equal(await profilePanel.getAttribute('open'),null);

@@ -8,6 +8,10 @@ on:
       - 'scripts/wire-interaction.js'
       - 'styles/wire-interaction.css'
       - 'scripts/test-display-fixes.mjs'
+      - 'scripts/player-search.js'
+      - 'scripts/test-player-search.mjs'
+      - 'styles/player-search.css'
+      - 'styles/weekly-recap.css'
       - 'scripts/player-news.js'
       - 'scripts/news-spin.js'
       - 'scripts/test-news-spin.mjs'
@@ -28,9 +32,10 @@ jobs:
       - name: Install browser test tools
         run: |
           npm install --no-save --package-lock=false playwright@1.56.1
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps chromium webkit
       - name: Verify news expansion
         run: |
           node scripts/test-news-spin.mjs
           node scripts/test-record-book.mjs
           node scripts/test-display-fixes.mjs
+          node scripts/test-player-search.mjs
