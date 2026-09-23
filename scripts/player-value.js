@@ -336,11 +336,11 @@
     ===================================================================== */
  const MV_KEYS=['QB','RB','WR','TE','FLEX'];
  const DESCRIPTIONS={
-  espn:{title:'ESPN',copy:'ESPN’s own point projections for every rostered player, totalled by roster. The house number — the same one you see in your ESPN lineup.'},
-  vegas:{title:'Vegas',copy:'Projections built from posted sportsbook player props, converted into this league’s scoring. Where a book has not priced a player, ESPN’s projection fills the gap so every roster still ranks.'},
-  combo:{title:'Combo',copy:'ESPN and Vegas averaged together for each player, which smooths the places where one source runs hot. The default view, and the steadiest of the four.'},
-  value:{title:'Market Value',copy:'What the fantasy market pays. Every rostered player carries a consensus price set by completed trades in real leagues, and the roster with the most expensive players ranks first.'},
-  pff:{title:'PFF',copy:'Average Pro Football Focus grade across the roster — how well the players have actually played, graded snap by snap, independent of fantasy points.'}
+  value:{title:'Market',copy:'Player market value generated based on millions of real trades completed in real leagues. Player values are updated in real time as new trades are scraped from all major fantasy sites.'},
+  espn:{title:'ESPN',copy:'Player values determined by ESPN fantasy point projections for every player.'},
+  vegas:{title:'Vegas',copy:'Player values determined by projections built from posted Vegas sportsbook player props, converted into this league\u2019s scoring system. Where a book has not priced a player (kickers and DST\u2019s), ESPN\u2019s projection fills the gap so every roster still ranks.'},
+  combo:{title:'E/V Combo',copy:'Player values determined by ESPN and Vegas projections averaged together for each player.'},
+  pff:{title:'PFF',copy:'Player values determined by PFF (Pro Football Focus) grade for each player. The PFF grading system evaluates every football player on every single play by watching their isolated game film to measure performance isolated from traditional box-score statistics. Rather than looking strictly at the outcome of a play, PFF Player Grades score a player\u2019s execution relative to their expected job on that snap. Team power rankings are determined by the average PFF grade across each team\u2019s roster.'}
  };
 
  function mvLineup(entries){
@@ -454,7 +454,7 @@
  }
 
  function valueButtonHTML(active){
-  return `<button type="button" class="hj15-toggle${active?' active':''}" data-hq-strength-model="value" aria-pressed="${active}" title="Consensus market price of every rostered player.">Value</button>`;
+  return `<button type="button" class="hj15-toggle${active?' active':''}" data-hq-strength-model="value" aria-pressed="${active}" title="Market value of every rostered player, from real completed trades.">Market</button>`;
  }
 
  /* The Value model keeps the site's own toolbar markup, minus the Season/Week
@@ -466,11 +466,11 @@
   return `<div class="hj15-toolbar">`
    +group([['dashboard','Dashboard'],['compare','Compare']],view,'data-hq-strength-view')
    +group([
+     ['value','Market','Market value of every rostered player, from real completed trades.'],
      ['espn','ESPN','ESPN\u2019s own point projections.'],
      ['vegas','Vegas','Sportsbook player props, with ESPN filling any gap.'],
-     ['combo','Combo','ESPN and Vegas averaged.'],
-     ['pff','PFF','Average published PFF grades.'],
-     ['value','Value','Consensus market price of every rostered player.']
+     ['combo','E/V Combo','ESPN and Vegas averaged.'],
+     ['pff','PFF','Average published PFF grades.']
     ],'value','data-hq-strength-model')
    +group([['all','All Players'],['starters','Starters']],scope,'data-hj6-scope')
    +`</div>`;
@@ -480,8 +480,11 @@
   let out=String(html);
   /* The Value control sits at the end of the model group. */
   if(!/data-hq-strength-model="value"/.test(out)){
-   out=out.replace(/(<button[^>]*data-hq-strength-model="pff"[^>]*>[\s\S]*?<\/button>)/,(m)=>m+valueButtonHTML(model==='value'));
+   /* Market leads the model group. */
+   out=out.replace(/(<button[^>]*data-hq-strength-model="espn"[^>]*>)/,(m)=>valueButtonHTML(model==='value')+m);
   }
+  /* The blended model is called E/V Combo everywhere it is shown. */
+  out=out.replace(/(data-hq-strength-model="combo"[^>]*>)Combo(<\/button>)/,'$1E/V Combo$2');
   /* The Vegas fallback footnote is replaced by the written model note. */
   out=out.replace(/<div class="hj-pff-model-note">ESPN supplies K and DST projections\.[^<]*<\/div>/,'');
   const note=descriptionHTML(model);
@@ -578,10 +581,32 @@
  window.addEventListener('online',()=>{HJMV.retryAt=0;scheduleScan()});
  window.addEventListener('scroll',scheduleScan,{passive:true});
 
+ /* "Combo" reads as "E/V Combo" everywhere else on the site too: the matchup
+    lineup modes and the model label used by the older strength cards. */
+ function installComboLabel(){
+  try{
+   if(typeof hjMatchupLineupHTML==='function'&&!hjMatchupLineupHTML.__hjmv){
+    const base=hjMatchupLineupHTML;
+    const wrapped=function(){return String(base.apply(this,arguments))
+     .replace(/(data-hq-lineup-mode="combo"[^>]*>)Combo(<\/button>)/g,'$1E/V Combo$2')
+     .replace(/aria-label="Combo optimal"/g,'aria-label="E/V Combo optimal"')};
+    wrapped.__hjmv=true;window.hjMatchupLineupHTML=hjMatchupLineupHTML=wrapped;
+   }
+   if(typeof hjStrengthModelLabel==='function'&&!hjStrengthModelLabel.__hjmv){
+    const base=hjStrengthModelLabel;
+    const wrapped=function(){const out=base.apply(this,arguments);return out==='Combo'?'E/V Combo':out};
+    wrapped.__hjmv=true;window.hjStrengthModelLabel=hjStrengthModelLabel=wrapped;
+   }
+  }catch(_){ }
+ }
+
  function install(){
   installExplainer();
   installDirectory();
   installStrength();
+  installComboLabel();
+  /* Roster Strength opens on Market, all players. */
+  try{if(typeof HJ_STRENGTH_STATE!=='undefined'){HJ_STRENGTH_STATE.model='value';HJ_STRENGTH_STATE.scope='all'}}catch(_){ }
   loadFeed();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
