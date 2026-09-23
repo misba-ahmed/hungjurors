@@ -71,17 +71,41 @@
  const MINIMUMS={QB:1,RB:2,WR:2,TE:1,'D/ST':1,K:1};
  function countByPos(list){const out={};list.forEach(e=>{if(isIR(e))return;const p=hjPlayerPosition(e);out[p]=(out[p]||0)+1});return out}
  function marketByUnit(list){
-  const out=Object.fromEntries(UNITS.map(k=>[k,0]));
-  const pool={};
-  list.forEach(e=>{if(isIR(e))return;const p=hjPlayerPosition(e),v=valueOf(e);if(!POS.includes(p)||!Number.isFinite(v))return;(pool[p]=pool[p]||[]).push(v)});
-  for(const k in pool)pool[k].sort((a,b)=>b-a);
-  const take=(p,n)=>(pool[p]||[]).slice(0,n).reduce((s,v)=>s+v,0);
-  out.QB=take('QB',1);out.RB=take('RB',2);out.WR=take('WR',2);out.TE=take('TE',1);
-  const rest=[...(pool.RB||[]).slice(2),...(pool.WR||[]).slice(2),...(pool.TE||[]).slice(1)].sort((a,b)=>b-a);
-  out.FLEX=rest.length?rest[0]:0;
-  return out;
+  const entries=dashEntries(list),roles=dashLineup(entries),all=scopeNow()==='all';
+  const of=role=>roles.filter(x=>x.role===role).map(x=>x.entry);
+  return Object.fromEntries(UNITS.map(k=>[k,sumValues(
+   k==='FLEX'?of('FLEX'):all?entries.filter(e=>hjPlayerPosition(e)===k):of(k)
+  )]));
  }
- const marketTotal=list=>list.reduce((s,e)=>{const v=valueOf(e);return s+(Number.isFinite(v)?v:0)},0);
+ const sumValues=list=>list.reduce((s,e)=>{const v=valueOf(e);return s+(Number.isFinite(v)?v:0)},0);
+
+ /* The Roster Strength dashboard's Value model counts de-duplicated, non-IR
+    skill players, and under the Starters scope only the value-optimal lineup.
+    The Trade Desk has to use exactly that basis or its league rank disagrees
+    with the number the dashboard is showing on the next tab across. */
+ const scopeNow=()=>HJ_STRENGTH_STATE.scope==='all'?'all':'starters';
+ function dashEntries(list){
+  const seen=new Set();
+  return list.filter(e=>{
+   const id=entryId(e);
+   if(!id||seen.has(id)||isIR(e)||!POS.includes(hjPlayerPosition(e)))return false;
+   seen.add(id);return true;
+  });
+ }
+ function dashLineup(entries){
+  const eligible=entries.filter(e=>Number.isFinite(valueOf(e)));
+  const byPos=p=>eligible.filter(e=>hjPlayerPosition(e)===p).sort((a,b)=>valueOf(b)-valueOf(a));
+  const used=new Set(),roles=[];
+  const take=(p,n,role=p)=>{byPos(p).filter(e=>!used.has(e)).slice(0,n).forEach(e=>{used.add(e);roles.push({entry:e,role})})};
+  take('QB',1);take('RB',2);take('WR',2);take('TE',1);
+  const flex=eligible.filter(e=>['RB','WR','TE'].includes(hjPlayerPosition(e))&&!used.has(e)).sort((a,b)=>valueOf(b)-valueOf(a))[0]||null;
+  if(flex){used.add(flex);roles.push({entry:flex,role:'FLEX'})}
+  return roles;
+ }
+ function marketTotal(list){
+  const entries=dashEntries(list),roles=dashLineup(entries);
+  return sumValues(scopeNow()==='all'?entries:roles.map(x=>x.entry));
+ }
 
  /* ---------- the trade model ---------- */
  function ensureSides(){
@@ -122,9 +146,10 @@
   /* League context: where each roster's market value ranks, before and after. */
   const allRosters=teams().map(t=>({id:String(t.id),value:marketTotal(rosterOf(t.id))}));
   const rankOf=(id,value,swap)=>{
-   const list=allRosters.map(r=>({id:r.id,value:swap&&swap[r.id]!==undefined?swap[r.id]:r.value}));
-   const mine=list.find(r=>r.id===String(id))?.value??value;
-   return 1+list.filter(r=>r.value>mine+.5).length;
+   const list=allRosters.map(r=>({id:r.id,value:swap&&swap[r.id]!==undefined?swap[r.id]:r.value}))
+    .sort((a,b)=>b.value-a.value);
+   const at=list.findIndex(r=>r.id===String(id));
+   return at>=0?at+1:null;
   };
   const swap={[String(HJTD.a)]:sides[0].marketAfter,[String(HJTD.b)]:sides[1].marketAfter};
   sides.forEach(side=>{
@@ -670,8 +695,9 @@
 
  function verdict(m){
   const info=BAND[m.band];
-  const total=Math.max(m.outA+m.outB,1);
-  const aw=clamp(100*m.outA/total,6,94),bw=100-aw;
+  const total=m.outA+m.outB;
+  /* An empty deal sits evenly rather than showing one side at the minimum width. */
+  const aw=total>0?clamp(100*m.outA/total,6,94):50,bw=100-aw;
   /* The needle runs from "B wins big" on the left to "A wins big" on the right. */
   const needle=clamp(50+(m.net/Math.max(m.outA,m.outB,1))*140,3,97);
   const headline=m.band==='empty'?'Pick players from each side':m.band==='even'?'Straight up — neither side is buying value'
@@ -713,7 +739,7 @@
   return `<section class="td-impact">
    <div class="td-impact-head">${av(side.manager,'td-av-sm')}<b>${E(side.manager)}</b><span class="td-impact-net ${side.valueDelta>0?'is-up':side.valueDelta<0?'is-down':''}">${side.valueDelta>0?'+':''}${money(side.valueDelta)} value</span></div>
    <div class="td-metrics">
-    <div class="td-metric"><small>Roster value</small><b>${money(side.marketAfter)}</b><i class="${side.marketAfter>side.marketBefore?'is-up':side.marketAfter<side.marketBefore?'is-down':''}">${money(side.marketBefore)} → ${money(side.marketAfter)}</i></div>
+    <div class="td-metric"><small>Roster value · ${scopeNow()==='all'?'all players':'starters'}</small><b>${money(side.marketAfter)}</b><i class="${side.marketAfter>side.marketBefore?'is-up':side.marketAfter<side.marketBefore?'is-down':''}">${money(side.marketBefore)} → ${money(side.marketAfter)}</i></div>
     <div class="td-metric"><small>League rank</small><b>#${side.rankAfter}</b><i class="${rankMove>0?'is-up':rankMove<0?'is-down':''}">${rankMove===0?'no change':`${rankMove>0?'▲':'▼'} ${Math.abs(rankMove)} from #${side.rankBefore}`}</i></div>
     <div class="td-metric"><small>Starting lineup</small><b>${pts(side.lineupAfter.total)}</b><i class="${lift>.05?'is-up':lift<-.05?'is-down':''}">${Math.abs(lift)<.05?'unchanged':`${lift>0?'+':'−'}${pts(Math.abs(lift))} projected`}</i></div>
    </div>
@@ -800,9 +826,11 @@
  function toolbar(){
   const views=[['dashboard','Dashboard'],['compare','Compare'],['trade','Trade Desk']];
   const modes=[['build','Builder'],['finder','Finder']];
+  const scopes=[['all','All Players'],['starters','Starters']];
   return `<div class="hj15-toolbar td-toolbar">
    <div class="hj15-group">${views.map(([id,label])=>`<button type="button" class="hj15-toggle${id==='trade'?' active':''}" data-hq-strength-view="${id}" aria-pressed="${id==='trade'}">${label}</button>`).join('')}</div>
    <div class="hj15-group">${modes.map(([id,label])=>`<button type="button" class="hj15-toggle${HJTD.mode===id?' active':''}" data-td-mode="${id}" aria-pressed="${HJTD.mode===id}">${label}</button>`).join('')}</div>
+   <div class="hj15-group">${scopes.map(([id,label])=>`<button type="button" class="hj15-toggle${scopeNow()===id?' active':''}" data-hj6-scope="${id}" aria-pressed="${scopeNow()===id}" title="Roster value and league rank use this basis, the same as the Dashboard.">${label}</button>`).join('')}</div>
   </div>`;
  }
 
