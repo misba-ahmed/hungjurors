@@ -22,7 +22,8 @@ function ffnInstallSpin(){
  const rail=document.getElementById('ffn-scroll');if(!rail||rail.dataset.spinReady)return;
  rail.dataset.spinReady='true';
  let active=null,startLeft=0;
- const close=()=>{if(active){active.open=false;active=null}};
+ const current=()=>rail.querySelector('details.ffn-spin[open]');
+ const close=()=>{rail.querySelectorAll('details.ffn-spin[open]').forEach(panel=>panel.open=false);active=null};
  rail.addEventListener('toggle',event=>{
   const panel=event.target;
   if(!panel.matches?.('details.ffn-spin'))return;
@@ -32,12 +33,13 @@ function ffnInstallSpin(){
    active=panel;startLeft=rail.scrollLeft;
   }else if(active===panel)active=null;
  },true);
- document.addEventListener('pointerdown',event=>{if(active&&!active.contains(event.target))close()},true);
- document.addEventListener('click',event=>{if(active&&!active.contains(event.target))close()},true);
- document.addEventListener('focusin',event=>{if(active&&!active.contains(event.target))close()});
+ document.addEventListener('pointerdown',event=>{const panel=current();if(panel&&!panel.contains(event.target))close()},true);
+ document.addEventListener('click',event=>{const panel=current();if(panel&&!panel.contains(event.target))close()},true);
+ document.addEventListener('focusin',event=>{const panel=current();if(panel&&!panel.contains(event.target))close()});
  document.addEventListener('keydown',event=>{
-  if(event.key==='Escape'&&active){
-   const summary=active.querySelector('summary');close();summary?.focus({preventScroll:true});
+  const panel=current();
+  if(event.key==='Escape'&&panel){
+   const summary=panel.querySelector('summary');close();summary?.focus({preventScroll:true});
   }
  });
  rail.addEventListener('scroll',()=>{if(active&&Math.abs(rail.scrollLeft-startLeft)>8)close()},{passive:true});
