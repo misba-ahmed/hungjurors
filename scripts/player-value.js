@@ -256,10 +256,27 @@
     const rail=card.querySelector('.hq40-stat-rail');
     if(rail)rail.insertAdjacentHTML('beforebegin',column);else card.insertAdjacentHTML('beforeend',column);
     const holder=card.querySelector('[data-hjmv-col]');if(holder)holder.dataset.hjmvName=name;
+    const pff=card.querySelector('.hq40-pff-proj[data-pff-id]');
+    if(pff&&!pff.querySelector('[data-hjmv-pff-sub]'))pff.insertAdjacentHTML('beforeend',`<span class="hq-player-proj-sub hjmv-pff-sub" data-hjmv-pff-sub="${escape(pff.dataset.pffId)}" data-hjmv-pff-season="${escape(pff.dataset.pffSeason)}" data-hjmv-pff-pos="${escape(position)}">${escape(pffRankLabel(pff.dataset.pffId,pff.dataset.pffSeason,position))}</span>`);
    });
    return template.innerHTML;
   };
  }
+
+ /* The PFF column ships without a rank line, so the same position-rank subtext
+    is added here and repainted whenever the grade feed lands. */
+ function pffRankLabel(id,season,position){
+  if(typeof hjPffSaved!=='function')return '';
+  const row=hjPffSaved(String(id),Number(season));
+  return row&&Number.isInteger(row.positionRank)&&row.positionRank>0?`${String(position||'').toUpperCase()}${row.positionRank}`:'';
+ }
+ function paintPffSubs(){
+  document.querySelectorAll('[data-hjmv-pff-sub]').forEach(node=>{
+   const label=pffRankLabel(node.dataset.hjmvPffSub,node.dataset.hjmvPffSeason,node.dataset.hjmvPffPos);
+   if(node.textContent!==label)node.textContent=label;
+  });
+ }
+ document.addEventListener('hj:pff-updated',()=>{try{paintPffSubs()}catch(_){ }});
 
  function paintDirectory(){
   document.querySelectorAll('[data-hjmv-col]').forEach(node=>{
@@ -539,7 +556,7 @@
     Refresh
     ===================================================================== */
  function repaint(){
-  paintStrips();paintDirectory();paintExplainer();
+  paintStrips();paintDirectory();paintPffSubs();paintExplainer();
   const activity=document.querySelector('#hq-panel-activity .hq-activity-list');
   if(activity&&typeof hjActivityHTML==='function'&&!activity.querySelector('.hjmv-tag')){const next=document.createElement('template');next.innerHTML=hjActivityHTML();const body=next.content.querySelector('.hq-activity-list');if(body)activity.innerHTML=body.innerHTML}
   if(typeof HJ_HQ_STATE!=='undefined'&&HJ_HQ_STATE.activeTab==='strength'&&HJ_STRENGTH_STATE.model==='value'&&typeof hjRerenderStrength==='function')hjRerenderStrength();
