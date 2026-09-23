@@ -1,124 +1,85 @@
 # Trade Desk
 
 A third view in League HQ → Roster Strength, beside Dashboard and Compare.
-Market Value is the currency; everything the better public trade tools add on
-top — starting-lineup impact, positional need, depth risk, market form and a
-letter grade — is layered underneath it.
+Market Value drives the numbers; everything the better public trade tools add
+on top — starting-lineup impact, positional need, injuries, usage, schedule,
+risk and a letter grade — is written up underneath it, from both managers'
+point of view.
 
 ## Builder
 
 Pick the two managers, then tap players from either roster to build the deal.
 Each roster is grouped by position — QB, RB, WR, TE, K, D/ST — best first inside
-each group, because a roster reads by position rather than as one long list.
-Multi-player packages work in both directions.
+each group. Multi-player packages work in both directions. Side A is blue and
+side B is gold throughout, matching the split bar, so the two "sends away"
+windows, the impact panels and the breakdown never read as the same colour.
 
 The verdict band reports the value each side sends, the gap between them as a
-percentage, and a fairness needle running from one manager winning to the other.
-Bands are Even (under 4%), Slight edge (under 10%), Clear edge (under 22%) and
-Lopsided beyond that.
+percentage, and a needle running from "more to B" to "more to A". Bands are
+Balanced (under 4%), Slight tilt (under 10%), Clear tilt (under 22%) and Wide
+gap beyond that. The language is deliberately neutral — the write-up decides
+whether the tilt is justified.
 
-Each side then gets:
+Each side then gets a **grade**, **roster value** before and after with league
+rank, the **starting lineup** projection before and after, and **position bars**
+for QB, RB, WR and TE only. Grey is what the manager holds today; green extends
+it where the deal adds, red is what is left where the deal takes away with the
+departing part in grey. Each bar carries that position's rank across the ten
+rosters, before and after. Under the Starters scope the flex starter counts
+toward his own position.
 
-* **Grade** — a letter from the value edge, adjusted by how much the deal moves
-  that side's projected starting lineup as a share of what it was already
-  scoring, so a handful of season points never outweighs the price paid.
-* **Roster value** before and after, and the manager's **league rank** by roster
-  market value before and after.
-* **Starting lineup** projected points before and after, using the site's own
-  blended ESPN + Vegas projection so the maths agrees with Roster Strength.
-* **Position bars** for QB, RB, WR, TE and FLEX. Grey is what the manager holds
-  today; green extends it where the deal adds, red eats into it where the deal
-  takes away. Each bar carries that position's rank across the ten rosters,
-  before and after — green for a top-three group, red for a bottom-two, which is
-  what actually identifies a need.
-* **Usage, week by week** for every player changing hands: snap share, the
-  carries or targets themselves, and the share of the team's carries or targets
-  they represent, across the last five weeks, with a growing / steady /
-  shrinking read. The same series appears inside the written case, so a buy-low
-  or sell-high claim cites the weeks it rests on.
+A **Watch out** strip flags a side left unable to fill a starting spot, roster
+spots taken on in an uneven deal, players on injured reserve, and one side
+receiving the best player in a two-for-one.
 
-Below that:
+## Trade analysis
 
-* **Balance it** — when one side is ahead, the closest player on the winning
-  roster to the size of the gap, with one tap to add him.
-* **Market form** — anyone in the deal whose price has moved sharply in 30 days,
-  flagged as paying the new price or a possible buy-low.
-* **Watch out** — a side left unable to fill a starting spot, roster spots taken
-  on in an uneven deal, players on injured reserve, and consolidation (one side
-  getting the best player in a two-for-one).
+A written analysis of the whole deal, in the shape of the public AI trade
+analysers but from both managers' perspective, built only from data this
+league already holds. A line is omitted when its data is missing rather than
+guessed, and the write-up says plainly which inputs are not in the feeds
+(route participation, first-read share, red-zone splits, offensive-line
+grades, coaching changes).
 
-## Beyond the price
-
-A scorecard of up to nine factors, each leaning toward the manager it favours,
-built only from data this league already holds — no invented numbers. A factor
-is omitted when its data is missing rather than guessed.
-
-| Factor | Source |
+| Section | What it reads |
 | --- | --- |
-| Market value | the published price, and the gap between packages |
-| This week | Week-horizon ESPN + Vegas starters, both sides |
-| Rest of season | season-horizon starters, both sides |
-| Positional fit | whether the deal fixes each roster's thinnest unit |
-| Depth left behind | healthy bodies per position after the deal |
-| Availability risk | injury designations and anyone without a game this week |
-| Market form | which side ends up holding the players the market is moving toward |
-| Play quality | average PFF grade of what each side receives |
-| Fits the season | playoff odds and power rating versus what the deal does |
+| Summary | who sends what, the market gap in neutral terms, what the deal does to each starting lineup, each manager's record, seed and playoff odds |
+| Breakdown | a card per player: market value and positional rank with the 30-day move, season points and PPG, points rank at the position, role (snap %, carry share, target share, air yards), rest-of-season projection, PFF grade, injury status |
+| Is it a good value? | the raw market gap; the same packages measured above the best free agent at each position (value over replacement), so a two-for-one's second piece is judged against the wire; the best player in the deal; 30-day market form; tier spread; a one-tap balancing piece |
+| Injury ecosystem | designations on anyone in the deal; a player holding a share that belongs to an injured teammate in the same backfield or receiver room, with both players' shares; a pass catcher whose quarterback is out; a manager taking a player at a spot where he already has an IR player due back, or sending one and leaving that spot thin until an IR return |
+| Usage and opportunity | per player: snaps, carry share and carries a game (RB), target share, targets a game, air-yard share and WOPR (WR/TE), attempts and carries (QB); points per opportunity against the position's league median; touchdown share of points; the last three weeks against the season, with the week-by-week series |
+| Situational changes | mid-season team changes and starting-quarterback changes, both read from who actually played each week |
+| Schedule and playoff leverage | for every player: bye week, remaining strength of schedule for his position (opponents' points allowed, ranked across the league), and the opponent in each of this league's playoff weeks (15 and 16) with how generous that defence has been; byes shared between acquired players or with the starters already at that spot; each manager's own remaining fantasy schedule |
+| Positional arbitration | each unit's league rank before and after; whether the deal touches the roster's thinnest spot; roster spots freed or needed; the steepest positional cliff in the league |
+| Risk profile | per acquired player: PPG, floor, ceiling, steady / up-and-down / boom-or-bust, weeks as a top-10 (RB/WR) or top-5 (QB/TE) finish and weeks outside the startable range; each manager's weekly volatility; whether that shape fits the record (contenders want floor and depth, teams playing it out want ceiling) |
+| Is this a good move? | reasons for each manager to accept and to decline: value, lineup, this week vs rest of season, unit gains and losses, league rank, consolidation, roster minimums only where the deal thinned a spot, luck-adjusted record, run-in difficulty, bench waste, market form, PFF against market rank, wire alternatives, playoff-week schedule, role growing or shrinking |
+| Why each side does this | each manager's motivation reverse-engineered: premium for lineup points, banking surplus, consolidation or depth, season posture, players being sold near the top or bought after a dip |
+| The read | the shape of the deal, who is ahead on value and whether the other side buys it back in points, the one thing each manager has to be comfortable with, whether it fits each team's season, both grades, and how likely each manager is to accept |
 
-### Usage, from the feeds the site already publishes
-
-`pcLoadSeason` (nflverse weekly stats) and `pcLoadSnaps` (snap counts) are read
-on open, so a shared room is described with the actual split rather than a
-hand-wave — snap share, carry share, target share and air-yards share, over the
-last three games against the season.
-
-Carry share is computed per team-week from the same rows; everything else comes
-straight from the feed (`target_share`, `air_yards_share`, `wopr`, `offense_pct`).
-
-That powers four further reads:
-
-* **Role growing / shrinking** — last three games against the season, on snaps,
-  carries or targets. Usage moves before production does.
-* **Work without points** — a starter's share at a points-per-opportunity well
-  under the league median for the position, which usually closes.
-* **Touchdown dependence** — the share of a player's points that came from
-  touchdowns, and on how many touches.
-* **Above the wire** — every incoming player measured against the best player at
-  his position that nobody in the league rosters, so an upgrade is compared to
-  the actual alternative.
-
-Plus positional scarcity: how far value falls between the last starter at a
-position and the next man up, across this league's ten rosters.
-
-Then a written case for and against each manager, drawn from the same sources
-plus the standings model: record against expected wins (luck), points left on
-the bench, remaining strength of schedule, market trend against PFF grade
-(market ahead of the tape, or the reverse), and shared backfields or receiver
-rooms — including when a player's workload is inflated by a team-mate's injury.
-
-Anything derived from the standings is suppressed until at least three games
-have been played, so nothing is asserted in the preseason.
+A compact **factor scorecard** follows, each row leaning toward the manager the
+factor favours: market value, this week, rest of season, positional fit,
+opportunity trend, above the wire, market form and play quality (PFF).
 
 ## Finder
 
-Scans every one-for-one and two-for-one between the asking manager and either
-the chosen partner or the whole league. A suggestion has to clear four bars:
+Scans every one-for-one and two-for-one between the asking roster and either
+one chosen manager or the whole league, keeps only deals within 22% on market
+value that lift the asking side's starting lineup without breaking either
+roster, and surfaces deals that help both teams first. Open loads the deal into
+the builder.
 
-1. it lifts the asking side's starting lineup by at least 0.4% of its total,
-2. the two packages are within 22% on market value,
-3. neither roster is left unable to field a lineup,
-4. no more than two suggestions are built around the same incoming player.
+## Data
 
-Results are ranked by the asking side's gain plus the partner's gain, less the
-value gap, with deals that help both teams surfaced first and tagged. Each row
-shows both lineup swings and the value gap, and opens straight into the builder.
+* Market values: `data/player-values.json` via `HJMV` (`scripts/player-value.js`).
+* Projections: `hj6Projection` (ESPN + Vegas blend), season and week horizons.
+* Weekly stats and snap counts: `pcLoadSeason` / `pcLoadSnaps` (nflverse rows
+  merged with ESPN actuals) — usage, points, weekly ranks, floor and ceiling,
+  team quarterback by week, defence-vs-position.
+* NFL schedule: `pcLoadSchedules` — byes, remaining games, playoff-week opponents.
+* Standings: `buildStandingsAnalytics` — record, seed, playoff odds, luck, bench
+  gap, volatility, remaining schedule rank.
+* Injuries: ESPN `injuryStatus` on league rosters; IR slot 21.
+* PFF: `hjPffEntryGrade`.
 
-## Notes for maintenance
-
-The page styles `header` and `section` as bare elements, so the Trade Desk uses
-plain divs and declares its own padding wherever a `section` is unavoidable.
-
-All type is 9px or larger.
-
-Files: `scripts/trade-desk.js`, `styles/trade-desk.css`, plus three lines in
-`scripts/prepare-site.mjs`.
+Files: `scripts/trade-desk.js`, `styles/trade-desk.css`; injected by
+`scripts/prepare-site.mjs` after `hj-player-value`.
