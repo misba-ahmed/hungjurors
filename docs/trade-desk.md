@@ -8,6 +8,8 @@ letter grade — is layered underneath it.
 ## Builder
 
 Pick the two managers, then tap players from either roster to build the deal.
+Each roster is grouped by position — QB, RB, WR, TE, K, D/ST — best first inside
+each group, because a roster reads by position rather than as one long list.
 Multi-player packages work in both directions.
 
 The verdict band reports the value each side sends, the gap between them as a
@@ -24,7 +26,16 @@ Each side then gets:
   market value before and after.
 * **Starting lineup** projected points before and after, using the site's own
   blended ESPN + Vegas projection so the maths agrees with Roster Strength.
-* **Position bars** for QB, RB, WR, TE and FLEX, drawn before against after.
+* **Position bars** for QB, RB, WR, TE and FLEX. Grey is what the manager holds
+  today; green extends it where the deal adds, red eats into it where the deal
+  takes away. Each bar carries that position's rank across the ten rosters,
+  before and after — green for a top-three group, red for a bottom-two, which is
+  what actually identifies a need.
+* **Usage, week by week** for every player changing hands: snap share, the
+  carries or targets themselves, and the share of the team's carries or targets
+  they represent, across the last five weeks, with a growing / steady /
+  shrinking read. The same series appears inside the written case, so a buy-low
+  or sell-high claim cites the weeks it rests on.
 
 Below that:
 
