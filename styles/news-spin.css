@@ -2,7 +2,7 @@
 .ffn-spin{display:flow-root;margin:0;padding:0;border:0;color:var(--navy)}
 .ffn-spin>summary{display:flex;align-items:center;gap:1px;box-sizing:border-box;height:17px;margin:0;padding:0;cursor:pointer;list-style:none;color:var(--brass);user-select:none}
 .ffn-spin>summary::-webkit-details-marker{display:none}
-.ffn-spin>summary::before{content:'+';flex:0 0 11px;text-align:left;font:600 16px/1 var(--sans);transform:translateY(1px)}
+.ffn-spin>summary::before{content:'+';flex:0 0 11px;text-align:left;font:600 16px/1 var(--sans);transform:none}
 .ffn-spin>summary::after{content:'';flex:1;height:1px;background:rgba(20,50,79,.09)}
 .ffn-spin[open]>summary::before{content:'−'}
 .ffn-spin>summary:focus-visible{outline:2px solid var(--brass);outline-offset:1px;border-radius:3px}
