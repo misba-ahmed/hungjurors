@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import sharp from 'sharp';
 
 const source=await readFile('index.html','utf8');
-const logo=source.match(/<div class="hero"><div class="hero-in"><img class="logo" src="data:image\/png;base64,([^"]+)"/);
+const logo=source.match(/<div class="hero">\s*<div class="hero-in">\s*<img class="logo" src="data:image\/png;base64,([^"]+)"/);
 assert(logo,'The homepage hero logo must exist');
 const original=Buffer.from(logo[1],'base64');
 const background='#F7F3E8';
