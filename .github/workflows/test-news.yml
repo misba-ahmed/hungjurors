@@ -8,6 +8,7 @@ on:
       - 'scripts/wire-interaction.js'
       - 'styles/wire-interaction.css'
       - 'scripts/test-display-fixes.mjs'
+      - 'scripts/player-news.js'
       - 'scripts/news-spin.js'
       - 'scripts/test-news-spin.mjs'
       - 'styles/news-spin.css'

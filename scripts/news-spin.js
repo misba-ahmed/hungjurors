@@ -19,18 +19,17 @@ function ffnMergeSpin(fetched){
  }
 }
 function ffnInstallSpin(){
- const rail=document.getElementById('ffn-scroll');if(!rail||rail.dataset.spinReady)return;
- rail.dataset.spinReady='true';
+ if(document.documentElement.dataset.spinReady)return;
+ document.documentElement.dataset.spinReady='true';
  let active=null,startLeft=0;
- const current=()=>rail.querySelector('details.ffn-spin[open]');
- const close=()=>{rail.querySelectorAll('details.ffn-spin[open]').forEach(panel=>panel.open=false);active=null};
- rail.addEventListener('toggle',event=>{
+ const current=()=>document.querySelector('details.ffn-spin[open]');
+ const close=()=>{document.querySelectorAll('details.ffn-spin[open]').forEach(panel=>panel.open=false);active=null};
+ document.addEventListener('toggle',event=>{
   const panel=event.target;
   if(!panel.matches?.('details.ffn-spin'))return;
   if(panel.open){
-   // Native toggle events are queued: always close every other open panel.
-   rail.querySelectorAll('details.ffn-spin[open]').forEach(other=>{if(other!==panel)other.open=false});
-   active=panel;startLeft=rail.scrollLeft;
+   document.querySelectorAll('details.ffn-spin[open]').forEach(other=>{if(other!==panel)other.open=false});
+   active=panel;startLeft=panel.closest('#ffn-scroll')?.scrollLeft||0;
   }else if(active===panel)active=null;
  },true);
  document.addEventListener('pointerdown',event=>{const panel=current();if(panel&&!panel.contains(event.target))close()},true);
@@ -39,14 +38,20 @@ function ffnInstallSpin(){
  document.addEventListener('keydown',event=>{
   const panel=current();
   if(event.key==='Escape'&&panel){
+   event.preventDefault();event.stopImmediatePropagation();
    const summary=panel.querySelector('summary');close();summary?.focus({preventScroll:true});
   }
- });
- rail.addEventListener('scroll',()=>{if(active&&Math.abs(rail.scrollLeft-startLeft)>8)close()},{passive:true});
- // Vertical scrolling remains available for reading long analysis on a phone.
- window.addEventListener('scroll',()=>{
-  if(!active)return;
-  const rect=active.closest('.ffn-card')?.getBoundingClientRect();
-  if(!active.isConnected||!rect||rect.bottom<=0||rect.top>=window.innerHeight)close();
- },{passive:true});
+ },true);
+ // Capture also handles the player profile's independently scrolling body.
+ document.addEventListener('scroll',event=>{
+  const panel=current();if(!panel)return;
+  const rail=panel.closest('#ffn-scroll');
+  if(rail&&event.target===rail&&Math.abs(rail.scrollLeft-startLeft)>8){close();return}
+  const scroller=panel.closest('.pc-modal-scroll');
+  if(scroller&&event.target!==scroller&&event.target!==document)return;
+  if(!scroller&&event.target!==document&&event.target!==rail)return;
+  const card=panel.closest('.ffn-card,.pc-news-item'),rect=card?.getBoundingClientRect(),bounds=scroller?.getBoundingClientRect();
+  const top=Math.max(0,bounds?.top||0),bottom=Math.min(window.innerHeight,bounds?.bottom||window.innerHeight);
+  if(!panel.isConnected||!rect||rect.bottom<=top||rect.top>=bottom)close();
+ },{capture:true,passive:true});
 }

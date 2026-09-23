@@ -43,7 +43,13 @@ try{
   const scores=names.map((short,i)=>({short,teamId:String(i+1),pts:150-i*6,opp:names[i%2?i-1:i+1],oppPts:150-(i%2?i-1:i+1)*6,proj:null,optimal:null,starters:[],entries:[],lineupComplete:false}));
   const chosen={week:2,scores};
   // Supply a completed league week while keeping all recap rendering/navigation real.
-  hjCompletedWeeks=()=>[chosen];
+  hjCompletedWeeks=()=>[{...chosen,week:1},chosen];
+  HJ_DATA.recapWeek=2;
+  window.recapRenderOrder=[];
+  for(const name of ['hjRcPodium','hjRcCellar','hjRcAwards','hjRcMovers','hjRcPerformance','hjRcBattles','hjRcSlipped','hjRcSweat','hjRcCardRow','hjRcPickups','hjRcFalseStarters','hjRcChanger','hjRcCharacter','hjRcStories']){
+   const render=window[name];
+   window[name]=function(...args){window.recapRenderOrder.push(name==='hjRcCardRow'?args[0]:name);return render(...args)};
+  }
   HJ_LEAGUE_STATE.data={teams:names.map((name,i)=>({id:i+1,name})),schedule:[]};
   HJ_RECAP_EXTRA.weeks.set(2,{key:hjRecapExtraKey(chosen),checked:Date.now(),games:new Map(),pool:[],transactions:[]});
   HJ_HQ_STATE.activeTab='rosters';
@@ -56,12 +62,23 @@ try{
   await recapPage.waitForFunction(()=>!document.getElementById('hq-panel-recap').hidden&&document.querySelector('#hq-panel-recap h2')?.textContent==='Week 2 Recap');
   assert.equal(await recapPage.locator('[data-hq-tab="recap"]').getAttribute('aria-selected'),'true');
   assert.equal(await recapPage.locator('#hq-panel-recap').isVisible(),true);
+  const expected=['hjRcPodium','hjRcCellar','hjRcAwards','hjRcMovers','hjRcPerformance','hjRcBattles','hjRcSlipped','hjRcSweat','Players of the week','Benchwarmers of the week','hjRcPickups','hjRcFalseStarters','hjRcChanger','hjRcCharacter','hjRcStories'];
+  const selected=await recapPage.evaluate(()=>window.recapRenderOrder.slice(-15));
+  assert.deepEqual(selected,expected,'Current recap uses requested section order');
+  await recapPage.evaluate(()=>{
+   const week=hjCompletedWeeks(HJ_LEAGUE_STATE.data)[0];
+   HJ_RECAP_EXTRA.weeks.set(1,{key:hjRecapExtraKey(week),checked:Date.now(),games:new Map(),pool:[],transactions:[]});
+  });
+  await recapPage.locator('[data-hj-recap-week]').selectOption('1');
+  await recapPage.waitForFunction(()=>document.querySelector('#hq-panel-recap h2')?.textContent==='Week 1 Recap');
+  assert.deepEqual(await recapPage.evaluate(()=>window.recapRenderOrder.slice(-15)),expected,'Past recap uses the same section order');
+  await recapPage.locator('[data-hj-recap-week]').selectOption('2');
   await recapPage.locator('[data-hq-tab="rosters"]').click();
   assert.equal(await recapPage.locator('#hq-panel-recap').evaluate(el=>el.hidden),true);
  }
  assert.deepEqual(recapErrors,[],'Recap tab navigation must not throw');
  await recapPage.close();
- console.log('Built page: Weekly Recap opens, renders and reopens through its actual tab click.');
+ console.log('Built page: Weekly Recap opens and reopens; current and past weeks use the requested section order.');
  const page=await browser.newPage();
  const modal=html.slice(html.indexOf('function wireCloseExpanded(){'),html.indexOf("\n{\n  const scroller=$('#wire-scroll')",html.indexOf('function wireCloseExpanded(){')));
  await page.setContent('<style>'+read('../styles/wire-interaction.css')+'</style><article class="wc" data-wire-card><p id="plain">Recap text</p><button id="match" data-wire-matchup="2:1:2">Matchup</button><span id="manager" class="manager-profile-trigger" role="button">Manager</span><button id="player" class="pc-player-trigger">Player</button><a id="link" href="#linked">Link</a></article>');

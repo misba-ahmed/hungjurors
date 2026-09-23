@@ -1,9 +1,15 @@
-#ffn-scroll .ffn-spin{position:relative;margin:0;padding:0;border:0;color:var(--navy)}
-#ffn-scroll .ffn-spin summary{position:absolute;top:0;left:0;width:18px;height:17px;background:#fff;padding:0;margin:0;cursor:pointer;list-style:none;color:var(--brass);user-select:none}
-#ffn-scroll .ffn-spin summary::-webkit-details-marker{display:none}
-#ffn-scroll .ffn-spin summary::before,#ffn-scroll .ffn-spin summary::after{content:'';position:absolute;background:currentColor}
-#ffn-scroll .ffn-spin summary::before{left:4px;top:8px;width:10px;height:1px}
-#ffn-scroll .ffn-spin summary::after{left:8.5px;top:3.5px;width:1px;height:10px}
-#ffn-scroll .ffn-spin[open] summary::after{display:none}
-#ffn-scroll .ffn-spin summary:focus-visible{outline:2px solid var(--brass);outline-offset:-2px;border-radius:3px}
-#ffn-scroll .ffn-spin-text{margin:8px 0 0;padding-top:8px;border-top:1px solid var(--line);font:400 10.5px/1.45 var(--sans);overflow-wrap:anywhere}
+/* One compact divider row keeps the glyph and rule aligned in both states. */
+.ffn-spin{display:flow-root;margin:0;padding:0;border:0;color:var(--navy)}
+.ffn-spin>summary{display:flex;align-items:center;gap:5px;box-sizing:border-box;height:17px;margin:0;padding:0;cursor:pointer;list-style:none;color:var(--brass);user-select:none}
+.ffn-spin>summary::-webkit-details-marker{display:none}
+.ffn-spin>summary::before{content:'+';flex:0 0 11px;text-align:left;font:600 16px/1 var(--sans);transform:translateY(-1px)}
+.ffn-spin>summary::after{content:'';flex:1;height:1px;background:rgba(20,50,79,.09)}
+.ffn-spin[open]>summary::before{content:'−'}
+.ffn-spin>summary:focus-visible{outline:2px solid var(--brass);outline-offset:1px;border-radius:3px}
+#ffn-scroll .ffn-spin>.ffn-spin-text,.pc-news-item .ffn-spin>.ffn-spin-text{margin:0;padding:0;border:0;font:400 var(--ffn-news-size,10.5px)/1.45 var(--sans);overflow-wrap:anywhere}
+#ffn-scroll .ffn-spin:not([open])+.ffn-related{margin-top:0;padding-top:0;border-top:0}
+.pc-news-item .ffn-spin{margin-top:1px}
+#ffn-scroll .ffn-card{--ffn-news-size:10.5px}
+#ffn-scroll .ffn-text{font-size:var(--ffn-news-size)}
+#ffn-scroll .hj-game-context,#ffn-scroll .hj-game-status,#ffn-scroll .hj-game-stats{font-size:var(--ffn-news-size)!important}
+@media(max-width:640px){#ffn-scroll .ffn-card{--ffn-news-size:10.2px}}

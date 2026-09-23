@@ -1,5 +1,6 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import {readFileSync} from 'node:fs';
+const playerNews=readFileSync(new URL('./player-news.js',import.meta.url),'utf8');
 const recapLoader=readFileSync(new URL('./recap-loader.js',import.meta.url),'utf8');
 const wireInteraction=readFileSync(new URL('./wire-interaction.js',import.meta.url),'utf8');
 const newsSpin=readFileSync(new URL('./news-spin.js',import.meta.url),'utf8');
@@ -26,6 +27,10 @@ export function prepareSite(html){
  html=replaceOnce(html,/    text:body,\n    category:ffnClassify\(body\),/g,'    text:body,\n    spin:ffnSpinFromFeed(feed),\n    category:ffnClassify(body),');
  html=replaceOnce(html,/      <p class="ffn-text">\$\{esc\(item.text\|\|''\)\}<\/p>/g,"      <p class=\"ffn-text\">${esc(item.text||'')}</p>\n      ${ffnSpinHTML(item)}");
  html=replaceOnce(html,/        const existingIds=new Set\(ffnItems.map/g,'        ffnMergeSpin(fetched);\n        const existingIds=new Set(ffnItems.map');
+
+ // Profile news uses the same parsed Spin and disclosure as the news rail.
+ html=replaceOnce(html,/function pcNewsBody\(updates,loading=false\)\{[^]*?(?=function pcLatestNews)/g,playerNews);
+ html=replaceOnce(html,/pcNewsForPlayer\(player,\[\.\.\.ffnItems,\.\.\.fetched\]\)/g,'pcNewsForPlayer(player,[...fetched,...ffnItems])');
 
  // Reuse the record book's existing markup with recalculated categories.
  const recordPattern=/  \/\* League Record Book \*\/[^]*?(?=  let activeRecordCategory=)/g;
@@ -83,7 +88,7 @@ export function prepareSite(html){
  // Hosted Vegas projections stay visible for 36 hours after the last verified retrieval so a collector hiccup never blanks the site.
  if(!/<\/body>\s*<\/html>\s*$/.test(html))throw Error('Page end changed; review layout guard injection');
  return html.replace(old,'Date.now()-at<36*60*60*1000&&data.updated')
-  .replace('</head>','<link rel="stylesheet" href="/styles/wire-interaction.css?v=20260923b">\n<link rel="stylesheet" href="/styles/news-spin.css?v=20260923c">\n<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/standings.css?v=20260918-a1">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3">\n</head>')
+  .replace('</head>','<link rel="stylesheet" href="/styles/wire-interaction.css?v=20260923b">\n<link rel="stylesheet" href="/styles/news-spin.css?v=20260923d">\n<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/standings.css?v=20260918-a1">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3">\n</head>')
   .replace(/<\/body>\s*<\/html>\s*$/,'<script>ffnInstallSpin();</script>\n<script id="hj-record-engine">'+recordEngine+'</script>\n<script id="hj-record-live">'+recordLive+'</script>\n<script id="hj-direct-links">'+directLinks+'</script>\n<script id="hj-wire-live">'+wireLive+'</script>\n<script id="hj-layout-guard">'+layoutGuard+'</script>\n</body>\n</html>\n');
 }
 if(process.argv[2])await writeFile(process.argv[2],prepareSite(await readFile(process.argv[2],'utf8')));
