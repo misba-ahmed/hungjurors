@@ -13,7 +13,7 @@
  const FLEXABLE=['RB','WR','TE'];
  const UNITS=['QB','RB','WR','TE','FLEX'];
 
- const HJTD={a:'',b:'',give:new Set(),get:new Set(),pick:'',query:'',mode:'build',finder:null,finding:false,scope:'one'};
+ const HJTD={a:'',b:'',give:new Set(),get:new Set(),pick:'',query:'',mode:'build',finder:null,finding:false,scope:'all'};
  window.HJTD=HJTD;
 
  const esc0=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -197,7 +197,7 @@
     are kept but marked; deals that help both are surfaced first.
     ===================================================================== */
  function finderRun(){
-  const scope=HJTD.scope==='all'?teams().filter(t=>String(t.id)!==String(HJTD.a)):[teamById(HJTD.b)].filter(Boolean);
+  const scope=HJTD.scope==='all'?teams().filter(t=>String(t.id)!==String(HJTD.a)):[teamById(HJTD.scope)].filter(t=>t&&String(t.id)!==String(HJTD.a));
   const mine=rosterOf(HJTD.a);
   const myItems=toItems(mine);
   const myBase=lineupPoints(myItems).total;
@@ -324,6 +324,347 @@
   </section>`;
  }
 
+ /* =====================================================================
+    Analysis
+    Market Value settles the price. Everything here answers the harder
+    question: does the deal fit the team, the season and the calendar.
+    ===================================================================== */
+ const INJURED=new Set(['OUT','DOUBTFUL','INJURY_RESERVE','SUSPENSION','NON_FOOTBALL_INJURY']);
+ const injuryOf=entry=>String(hjPlayer(entry)?.injuryStatus||'').toUpperCase().replace(/\s+/g,'_');
+ const injuryLabel=code=>({OUT:'out',DOUBTFUL:'doubtful',QUESTIONABLE:'questionable',INJURY_RESERVE:'on IR',SUSPENSION:'suspended',NON_FOOTBALL_INJURY:'unavailable'})[code]||'';
+ const onBye=entry=>{try{return Array.isArray(NFL_WEEK1)&&NFL_WEEK1.length>=8&&hjPlayerPosition(entry)!=='D/ST'&&!pcUpcoming(hjPlayerTeam(entry))}catch(_){return false}};
+
+ /* ---------- usage feeds: snaps, target share, carry share ----------
+    The site already publishes nflverse weekly stats and snap counts, so a
+    shared backfield or receiver room can be described with the actual split
+    rather than a hand-wave. */
+ const USAGE={rows:null,snaps:null,ready:false,pending:false,cache:new Map(),teamCarries:new Map(),posPPO:new Map(),rostered:null};
+ function ensureUsage(){
+  if(USAGE.ready||USAGE.pending)return;
+  if(typeof pcLoadSeason!=='function'||typeof pcLoadSnaps!=='function')return;
+  USAGE.pending=true;
+  Promise.allSettled([pcLoadSeason(Number(NFL_SEASON)),pcLoadSnaps(Number(NFL_SEASON))]).then(([a,b])=>{
+   USAGE.rows=a.status==='fulfilled'?a.value:null;
+   USAGE.snaps=b.status==='fulfilled'?b.value:null;
+   indexUsage();
+   USAGE.ready=Boolean(USAGE.rows&&USAGE.rows.length);USAGE.pending=false;
+   if(HJ_HQ_STATE?.activeTab==='strength'&&HJ_STRENGTH_STATE.view==='trade')rerender();
+  }).catch(()=>{USAGE.pending=false});
+ }
+ function indexUsage(){
+  USAGE.cache=new Map();USAGE.teamCarries=new Map();USAGE.posPPO=new Map();
+  if(!USAGE.rows)return;
+  const ppo={};
+  for(const row of USAGE.rows){
+   const team=String(row.team||'').toUpperCase(),wk=Number(row.week);
+   if(team&&Number.isFinite(wk)){const k=`${team}|${wk}`;USAGE.teamCarries.set(k,(USAGE.teamCarries.get(k)||0)+(Number(row.carries)||0))}
+   const pos=String(row.position||row.position_group||'').toUpperCase();
+   const opps=typeof pcOpportunities==='function'?pcOpportunities(row,pos):0,pts=typeof pcPoints==='function'?pcPoints(row):null;
+   if(opps>=4&&Number.isFinite(pts))(ppo[pos]=ppo[pos]||[]).push(pts/opps);
+  }
+  for(const [pos,list] of Object.entries(ppo)){list.sort((x,y)=>x-y);USAGE.posPPO.set(pos,list[Math.floor(list.length/2)])}
+ }
+ const pct=v=>Number.isFinite(v)?`${Math.round(v*100)}%`:'';
+ function summarise(rows,pos){
+  if(!rows.length)return null;
+  const n=rows.length,num=v=>Number.isFinite(Number(v))?Number(v):null;
+  const avg=list=>{const c=list.filter(Number.isFinite);return c.length?c.reduce((a,b)=>a+b,0)/c.length:null};
+  const snap=avg(rows.map(r=>{const hit=USAGE.snaps&&typeof pcSnap==='function'?pcSnap(r,USAGE.snaps):null;return num(hit?.offense_pct)}));
+  const carryShare=avg(rows.map(r=>{
+   const total=USAGE.teamCarries.get(`${String(r.team||'').toUpperCase()}|${Number(r.week)}`);
+   return total>0?(num(r.carries)||0)/total:null;
+  }));
+  const touches=rows.reduce((t,r)=>t+(num(r.carries)||0)+(num(r.receptions)||0),0);
+  const tds=rows.reduce((t,r)=>t+(num(r.rushing_tds)||0)+(num(r.receiving_tds)||0),0);
+  const points=rows.reduce((t,r)=>t+(typeof pcPoints==='function'?(pcPoints(r)||0):0),0);
+  const opps=rows.reduce((t,r)=>t+(typeof pcOpportunities==='function'?(pcOpportunities(r,pos)||0):0),0);
+  return {games:n,snap,target:avg(rows.map(r=>num(r.target_share))),air:avg(rows.map(r=>num(r.air_yards_share))),
+   wopr:avg(rows.map(r=>num(r.wopr))),carryShare,touches,tds,points,opps,
+   ppo:opps>0?points/opps:null,tdShare:points>0?(tds*6)/points:null};
+ }
+ function usageFor(like){
+  if(!USAGE.ready||!like)return null;
+  const key=`${like.id||''}|${like.name||''}|${like.position||''}`;
+  if(USAGE.cache.has(key))return USAGE.cache.get(key);
+  let out=null;
+  try{
+   const pos=String(like.position||'').toUpperCase();
+   const rows=(typeof pcPlayerRows==='function'?pcPlayerRows(USAGE.rows,{id:like.id,name:like.name,position:pos}):[])
+    .slice().sort((a,b)=>Number(a.week)-Number(b.week));
+   if(rows.length)out={pos,season:summarise(rows,pos),recent:summarise(rows.slice(-3),pos),games:rows.length,
+    team:String(rows.at(-1).team||like.team||'').toUpperCase()};
+  }catch(_){out=null}
+  USAGE.cache.set(key,out);return out;
+ }
+ /* Test hook: lets the harness supply weekly stat and snap feeds offline. */
+ HJTD.injectUsage=(rows,snaps)=>{USAGE.rows=rows;USAGE.snaps=snaps;indexUsage();USAGE.ready=Boolean(rows&&rows.length);USAGE.rostered=null};
+ const usageOfEntry=entry=>usageFor({id:entryId(entry),name:entryName(entry),position:hjPlayerPosition(entry),team:hjPlayerTeam(entry)});
+
+ /* A share line for one player, in the terms that actually decide a role. */
+ function shareLine(u){
+  if(!u||!u.recent)return '';
+  const bits=[];
+  if(Number.isFinite(u.recent.snap))bits.push(`${pct(u.recent.snap)} of snaps`);
+  if(['RB'].includes(u.pos)&&Number.isFinite(u.recent.carryShare))bits.push(`${pct(u.recent.carryShare)} of carries`);
+  if(['WR','TE','RB'].includes(u.pos)&&Number.isFinite(u.recent.target))bits.push(`${pct(u.recent.target)} target share`);
+  if(['WR','TE'].includes(u.pos)&&Number.isFinite(u.recent.air))bits.push(`${pct(u.recent.air)} of air yards`);
+  return bits.join(', ');
+ }
+
+ /* Who is actually available on the wire, so an upgrade can be measured
+    against the alternative rather than against nothing. */
+ function rosteredIds(){
+  if(USAGE.rostered)return USAGE.rostered;
+  USAGE.rostered=new Set();
+  teams().forEach(t=>hjRosterEntries(t).forEach(e=>USAGE.rostered.add(entryId(e))));
+  return USAGE.rostered;
+ }
+ function replacementFor(position){
+  const owned=rosteredIds();
+  return (window.HJMV?.rows||[]).find(r=>r.position===position&&r.espnId&&!owned.has(r.espnId))||null;
+ }
+ /* How steep the drop is from the last starter to the next man up, per position. */
+ function scarcity(){
+  const need={QB:10,RB:20,WR:20,TE:10};
+  const out={};
+  for(const [pos,starters] of Object.entries(need)){
+   const list=(window.HJMV?.rows||[]).filter(r=>r.position===pos).map(r=>r.value).sort((a,b)=>b-a);
+   if(list.length>starters+6)out[pos]=(list[starters-1]-list[starters+5])/Math.max(list[starters-1],1);
+  }
+  return out;
+ }
+ function timingNote(){
+  const w=week();
+  if(w<=4)return {phase:'early',copy:'Weeks 1–4 is when perception gaps are widest: buy steady usage that has not scored yet, sell a hot start built on touchdowns.'};
+  if(w<=9)return {phase:'mid',copy:'By midseason depth charts have settled — this is the window to turn spare depth into a better starter.'};
+  return {phase:'late',copy:'Late in the season contenders pay up for the last piece and the teams that are out should be cashing in.'};
+ }
+
+ let standingsCache=null;
+ function standingsRows(){
+  if(standingsCache)return standingsCache;
+  try{const out=typeof buildStandingsAnalytics==='function'?buildStandingsAnalytics():null;standingsCache=Array.isArray(out)?out:(out&&Array.isArray(out.people)?out.people:[])}catch(_){standingsCache=[]}
+  return standingsCache;
+ }
+ const standingFor=manager=>standingsRows().find(p=>String(p.short)===String(manager))||null;
+
+ /* Season posture decides whether a deal should be judged on this week or on May. */
+ const played=row=>Number(row?.entries?.length||0);
+ const ordinal=n=>{const v=Number(n);if(!Number.isFinite(v))return '';const s=['th','st','nd','rd'][(v%100-v%10!=10)*(v%10<4)*(v%10)];return `${v}${s||'th'}`};
+ function posture(row){
+  if(!row||!played(row))return {key:'preseason',label:'Season not started',copy:''};
+  const odds=Number(row.playoffOdds),power=Number(row.power);
+  const score=Number.isFinite(odds)?odds:Number.isFinite(power)?power:null;
+  if(score===null)return {key:'unknown',label:'Unknown',copy:''};
+  if(score>=62)return {key:'contender',label:'Contender',copy:'playing for a title this year'};
+  if(score>=32)return {key:'bubble',label:'On the bubble',copy:'a win or two from deciding its season'};
+  return {key:'fading',label:'Playing it out',copy:'needing upside more than safety'};
+ }
+
+ /* Same NFL club, same position, comparable price: the workload is shared. */
+ function competition(entry){
+  const row=marketRow(entry);
+  /* Only the rooms that are genuinely shared: a backfield or a receiver group.
+     A backup quarterback is not competition for touches. */
+  if(!row||!row.team||!['RB','WR','TE'].includes(row.position))return [];
+  return (window.HJMV?.rows||[]).filter(r=>r!==row&&r.team===row.team&&r.position===row.position
+    &&r.value>=row.value*.55&&(!Number.isFinite(r.rostered)||r.rostered>=.3))
+   .sort((a,b)=>b.value-a.value).slice(0,2);
+ }
+ let injuryMapCache=null;
+ function injuryMap(){
+  if(injuryMapCache)return injuryMapCache;
+  injuryMapCache=new Map();
+  teams().forEach(t=>hjRosterEntries(t).forEach(e=>{const code=injuryOf(e);if(code&&code!=='ACTIVE')injuryMapCache.set(entryId(e),code)}));
+  return injuryMapCache;
+ }
+
+ /* Short term and rest of season are scored separately; they often disagree. */
+ function weekLineup(list){
+  const items=list.map(e=>{
+   const v=hj6Projection(e,'combo','week',week(),HJ_LEAGUE_SEASON);
+   return {pos:hjPlayerPosition(e),pts:Number.isFinite(v)?v:null,ir:isIR(e),entry:e};
+  });
+  const covered=items.filter(i=>Number.isFinite(i.pts)).length;
+  return {...lineupPoints(items),covered,total_:items.length};
+ }
+
+ function analyse(m){
+  if(m.band==='empty')return null;
+  const rows=m.sides.map(side=>{
+   const stand=standingFor(side.manager),post=posture(stand);
+   const wb=weekLineup(side.before),wa=weekLineup(side.after);
+   const weekReady=wb.covered>=Math.max(6,Math.floor(side.before.length*.5));
+   return {...side,stand,post,weekBefore:wb,weekAfter:wa,weekDelta:wa.total-wb.total,weekReady};
+  });
+  const [A,B]=rows;
+
+  const lean=(a,b,margin)=>Math.abs(a-b)<=margin?'even':a>b?'a':'b';
+  const unitGain=side=>UNITS.map(k=>({k,d:(side.unitsAfter[k]||0)-(side.unitsBefore[k]||0)})).sort((x,y)=>y.d-x.d);
+  const worstUnitBefore=side=>UNITS.map(k=>({k,v:side.unitsBefore[k]||0})).sort((x,y)=>x.v-y.v)[0];
+
+  /* --- the factor scorecard --- */
+  const factors=[];
+  factors.push({label:'Market value',lean:m.band==='even'?'even':m.winner,
+   note:m.band==='even'?`Within ${(m.gap*100).toFixed(1)}% — a straight price.`:`${money(Math.abs(m.net))} of value moves toward ${rows.find(r=>r.key===m.winner).manager}.`});
+
+  if(A.weekReady&&B.weekReady)factors.push({label:'This week',lean:lean(A.weekDelta,B.weekDelta,.4),
+   note:`${A.manager} ${A.weekDelta>=0?'+':'−'}${pts(Math.abs(A.weekDelta))}, ${B.manager} ${B.weekDelta>=0?'+':'−'}${pts(Math.abs(B.weekDelta))} in Week ${week()} starters.`});
+
+  factors.push({label:'Rest of season',lean:lean(A.lineupDelta,B.lineupDelta,1),
+   note:`${A.manager} ${A.lineupDelta>=0?'+':'−'}${pts(Math.abs(A.lineupDelta))}, ${B.manager} ${B.lineupDelta>=0?'+':'−'}${pts(Math.abs(B.lineupDelta))} projected starters.`});
+
+  const fitScore=side=>{const weak=worstUnitBefore(side);return ((side.unitsAfter[weak.k]||0)-(side.unitsBefore[weak.k]||0))};
+  const fitA=fitScore(A),fitB=fitScore(B);
+  const sc=scarcity();
+  const steep=Object.entries(sc).sort((x,y)=>y[1]-x[1])[0];
+  factors.push({label:'Positional fit',lean:lean(fitA,fitB,150),
+   note:`${A.manager}’s thinnest spot was ${worstUnitBefore(A).k}, ${B.manager}’s was ${worstUnitBefore(B).k}.${steep?` ${steep[0]} is the steepest cliff in this league — ${Math.round(steep[1]*100)}% falls away between the last starter and the next man up.`:''}`});
+
+  const usageReady=USAGE.ready;
+  if(usageReady){
+   const trendScore=side=>side.in.reduce((n,e)=>{
+    const u=usageOfEntry(e);if(!u||!u.recent||!u.season)return n;
+    const d=[u.recent.snap-u.season.snap,u.recent.target-u.season.target,u.recent.carryShare-u.season.carryShare].filter(Number.isFinite);
+    return n+(d.length?Math.max(...d):0);
+   },0);
+   const tA=trendScore(A),tB=trendScore(B);
+   const best=side=>side.in.map(usageOfEntry).filter(u=>u&&u.recent).map(u=>shareLine(u)).filter(Boolean)[0]||'';
+   if(Math.abs(tA)+Math.abs(tB)>0)factors.push({label:'Opportunity trend',lean:lean(tA,tB,.03),
+    note:[best(A)?`${A.manager} gets ${best(A)}`:'',best(B)?`${B.manager} gets ${best(B)}`:''].filter(Boolean).join('; ')+'.'});
+  }
+
+  const aboveRep=side=>side.in.reduce((n,e)=>{const rep=replacementFor(hjPlayerPosition(e)),v=valueOf(e);return n+(rep&&Number.isFinite(v)?v-rep.value:0)},0);
+  const arA=aboveRep(A),arB=aboveRep(B);
+  if(arA||arB)factors.push({label:'Above the wire',lean:lean(arA,arB,300),
+   note:`Measured against the best free agent at each position: ${A.manager} ${arA>=0?'+':'−'}${money(Math.abs(arA))}, ${B.manager} ${arB>=0?'+':'−'}${money(Math.abs(arB))}.`});
+
+  const thinAt=side=>Object.entries(MINIMUMS).filter(([pos,min])=>!['K','D/ST'].includes(pos)&&(side.countsAfter[pos]||0)<=min).map(([pos])=>pos);
+  const depthScore=side=>-thinAt(side).length;
+  const thinA=thinAt(A),thinB=thinAt(B);
+  factors.push({label:'Depth left behind',lean:lean(depthScore(A),depthScore(B),0),
+   note:!thinA.length&&!thinB.length?'Both rosters keep cover at every spot.':[thinA.length?`${A.manager} is bare at ${thinA.join(', ')}`:'',thinB.length?`${B.manager} is bare at ${thinB.join(', ')}`:''].filter(Boolean).join('; ')+'.'});
+
+  const riskScore=side=>side.in.reduce((n,e)=>{const c=injuryOf(e);return n+(INJURED.has(c)?2:c==='QUESTIONABLE'?1:0)+(onBye(e)?1:0)},0);
+  const riskWho=side=>side.in.filter(e=>{const c=injuryOf(e);return INJURED.has(c)||c==='QUESTIONABLE'||onBye(e)}).map(entryName);
+  const rA=riskWho(A),rB=riskWho(B);
+  factors.push({label:'Availability risk',lean:lean(-riskScore(A),-riskScore(B),0),
+   note:!rA.length&&!rB.length?'Everyone involved is available.':[rA.length?`${A.manager} takes on ${rA.join(' and ')}`:'',rB.length?`${B.manager} takes on ${rB.join(' and ')}`:''].filter(Boolean).join('; ')+'.'});
+
+  const formScore=side=>side.in.reduce((n,e)=>{const r=marketRow(e);return n+(r&&Number.isFinite(r.trend30)?r.trend30:0)},0)
+   -side.out.reduce((n,e)=>{const r=marketRow(e);return n+(r&&Number.isFinite(r.trend30)?r.trend30:0)},0);
+  factors.push({label:'Market form',lean:lean(formScore(A),formScore(B),120),
+   note:'Which side ends up holding the players the market is moving toward.'});
+
+  const gradeAvg=list=>{const g=list.map(gradeOf).filter(Number.isFinite);return g.length?g.reduce((a,b)=>a+b,0)/g.length:null};
+  const gA=gradeAvg(A.in),gB=gradeAvg(B.in);
+  if(Number.isFinite(gA)&&Number.isFinite(gB))factors.push({label:'Play quality (PFF)',lean:lean(gA,gB,2),
+   note:`${A.manager} receives a ${gA.toFixed(1)} average grade, ${B.manager} a ${gB.toFixed(1)}.`});
+
+  const postureFit=side=>{
+   if(side.post.key==='contender')return side.weekReady?side.weekDelta:side.lineupDelta;
+   if(side.post.key==='fading')return side.valueDelta/400;
+   return side.lineupDelta;
+  };
+  if(A.post.key!=='preseason'&&B.post.key!=='preseason')factors.push({label:'Fits the season',lean:lean(postureFit(A),postureFit(B),.8),
+   note:`${A.manager} is ${A.post.label.toLowerCase()}; ${B.manager} is ${B.post.label.toLowerCase()}.`});
+
+  /* --- the written case for and against, per manager --- */
+  const caseFor=side=>{
+   const out=[],gain=unitGain(side)[0],weak=worstUnitBefore(side);
+   if(side.valueDelta>0)out.push(`Wins the price by ${money(side.valueDelta)} in market value.`);
+   if(side.lineupDelta>.5)out.push(`Rest-of-season starters go up ${pts(side.lineupDelta)} projected points.`);
+   if(side.weekReady&&side.weekDelta>.3)out.push(`Starts ${pts(side.weekDelta)} more points in Week ${week()} — the help is immediate.`);
+   if(gain&&gain.d>200)out.push(`${gain.k==='FLEX'?'Flex':gain.k} improves by ${money(gain.d)}${gain.k===weak.k?' — the thinnest spot on the roster':''}.`);
+   if(side.rankBefore-side.rankAfter>0)out.push(`Climbs from #${side.rankBefore} to #${side.rankAfter} in league roster value.`);
+   if(side.stand&&played(side.stand)>=3&&Number.isFinite(side.stand.luck)&&side.stand.luck<=-.8)out.push(`At ${side.stand.w}–${side.stand.l} the record is ${pts(Math.abs(side.stand.luck))} wins worse than the scoring deserves — the roster is better than the standings say, so pushing now is reasonable.`);
+   if(side.stand&&played(side.stand)>=3&&Number.isFinite(side.stand.remainingSOSRank)&&side.stand.remainingSOSRank<=3)out.push(`The run-in is the ${side.stand.remainingSOSRank===1?'toughest':`${ordinal(side.stand.remainingSOSRank)} toughest`} left in the league, so a stronger starting lineup matters more than bench cover.`);
+   side.in.forEach(e=>{
+    const r=marketRow(e);
+    if(r&&Number.isFinite(r.trend30)&&r.trend30<=-Math.max(120,r.value*.03))out.push(`${entryName(e)} is down ${money(Math.abs(r.trend30))} in 30 days — this is the cheap window if the drop was noise.`);
+    const grade=gradeOf(e),val=valueOf(e);
+    if(Number.isFinite(grade)&&grade>=78&&Number.isFinite(val)&&r&&r.positionRank>12)out.push(`${entryName(e)} grades ${grade.toFixed(1)} at PFF while priced as ${r.position}${r.positionRank} — the tape is ahead of the market.`);
+   });
+   side.in.forEach(e=>{
+    const u=usageOfEntry(e);
+    if(!u||!u.recent||!u.season)return;
+    const r=u.recent,se=u.season;
+    const climbing=[
+     Number.isFinite(r.snap)&&Number.isFinite(se.snap)&&r.snap-se.snap>=.07?`${pct(r.snap)} of snaps over the last three games against ${pct(se.snap)} on the season`:'',
+     Number.isFinite(r.carryShare)&&Number.isFinite(se.carryShare)&&r.carryShare-se.carryShare>=.07?`${pct(r.carryShare)} of the carries, up from ${pct(se.carryShare)}`:'',
+     Number.isFinite(r.target)&&Number.isFinite(se.target)&&r.target-se.target>=.04?`${pct(r.target)} target share, up from ${pct(se.target)}`:''
+    ].filter(Boolean);
+    if(climbing.length)out.push(`${entryName(e)}'s role is growing — ${climbing[0]}. Usage moves a week or two before the points do.`);
+    const heavy=(Number.isFinite(r.snap)&&r.snap>=.6)||(Number.isFinite(r.target)&&r.target>=.18)||(Number.isFinite(r.carryShare)&&r.carryShare>=.45);
+    const median=USAGE.posPPO.get(u.pos);
+    if(heavy&&Number.isFinite(r.ppo)&&Number.isFinite(median)&&r.ppo<median*.82)
+     out.push(`${entryName(e)} is getting the work but not the points — ${shareLine(u)||'a starter\u2019s role'} at ${r.ppo.toFixed(2)} points per opportunity against a ${median.toFixed(2)} league median. That gap usually closes.`);
+    const rep=replacementFor(u.pos),val=valueOf(e);
+    if(rep&&Number.isFinite(val)&&val>=rep.value*1.6)
+     out.push(`${entryName(e)} is worth ${money(val-rep.value)} more than the best ${u.pos} still on the wire (${rep.name}) — this is a real upgrade, not a lateral move.`);
+   });
+   if(side.post.key==='fading'&&played(side.stand)>=3&&side.valueDelta>0)out.push(`Nothing is riding on this season, so banking ${money(side.valueDelta)} of surplus is the right shape of deal.`);
+   return out.slice(0,5);
+  };
+
+  const caseAgainst=side=>{
+   const out=[],loss=unitGain(side).at(-1);
+   if(side.valueDelta<0)out.push(`Pays ${money(Math.abs(side.valueDelta))} over the odds on market value.`);
+   if(side.lineupDelta<-.5)out.push(`Rest-of-season starters drop ${pts(Math.abs(side.lineupDelta))} projected points.`);
+   if(side.weekReady&&side.weekDelta<-.3&&side.lineupDelta>0)out.push(`Costs ${pts(Math.abs(side.weekDelta))} in Week ${week()} even though it pays off later — a real problem if the season is tight.`);
+   if(side.weekReady&&side.weekDelta>.3&&side.lineupDelta<0)out.push(`Helps this week but costs ${pts(Math.abs(side.lineupDelta))} across the rest of the season.`);
+   if(loss&&loss.d<-200)out.push(`${loss.k==='FLEX'?'Flex':loss.k} weakens by ${money(Math.abs(loss.d))}.`);
+   for(const [pos,min] of Object.entries(MINIMUMS)){
+    const have=side.countsAfter[pos]||0;
+    if(have<min){out.push(`Cannot fill ${pos} — only ${have} healthy.`);continue}
+    /* Carrying one kicker and one defence is normal; being down to a bare skill group is not. */
+    if(have===min&&!['K','D/ST'].includes(pos))out.push(`Leaves exactly ${have} healthy ${pos}${have===1?'':'s'} — one injury and a starting spot is empty.`);
+   }
+   if(side.stand&&played(side.stand)>=3&&Number.isFinite(side.stand.benchGap)&&side.stand.benchGap>=12&&side.in.length>side.out.length)out.push(`${side.manager} already leaves ${pts(side.stand.benchGap)} a week on the bench, so extra depth is worth less than it looks.`);
+   if(side.stand&&played(side.stand)>=3&&Number.isFinite(side.stand.luck)&&side.stand.luck>=.8)out.push(`The ${side.stand.w}–${side.stand.l} record is ${pts(side.stand.luck)} wins better than the scoring — this roster needs real help, not a sideways move.`);
+   side.in.forEach(e=>{
+    const u=usageOfEntry(e);
+    if(u&&u.recent&&u.season){
+     const r=u.recent,se=u.season;
+     const slipping=[
+      Number.isFinite(r.snap)&&Number.isFinite(se.snap)&&se.snap-r.snap>=.08?`snaps down to ${pct(r.snap)} from ${pct(se.snap)}`:'',
+      Number.isFinite(r.carryShare)&&Number.isFinite(se.carryShare)&&se.carryShare-r.carryShare>=.08?`carry share down to ${pct(r.carryShare)} from ${pct(se.carryShare)}`:'',
+      Number.isFinite(r.target)&&Number.isFinite(se.target)&&se.target-r.target>=.05?`target share down to ${pct(r.target)} from ${pct(se.target)}`:''
+     ].filter(Boolean);
+     if(slipping.length)out.push(`${entryName(e)}'s role is shrinking — ${slipping[0]}.`);
+     if(Number.isFinite(se.tdShare)&&se.tdShare>=.45&&se.games>=3)
+      out.push(`${Math.round(se.tdShare*100)}% of ${entryName(e)}'s points have come from touchdowns${Number.isFinite(se.touches)?` on ${Math.round(se.touches)} touches`:''} — that rate is the first thing to regress.`);
+     const rep=replacementFor(u.pos),val=valueOf(e);
+     if(rep&&Number.isFinite(val)&&val<=rep.value*1.15)
+      out.push(`${entryName(e)} is priced within touching distance of ${rep.name}, who is sitting on the wire — paying a real asset for that is the wrong trade.`);
+    }
+    const code=injuryOf(e);
+    if(code&&code!=='ACTIVE')out.push(`${entryName(e)} is ${injuryLabel(code)||'carrying a designation'} right now.`);
+    if(onBye(e))out.push(`${entryName(e)} has no game this week.`);
+    const r=marketRow(e);
+    if(r&&Number.isFinite(r.trend30)&&r.trend30>=Math.max(150,r.value*.04))out.push(`${entryName(e)} is up ${money(r.trend30)} in 30 days — you are buying at the top of his range.`);
+    const grade=gradeOf(e);
+    if(Number.isFinite(grade)&&grade<62&&r&&r.positionRank<=18)out.push(`${entryName(e)} is priced as ${r.position}${r.positionRank} on a ${grade.toFixed(1)} PFF grade — the market is ahead of the tape.`);
+    const mine=usageOfEntry(e),line=shareLine(mine);
+    competition(e).forEach(rival=>{
+     const theirs=usageFor({name:rival.name,position:rival.position,team:rival.team}),rivalLine=shareLine(theirs);
+     const hurt=injuryMap().get(rival.espnId);
+     const last=rival.name.split(' ').slice(-1)[0];
+     if(hurt){
+      out.push(`${entryName(e)}${line?` is on ${line}`:' is seeing the work'} while ${rival.name} is ${injuryLabel(hurt)||'out'}${rivalLine?` — ${last} was on ${rivalLine}`:''}. That share is borrowed, and it goes back when he does.`);
+     }else if(line||rivalLine){
+      out.push(`${rival.team} ${rival.position} room is shared — ${entryName(e)}${line?` on ${line}`:''}; ${rival.name}${rivalLine?` on ${rivalLine}`:` at ${money(rival.value)}`}.`);
+     }else{
+      out.push(`${entryName(e)} shares a ${rival.team} ${rival.position} room with ${rival.name} (${money(rival.value)}) — the workload is not his alone.`);
+     }
+    });
+   });
+   return out.slice(0,5);
+  };
+
+  return {rows,factors,cases:rows.map(side=>({key:side.key,manager:side.manager,post:side.post,stand:side.stand,for:caseFor(side),against:caseAgainst(side)}))};
+ }
+
  /* ---------- verdict ---------- */
  const BAND={even:{label:'Even deal',tone:'even'},slight:{label:'Slight edge',tone:'slight'},clear:{label:'Clear edge',tone:'clear'},lopsided:{label:'Lopsided',tone:'bad'},empty:{label:'Build a deal',tone:'even'}};
 
@@ -392,12 +733,48 @@
   return `<section class="td-extras">${parts.join('')}</section>`;
  }
 
+ /* ---------- analysis panel ---------- */
+ function scorecard(a){
+  return `<div class="td-score"><div class="td-score-key"><span>${E(a.rows[0].manager)}</span><i aria-hidden="true">◄ ►</i><span>${E(a.rows[1].manager)}</span></div>${a.factors.map(f=>`<div class="td-score-row lean-${f.lean}">
+   <span class="td-score-label">${E(f.label)}</span>
+   <div class="td-score-meter"><i class="a"></i><i class="dot"></i><i class="b"></i></div>
+   <span class="td-score-note">${E(f.note)}</span>
+  </div>`).join('')}</div>`;
+ }
+
+ function caseCard(c){
+  const s=c.stand;
+  const record=s?`${s.w}–${s.l}`:'';
+  const odds=s&&Number.isFinite(s.playoffOdds)?`${Math.round(s.playoffOdds)}% playoff odds`:s&&Number.isFinite(s.power)?`power ${Math.round(s.power)}`:'';
+  const form=s&&Number.isFinite(s.last3Avg)?`${pts(s.last3Avg)} last three`:'';
+  return `<div class="td-case">
+   <div class="td-case-head">${av(c.manager,'td-av-sm')}<b>${E(c.manager)}</b><span class="td-post td-post-${c.post.key}">${E(c.post.label)}</span></div>
+   <div class="td-case-meta">${[record,odds,form].filter(Boolean).map(x=>`<span>${E(x)}</span>`).join('')}</div>
+   <div class="td-case-cols">
+    <div class="td-case-col is-for"><h5>Why it makes sense</h5>${c.for.length?`<ul>${c.for.map(x=>`<li>${E(x)}</li>`).join('')}</ul>`:'<p class="td-empty">Nothing here argues for it.</p>'}</div>
+    <div class="td-case-col is-against"><h5>Why it might not</h5>${c.against.length?`<ul>${c.against.map(x=>`<li>${E(x)}</li>`).join('')}</ul>`:'<p class="td-empty">No red flags found.</p>'}</div>
+   </div>
+  </div>`;
+ }
+
+ function analysisPanel(m){
+  const a=analyse(m);
+  if(!a)return '';
+  return `<section class="td-analysis">
+   <div class="td-analysis-head"><h3>Beyond the price</h3><p>Scored from this league’s own record, schedule, projections, grades, snap counts and target shares. The bar leans toward whoever the factor favours.</p><p class="td-timing"><b>Week ${week()}.</b> ${E(timingNote().copy)}</p></div>
+   ${scorecard(a)}
+   <div class="td-cases">${a.cases.map(caseCard).join('')}</div>
+  </section>`;
+ }
+
  /* ---------- finder ---------- */
  function finderPanel(){
   const found=HJTD.finder&&HJTD.finder.from===HJTD.a&&HJTD.finder.scope===HJTD.scope?HJTD.finder:null;
   const me=managerOf(teamById(HJTD.a));
+  const options=[`<option value="all"${HJTD.scope==='all'?' selected':''}>Every manager</option>`]
+   .concat(teams().filter(t=>String(t.id)!==String(HJTD.a)).map(t=>`<option value="${E(t.id)}"${String(HJTD.scope)===String(t.id)?' selected':''}>${E(managerOf(t))}</option>`)).join('');
   const controls=`<div class="td-finder-controls">
-    <div class="td-seg">${[['one','This partner'],['all','Whole league']].map(([id,label])=>`<button type="button" class="${HJTD.scope===id?'is-on':''}" data-td-scope="${id}">${label}</button>`).join('')}</div>
+    <label class="td-finder-who"><span>Trade with</span><select data-td-scope aria-label="Which manager to scan">${options}</select></label>
     <button type="button" class="td-run" data-td-find>${found?'Scan again':'Find me a trade'}</button>
    </div>`;
   if(!found)return `<section class="td-finder"><div class="td-finder-head"><h3>Trade finder</h3><p>Scans every one-for-one and two-for-one that lifts <b>${E(me)}</b>’s starting lineup without breaking either roster.</p></div>${controls}<p class="td-empty">No scan yet.</p></section>`;
@@ -432,14 +809,21 @@
  function shell(){
   if(!window.HJMV?.ready){window.HJMV?.load?.();return `<section class="hq-module hj15-shell td-shell"><div class="hq-module-head"><h3 class="hq-module-title">Trade Desk</h3></div>${toolbar()}<div class="hq-empty">Loading market values…</div></section>`}
   if(!ensureSides())return `<section class="hq-module hj15-shell td-shell"><div class="hq-module-head"><h3 class="hq-module-title">Trade Desk</h3></div>${toolbar()}<div class="hq-empty">League rosters are still loading.</div></section>`;
+  warmWeek();ensureUsage();
   const m=model();
   const body=HJTD.mode==='finder'?finderPanel()
-   :`${verdict(m)}<div class="td-board">${sideColumn(m.sides[0],m)}<div class="td-mid"><button type="button" class="td-swap" data-td-swap aria-label="Swap sides">⇄</button><button type="button" class="td-clear" data-td-clear>Clear</button></div>${sideColumn(m.sides[1],m)}</div><div class="td-impacts">${m.sides.map(s=>impact(s,m)).join('')}</div>${extras(m)}`;
+   :`${verdict(m)}<div class="td-board">${sideColumn(m.sides[0],m)}<div class="td-mid"><button type="button" class="td-swap" data-td-swap aria-label="Swap sides">⇄</button><button type="button" class="td-clear" data-td-clear>Clear</button></div>${sideColumn(m.sides[1],m)}</div><div class="td-impacts">${m.sides.map(s=>impact(s,m)).join('')}</div>${extras(m)}${analysisPanel(m)}`;
   return `<section class="hq-module hj15-shell td-shell"><div class="hq-module-head"><h3 class="hq-module-title">Trade Desk</h3><span class="hq-module-note">Priced on Market Value</span></div>${toolbar()}${body}</section>`;
  }
 
  /* ---------- wiring ---------- */
  function rerender(){if(typeof hjRerenderStrength==='function')hjRerenderStrength()}
+
+ function warmWeek(){
+  if(typeof hj6LoadWeek!=='function'||HJTD._warm)return;
+  HJTD._warm=true;
+  try{Promise.resolve(hj6LoadWeek(HJ_LEAGUE_STATE?.data)).then(()=>{if(HJ_HQ_STATE?.activeTab==='strength'&&HJ_STRENGTH_STATE.view==='trade')rerender()}).catch(()=>{})}catch(_){ }
+ }
 
  function install(){
   if(typeof hjStrengthHTML!=='function')return;
@@ -469,8 +853,7 @@
    }
    const mode=t.closest?.('[data-td-mode]');
    if(mode){event.preventDefault();event.stopPropagation();HJTD.mode=mode.dataset.tdMode;rerender();return}
-   const scope=t.closest?.('[data-td-scope]');
-   if(scope){event.preventDefault();event.stopPropagation();HJTD.scope=scope.dataset.tdScope;HJTD.finder=null;rerender();return}
+
    if(t.closest?.('[data-td-find]')){
     event.preventDefault();event.stopPropagation();
     try{finderRun()}catch(error){console.warn('Trade finder unavailable',error);HJTD.finder={at:Date.now(),scope:HJTD.scope,from:HJTD.a,rows:[],scanned:0}}
@@ -493,6 +876,8 @@
   },true);
 
   root.addEventListener('change',event=>{
+   const scope=event.target.closest?.('[data-td-scope]');
+   if(scope){HJTD.scope=scope.value;HJTD.finder=null;rerender();return}
    const sel=event.target.closest?.('[data-td-team]');
    if(!sel)return;
    const side=sel.dataset.tdTeam;
