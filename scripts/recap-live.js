@@ -360,7 +360,7 @@ function hjRecapHTML(data){
  const weeks=hjCompletedWeeks(data),chosen=weeks.find(w=>w.week===HJ_DATA.recapWeek)||weeks.at(-1);
  if(!chosen)return '<div class="hq-module-body hj-recap"><div class="rc"><p class="hj-recap-empty">The first recap lands when this week’s matchups are final.</p></div></div>';
  const {week}=chosen;
- if(HJ_HQ_STATE.activeTab==='recap'&&!HJ_RECAP_EXTRA.jobs.has(week)&&Date.now()-(HJ_RECAP_EXTRA.weeks.get(week)?.checked||0)>300000)setTimeout(()=>hjRecapLoadExtra(chosen),0);
+ if(HJ_HQ_STATE.activeTab==='recap'&&!HJ_RECAP_EXTRA.jobs.has(week)&&hjRecapNeedsExtra(chosen))setTimeout(()=>hjRecapLoadExtra(chosen),0);
  // The panel's generic head (title plus sticky-note week) duplicates this header; drop it once the tab is on screen.
  requestAnimationFrame(()=>document.querySelectorAll('#hq-panel-recap .hq-module-head').forEach(h=>h.remove()));
  const model=hjRcModel(chosen,weeks,data);

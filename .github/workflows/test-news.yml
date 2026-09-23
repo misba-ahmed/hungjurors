@@ -1,8 +1,13 @@
 name: Verify news expansion
 on:
   push:
-    branches: [news-spin, main]
+    branches: [news-spin, site-display-fixes, main]
     paths:
+      - 'scripts/recap-loader.js'
+      - 'scripts/recap-live.js'
+      - 'scripts/wire-interaction.js'
+      - 'styles/wire-interaction.css'
+      - 'scripts/test-display-fixes.mjs'
       - 'scripts/news-spin.js'
       - 'scripts/test-news-spin.mjs'
       - 'styles/news-spin.css'
@@ -27,3 +32,4 @@ jobs:
         run: |
           node scripts/test-news-spin.mjs
           node scripts/test-record-book.mjs
+          node scripts/test-display-fixes.mjs

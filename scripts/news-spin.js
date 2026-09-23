@@ -9,7 +9,7 @@ function ffnSpinFromFeed(feed){
 function ffnSpinHTML(item){
  const spin=typeof item?.spin==='string'?item.spin.trim():'';
  if(!spin)return '';
- return '<details class="ffn-spin"><summary>Spin</summary><p class="ffn-spin-text">'+esc(spin)+'</p></details>';
+ return '<details class="ffn-spin"><summary aria-label="Show or hide Spin" title="Spin"></summary><p class="ffn-spin-text">'+esc(spin)+'</p></details>';
 }
 function ffnMergeSpin(fetched){
  const byId=new Map(fetched.map(item=>[String(item.id),item]));

@@ -1,5 +1,7 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import {readFileSync} from 'node:fs';
+const recapLoader=readFileSync(new URL('./recap-loader.js',import.meta.url),'utf8');
+const wireInteraction=readFileSync(new URL('./wire-interaction.js',import.meta.url),'utf8');
 const newsSpin=readFileSync(new URL('./news-spin.js',import.meta.url),'utf8');
 const recordEngine=readFileSync(new URL('./record-book-engine.js',import.meta.url),'utf8');
 const recordLive=readFileSync(new URL('./record-book-live.js',import.meta.url),'utf8');
@@ -16,6 +18,11 @@ function replaceOnce(html,pattern,replacement){
  return html.replace(pattern,()=>replacement);
 }
 export function prepareSite(html){
+ html=replaceOnce(html,/async function hjRecapLoadExtra\(chosen\)\{[^]*?(?=function hjRecapTransactionTime)/g,recapLoader);
+ html=replaceOnce(html,/function wireBuild\(data\)\{/g,"function wireBuild(data){\n  if(!data)return {cards:[{section:'loading',html:'<div class=\"wire-loading\" role=\"status\">Loading league updates…</div>'}],headline:{eyebrow:'',title:'',sub:'',kicker:'The Wire',live:false}};");
+ html=replaceOnce(html,/function wireCloseExpanded\(\)\{/g,wireInteraction+"\nfunction wireCloseExpanded(){");
+ html=replaceOnce(html,/  stage.append\(clone,close\);overlay.append\(stage\);/g,"  wireBindCollapse(clone);\n  stage.append(clone,close);overlay.append(stage);");
+
  html=replaceOnce(html,/function ffnFeedToItem\(feed,player,nextGame\){/g,newsSpin+'\nfunction ffnFeedToItem(feed,player,nextGame){');
  html=replaceOnce(html,/    text:body,\n    category:ffnClassify\(body\),/g,'    text:body,\n    spin:ffnSpinFromFeed(feed),\n    category:ffnClassify(body),');
  html=replaceOnce(html,/      <p class="ffn-text">\$\{esc\(item.text\|\|''\)\}<\/p>/g,"      <p class=\"ffn-text\">${esc(item.text||'')}</p>\n      ${ffnSpinHTML(item)}");
@@ -75,7 +82,7 @@ export function prepareSite(html){
  // Hosted Vegas projections stay visible for 36 hours after the last verified retrieval so a collector hiccup never blanks the site.
  if(!/<\/body>\s*<\/html>\s*$/.test(html))throw Error('Page end changed; review layout guard injection');
  return html.replace(old,'Date.now()-at<36*60*60*1000&&data.updated')
-  .replace('</head>','<link rel="stylesheet" href="/styles/news-spin.css?v=20260922a">\n<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/standings.css?v=20260918-a1">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3">\n</head>')
+  .replace('</head>','<link rel="stylesheet" href="/styles/wire-interaction.css?v=20260923b">\n<link rel="stylesheet" href="/styles/news-spin.css?v=20260923b">\n<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/standings.css?v=20260918-a1">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3">\n</head>')
   .replace(/<\/body>\s*<\/html>\s*$/,'<script>ffnInstallSpin();</script>\n<script id="hj-record-engine">'+recordEngine+'</script>\n<script id="hj-record-live">'+recordLive+'</script>\n<script id="hj-direct-links">'+directLinks+'</script>\n<script id="hj-wire-live">'+wireLive+'</script>\n<script id="hj-layout-guard">'+layoutGuard+'</script>\n</body>\n</html>\n');
 }
 if(process.argv[2])await writeFile(process.argv[2],prepareSite(await readFile(process.argv[2],'utf8')));

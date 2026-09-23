@@ -36,6 +36,13 @@ try{
   const first=page.locator('.ffn-spin').first(),summary=first.locator('summary');
   assert.equal(await page.locator('.ffn-spin').count(),7);
   assert.equal(await page.locator('.ffn-spin[open]').count(),0);
+  const dimensions=await first.evaluate(panel=>{
+   const card=panel.closest('.ffn-card'),before=card.getBoundingClientRect().height,next=panel.nextSibling,parent=panel.parentNode;
+   panel.remove();const original=card.getBoundingClientRect().height;parent.insertBefore(panel,next);
+   return {before,original,text:panel.querySelector('summary').textContent};
+  });
+  assert.equal(dimensions.before,dimensions.original,'Collapsed Spin must add ZERO card height');
+  assert.equal(dimensions.text,'','Collapsed control shows only a plus');
   await summary.click();
   await page.waitForFunction(()=>document.querySelector('.ffn-spin').open);
   assert.equal(await first.locator('p').isVisible(),true);

@@ -1,0 +1,3 @@
+.wire-expanded-stage .wc{cursor:zoom-out!important}
+.wire-expanded-stage .wc :is(a,button,input,select,textarea,summary,[role="button"],[role="link"],[data-wire-matchup],.pc-player-trigger,.manager-profile-trigger,.manager-profile-avatar){cursor:pointer}
+.wire-loading{width:100%;min-height:100px;display:grid;place-items:center;color:var(--navy);font:600 12px/1.5 var(--sans)}
