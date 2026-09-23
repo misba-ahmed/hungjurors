@@ -157,6 +157,25 @@
    side.rankAfter=rankOf(side.team?.id,side.marketAfter,swap);
   });
 
+  /* Positional standing across the league, so a bar shows a need and not just a number. */
+  const leagueUnits=teams().map(t=>({id:String(t.id),units:marketByUnit(rosterOf(t.id))}));
+  const unitRank=(id,unit,overrides)=>{
+   const list=leagueUnits.map(r=>({id:r.id,v:overrides&&overrides[r.id]?overrides[r.id][unit]:r.units[unit]}))
+    .sort((a,b)=>b.v-a.v);
+   const at=list.findIndex(r=>r.id===String(id));
+   return at>=0?at+1:null;
+  };
+  const afterUnits={[String(HJTD.a)]:sides[0].unitsAfter,[String(HJTD.b)]:sides[1].unitsAfter};
+  sides.forEach(side=>{
+   side.unitRankBefore={};side.unitRankAfter={};
+   UNITS.forEach(u=>{
+    side.unitRankBefore[u]=unitRank(side.team?.id,u,null);
+    side.unitRankAfter[u]=unitRank(side.team?.id,u,afterUnits);
+   });
+  });
+  const teamCount=leagueUnits.length||1;
+  sides.forEach(side=>{side.teamCount=teamCount});
+
   const band=!give.length&&!take.length?'empty':gap<.04?'even':gap<.10?'slight':gap<.22?'clear':'lopsided';
   const winner=band==='empty'||band==='even'?null:net>0?'a':'b';
 
@@ -328,8 +347,15 @@
   const chosen=key==='a'?m.give:m.take;
   const options=(key==='a'?m.aAll:m.bAll).filter(e=>!chosen.includes(e));
   const query=HJTD.pick===key?HJTD.query.toLowerCase():'';
-  const list=options.filter(e=>!query||entryName(e).toLowerCase().includes(query)||hjPlayerPosition(e).toLowerCase()===query)
-   .sort((x,y)=>(valueOf(y)??-1)-(valueOf(x)??-1));
+  const matching=options.filter(e=>!query||entryName(e).toLowerCase().includes(query)||hjPlayerPosition(e).toLowerCase()===query);
+  /* Grouped by position, best first inside each group — a roster reads by position,
+     not as one long list. */
+  const ORDER=['QB','RB','WR','TE','K','D/ST'];
+  const groups=ORDER.map(pos=>({pos,players:matching.filter(e=>hjPlayerPosition(e)===pos).sort((x,y)=>(valueOf(y)??-1)-(valueOf(x)??-1))}))
+   .filter(g=>g.players.length);
+  const rest=matching.filter(e=>!ORDER.includes(hjPlayerPosition(e)));
+  if(rest.length)groups.push({pos:'Other',players:rest});
+  const list=groups.length?groups.map(g=>`<div class="td-group"><div class="td-group-head"><span>${E(g.pos)}</span><b>${g.players.length}</b></div>${g.players.map(e=>playerChip(e,{side:key,action:true})).join('')}</div>`).join(''):'';
   const grade=gradeFor(side,m);
   const teamOptions=teams().filter(t=>key==='a'||String(t.id)!==String(HJTD.a)).map(t=>`<option value="${E(t.id)}"${String(t.id)===String(key==='a'?HJTD.a:HJTD.b)?' selected':''}>${E(managerOf(t))}</option>`).join('');
   return `<section class="td-side td-side-${key}">
@@ -344,7 +370,7 @@
    </div>
    <div class="td-pool">
     <input type="search" class="td-search" data-td-query="${key}" value="${HJTD.pick===key?E(HJTD.query):''}" placeholder="Search ${E(side.manager)}’s roster" aria-label="Search ${E(side.manager)}’s roster">
-    <div class="td-pool-list">${list.length?list.map(e=>playerChip(e,{side:key,action:true})).join(''):'<p class="td-empty">No players match.</p>'}</div>
+    <div class="td-pool-list">${list||'<p class="td-empty">No players match.</p>'}</div>
    </div>
   </section>`;
  }
@@ -416,8 +442,17 @@
    const pos=String(like.position||'').toUpperCase();
    const rows=(typeof pcPlayerRows==='function'?pcPlayerRows(USAGE.rows,{id:like.id,name:like.name,position:pos}):[])
     .slice().sort((a,b)=>Number(a.week)-Number(b.week));
-   if(rows.length)out={pos,season:summarise(rows,pos),recent:summarise(rows.slice(-3),pos),games:rows.length,
-    team:String(rows.at(-1).team||like.team||'').toUpperCase()};
+   if(rows.length){
+    const num=v=>Number.isFinite(Number(v))?Number(v):null;
+    const weeks=rows.slice(-5).map(r=>{
+     const total=USAGE.teamCarries.get(`${String(r.team||'').toUpperCase()}|${Number(r.week)}`);
+     const hit=USAGE.snaps&&typeof pcSnap==='function'?pcSnap(r,USAGE.snaps):null;
+     return {week:Number(r.week),snap:num(hit?.offense_pct),carries:num(r.carries)||0,targets:num(r.targets)||0,
+      target:num(r.target_share),carryShare:total>0?(num(r.carries)||0)/total:null};
+    });
+    out={pos,season:summarise(rows,pos),recent:summarise(rows.slice(-3),pos),games:rows.length,weeks,
+     team:String(rows.at(-1).team||like.team||'').toUpperCase()};
+   }
   }catch(_){out=null}
   USAGE.cache.set(key,out);return out;
  }
@@ -434,6 +469,74 @@
   if(['WR','TE','RB'].includes(u.pos)&&Number.isFinite(u.recent.target))bits.push(`${pct(u.recent.target)} target share`);
   if(['WR','TE'].includes(u.pos)&&Number.isFinite(u.recent.air))bits.push(`${pct(u.recent.air)} of air yards`);
   return bits.join(', ');
+ }
+
+ /* Week by week, in the terms that decide whether a role is real: snap share,
+    the carries or targets themselves, and the share of the team those represent. */
+ function usageMetrics(u){
+  if(!u||!u.weeks||u.weeks.length<2)return [];
+  const rb=u.pos==='RB';
+  const defs=[
+   {key:'snap',label:'Snap %',fmt:v=>Number.isFinite(v)?Math.round(v*100)+'%':'—',val:w=>w.snap},
+   rb?{key:'carries',label:'Carries',fmt:v=>Number.isFinite(v)?String(Math.round(v)):'—',val:w=>w.carries}
+     :{key:'targets',label:'Targets',fmt:v=>Number.isFinite(v)?String(Math.round(v)):'—',val:w=>w.targets},
+   rb?{key:'carryShare',label:'Team carries',fmt:v=>Number.isFinite(v)?Math.round(v*100)+'%':'—',val:w=>w.carryShare}
+     :{key:'target',label:'Team targets',fmt:v=>Number.isFinite(v)?Math.round(v*100)+'%':'—',val:w=>w.target}
+  ];
+  if(rb)defs.push({key:'targets',label:'Targets',fmt:v=>Number.isFinite(v)?String(Math.round(v)):'—',val:w=>w.targets});
+  return defs.filter(d=>u.weeks.some(w=>Number.isFinite(d.val(w))));
+ }
+ function trendOf(u,def){
+  if(!u||!u.weeks)return 0;
+  const vals=u.weeks.map(def.val).filter(Number.isFinite);
+  if(vals.length<3)return 0;
+  const half=Math.floor(vals.length/2);
+  const early=vals.slice(0,half).reduce((a,b)=>a+b,0)/half;
+  const late=vals.slice(-half).reduce((a,b)=>a+b,0)/half;
+  if(!early)return late>0?1:0;
+  const move=(late-early)/Math.abs(early);
+  return move>=.18?1:move<=-.18?-1:0;
+ }
+ function usageStrip(entry,side){
+  const u=usageOfEntry(entry);
+  const defs=usageMetrics(u);
+  if(!defs.length)return '';
+  const p=hjPlayer(entry)||{},photo=hjPlayerPhoto(entry),name=entryName(entry);
+  const attrs=ffnPlayerDataAttrs({id:p.id||entry?.playerId||'',name,team:hjPlayerTeam(entry),position:hjPlayerPosition(entry),photo});
+  const dir=trendOf(u,defs[0])||trendOf(u,defs[1]||defs[0]);
+  const tag=dir>0?'<span class="td-usage-tag is-up">Role growing</span>':dir<0?'<span class="td-usage-tag is-down">Role shrinking</span>':'<span class="td-usage-tag">Steady</span>';
+  const cols=u.weeks.length;
+  const rows=defs.map(def=>{
+   const vals=u.weeks.map(def.val);
+   const max=Math.max(...vals.filter(Number.isFinite),0)||1;
+   return `<div class="td-usage-row"><span class="td-usage-label">${E(def.label)}</span>${u.weeks.map((w,i)=>{
+    const v=vals[i],h=Number.isFinite(v)?Math.max(6,100*v/max):0;
+    return `<span class="td-usage-cell"><i style="height:${h.toFixed(0)}%"></i><b>${E(def.fmt(v))}</b></span>`;
+   }).join('')}</div>`;
+  }).join('');
+  return `<article class="td-usage" style="--cols:${cols}">
+   <div class="td-usage-head">
+    <button type="button" class="td-usage-face pc-player-trigger" ${attrs} aria-label="Open ${E(name)}">${photo?`<img src="${E(photo)}" alt="" loading="lazy" onerror="this.remove()">`:''}</button>
+    <div class="td-usage-who"><b>${E(name)}</b><small>${E(hjPlayerPosition(entry))} · ${E(hjPlayerTeam(entry))} · to ${E(side)}</small></div>
+    ${tag}
+   </div>
+   <div class="td-usage-grid">
+    <div class="td-usage-row is-weeks"><span class="td-usage-label">Week</span>${u.weeks.map(w=>`<span class="td-usage-cell is-week"><b>${w.week}</b></span>`).join('')}</div>
+    ${rows}
+   </div>
+  </article>`;
+ }
+ /* The same series as a sentence, for the written case. */
+ function trendSentence(entry){
+  const u=usageOfEntry(entry),defs=usageMetrics(u);
+  if(!defs.length)return '';
+  const say=def=>{
+   const vals=u.weeks.map(def.val);
+   if(vals.filter(Number.isFinite).length<3)return '';
+   return `${def.label.toLowerCase()} ${vals.slice(-3).map(v=>def.fmt(v)).join(' → ')}`;
+  };
+  const parts=defs.map(say).filter(Boolean).slice(0,3);
+  return parts.length?`Weeks ${u.weeks.slice(-3).map(w=>w.week).join(', ')}: ${parts.join('; ')}.`:'';
  }
 
  /* Who is actually available on the wire, so an upgrade can be measured
@@ -619,7 +722,7 @@
      Number.isFinite(r.carryShare)&&Number.isFinite(se.carryShare)&&r.carryShare-se.carryShare>=.07?`${pct(r.carryShare)} of the carries, up from ${pct(se.carryShare)}`:'',
      Number.isFinite(r.target)&&Number.isFinite(se.target)&&r.target-se.target>=.04?`${pct(r.target)} target share, up from ${pct(se.target)}`:''
     ].filter(Boolean);
-    if(climbing.length)out.push(`${entryName(e)}'s role is growing — ${climbing[0]}. Usage moves a week or two before the points do.`);
+    if(climbing.length){const t=trendSentence(e);out.push(`${entryName(e)}'s role is growing — ${climbing[0]}.${t?` ${t}`:''} Usage moves a week or two before the points do.`)}
     const heavy=(Number.isFinite(r.snap)&&r.snap>=.6)||(Number.isFinite(r.target)&&r.target>=.18)||(Number.isFinite(r.carryShare)&&r.carryShare>=.45);
     const median=USAGE.posPPO.get(u.pos);
     if(heavy&&Number.isFinite(r.ppo)&&Number.isFinite(median)&&r.ppo<median*.82)
@@ -656,7 +759,7 @@
       Number.isFinite(r.carryShare)&&Number.isFinite(se.carryShare)&&se.carryShare-r.carryShare>=.08?`carry share down to ${pct(r.carryShare)} from ${pct(se.carryShare)}`:'',
       Number.isFinite(r.target)&&Number.isFinite(se.target)&&se.target-r.target>=.05?`target share down to ${pct(r.target)} from ${pct(se.target)}`:''
      ].filter(Boolean);
-     if(slipping.length)out.push(`${entryName(e)}'s role is shrinking — ${slipping[0]}.`);
+     if(slipping.length){const t=trendSentence(e);out.push(`${entryName(e)}'s role is shrinking — ${slipping[0]}.${t?` ${t}`:''}`)}
      if(Number.isFinite(se.tdShare)&&se.tdShare>=.45&&se.games>=3)
       out.push(`${Math.round(se.tdShare*100)}% of ${entryName(e)}'s points have come from touchdowns${Number.isFinite(se.touches)?` on ${Math.round(se.touches)} touches`:''} — that rate is the first thing to regress.`);
      const rep=replacementFor(u.pos),val=valueOf(e);
@@ -721,14 +824,32 @@
  }
 
  /* ---------- impact ---------- */
- function unitBars(side){
-  return `<div class="td-units">${UNITS.map(key=>{
-   const before=side.unitsBefore[key]||0,after=side.unitsAfter[key]||0;
-   const max=Math.max(before,after,1),d=after-before;
+ /* Grey is what the manager has today; green or red is what the deal does to it.
+    The rank beside each bar is where that position sits in the league, which is
+    what actually tells you whether it is a need. */
+ function unitBars(side,m){
+  const scale=Math.max(1,...m.sides.flatMap(x=>UNITS.map(u=>Math.max(x.unitsBefore[u]||0,x.unitsAfter[u]||0))));
+  const w=v=>`${(100*Math.max(0,v)/scale).toFixed(1)}%`;
+  const rankTone=r=>!Number.isFinite(r)?'':r<=3?'is-strong':r>=Math.max(2,side.teamCount-2)?'is-weak':'';
+  return `<div class="td-units">
+   <div class="td-units-key"><i class="key-before"></i><span>Today</span><i class="key-up"></i><span>Added</span><i class="key-down"></i><span>Left with</span><span class="td-units-rankkey">rank in league</span></div>
+   ${UNITS.map(key=>{
+   const before=side.unitsBefore[key]||0,after=side.unitsAfter[key]||0,d=after-before;
+   const rb=side.unitRankBefore?.[key],ra=side.unitRankAfter?.[key];
+   const moved=Number.isFinite(rb)&&Number.isFinite(ra)&&rb!==ra;
    return `<div class="td-unit${d>1?' is-up':d<-1?' is-down':' is-same'}">
     <span class="td-unit-name">${key==='FLEX'?'FX':key}</span>
-    <div class="td-unit-track"><i class="before" style="width:${(100*before/max).toFixed(1)}%"></i><i class="after" style="width:${(100*after/max).toFixed(1)}%"></i></div>
-    <span class="td-unit-delta">${d>1?'+':''}${Math.abs(d)<1?'—':money(d)}</span>
+    <span class="td-unit-rank ${rankTone(rb)}">${Number.isFinite(rb)?'#'+rb:'—'}${moved?`<em>→ #${ra}</em>`:''}</span>
+    <div class="td-unit-track">
+     ${d>1
+      /* A gain: today's value in grey, the addition sticking out past it in green. */
+      ?`<i class="base" style="width:${w(before)}"></i><i class="gain" style="left:${w(before)};width:${w(d)}"></i>`
+      :d<-1
+      /* A loss: what is left in red, and the part being given up sticking out in grey. */
+      ?`<i class="loss" style="width:${w(after)}"></i><i class="gone" style="left:${w(after)};width:${w(-d)}"></i>`
+      :`<i class="base" style="width:${w(before)}"></i>`}
+    </div>
+    <span class="td-unit-delta">${Math.abs(d)<1?money(before):`${d>0?'+':'−'}${money(Math.abs(d))}`}</span>
    </div>`;
   }).join('')}</div>`;
  }
@@ -743,7 +864,7 @@
     <div class="td-metric"><small>League rank</small><b>#${side.rankAfter}</b><i class="${rankMove>0?'is-up':rankMove<0?'is-down':''}">${rankMove===0?'no change':`${rankMove>0?'▲':'▼'} ${Math.abs(rankMove)} from #${side.rankBefore}`}</i></div>
     <div class="td-metric"><small>Starting lineup</small><b>${pts(side.lineupAfter.total)}</b><i class="${lift>.05?'is-up':lift<-.05?'is-down':''}">${Math.abs(lift)<.05?'unchanged':`${lift>0?'+':'−'}${pts(Math.abs(lift))} projected`}</i></div>
    </div>
-   ${unitBars(side)}
+   ${unitBars(side,m)}
   </section>`;
  }
 
@@ -783,12 +904,20 @@
   </div>`;
  }
 
+ function usagePanel(m){
+  const strips=[...m.take.map(e=>({e,to:m.sides[0].manager})),...m.give.map(e=>({e,to:m.sides[1].manager}))]
+   .map(x=>usageStrip(x.e,x.to)).filter(Boolean);
+  if(!strips.length)return '';
+  return `<div class="td-usage-block"><h4>Usage, week by week</h4><p>Snap share, the touches themselves, and the share of the team they represent — the numbers that say whether a role is real before the points catch up.</p><div class="td-usage-list">${strips.join('')}</div></div>`;
+ }
+
  function analysisPanel(m){
   const a=analyse(m);
   if(!a)return '';
   return `<section class="td-analysis">
    <div class="td-analysis-head"><h3>Beyond the price</h3><p>Scored from this league’s own record, schedule, projections, grades, snap counts and target shares. The bar leans toward whoever the factor favours.</p><p class="td-timing"><b>Week ${week()}.</b> ${E(timingNote().copy)}</p></div>
    ${scorecard(a)}
+   ${usagePanel(m)}
    <div class="td-cases">${a.cases.map(caseCard).join('')}</div>
   </section>`;
  }
