@@ -43,6 +43,12 @@ try{
   });
   assert.equal(dimensions.before,dimensions.original,'Collapsed Spin must add ZERO card height');
   assert.equal(dimensions.text,'','Collapsed control shows only a plus');
+  const placement=await summary.evaluate(el=>{
+   const news=el.closest('.ffn-card').querySelector('.ffn-text').getBoundingClientRect(),plus=el.getBoundingClientRect();
+   return {below:plus.top>=news.bottom-1,right:Math.abs(plus.right-news.right)<1};
+  });
+  assert.equal(placement.below,true,'Plus sits below the actual news text');
+  assert.equal(placement.right,true,'Plus aligns with the right edge of the actual news');
   await summary.click();
   await page.waitForFunction(()=>document.querySelector('.ffn-spin').open);
   assert.equal(await first.locator('p').isVisible(),true);
