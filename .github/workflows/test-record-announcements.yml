@@ -1,0 +1,25 @@
+name: Verify record announcements
+on:
+  push:
+    branches: [site-display-fixes, main]
+    paths:
+      - 'scripts/*record*.js'
+      - 'scripts/*record*.mjs'
+      - 'scripts/recap-live.js'
+      - 'scripts/direct-links.js'
+      - 'scripts/prepare-site.mjs'
+      - 'styles/weekly-recap.css'
+      - '.github/workflows/test-record-announcements.yml'
+permissions:
+  contents: read
+jobs:
+  records:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Verify league record data
+        run: node scripts/test-record-announcements.mjs
