@@ -26,6 +26,29 @@ export function prepareSite(html){
  html=replaceOnce(html,/<link rel="icon" type="image\/png" sizes="512x512"[^>]*>/g,'<link rel="icon" type="image/png" sizes="512x512" href="/hung-jurors-icon-512-v1.png">');
  html=replaceOnce(html,/<link rel="manifest"[^>]*>/g,'<link rel="manifest" href="/site.webmanifest?v=hung-jurors-logo-v1">');
 
+ // Completed postseason matchups (including weeks with byes) can also carry record announcements.
+ html=replaceOnce(html,/for\(const game of data\?\.schedule\|\|\[\]\)\{if\(!hjGameFinal\(game,data\)\)continue;/g,'for(const game of data?.schedule||[]){if(!hjRcGameFinal(game,data))continue;');
+ html=replaceOnce(html,/if\(games\.length<Math\.floor\(teamNames\.size\/2\)\)return \[\];const rows=\[\];/g,'const scheduled=(data.schedule||[]).filter(g=>Number(g.matchupPeriodId)===week&&g.home?.teamId&&g.away?.teamId);if(games.length!==scheduled.length)return [];const rows=[];');
+ // Stable destinations for every entry in the record book.
+ html=replaceOnce(html,/\{title:'Most Championships',/g,"{id:'most-championships',title:'Most Championships',");
+ html=replaceOnce(html,/\{title:'Most Regular-Season Wins',/g,"{id:'most-regular-season-wins',title:'Most Regular-Season Wins',");
+ html=replaceOnce(html,/\{title:'Most Playoff Appearances',/g,"{id:'most-playoff-appearances',title:'Most Playoff Appearances',");
+ html=replaceOnce(html,/\{title:'Most Podium Finishes',/g,"{id:'most-podium-finishes',title:'Most Podium Finishes',");
+ html=replaceOnce(html,/\{title:'Best Regular Season',/g,"{id:'best-regular-season',title:'Best Regular Season',");
+ html=replaceOnce(html,/\{title:'Best Weekly Scoring Season',/g,"{id:'best-weekly-scoring-season',title:'Best Weekly Scoring Season',");
+ html=replaceOnce(html,/\{title:'Longest Winning Streak',/g,"{id:'longest-winning-streak',title:'Longest Winning Streak',");
+ html=replaceOnce(html,/\{title:'Longest Losing Streak',/g,"{id:'longest-losing-streak',title:'Longest Losing Streak',");
+ html=replaceOnce(html,/\{title:'Highest Score',/g,"{id:'highest-score',title:'Highest Score',");
+ html=replaceOnce(html,/\{title:'Highest Score in a Loss',/g,"{id:'highest-score-in-a-loss',title:'Highest Score in a Loss',");
+ html=replaceOnce(html,/\{title:'Lowest Score in a Win',/g,"{id:'lowest-score-in-a-win',title:'Lowest Score in a Win',");
+ html=replaceOnce(html,/\{title:'Closest Game',/g,"{id:'closest-game',title:'Closest Game',");
+ html=replaceOnce(html,/\{title:'Biggest Blowout',/g,"{id:'biggest-blowout',title:'Biggest Blowout',");
+ html=replaceOnce(html,/\{title:'Highest Combined Score',/g,"{id:'highest-combined-score',title:'Highest Combined Score',");
+ html=replaceOnce(html,/\{title:'Highest Playoff Score',/g,"{id:'highest-playoff-score',title:'Highest Playoff Score',");
+ html=replaceOnce(html,/\{title:'Highest Combined Playoff Game',/g,"{id:'highest-combined-playoff-game',title:'Highest Combined Playoff Game',");
+ html=replaceOnce(html,/\{title:'Closest Championship',/g,"{id:'closest-championship',title:'Closest Championship',");
+ html=replaceOnce(html,/\{title:'Biggest Championship Win',/g,"{id:'biggest-championship-win',title:'Biggest Championship Win',");
+ html=replaceOnce(html,/<article class="rb-entry">/g,'<article class="rb-entry" id="record-${r.id}" tabindex="-1">');
  // Every version of the Players toolbar shares the same search control.
  const searchInputs=/<input class="hq-fa-control" id="hq-fa-search"[^>]*>/g;
  if([...html.matchAll(searchInputs)].length!==3)throw Error('Player search markup changed');
@@ -101,7 +124,7 @@ export function prepareSite(html){
  // Hosted Vegas projections stay visible for 36 hours after the last verified retrieval so a collector hiccup never blanks the site.
  if(!/<\/body>\s*<\/html>\s*$/.test(html))throw Error('Page end changed; review layout guard injection');
  return html.replace(old,'Date.now()-at<36*60*60*1000&&data.updated')
-  .replace('</head>','<link rel="stylesheet" href="/styles/player-search.css?v=20260924a">\n<link rel="stylesheet" href="/styles/wire-interaction.css?v=20260923b">\n<link rel="stylesheet" href="/styles/news-spin.css?v=20260924a">\n<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/standings.css?v=20260918-a1">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20260924a">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3">\n</head>')
+  .replace('</head>','<link rel="stylesheet" href="/styles/player-search.css?v=20260924a">\n<link rel="stylesheet" href="/styles/wire-interaction.css?v=20260923b">\n<link rel="stylesheet" href="/styles/news-spin.css?v=20260924a">\n<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/standings.css?v=20260918-a1">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20260924-records">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3">\n</head>')
   .replace(/<\/body>\s*<\/html>\s*$/,'<script id="hj-player-search">'+playerSearch+'</script>\n<script>ffnInstallSpin();</script>\n<script id="hj-record-engine">'+recordEngine+'</script>\n<script id="hj-record-live">'+recordLive+'</script>\n<script id="hj-direct-links">'+directLinks+'</script>\n<script id="hj-wire-live">'+wireLive+'</script>\n<script id="hj-layout-guard">'+layoutGuard+'</script>\n</body>\n</html>\n');
 }
 if(process.argv[2])await writeFile(process.argv[2],prepareSite(await readFile(process.argv[2],'utf8')));

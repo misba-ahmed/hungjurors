@@ -1,6 +1,9 @@
 /* Shareable destinations; tab selection also updates the address bar. */
 function hjDirectRoute(hash){
  let slug;try{slug=decodeURIComponent(hash.replace(/^#/,''))}catch(_){return null}
+ const records={"legacy":["most-championships","most-regular-season-wins","most-playoff-appearances","most-podium-finishes"],"regular":["best-regular-season","best-weekly-scoring-season","longest-winning-streak","longest-losing-streak"],"scoring":["highest-score","highest-score-in-a-loss","lowest-score-in-a-win","closest-game","biggest-blowout","highest-combined-score"],"playoffs":["highest-playoff-score","highest-combined-playoff-game","closest-championship","biggest-championship-win"]};
+ const record=slug.match(/^record-book\/([a-z-]+)$/);
+ if(record){const category=Object.keys(records).find(key=>records[key].includes(record[1]));return category?{slug,target:'record-book-fold',fold:true,category,record:record[1]}:null}
  const hq={rosters:'rosters',matchups:'matchups',players:'free-agents','roster-strength':'strength',activity:'activity','weekly-recap':'recap'};
  const folds={'past-seasons':'champions-fold','record-book':'record-book-fold',awards:'league-awards-fold','record-book-fold':'record-book-fold'};
  if(Object.hasOwn(hq,slug))return {slug,tab:hq[slug],target:'league-hq'};
@@ -13,8 +16,14 @@ function hjDirectRoute(hash){
  const hqSlug={rosters:'rosters',matchups:'matchups','free-agents':'players',strength:'roster-strength',activity:'activity',recap:'weekly-recap'};
  function address(slug){if(!applying&&location.hash!=='#'+slug)history.pushState(null,'','#'+slug)}
  function scroll(route){
-  const target=document.getElementById(route.target);if(!target)return;
+  let target=document.getElementById(route.target);if(!target)return;
   if(route.fold)target.open=true;
+  if(route.record){
+   const tab=document.querySelector('#record-tabs [data-record-category="'+route.category+'"]');
+   if(tab?.getAttribute('aria-selected')!=='true')tab?.click();
+   target=document.getElementById('record-'+route.record)||target;
+   target.focus?.({preventScroll:true});
+  }
   const nav=document.querySelector('nav'),offset=(nav?.getBoundingClientRect().height||0)+12;
   window.scrollTo({top:Math.max(0,target.getBoundingClientRect().top+window.scrollY-offset),behavior:'instant'});
   const tab=route.tab?document.querySelector('[data-hq-tab="'+route.tab+'"]'):route.challenge?document.querySelector('#challenge-strip [data-challenge="'+route.challenge+'"]'):null;
@@ -36,6 +45,7 @@ function hjDirectRoute(hash){
  hjRenderLeague=function(){const result=render.apply(this,arguments);if(pending){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(pending)scroll(pending)})}return result};
  const cancel=()=>{pending=null};
  for(const event of ['wheel','touchstart','pointerdown','keydown'])window.addEventListener(event,cancel,{passive:true});
+ document.addEventListener('hj:records',()=>{if(pending?.record){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(pending)scroll(pending)})}});
  window.addEventListener('hashchange',apply);
  window.addEventListener('popstate',apply);
  document.addEventListener('click',event=>{

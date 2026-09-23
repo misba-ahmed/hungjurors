@@ -1,0 +1,228 @@
+{
+  "year": 2026,
+  "regular": 14,
+  "teams": [
+    "MISBA",
+    "BRYAN",
+    "TYLER",
+    "NATHAN M",
+    "WASI",
+    "CESAR",
+    "NATHAN T",
+    "GARRETT",
+    "JARRETT",
+    "KAT"
+  ],
+  "games": [
+    {
+      "year": 2026,
+      "period": 1,
+      "manager1": "CESAR",
+      "manager2": "KAT",
+      "score1": 97.56,
+      "score2": 150.06,
+      "homeTeamId": 6,
+      "awayTeamId": 10,
+      "matchupId": 0,
+      "weekly": [
+        {
+          "week": 1,
+          "score1": 97.56,
+          "score2": 150.06
+        }
+      ],
+      "final": true,
+      "winner": "KAT",
+      "regular": true
+    },
+    {
+      "year": 2026,
+      "period": 1,
+      "manager1": "GARRETT",
+      "manager2": "NATHAN T",
+      "score1": 130.86,
+      "score2": 157.06,
+      "homeTeamId": 8,
+      "awayTeamId": 7,
+      "matchupId": 1,
+      "weekly": [
+        {
+          "week": 1,
+          "score1": 130.86,
+          "score2": 157.06
+        }
+      ],
+      "final": true,
+      "winner": "NATHAN T",
+      "regular": true
+    },
+    {
+      "year": 2026,
+      "period": 1,
+      "manager1": "BRYAN",
+      "manager2": "JARRETT",
+      "score1": 126.02,
+      "score2": 134.8,
+      "homeTeamId": 2,
+      "awayTeamId": 9,
+      "matchupId": 2,
+      "weekly": [
+        {
+          "week": 1,
+          "score1": 126.02,
+          "score2": 134.8
+        }
+      ],
+      "final": true,
+      "winner": "JARRETT",
+      "regular": true
+    },
+    {
+      "year": 2026,
+      "period": 1,
+      "manager1": "TYLER",
+      "manager2": "NATHAN M",
+      "score1": 145.56,
+      "score2": 147.4,
+      "homeTeamId": 3,
+      "awayTeamId": 4,
+      "matchupId": 3,
+      "weekly": [
+        {
+          "week": 1,
+          "score1": 145.56,
+          "score2": 147.4
+        }
+      ],
+      "final": true,
+      "winner": "NATHAN M",
+      "regular": true
+    },
+    {
+      "year": 2026,
+      "period": 1,
+      "manager1": "MISBA",
+      "manager2": "WASI",
+      "score1": 94.82,
+      "score2": 151.52,
+      "homeTeamId": 1,
+      "awayTeamId": 5,
+      "matchupId": 4,
+      "weekly": [
+        {
+          "week": 1,
+          "score1": 94.82,
+          "score2": 151.52
+        }
+      ],
+      "final": true,
+      "winner": "WASI",
+      "regular": true
+    },
+    {
+      "year": 2026,
+      "period": 2,
+      "manager1": "KAT",
+      "manager2": "NATHAN T",
+      "score1": 113.86,
+      "score2": 127.22,
+      "homeTeamId": 10,
+      "awayTeamId": 7,
+      "matchupId": 5,
+      "weekly": [
+        {
+          "week": 2,
+          "score1": 113.86,
+          "score2": 127.22
+        }
+      ],
+      "final": true,
+      "winner": "NATHAN T",
+      "regular": true
+    },
+    {
+      "year": 2026,
+      "period": 2,
+      "manager1": "JARRETT",
+      "manager2": "CESAR",
+      "score1": 118.68,
+      "score2": 118.7,
+      "homeTeamId": 9,
+      "awayTeamId": 6,
+      "matchupId": 6,
+      "weekly": [
+        {
+          "week": 2,
+          "score1": 118.68,
+          "score2": 118.7
+        }
+      ],
+      "final": true,
+      "winner": "CESAR",
+      "regular": true
+    },
+    {
+      "year": 2026,
+      "period": 2,
+      "manager1": "NATHAN M",
+      "manager2": "GARRETT",
+      "score1": 84.46,
+      "score2": 110.48,
+      "homeTeamId": 4,
+      "awayTeamId": 8,
+      "matchupId": 7,
+      "weekly": [
+        {
+          "week": 2,
+          "score1": 84.46,
+          "score2": 110.48
+        }
+      ],
+      "final": true,
+      "winner": "GARRETT",
+      "regular": true
+    },
+    {
+      "year": 2026,
+      "period": 2,
+      "manager1": "WASI",
+      "manager2": "BRYAN",
+      "score1": 137.36,
+      "score2": 150.22,
+      "homeTeamId": 5,
+      "awayTeamId": 2,
+      "matchupId": 8,
+      "weekly": [
+        {
+          "week": 2,
+          "score1": 137.36,
+          "score2": 150.22
+        }
+      ],
+      "final": true,
+      "winner": "BRYAN",
+      "regular": true
+    },
+    {
+      "year": 2026,
+      "period": 2,
+      "manager1": "MISBA",
+      "manager2": "TYLER",
+      "score1": 85.32,
+      "score2": 179.52,
+      "homeTeamId": 1,
+      "awayTeamId": 3,
+      "matchupId": 9,
+      "weekly": [
+        {
+          "week": 2,
+          "score1": 85.32,
+          "score2": 179.52
+        }
+      ],
+      "final": true,
+      "winner": "TYLER",
+      "regular": true
+    }
+  ]
+}

@@ -17,7 +17,7 @@ function hjRecordSnapshot(data, year, managerName) {
   const final=['HOME','AWAY','TIE'].includes(g.winner)&&score1!==null&&score2!==null;
   // Never compare a multi-week total to a single-week record.
   const weekly=weeks.map(week=>({week:Number(week),score1:number(g.home.pointsByScoringPeriod?.[week]??(weeks.length===1?score1:null)),score2:number(g.away.pointsByScoringPeriod?.[week]??(weeks.length===1?score2:null))}));
-  games.push({year,period,manager1,manager2,score1,score2,weekly,final,winner:g.winner==='HOME'?manager1:g.winner==='AWAY'?manager2:null,tier:g.playoffTierType,regular:period<=regular});
+  games.push({year,period,homeTeamId:g.home.teamId,awayTeamId:g.away.teamId,matchupId:g.id,manager1,manager2,score1,score2,weekly,final,winner:g.winner==='HOME'?manager1:g.winner==='AWAY'?manager2:null,tier:g.playoffTierType,regular:period<=regular});
  }
  return {year,regular,teams:[...names.values()],games};
 }
@@ -111,3 +111,78 @@ function hjBuildRecordHistory(baseline,snapshots) {
  }
  return history;
 }
+
+/* Record announcements compare the book before and after each completed matchup period.
+   Rebuilding from the archive makes score corrections retract or revise announcements. */
+const HJ_RECORD_DEFINITIONS=[
+ {id:'most-championships',category:'legacy',title:'Most Championships',path:['legacy','most_championships'],field:'value',unit:'titles',headline:'A new championship standard!'},
+ {id:'most-regular-season-wins',announce:false,category:'legacy',title:'Most Regular-Season Wins',path:['legacy','most_regular_season_wins'],field:'value',unit:'career wins',headline:'More wins than anyone in league history!'},
+ {id:'most-playoff-appearances',category:'legacy',title:'Most Playoff Appearances',path:['legacy','most_playoff_appearances'],field:'value',unit:'playoff trips',headline:'A new postseason milestone!'},
+ {id:'most-podium-finishes',category:'legacy',title:'Most Podium Finishes',path:['legacy','most_podiums'],field:'value',unit:'podium finishes',headline:'A new all-time podium mark!'},
+ {id:'best-regular-season',category:'regular',title:'Best Regular Season',path:['regular_season','best_single_season_win_pct'],field:'win_pct',format:'record',unit:'season record',headline:'The best regular season in league history!'},
+ {id:'best-weekly-scoring-season',category:'regular',title:'Best Weekly Scoring Season',path:['regular_season','best_all_play_season'],field:'all_play_pct',format:'percent',unit:'of opponents outscored',headline:'A season above the rest—an all-time best!'},
+ {id:'longest-winning-streak',category:'regular',title:'Longest Winning Streak',path:['regular_season','longest_win_streak'],field:'games',unit:'straight wins',headline:'The longest winning streak in league history!'},
+ {id:'longest-losing-streak',category:'regular',title:'Longest Losing Streak',path:['regular_season','longest_loss_streak'],field:'games',unit:'straight losses',headline:'An unprecedented losing streak!'},
+ {id:'highest-score',category:'scoring',title:'Highest Score',path:['scoring','highest_raw_week'],field:'score',format:'points',unit:'points',headline:'The biggest score in league history!'},
+ {id:'highest-score-in-a-loss',category:'scoring',title:'Highest Score in a Loss',path:['scoring','highest_scoring_loss'],field:'score',format:'points',unit:'points in a loss',headline:'Never has this much scoring ended in a loss!'},
+ {id:'lowest-score-in-a-win',category:'scoring',title:'Lowest Score in a Win',path:['scoring','lowest_scoring_win'],field:'score',format:'points',low:true,unit:'points in a win',headline:'The lowest winning score in league history!'},
+ {id:'closest-game',category:'scoring',title:'Closest Game',path:['scoring','closest_regular_season_game'],field:'margin',format:'points',low:true,unit:'points apart',headline:'The closest finish in league history!'},
+ {id:'biggest-blowout',category:'scoring',title:'Biggest Blowout',path:['scoring','biggest_regular_season_blowout'],field:'margin',format:'points',unit:'point margin',headline:'The biggest blowout in league history!'},
+ {id:'highest-combined-score',category:'scoring',title:'Highest Combined Score',path:['scoring','highest_combined_score_game'],field:'total',format:'points',unit:'combined points',headline:'The highest-scoring showdown in league history!'},
+ {id:'highest-playoff-score',category:'playoffs',title:'Highest Playoff Score',path:['playoffs','highest_single_week_playoff_score_2018_onward'],field:'score',format:'points',unit:'playoff points',headline:'A new playoff scoring high!'},
+ {id:'highest-combined-playoff-game',category:'playoffs',title:'Highest Combined Playoff Game',field:'total',format:'points',unit:'combined playoff points',headline:'The biggest playoff shootout in league history!'},
+ {id:'closest-championship',category:'playoffs',title:'Closest Championship',path:['playoffs','closest_championship_2018_onward'],field:'margin',format:'points',low:true,unit:'points apart',headline:'The closest title finish in league history!'},
+ {id:'biggest-championship-win',category:'playoffs',title:'Biggest Championship Win',path:['playoffs','largest_championship_margin_2018_onward'],field:'margin',format:'points',unit:'point margin',headline:'The biggest championship win in league history!'}
+];
+function hjRecordMarks(history){
+ return HJ_RECORD_DEFINITIONS.map(def=>{
+  let source;
+  if(def.path)source=def.path.reduce((v,k)=>v?.[k],history.record_book);
+  else source=(history.official_playoffs||[]).filter(p=>Number(p.year)>=2018).flatMap(p=>[
+   ...(p.semifinals||[]).map(g=>({...g,year:Number(p.year),round:g.round||'Semifinal'})),
+   ...(p.championship?[{...p.championship,year:Number(p.year),round:'Championship'}]:[])
+  ]).map(g=>({...g,total:Math.round((Number(g.score1)+Number(g.score2))*100)/100})).sort((a,b)=>b.total-a.total)[0];
+  const rows=Array.isArray(source)?source:[source],row=rows[0];
+  if(!row)return {...def,value:null,people:[],mark:'—',detail:''};
+  const value=Number(row[def.field]);
+  let people;
+  if(row.manager1&&row.manager2)people=[{name:row.manager1,score:Number(row.score1)},{name:row.manager2,score:Number(row.score2)}].sort((a,b)=>b.score-a.score);
+  else if(row.opponent)people=[{name:row.manager,score:Number(row.score)},{name:row.opponent,score:Number(row.opp_score)}];
+  else people=(row.holders||rows).map(r=>({name:r.manager,year:r.year}));
+  const mark=def.format==='record'?row.wins+'–'+row.losses+(row.ties?'–'+row.ties:''):def.format==='percent'?(value*100).toFixed(1)+'%':def.format==='points'?value.toFixed(2):String(value);
+  const detail=[row.year,row.week?'Week '+row.week:row.round?(row.round[0].toUpperCase()+row.round.slice(1)):null].filter(Boolean).join(' · ');
+  return {...def,value,mark,people,detail,row};
+ });
+}
+function hjRecordChanges(before,after){
+ const prior=new Map(hjRecordMarks(before).map(mark=>[mark.id,mark]));
+ return hjRecordMarks(after).flatMap(current=>{
+  const previous=prior.get(current.id);
+  if(current.announce===false)return [];
+  if(current.value===null||previous?.value===null||!Number.isFinite(current.value)||!Number.isFinite(previous?.value))return [];
+  const broken=current.low?current.value<previous.value-1e-9:current.value>previous.value+1e-9;
+  return broken?[{id:current.id,category:current.category,current,previous}]:[];
+ });
+}
+function hjRecordTimeline(baseline,snapshots){
+ const years=[...new Map(snapshots.filter(s=>s.year>Number(baseline.metadata.completed_through)).map(s=>[s.year,s])).values()].sort((a,b)=>a.year-b.year);
+ if(years.some((s,i)=>s.year!==Number(baseline.metadata.completed_through)+1+i))return {history:baseline,events:[]};
+ const completed=[],events=[];let before=baseline;
+ for(const snapshot of years){
+  const periods=[...new Set(snapshot.games.filter(g=>g.final).map(g=>g.period))].sort((a,b)=>a-b);
+  for(const period of periods){
+   // Keep future bracket rounds present but unfinished, so an early round cannot become a championship.
+   const partial={...snapshot,games:snapshot.games.map(g=>({...g,final:g.final&&g.period<=period}))};
+   const after=hjBuildRecordHistory(baseline,[...completed,partial]);
+   for(const change of hjRecordChanges(before,after)){
+    const names=new Set(change.current.people.map(p=>p.name));
+    const matches=snapshot.games.filter(g=>g.final&&g.period===period&&(names.has(g.manager1)||names.has(g.manager2)));
+    events.push({...change,key:snapshot.year+':'+period+':'+change.id,year:snapshot.year,week:period,matches});
+   }
+   before=after;
+  }
+  completed.push(snapshot);
+ }
+ return {history:before,events};
+}
+const HJ_RECORD_STATE={snapshots:new Map(),signature:'',history:null,events:[]};

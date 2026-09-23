@@ -1,10 +1,15 @@
 /* Refresh the existing record renderer without changing its presentation. */
 (function(){
- const snapshots=new Map();let loading=false;
+ const snapshots=HJ_RECORD_STATE.snapshots;let loading=false;
  function update(data,year){
   const snapshot=hjRecordSnapshot(data,year,(team,payload)=>hjMatchManager(team,payload)||hjOwnerName(team,payload));
   snapshots.set(year,snapshot);
-  document.dispatchEvent(new CustomEvent('hj:records',{detail:hjBuildRecordHistory(HIST,[...snapshots.values()])}));
+  const ordered=[...snapshots.values()].sort((a,b)=>a.year-b.year),signature=JSON.stringify(ordered);
+  if(signature===HJ_RECORD_STATE.signature||ordered.some((s,i)=>s.year!==Number(HIST.metadata.completed_through)+1+i))return;
+  const timeline=hjRecordTimeline(HIST,ordered);
+  HJ_RECORD_STATE.signature=signature;HJ_RECORD_STATE.history=timeline.history;HJ_RECORD_STATE.events=timeline.events;
+  document.dispatchEvent(new CustomEvent('hj:records',{detail:timeline.history}));
+  if(typeof hjRefreshRecap==='function')hjRefreshRecap();
  }
  const apply=hjApplyLiveSeason;
  hjApplyLiveSeason=function(data){
