@@ -20,6 +20,12 @@ function replaceOnce(html,pattern,replacement){
  return html.replace(pattern,()=>replacement);
 }
 export function prepareSite(html){
+ // Use real PNG files, with fresh URLs so failed icon requests are not reused.
+ html=replaceOnce(html,/<link rel="apple-touch-icon"[^>]*>/g,'<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-hung-jurors-v1.png">');
+ html=replaceOnce(html,/<link rel="icon" type="image\/png" sizes="192x192"[^>]*>/g,'<link rel="icon" type="image/png" sizes="192x192" href="/hung-jurors-icon-192-v1.png">');
+ html=replaceOnce(html,/<link rel="icon" type="image\/png" sizes="512x512"[^>]*>/g,'<link rel="icon" type="image/png" sizes="512x512" href="/hung-jurors-icon-512-v1.png">');
+ html=replaceOnce(html,/<link rel="manifest"[^>]*>/g,'<link rel="manifest" href="/site.webmanifest?v=hung-jurors-logo-v1">');
+
  // Every version of the Players toolbar shares the same search control.
  const searchInputs=/<input class="hq-fa-control" id="hq-fa-search"[^>]*>/g;
  if([...html.matchAll(searchInputs)].length!==3)throw Error('Player search markup changed');

@@ -14,7 +14,7 @@ permissions:
 jobs:
   icons:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -22,18 +22,28 @@ jobs:
           node-version: '24'
       - name: Install image verification tool
         run: npm install --no-save --package-lock=false sharp@0.34.5
-      - name: Generate exact homepage logo icons
-        run: node scripts/build-app-icons.mjs
-      - name: Read generated icon bytes
+      - name: Verify icons match the homepage logo
+        run: node scripts/build-app-icons.mjs --check
+      - name: Verify the staged site includes every icon
+        run: |
+          mkdir -p _site
+          git archive HEAD | tar -x -C _site
+          node scripts/prepare-site.mjs _site/index.html
+          node scripts/test-app-icons.mjs _site
+      - name: Verify the published icon responses
+        if: github.ref == 'refs/heads/main'
         run: |
           node --input-type=module <<'NODE'
-          import {readFile} from 'node:fs/promises';
-          for(const file of ['apple-touch-icon-hung-jurors-v1.png','hung-jurors-icon-192-v1.png','hung-jurors-icon-512-v1.png']){
-            const encoded=(await readFile(file)).toString('base64');
-            for(let offset=0;offset<encoded.length;offset+=3000)console.log('ICON_BYTES '+JSON.stringify({file,offset,data:encoded.slice(offset,offset+3000)}));
+          import {spawnSync} from 'node:child_process';
+          import {setTimeout} from 'node:timers/promises';
+          let result;
+          for(let attempt=0;attempt<24;attempt++){
+            result=spawnSync(process.execPath,['scripts/test-app-icons.mjs','_site','https://hungjurors.com'],{encoding:'utf8',timeout:90000});
+            if(result.status===0){console.log(result.stdout);process.exit(0);}
+            console.log('Waiting for the new site deployment ('+(attempt+1)+'/24)');
+            await setTimeout(15000);
           }
-          for(const path of ['/apple-touch-icon.png?v=20260828a','/icon-192.png?v=20260828a','/site.webmanifest?v=20260828a']){
-            const r=await fetch('https://hungjurors.com'+path);
-            console.log('PUBLISHED_BEFORE '+path+' '+r.status+' '+r.headers.get('content-type'));
-          }
+          console.log(result.stdout||'');
+          console.error(result.stderr||result.error);
+          process.exit(1);
           NODE

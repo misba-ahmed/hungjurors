@@ -1,0 +1,24 @@
+{
+  "id": "/",
+  "name": "The Hung Jurors",
+  "short_name": "Hung Jurors",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F7F3E8",
+  "theme_color": "#0B2B4A",
+  "icons": [
+    {
+      "src": "/hung-jurors-icon-192-v1.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/hung-jurors-icon-512-v1.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

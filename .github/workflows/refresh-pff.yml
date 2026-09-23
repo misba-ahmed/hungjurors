@@ -37,6 +37,7 @@ jobs:
           mkdir -p _site
           git archive HEAD | tar -x -C _site
           node scripts/prepare-site.mjs _site/index.html
+          node scripts/test-app-icons.mjs _site
           find _site -mindepth 1 -name ".*" -prune -exec rm -rf {} +
           touch _site/.nojekyll
       - name: Refresh projections and advanced stats
