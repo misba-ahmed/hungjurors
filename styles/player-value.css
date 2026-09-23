@@ -53,23 +53,65 @@
 .hq40-card.has-mv-column.has-pff-column .hq40-pff-proj{border-radius:0!important}
 .hq40-card .hjmv-col[aria-pressed="true"]{box-shadow:inset 0 -2px var(--brass)!important}
 .hq40-card .hjmv-col .hq-player-proj-main{font-variant-numeric:tabular-nums}
-.hq40-card .hjmv-col .hjmv-col-sub{grid-area:sub!important;justify-self:center!important;font:700 8px/1 var(--mono)!important;letter-spacing:.06em;color:#7d8b98!important}
-.hq40-card .hjmv-col .hjmv-col-sub:empty{display:none}
+.hq40-card .hjmv-col .hjmv-col-sub,
+.hq40-card .hq40-pff-proj .hjmv-pff-sub{grid-area:sub!important;justify-self:center!important;font:700 8px/1 var(--mono)!important;letter-spacing:.06em;color:#7d8b98!important}
+.hq40-card .hjmv-col .hjmv-col-sub:empty,
+.hq40-card .hq40-pff-proj .hjmv-pff-sub:empty{display:none!important}
+.hq40-card .hq40-pff-proj .hjmv-pff-sub{pointer-events:none}
 .hq40-card .hjmv-col>.hq-player-proj-label,.hq40-card .hjmv-col>.hq42-proj-primary,.hq40-card .hjmv-col>.hjmv-col-sub{pointer-events:none}
 .hq40-card .hjmv-col .hj-pff-info{pointer-events:auto}
+/* Four columns stay on one row at every width. Below 620px the label sits
+   above the value so each tile fits a quarter of a phone screen. */
 @media(max-width:620px){
  .hq-player-directory .hq-player-card.hq40-card.has-mv-column.has-pff-column{
-  grid-template-columns:repeat(2,minmax(0,1fr))!important;
-  grid-template-areas:"head head" "week season" "pff mv" "stats stats"!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-template-areas:"head head head head" "week season pff mv" "stats stats stats stats"!important;
+  column-gap:4px!important;
  }
- .hq40-card.has-mv-column.has-pff-column .hq40-week-proj{border-radius:8px 0 0 0!important}
- .hq40-card.has-mv-column.has-pff-column .hq40-season-proj{border-radius:0 8px 0 0!important}
- .hq40-card.has-mv-column.has-pff-column .hq40-pff-proj{margin-left:0!important;margin-top:-1px!important;border-radius:0 0 0 8px!important}
- .hq40-card.has-mv-column.has-pff-column .hjmv-col{margin-top:-1px!important;border-radius:0 0 8px 0!important}
+ .hq-player-directory .hq-player-card.hq40-card.has-mv-column:not(.has-pff-column){
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  grid-template-areas:"head head head" "week season mv" "stats stats stats"!important;
+  column-gap:5px!important;
+ }
+ .hq40-card.has-mv-column .hq-player-proj{
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-areas:"label" "primary" "sub"!important;
+  justify-items:center!important;
+  justify-content:stretch!important;
+  text-align:center!important;
+  column-gap:0!important;
+  row-gap:0!important;
+  padding:6px 2px 5px!important;
+ }
+ .hq40-card.has-mv-column .hq-player-proj-label{
+  font-size:7.3px!important;letter-spacing:.01em!important;white-space:nowrap!important;
+ }
+ .hq40-card.has-mv-column .hq-player-proj-main{margin-top:3px!important;font-size:14.5px!important}
+ .hq40-card.has-mv-column .hq-player-proj-sub{margin-top:3px!important;font-size:7.4px!important;gap:2px!important}
+ .hq40-card.has-mv-column .hq40-proj-e,
+ .hq40-card.has-mv-column .hq40-proj-v,
+ .hq40-card.has-mv-column .hq40-proj-dot{font-size:7.4px!important}
+ .hq40-card.has-mv-column .hjmv-col .hjmv-col-sub,
+ .hq40-card.has-mv-column .hq40-pff-proj .hjmv-pff-sub{margin-top:3px!important;font-size:7.4px!important}
+ html body .hq40-card.has-mv-column .hj-proj-flip{font-size:7.4px!important}
+ html body .hq40-card.has-mv-column .hj-proj-flip .hj-proj-source{font-size:7.4px!important}
+ html body .hq40-card.has-mv-column .hj-proj-flip .hj-proj-value{font-size:1.05em!important}
+ /* The explainer dot shrinks with its label so the heading still fits on one line. */
+ .hq40-card.has-mv-column .hj-pff-info{width:13px!important;height:13px!important;margin:-4px 0 -4px -1px!important}
 }
-@media(max-width:420px){
- .hq40-card.has-mv-column .hq-player-proj{column-gap:4px!important;padding-left:3px!important;padding-right:3px!important}
- .hq40-card .hjmv-col{grid-template-columns:1fr!important;grid-template-areas:"label" "primary" "sub"!important;justify-items:center!important}
+@media(max-width:400px){
+ .hq40-card.has-mv-column .hq-player-proj-label{font-size:6.8px!important;letter-spacing:0!important}
+ .hq40-card.has-mv-column .hq-player-proj-main{font-size:13.5px!important}
+ .hq40-card.has-mv-column .hq-player-proj-sub,
+ .hq40-card.has-mv-column .hq40-proj-e,
+ .hq40-card.has-mv-column .hq40-proj-v,
+ .hq40-card.has-mv-column .hq40-proj-dot,
+ .hq40-card.has-mv-column .hjmv-col .hjmv-col-sub,
+ .hq40-card.has-mv-column .hq40-pff-proj .hjmv-pff-sub{font-size:6.9px!important}
+ html body .hq40-card.has-mv-column .hj-proj-flip,
+ html body .hq40-card.has-mv-column .hj-proj-flip .hj-proj-source{font-size:6.9px!important}
+ .hq40-card.has-mv-column .hq-player-proj{padding:6px 1px 5px!important}
+ .hq40-card.has-mv-column .hj-pff-info{width:12px!important;height:12px!important}
 }
 
 /* --- Surface 3: Roster Strength model note --- */
