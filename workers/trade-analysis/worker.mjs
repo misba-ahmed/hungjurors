@@ -24,7 +24,7 @@ export default {
   const headers={'Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Methods':'POST, GET, OPTIONS',
    'Access-Control-Allow-Headers':'Content-Type','Access-Control-Max-Age':'600',
    'Vary':'Origin','Cache-Control':'no-store','Content-Type':'application/json'};
-  const reply=(status,error)=>new Response(JSON.stringify({error}),{status,headers});
+  const reply=(status,error,details={})=>new Response(JSON.stringify({error,...details}),{status,headers});
   if(request.headers.get('Origin')!==ORIGIN)return new Response(null,{status:403});
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
   const path=new URL(request.url).pathname;
@@ -58,16 +58,21 @@ export default {
     body:JSON.stringify(geminiRequest(trade)),signal:controller.signal
    });
    if(!response.ok){
-    await response.body?.cancel();
-    console.warn('trade_analysis_upstream',{status:response.status});
-    return reply(response.status===429?429:502,response.status===429?'busy':'unavailable');
+    let reason='';
+    try{
+     const body=await boundedJson(response,16000);
+     reason=[body.error?.status,...(body.error?.details||[]).map(d=>d.reason)]
+      .filter(s=>typeof s==='string'&&/^[A-Z_]{1,80}$/.test(s)).join(':');
+    }catch(_){}
+    console.warn('trade_analysis_upstream',{status:response.status,reason});
+    return reply(response.status===429?429:502,response.status===429?'busy':'upstream_rejected',{upstreamStatus:response.status,reason});
    }
    const data=parseGeminiResponse(await boundedJson(response,200000));
    return new Response(JSON.stringify(data),{headers});
   }catch(error){
    // Never log the prompt, generated report, upstream body or API key.
    console.warn('trade_analysis_failed',{kind:error.name==='AbortError'?'timeout':'invalid_response'});
-   return reply(502,'unavailable');
+   return reply(502,error.name==='AbortError'?'timeout':'invalid_response');
   }finally{
    clearTimeout(timeout);request.signal.removeEventListener('abort',cancel);
   }

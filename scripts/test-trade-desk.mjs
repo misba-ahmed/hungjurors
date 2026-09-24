@@ -24,7 +24,12 @@ await vm.runInContext(`(async()=>{
  t.SCHED.map=null;
  let scheduleRequests=0;
  globalThis.pcLoadSchedules=async()=>new Map([['old',{season:2025,week:1,home_team:'AAA',away_team:'CCC'}]]);
- globalThis.hjDataScheduleMap=async(season,weeks)=>{scheduleRequests++;assert(season===2026&&weeks.length===18,'Load the complete current-season schedule');return saved};
+ globalThis.hjHostedJson=async(file)=>{
+  scheduleRequests++;assert(file==='nfl-schedule-2026.json','Use the current-season hosted schedule');
+  const games=[...saved].map(([id,g])=>({...g,game_id:id}));
+  while(games.length<272)games.push({game_id:'extra'+games.length,season:2026,week:1,home_team:'XXX',away_team:'YYY'});
+  return {schema:1,source:'ESPN',season:2026,games};
+ };
  await t.ensureSchedule();
  assert(scheduleRequests===1&&Number.isFinite(t.projectionFact(fixtures[1],'espn').remaining),'Archive without current season must load live schedule');
  const calls=[];

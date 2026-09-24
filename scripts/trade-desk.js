@@ -793,24 +793,26 @@
 
 
  /* ---------- NFL schedule: byes, remaining strength of schedule, playoff weeks ---------- */
- const SCHED={map:null,pending:false,byTeam:null,sos:new Map()};
+ const SCHED={map:null,pending:false,byTeam:null,sos:new Map(),retryAt:0};
  function ensureSchedule(){
   if(SCHED.promise)return SCHED.promise;
-  if(SCHED.map)return Promise.resolve();
-  if(typeof pcLoadSchedules!=='function'&&typeof hjDataScheduleMap!=='function')return Promise.resolve();
+  if(SCHED.map||SCHED.retryAt>Date.now())return Promise.resolve();
+  if(typeof pcLoadSchedules!=='function'&&typeof hjHostedJson!=='function')return Promise.resolve();
   SCHED.pending=true;
   SCHED.promise=(async()=>{
    let map=new Map();
    if(typeof pcLoadSchedules==='function')try{map=new Map(await pcLoadSchedules())}catch(_){}
    const season=Number(NFL_SEASON);
    const current=[...map.values()].filter(g=>Number(g.season)===season);
-   // The embedded archive can stop at last season. Load this season from ESPN.
-   if(current.length<272&&typeof hjDataScheduleMap==='function'){
-    const live=await hjDataScheduleMap(season,Array.from({length:18},(_,i)=>i+1));
-    for(const [id,g] of live)if(Number(g.season)===season)map.set(id,g);
+   // Keep schedule loading on the same origin as the rest of the hosted data.
+   if(current.length<272){
+    const data=await hjHostedJson('nfl-schedule-'+season+'.json');
+    if(data?.schema!==1||data.season!==season||data.source!=='ESPN'||!Array.isArray(data.games)||data.games.length!==272)throw Error('Invalid schedule');
+    for(const g of data.games)if(Number(g.season)===season&&Number.isInteger(g.week)&&g.week>=1&&g.week<=18&&g.home_team&&g.away_team)map.set(g.game_id,g);
+    if([...map.values()].filter(g=>Number(g.season)===season).length<272)throw Error('Incomplete schedule');
    }
    SCHED.map=map;SCHED.byTeam=null;SCHED.sos=new Map();
-  })().catch(()=>{}).finally(()=>{SCHED.pending=false;SCHED.promise=null;rerenderIfTrade()});
+  })().catch(()=>{SCHED.retryAt=Date.now()+60000}).finally(()=>{SCHED.pending=false;SCHED.promise=null;rerenderIfTrade()});
   return SCHED.promise;
  }
  HJTD.injectSchedule=map=>{SCHED.map=map;SCHED.byTeam=null;SCHED.sos=new Map()};

@@ -40,6 +40,11 @@ jobs:
           node scripts/test-app-icons.mjs _site
           find _site -mindepth 1 -name ".*" -prune -exec rm -rf {} +
           touch _site/.nojekyll
+      - name: Refresh NFL schedule
+        continue-on-error: true
+        env:
+          PAGES_BASE_URL: ${{ steps.pages.outputs.base_url }}
+        run: node scripts/refresh-nfl-schedule.mjs _site
       - name: Refresh projections and advanced stats
         id: data-refresh
         continue-on-error: true
