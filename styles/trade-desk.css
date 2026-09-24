@@ -375,3 +375,9 @@
 
 #hq-panel-strength .td-analysis-action{justify-self:start;min-height:44px;max-width:100%;padding:9px 15px;border:1px solid var(--td-gold,#bd902c);border-radius:10px;background:var(--td-ink,#173651);color:#fff;font:800 12px/1.4 var(--sans);white-space:normal;cursor:pointer}
 #hq-panel-strength .td-analysis-action:focus-visible{outline:3px solid var(--td-gold,#bd902c);outline-offset:3px}
+
+/* Research sources accompany the complete analysis without changing builder layout. */
+#hq-panel-strength .td-attribution{min-width:0;max-width:100%;display:grid;gap:12px}
+#hq-panel-strength .td-search-links{display:flex;flex-wrap:wrap;gap:7px 14px}
+#hq-panel-strength .td-search-links a{font:400 11px/1.5 var(--sans);color:var(--td-ink);overflow-wrap:anywhere}
+#hq-panel-strength .td-search-suggestions{display:block;min-width:0;max-width:100%;contain:inline-size}

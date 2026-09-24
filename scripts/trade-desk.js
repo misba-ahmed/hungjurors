@@ -320,6 +320,19 @@
     displayedFacts:a.factors.map(f=>({factor:f.label,note:f.note}))}};
  }
 
+ // The site supplies league facts; Gemini researches the current NFL context.
+ function researchTrade(m){
+  const player=e=>({id:entryId(e),name:entryName(e),position:hjPlayerPosition(e),team:T(hjPlayerTeam(e)),
+   marketValue:valueOf(e),marketPositionRank:marketRow(e)?.positionRank??null,
+   marketChange30Days:marketRow(e)?.trend30??null,rosterSlotId:e.lineupSlotId,ir:isIR(e),injuryStatus:injuryOf(e)});
+  return {protocol:'hj-trade-search-v1',season:Number(NFL_SEASON),week:week(),
+   league:{teams:10,ppr:1,teReceptionBonus:.5,playoffTeams:4,playoffWeeks:[15,16],regularSeasonWeeks:14,
+    lineupSlots:HJ_LEAGUE_STATE?.data?.settings?.rosterSettings?.lineupSlotCounts||null},
+   managers:m.sides.map(s=>({id:String(s.team.id),name:s.manager,record:(()=>{const r=standingFor(s.manager);return r?{wins:r.w,losses:r.l,ties:r.t}:null})(),
+    rosterCapacity:s.capacity,roster:s.before.map(player),sends:s.out.map(entryId)})),
+   market:{sentA:m.outA,sentB:m.outB,gapFraction:m.gap,asOf:window.HJMV?.generatedAt||null}};
+ }
+
  /* ---------- the trade model ---------- */
  function ensureSides(){
   const all=teams();
@@ -1113,9 +1126,8 @@
 
  /* Model output is untrusted. Rebuild only four allowed elements, with no attributes. */
  const ANALYSIS_FIELDS=['summary','value','context','usage','roster','schedule','verdictA','verdictB','accept','overall'];
- const ANALYSIS={cache:new Map(),key:'',state:null,timer:null,controller:null,token:0,enabled:false};
- let localAnalysis=()=>import('/scripts/trade-analysis-local.mjs?v=20260924-webllm4');
- const CACHE_TTL=600000;
+ const ANALYSIS={key:'',state:null,timer:null,controller:null,token:0,requestedKey:''};
+ const ANALYSIS_ENDPOINT='https://hungjurors-trade-analysis.misbauddin-ahmed.workers.dev/gemini';
  function cleanAnalysisHtml(html){
   const parsed=new DOMParser().parseFromString(String(html||''),'text/html');
   const walk=node=>{
@@ -1128,94 +1140,92 @@
   };
   return Array.from(parsed.body.childNodes).map(walk).join('').trim();
  }
+ function safeSearchSuggestions(html){
+  if(typeof html!=='string'||!html.trim()||html.length>64000)throw Error('Invalid search response');
+  const root=new DOMParser().parseFromString(html,'text/html');
+  const allowed=['STYLE','DIV','SPAN','A','SVG','PATH','G','RECT','CIRCLE','IMG','P','BR','DEFS','CLIPPATH','POLYGON','POLYLINE','LINE','ELLIPSE','LINEARGRADIENT','STOP','USE','TITLE','UL','LI'];
+  for(const node of root.querySelectorAll('*')){
+   if(['HTML','HEAD','BODY'].includes(node.tagName))continue;
+   if(!allowed.includes(node.tagName.toUpperCase()))throw Error('Invalid search markup');
+   for(const attr of node.attributes){
+    if(/^on/i.test(attr.name)||/^(srcdoc|formaction)$/i.test(attr.name))throw Error('Invalid search attribute');
+    if(/^(href|src|xlink:href)$/i.test(attr.name)&&!/^https:\/\//i.test(attr.value)&&!/^#/.test(attr.value))throw Error('Invalid search link');
+   }
+   const css=(node.tagName.toUpperCase()==='STYLE'?node.textContent:'')+(node.getAttribute('style')||'');
+   if(/@import|expression\s*\(|url\s*\(|position\s*:\s*fixed|<\/?script/i.test(css))throw Error('Invalid search style');
+  }
+  return html;
+ }
  function validateAnalysis(value){
   if(!value||ANALYSIS_FIELDS.some(k=>typeof value[k]!=='string'||value[k].length>24000))throw Error('Invalid analysis');
-  return Object.fromEntries(ANALYSIS_FIELDS.map(k=>[k,cleanAnalysisHtml(value[k])]));
+  const data=Object.fromEntries(ANALYSIS_FIELDS.map(k=>[k,cleanAnalysisHtml(value[k])]));
+  if(!data.summary||!data.overall)throw Error('Empty analysis');
+  data.searchSuggestions=safeSearchSuggestions(value.searchSuggestions);
+  if(!Array.isArray(value.sources)||value.sources.some(s=>typeof s?.url!=='string'||!/^https:\/\//i.test(s.url)||
+   s.url.length>4000||typeof s.title!=='string'||s.title.length>1000))throw Error('Invalid sources');
+  data.sources=value.sources;
+  return data;
  }
  function analysisKey(m){
-  return JSON.stringify({version:4,provider:'webllm',season:Number(NFL_SEASON),week:week(),a:HJTD.a,b:HJTD.b,
-   give:[...HJTD.give].sort(),get:[...HJTD.get].sort(),market:window.HJMV?.generatedAt,scope:scopeNow(),
-   rosters:teams().map(t=>[t.id,rosterOf(t.id).map(e=>[entryId(e),valueOf(e),injuryOf(e),e.lineupSlotId])])});
- }
- function readAnalysisCache(key){
-  let hit=ANALYSIS.cache.get(key);
-  if(!hit)try{const saved=JSON.parse(sessionStorage.getItem('hj-trade-analysis-webllm-v1')||'[]');hit=saved.find(x=>x.key===key)}catch(_){}
-  if(hit&&Date.now()-hit.at<CACHE_TTL){try{return validateAnalysis(hit.data)}catch(_){}}
-  return null;
- }
- function saveAnalysisCache(key,data){
-  const now=Date.now();ANALYSIS.cache.set(key,{key,at:now,data});
-  for(const [k,v] of ANALYSIS.cache)if(now-v.at>=CACHE_TTL)ANALYSIS.cache.delete(k);
-  while(ANALYSIS.cache.size>12)ANALYSIS.cache.delete(ANALYSIS.cache.keys().next().value);
-  try{sessionStorage.setItem('hj-trade-analysis-webllm-v1',JSON.stringify([...ANALYSIS.cache.values()]))}catch(_){}
+  return JSON.stringify(researchTrade(m));
  }
  function cancelAnalysis(){
   ANALYSIS.token++;clearTimeout(ANALYSIS.timer);ANALYSIS.controller?.abort();
-  ANALYSIS.controller=null;ANALYSIS.key='';ANALYSIS.state=null;
+  ANALYSIS.controller=null;ANALYSIS.key='';ANALYSIS.state=null;ANALYSIS.requestedKey='';
   if(draftInFlight)saveTradeDraft(false);
  }
+ // Retain the existing fact-loading API for other Trade Desk features.
  async function hydrateDossier(){
   standingsCache=null;injuryMapCache=null;
-  const seed=model(),initial=analyse(seed);
-  const newsJob=initial?ensureContext(initial.rows.flatMap(s=>s.profiles)):Promise.resolve();
-  const teamJob=ensureTeamContext();
-  const optional=f=>Promise.resolve().then(f);
-  await Promise.allSettled([ensureUsage(),ensureSchedule(),newsJob,teamJob,
-   optional(()=>typeof hjMathLoadRosterSeasonProjections==='function'?hjMathLoadRosterSeasonProjections(HJ_LEAGUE_STATE.data):null),
-   optional(()=>typeof hjEnsureProjectionSources==='function'?hjEnsureProjectionSources():null),
-   optional(()=>typeof hj6LoadWeek==='function'?hj6LoadWeek(HJ_LEAGUE_STATE.data):null)]);
-  const m=model(),a=analyse(m);
-  if(a)await Promise.allSettled([ensureContext(a.rows.flatMap(s=>s.profiles)),ensureTeamContext()]);
- }
- function analysisProgress(token,info){
-  if(token!==ANALYSIS.token||ANALYSIS.state?.status!=='pending')return;
-  const fraction=Number(info?.fraction);
-  const label=info?.phase==='loading'?'Loading analysis…'+(Number.isFinite(fraction)?' '+Math.round(fraction*100)+'%':''):
-   info?.phase==='reading'?'Reviewing the trade…':'Writing the analysis…';
-  ANALYSIS.state.label=label;
-  const el=document.querySelector('.td-writing');if(el)el.textContent=label;
+  await Promise.allSettled([ensureUsage(),ensureSchedule(),ensureTeamContext()]);
  }
  function analysisControls(state){
-  if(state.status==='pending')return '<p class="td-writing" role="status">'+E(state.label||'Writing the analysis…')+'</p>';
+  if(state.status==='pending')return '<p class="td-writing" role="status">Writing the analysis…</p>';
   if(state.status==='ready')return '';
-  return '<button type="button" class="td-analysis-action" data-td-local-start>'+
+  return '<button type="button" class="td-analysis-action" data-td-analysis-start>'+
    (state.status==='failed'?'Try analysis again':'Write analysis')+'</button>';
  }
  function requestAnalysis(m){
   const key=analysisKey(m);
   if(ANALYSIS.key===key&&ANALYSIS.state)return ANALYSIS.state;
+  const requested=ANALYSIS.requestedKey===key;
   cancelAnalysis();ANALYSIS.key=key;
-  const cached=readAnalysisCache(key);
-  ANALYSIS.state=cached?{status:'ready',data:cached}:!ANALYSIS.enabled?{status:'idle',data:null}:
-   {status:'pending',data:null,label:'Writing the analysis…'};
-  if(cached||!ANALYSIS.enabled)return ANALYSIS.state;
+  ANALYSIS.state={status:requested?'pending':'idle',data:null};
+  if(!requested)return ANALYSIS.state;
   const token=ANALYSIS.token;
   saveTradeDraft(true);
   try{history.replaceState(history.state,'','#roster-strength')}catch(_){}
   ANALYSIS.timer=setTimeout(async()=>{
    const controller=new AbortController();ANALYSIS.controller=controller;
-   let hydrationTimer;
+   const timeout=setTimeout(()=>controller.abort(),95000);
    try{
-    await Promise.race([hydrateDossier(),new Promise(resolve=>{hydrationTimer=setTimeout(resolve,20000)})]);
-    clearTimeout(hydrationTimer);
+    const response=await fetch(ANALYSIS_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify(researchTrade(m)),signal:controller.signal,credentials:'omit',cache:'no-store'});
+    if(!response.ok)throw Error('Analysis unavailable');
+    const data=validateAnalysis(await response.json());
     if(token!==ANALYSIS.token)return;
-    const fresh=model(),a=analyse(fresh);
-    if(!a)return;
-    const dossier=dossierFor(fresh,a),local=await localAnalysis();
-    if(token!==ANALYSIS.token)return;
-    const data=validateAnalysis(await local.analyse(dossier,{signal:controller.signal,
-     onProgress:info=>analysisProgress(token,info)}));
-    if(token!==ANALYSIS.token)return;
-    saveAnalysisCache(key,data);
     ANALYSIS.state={status:'ready',data};
    }catch(_){
     if(token===ANALYSIS.token)ANALYSIS.state={status:'failed',data:null};
    }finally{
-    clearTimeout(hydrationTimer);
+    clearTimeout(timeout);
     if(token===ANALYSIS.token){ANALYSIS.controller=null;saveTradeDraft(false);rerenderIfTrade()}
    }
-  },1100);
+  },100);
   return ANALYSIS.state;
+ }
+ function searchAttribution(data){
+  if(!data)return '';
+  // Keep Google's supplied search suggestions with the result, in their own style scope.
+  setTimeout(()=>{
+   const el=document.querySelector('.td-search-suggestions');
+   if(!el||el.shadowRoot||ANALYSIS.state?.data!==data)return;
+   const root=el.attachShadow({mode:'open'});
+   root.innerHTML=data.searchSuggestions;
+  },0);
+  const links=data.sources.map(s=>'<a href="'+E(s.url)+'" target="_blank" rel="noopener noreferrer">'+E(s.title)+'</a>').join('');
+  return '<div class="td-attribution">'+(links?'<div class="td-search-links">'+links+'</div>':'')+
+   '<div class="td-search-suggestions"></div></div>';
  }
  function acceptancePills(a,html){
   const root=new DOMParser().parseFromString(html||'','text/html'),paragraphs=[...root.querySelectorAll('p')];
@@ -1243,12 +1253,11 @@
   const state=requestAnalysis(m),data=state.data;
   const breakdown='<div class="td-break">'+a.rows.map(s=>'<div class="td-break-side is-'+s.key+'"><h5>'+
    E(s.manager)+' sends</h5>'+s.profiles.map(breakdownCard).join('')+'</div>').join('')+'</div>';
-  return '<div class="td-report">'+section('summary','Summary',data?.summary)+
-   section('breakdown','Breakdown',breakdown)+section('score','Factor scorecard',scorecard(a))+
-   analysisControls(state)+
+  return '<div class="td-report">'+section('breakdown','Breakdown',breakdown)+section('score','Factor scorecard',scorecard(a))+
+   analysisControls(state)+section('summary','Summary',data?.summary)+
    [['value','Is it a good value?'],['context','What actually changes the picture'],['usage','Usage and opportunity'],
     ['roster','Roster fit'],['schedule','Schedule and playoff leverage']].map(([k,title])=>section(k,title,data?.[k])).join('')+
-   modelVerdict(a,data)+'</div>';
+   modelVerdict(a,data)+searchAttribution(data)+'</div>';
  }
 
 
@@ -1417,8 +1426,8 @@
 
   root.addEventListener('click',event=>{
    const t=event.target;
-   if(t.closest?.('[data-td-local-start]')){
-    event.preventDefault();event.stopPropagation();ANALYSIS.enabled=true;cancelAnalysis();rerender();return;
+   if(t.closest?.('[data-td-analysis-start]')){
+    event.preventDefault();event.stopPropagation();cancelAnalysis();ANALYSIS.requestedKey=analysisKey(model());rerender();return;
    }
    const toggle=t.closest?.('[data-td-toggle]');
    if(toggle){
@@ -1481,6 +1490,7 @@
  }
 
 
+ HJTD.buildResearchTrade=()=>researchTrade(model());
  HJTD.buildDossier=()=>{standingsCache=null;injuryMapCache=null;const m=model(),a=analyse(m);return a?dossierFor(m,a):null};
  HJTD.hydrateDossier=hydrateDossier;
  document.addEventListener('hj:season-data',event=>{

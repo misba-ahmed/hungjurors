@@ -3,14 +3,14 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {prepareSite} from './prepare-site.mjs';
 import worker from '../workers/trade-analysis/worker.mjs';
-import {FIELDS,validateOutput,evidenceChunks,generateAnalysis} from './trade-analysis-shared.mjs';
+import {FIELDS,validateTrade,validateOutput,geminiRequest,parseGeminiResponse} from './trade-analysis-shared.mjs';
 const source=readFileSync(new URL('./trade-desk.js',import.meta.url),'utf8');
 const prepared=prepareSite(readFileSync(new URL('../index.html',import.meta.url),'utf8'));
 const injected=prepared.match(/<script id="hj-trade-desk">([\s\S]*?)<\/script>/)?.[1];
 assert.equal(injected,source,'Site preparation must preserve script text, including dollar replacement tokens');
 new vm.Script(injected);
 const fixture=readFileSync(new URL('./fixtures/trade-desk.js',import.meta.url),'utf8');
-const expose="\n HJTD._test={model,analyse,posture,balanceOptions,dropPlan,lineupPoints,newsItemFrom,newsFor,byeCoverage,cleanAnalysisHtml,validateAnalysis,\n  requestAnalysis,cancelAnalysis,ANALYSIS,readAnalysisCache,saveAnalysisCache,analysisKey,projectionFact,TEAM_CONTEXT,shell,\n  hydrate:fn=>hydrateDossier=fn};\n";
+const expose="\n HJTD._test={model,analyse,posture,balanceOptions,dropPlan,lineupPoints,newsItemFrom,newsFor,byeCoverage,cleanAnalysisHtml,validateAnalysis,\n  requestAnalysis,cancelAnalysis,ANALYSIS,researchTrade,analysisKey,projectionFact,TEAM_CONTEXT,shell,\n  hydrate:fn=>hydrateDossier=fn};\n";
 const context=vm.createContext({console,Date,Map,Set,URLSearchParams,setTimeout:()=>1,clearTimeout(){},
  window:{},document:{readyState:'loading',addEventListener(){},querySelector(){return null}}});
 vm.runInContext(fixture+source.replace(" if(document.readyState==='loading')",expose+"\n if(document.readyState==='loading')"),context);
@@ -21,38 +21,58 @@ assert.deepEqual(validateOutput(output),output);
 assert.throws(()=>validateOutput({...output,summary:'<p onclick="alert(1)">No</p>'}));
 assert.throws(()=>validateOutput({...output,summary:'<img src=x>'}));
 
-const originalFetch=globalThis.fetch;let remoteCalls=0;
-globalThis.fetch=async()=>{remoteCalls++;throw Error('No paid calls allowed')};
+
+const trade=vm.runInContext('window.HJTD.buildResearchTrade()',context);
+assert.ok(JSON.stringify(trade).length<12000,'Compact roster request');
+assert.equal(trade.managers.length,2);
+assert.ok(trade.managers[0].roster.some(p=>p.name==='A Runner'));
+assert.ok(trade.managers[0].record,'Include manager records');
+const call=geminiRequest(trade);
+assert.deepEqual(call.tools,[{google_search:{}}]);
+assert.equal(call.generationConfig.responseMimeType,undefined,'Search-compatible ordinary generation');
+assert.ok(call.systemInstruction.parts[0].text.includes('Current date:'));
+assert.ok(!JSON.stringify(call).includes('weeklySeries'),'Research runs on Gemini, not a huge dossier');
+assert.throws(()=>validateTrade({...trade,protocol:'old-paid-client'}));
+assert.throws(()=>validateTrade({...trade,managers:[trade.managers[0],trade.managers[0]]}));
+const grounded={candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(output)}]},
+ groundingMetadata:{webSearchQueries:['player injury'],searchEntryPoint:{renderedContent:'<div><a href="https://www.google.com/search?q=football">Search</a></div>'},
+ groundingChunks:[{web:{uri:'https://www.nfl.com',title:'NFL'}}]}}]};
+assert.equal(parseGeminiResponse(grounded).summary,output.summary);
+assert.throws(()=>parseGeminiResponse({candidates:[{...grounded.candidates[0],finishReason:'MAX_TOKENS'}]}));
+assert.throws(()=>parseGeminiResponse({candidates:[{...grounded.candidates[0],groundingMetadata:{}}]}),'Never show an ungrounded report as live research');
+let remoteCalls=0,mode='ok',bodySeen,keySeen;
+const originalFetch=globalThis.fetch;
+globalThis.fetch=async(url,options)=>{
+ remoteCalls++;assert.equal(url,'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent');
+ bodySeen=JSON.parse(options.body);keySeen=options.headers['x-goog-api-key'];
+ if(mode==='quota')return new Response('{}',{status:429});
+ if(mode==='bad')return Response.json({candidates:[{...grounded.candidates[0],finishReason:'MAX_TOKENS'}]});
+ return Response.json(grounded);
+};
+const env={GEMINI_API_KEY:'fake-test-key',GEMINI_FREE_TIER_CONFIRMED:'true',
+ OPENAI_API_KEY:'never-used',MODEL:'gpt-5.4',PER_IP:{limit:async()=>({success:true})},TOTAL:{limit:async()=>({success:true})}};
+const request=(path='/gemini',origin='https://hungjurors.com',body=trade)=>new Request('https://worker.example'+path,
+ {method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify(body)});
 try{
- const request=new Request('https://retired.example/',{method:'POST',headers:{Origin:'https://hungjurors.com'}});
- assert.equal((await worker.fetch(request,{OPENAI_API_KEY:'unused-secret'})).status,410);
- assert.equal(remoteCalls,0,'Retired endpoint must never contact a paid API');
- assert.equal((await worker.fetch(new Request('https://retired.example/',{method:'OPTIONS',headers:{Origin:'https://hungjurors.com'}}))).status,204);
+ assert.equal((await worker.fetch(request('/'),env)).status,410);
+ assert.equal((await worker.fetch(request('/gemini','https://elsewhere.example'),env)).status,403);
+ assert.equal((await worker.fetch(request(),{...env,GEMINI_FREE_TIER_CONFIRMED:undefined})).status,503);
+ assert.equal((await worker.fetch(request(),{...env,GEMINI_API_KEY:undefined})).status,503);
+ assert.equal(remoteCalls,0,'No API calls without free-tier confirmation, key and authorized origin');
+ assert.equal((await worker.fetch(request('/gemini','https://hungjurors.com',{...trade,protocol:'legacy'}),env)).status,400);
+ assert.equal((await worker.fetch(request(),{...env,PER_IP:{limit:async()=>({success:false})}})).status,429);
+ assert.equal(remoteCalls,0);
+ const response=await worker.fetch(request(),env);
+ assert.equal(response.status,200);assert.equal(response.headers.get('Cache-Control'),'no-store');
+ assert.equal((await response.json()).overall,output.overall);
+ assert.equal(keySeen,'fake-test-key');assert.deepEqual(bodySeen.tools,[{google_search:{}}]);
+ mode='quota';assert.equal((await worker.fetch(request(),env)).status,429);
+ assert.equal(remoteCalls,2,'Quota exhaustion never retries or switches providers');
+ mode='bad';assert.equal((await worker.fetch(request(),env)).status,502);
+ assert.equal((await worker.fetch(request('/gemini','https://hungjurors.com',{...trade,extra:'x'.repeat(25000)}),env)).status,400);
+ const preflight=await worker.fetch(new Request('https://worker.example/gemini',{method:'OPTIONS',headers:{Origin:'https://hungjurors.com'}}),env);
+ assert.equal(preflight.status,204);
 }finally{globalThis.fetch=originalFetch}
-assert.ok(!source.includes('ANALYSIS_ENDPOINT'));
-assert.ok(!source.includes('workers.dev'));
-const countTokens=text=>Math.ceil(text.length/4);
-const huge={news:'Every fact matters. 🏈 '.repeat(1500)+'RETURN IN WEEK 12',availability:'out'};
-const packed=evidenceChunks(huge,text=>text.length,200);
-assert.ok(packed.every(text=>text.length<=200),'Each evidence chunk fits');
-const fragments=packed.flatMap(text=>JSON.parse(text)).filter(x=>x.path==='dossier.news');
-assert.equal(fragments.map(x=>x.value).join(''),huge.news,'Preserve full news, including its end and Unicode');
-const dossier=vm.runInContext('window.HJTD.buildDossier()',context);
-dossier.asOf=new Date().toISOString();
-dossier.players[0].news=[{text:huge.news,spin:'The teammate is expected back in Week 12.'}];
-const inputs=[];let truncated=false;
-const engine={resetChat:async()=>{},chat:{completions:{create:async request=>{
- inputs.push(request);
- assert.equal(request.extra_body.enable_thinking,false);
- assert.equal(request.response_format,undefined,'Avoid the extra grammar runtime');
- return {choices:[{finish_reason:truncated?'length':'stop',message:{content:request.messages[0].content.startsWith('You are writing the analysis')?
-  JSON.stringify(output):'The teammate is expected back in Week 12. This role window ends before the fantasy playoffs.'}}]};
-}}}};
-assert.deepEqual(await generateAnalysis(engine,dossier,{countTokens}),output);
-assert.ok(inputs.some(x=>x.messages[1].content.includes('RETURN IN WEEK 12')),'Read the end of long evidence');
-assert.ok(inputs.filter(x=>!x.messages[0].content.startsWith('You are writing the analysis')).length>0,'Large dossiers are read in bounded portions');
-truncated=true;
-await assert.rejects(()=>generateAnalysis(engine,{...dossier,players:dossier.players.map(p=>({...p,news:[]}))},{countTokens}),/Incomplete analysis/);
-const controller=new AbortController();controller.abort();
-await assert.rejects(()=>generateAnalysis(engine,dossier,{countTokens,signal:controller.signal}),{name:'AbortError'});
-console.log('Local evidence budgeting, complete output, cancellation and retired paid endpoint: passed');
+assert.ok(!source.includes('localAnalysis')&&!source.includes('webllm'),'No browser inference runtime');
+assert.ok(!source.includes('readAnalysisCache'),'No shared or persistent grounding cache');
+console.log('Compact research input, Google Search, free-tier gate, origin, quota failure and response validation: passed (mock API; no external inference)');

@@ -5,39 +5,23 @@ import {chromium} from 'playwright';
 const fixture=readFileSync(new URL('./fixtures/trade-desk.js',import.meta.url),'utf8');
 const css=readFileSync(new URL('../styles/trade-desk.css',import.meta.url),'utf8');
 let source=readFileSync(new URL('./trade-desk.js',import.meta.url),'utf8');
-const expose="\n HJTD._test={model,analyse,posture,balanceOptions,dropPlan,lineupPoints,newsItemFrom,newsFor,byeCoverage,cleanAnalysisHtml,validateAnalysis,\n  requestAnalysis,cancelAnalysis,ANALYSIS,readAnalysisCache,saveAnalysisCache,analysisKey,projectionFact,TEAM_CONTEXT,shell,\n  hydrate:fn=>hydrateDossier=fn};\n";
+const expose="\n HJTD._test={model,analyse,posture,balanceOptions,dropPlan,lineupPoints,newsItemFrom,newsFor,byeCoverage,cleanAnalysisHtml,validateAnalysis,\n  requestAnalysis,cancelAnalysis,ANALYSIS,researchTrade,analysisKey,projectionFact,TEAM_CONTEXT,shell,\n  hydrate:fn=>hydrateDossier=fn};\n";
 source=source.replace(" if(document.readyState==='loading')",expose+"\n if(document.readyState==='loading')");
 const fields=['summary','value','context','usage','roster','schedule','verdictA','verdictB','accept','overall'];
-let requests=0,mode='ok',seen=[],runtimeLoads=0;
+let requests=0,mode='ok',seen=[];
 const server=createServer(async(req,res)=>{
  const path=new URL(req.url,'http://localhost').pathname;
- if(path==='/completion'){
+ if(path==='/gemini'){
   let body='';for await(const part of req)body+=part;
-  const input=JSON.parse(body);seen.push(input);
-  assert.equal(input.response_format,undefined,'Do not initialize a second grammar runtime');
-  const final=input.messages[0].content.startsWith('You are writing the analysis');
-  const chosen=mode,index=final?++requests:0;
-  if(chosen==='slow')await new Promise(r=>setTimeout(r,1600));
+  const input=JSON.parse(body);seen.push(input);assert.equal(input.protocol,'hj-trade-search-v1');
+  const chosen=mode,index=++requests;
+  if(chosen==='slow')await new Promise(r=>setTimeout(r,700));
+  if(chosen==='fail'){res.writeHead(429,{'Content-Type':'application/json'});res.end('{"error":"busy"}');return}
   const data=Object.fromEntries(fields.map(k=>[k,'<p>'+k+' response '+index+'</p>']));
   data.context='';data.accept='<p>ALPHA has a need. Likely</p><p>BETA needs depth. Could go either way</p>';
-  res.setHeader('Content-Type','application/json');
-  res.end(JSON.stringify({choices:[{finish_reason:chosen==='fail'?'length':'stop',message:{content:
-   final?JSON.stringify(data):'ALPHA and BETA trade running backs. Two games of usage are available.'}}]}));return;
- }
- res.setHeader('Content-Type','text/javascript');
- if(path==='/model.mjs'){
-  runtimeLoads++;
-  res.end("export const prebuiltAppConfig={model_list:['q4f16_1','q4f32_1'].map(format=>({model_id:'Llama-3.2-1B-Instruct-'+format+'-MLC',model:location.origin+'/model'}))};"+
-   "export class MLCEngine{constructor(options){this.options=options;this.loadedModelIdToPipeline=new Map();this.chat={completions:{create:async request=>(await fetch('/completion',{method:'POST',body:JSON.stringify(request)})).json()}}}"+
-   "async reload(id,options){if(options.context_window_size!==6144)throw Error('Unexpected context size');this.loadedModelIdToPipeline.set(id,{tokenizer:{encode:text=>new Uint8Array(Math.ceil(text.length/4))}});this.options.initProgressCallback({progress:0.5});this.options.initProgressCallback({progress:1})}async resetChat(){}interruptGenerate(){}async unload(){}}");return;
- }
- if(/^\/scripts\/trade-analysis-(local|worker|shared)\.mjs$/.test(path)){
-  let code=readFileSync(new URL('..'+path,import.meta.url),'utf8');
-  if(path.endsWith('-worker.mjs')){
-   code="Object.defineProperty(navigator,'gpu',{value:{requestAdapter:async()=>({features:new Set(['shader-f16'])})}});\n"+code
-    .replace('https://esm.run/@mlc-ai/web-llm@0.2.85','/model.mjs');
-  }
-  res.end(code);return;
+  data.sources=[{url:'https://www.nfl.com',title:'NFL'}];
+  data.searchSuggestions='<style>a{font:14px Arial}</style><div><a href="https://www.google.com/search?q=football">Football news</a></div>';
+  res.setHeader('Content-Type','application/json');res.end(JSON.stringify(data));return;
  }
  if(path==='/'){
   res.setHeader('Content-Type','text/html');res.end('<html><head><style>*{box-sizing:border-box}body{margin:0;--sans:Arial;--mono:Arial;--serif:Georgia}</style></head><body><div id="league-hq-tools"><div id="hq-panel-strength"></div></div></body></html>');return;
@@ -46,40 +30,35 @@ const server=createServer(async(req,res)=>{
 });
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const base='http://127.0.0.1:'+server.address().port;
+source=source.replace('https://hungjurors-trade-analysis.misbauddin-ahmed.workers.dev/gemini',base+'/gemini');
 const browser=await chromium.launch({headless:true});
 try{
  const context=await browser.newContext({viewport:{width:390,height:844}});
  const page=await context.newPage(),errors=[],externalPosts=[];
  page.on('pageerror',e=>errors.push(e.message));
  context.on('request',req=>{if(req.method()==='POST'&&!req.url().startsWith(base+'/'))externalPosts.push(req.url())});
- await context.addInitScript(()=>{
-  window.workerStarts=0;window.workerStops=0;
-  const NativeWorker=window.Worker;
-  window.Worker=new Proxy(NativeWorker,{construct(Target,args){
-   window.workerStarts++;const worker=new Target(...args),terminate=worker.terminate.bind(worker);
-   worker.terminate=()=>{window.workerStops++;terminate()};return worker;
-  }});
- });
+ await context.addInitScript(()=>{window.Worker=class{constructor(){throw Error('Browser inference must not run')}}});
  await page.goto(base);
  await page.addStyleTag({content:css});
  const installFixture=async(seed=true)=>{
-  await page.addScriptTag({content:fixture+'\nfunction hjStrengthHTML(){return ""}\nfunction hjRerenderStrength(){document.querySelector("#hq-panel-strength").innerHTML=window.HJTD._test.shell()}\n'+source+"\nconst t=window.HJTD._test;\n"+(seed?"window.HJTD.a='1';window.HJTD.b='2';window.HJTD.give=new Set(['2']);window.HJTD.get=new Set(['12']);\n":"")+"\nconst schedules=new Map();\nfor(let w=1;w<=18;w++){if(w!==8)schedules.set('a'+w,{season:2026,week:w,home_team:'AAA',away_team:'CCC'});\n if(w!==9)schedules.set('b'+w,{season:2026,week:w,home_team:'BBB',away_team:'DDD'});}\nwindow.HJTD.injectSchedule(schedules);\nconst rows=[...fixtures,...second].flatMap(e=>[1,2].map(week=>({id:e.player.id,player_display_name:e.player.fullName,position:e.player.position,team:e.player.team,week,points:10,carries:8,targets:3,receiving_yards:40})));\nwindow.HJTD.injectUsage(rows,null);\n"+'\nwindow.HJTD._test.hydrate(async()=>{});hjRerenderStrength();'});
+  await page.addScriptTag({content:fixture+'\nfunction hjStrengthHTML(){return ""}\nfunction hjRerenderStrength(){document.querySelector("#hq-panel-strength").innerHTML=window.HJTD._test.shell()}\n'+source+"\nconst t=window.HJTD._test;\n"+(seed?"window.HJTD.a='1';window.HJTD.b='2';window.HJTD.give=new Set(['2']);window.HJTD.get=new Set(['12']);\n":"")+"\nconst schedules=new Map();\nfor(let w=1;w<=18;w++){if(w!==8)schedules.set('a'+w,{season:2026,week:w,home_team:'AAA',away_team:'CCC'});\n if(w!==9)schedules.set('b'+w,{season:2026,week:w,home_team:'BBB',away_team:'DDD'});}\nwindow.HJTD.injectSchedule(schedules);\nconst rows=[...fixtures,...second].flatMap(e=>[1,2].map(week=>({id:e.player.id,player_display_name:e.player.fullName,position:e.player.position,team:e.player.team,week,points:10,carries:8,targets:3,receiving_yards:40})));\nwindow.HJTD.injectUsage(rows,null);\n"+'\nhjRerenderStrength();'});
  };
  await installFixture();
  await page.getByRole('button',{name:'Write analysis',exact:true}).waitFor();
  await page.waitForTimeout(1200);
  assert.equal(requests,0,'No inference before the user asks');
- assert.equal(runtimeLoads,0,'No model download during ordinary browsing');
+
  await page.getByRole('button',{name:'Write analysis',exact:true}).click();
  await page.locator('.td-sec-summary').waitFor();
  assert.equal(requests,1);
  assert.equal(await page.locator('.td-sec-context').count(),0);
  assert.equal(await page.locator('.td-accept-pill').count(),2);
  assert.deepEqual(await page.locator('.td-sec > h4').allTextContents(),
- ['Summary','Breakdown','Factor scorecard','Is it a good value?','Usage and opportunity','Roster fit','Schedule and playoff leverage','The verdict']);
+ ['Breakdown','Factor scorecard','Summary','Is it a good value?','Usage and opportunity','Roster fit','Schedule and playoff leverage','The verdict']);
  await page.evaluate(()=>hjRerenderStrength());
  assert.equal(requests,1);
- assert.ok(seen.some(input=>input.messages[1].content.includes('lastGame')),'The Worker reads the trade evidence');
+ assert.equal(seen[0].managers[0].sends[0],'2');
+ await page.locator('.td-search-suggestions a').waitFor();
  const sanitized=await page.evaluate(()=>window.HJTD._test.cleanAnalysisHtml('<p onclick="bad()">Safe <b>bold</b></p><script>bad()</script><img onerror="bad()">'));
  assert.equal(sanitized,'<p>Safe <b>bold</b></p>');
  const layout=await page.evaluate(()=>({
@@ -94,22 +73,24 @@ try{
  mode='slow';
  await page.evaluate(()=>{HJTD.get=new Set(['16']);hjRerenderStrength()});
  const until=async(predicate)=>{const end=Date.now()+15000;while(!predicate()){assert.ok(Date.now()<end,'Timed out waiting for generation');await new Promise(r=>setTimeout(r,50))}};
+ assert.equal(requests,1,'Changing selection does not generate');
+ await page.getByRole('button',{name:'Write analysis',exact:true}).click();
  await until(()=>requests===2);
  mode='ok';
  await page.evaluate(()=>{HJTD.get=new Set(['14']);hjRerenderStrength()});
+ await page.getByRole('button',{name:'Write analysis',exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('.td-sec-summary')?.textContent.includes('response 3'));
- assert.equal(await page.evaluate(()=>window.workerStarts),3,'Each trade uses a new Worker after releasing the previous one');
- assert.equal(await page.evaluate(()=>window.workerStops),3,'Completed and cancelled Workers release their resources');
+ await page.waitForTimeout(800);
+ assert.ok((await page.locator('.td-sec-summary').innerText()).includes('response 3'),'Old response cannot overwrite new trade');
  mode='fail';
  await page.evaluate(()=>{HJTD.get=new Set(['13']);hjRerenderStrength()});
+ await page.getByRole('button',{name:'Write analysis',exact:true}).click();
  await page.waitForFunction(()=>HJTD._test.ANALYSIS.state.status==='failed');
  assert.equal(await page.locator('.td-writing').count(),0);
  assert.equal(await page.locator('.td-sec-summary').count(),0);
  assert.equal(await page.locator('.td-sec-breakdown').count(),1);
  assert.equal(await page.locator('.td-score-row').count(),7);
  assert.equal(await page.getByRole('button',{name:'Try analysis again',exact:true}).count(),1);
- assert.equal(await page.evaluate(()=>window.workerStarts),4);
- assert.equal(await page.evaluate(()=>window.workerStops),4,'A failed Worker is also released');
  // A browser process can disappear without delivering an error or pagehide.
  // Preserve the in-flight draft exactly as it would remain after that interruption.
  await page.evaluate(()=>{
@@ -126,10 +107,10 @@ try{
   {a:'1',b:'2',give:['2'],get:['13']},'Restore both managers and every selected player');
  assert.equal(await page.getByRole('button',{name:'Write analysis',exact:true}).count(),1);
  await page.waitForTimeout(1200);
- assert.equal(await page.evaluate(()=>window.workerStarts),0,'An interrupted analysis never restarts on reload');
  assert.equal(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('hj-trade-draft-v1')).pending),false);
+ assert.equal(requests,4,'No auto retry or generation on reload');
  assert.deepEqual(errors,[]);assert.deepEqual(externalPosts,[]);
- console.log('Local Worker integration (mock model), lazy loading, 390px layout, cache, Worker disposal, draft recovery and quiet failure: passed');
+ console.log('Hosted analysis integration: explicit requests, sources, 390px layout, cancellation, draft recovery and quiet quota failure passed (mock API; no external inference)');
 }finally{
  await browser.close();
  server.closeAllConnections();await new Promise(resolve=>server.close(resolve));

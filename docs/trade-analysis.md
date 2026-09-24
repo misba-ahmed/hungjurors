@@ -1,35 +1,40 @@
 # Trade Desk analysis
 
-Trade analysis now runs entirely on the visitor's device through WebLLM. There is no OpenAI request, hosted inference fallback, API key, token bill, or provider usage allowance. The site remains on GitHub Pages.
+The existing Trade Desk comparisons remain on GitHub Pages. Written analysis uses Gemini 2.5 Flash with Google Search through the existing Cloudflare Worker. Browsers do not load WebLLM, download model weights, use WebGPU, or call Google directly.
 
-## Browser behavior
+## Activate without billing
 
-Select a trade and click **Write analysis** beneath the factor scorecard. The first use downloads the model and tokenizer. WebLLM caches model files in browser storage; clearing that storage requires another download. Initial download and inference can take time and require substantial device memory. A working WebGPU adapter is required. No claim is made that every phone or browser supports this workload.
+1. Open [Google AI Studio API keys](https://aistudio.google.com/api-keys). Create a project/key and verify that the project's usage tier is **Free**. Do not link billing, upgrade, or add credits.
+2. Open the existing Cloudflare **hungjurors-trade-analysis → Settings → Runtime variables and secrets**, select Production, and save these as secrets:
+   - **GEMINI_API_KEY**: the newly created key.
+   - **GEMINI_FREE_TIER_CONFIRMED**: **true**, only after verifying Free in AI Studio.
+3. Deploy the saved secrets. The Production workers.dev address must be enabled. Open **League HQ → Roster Strength → Trade Desk**, select a trade and click **Write analysis**.
 
-The page shows only the analysis control, loading progress and the existing write-up sections. Failures retain all deterministic comparisons and offer another attempt. There is no provider, setup, billing or technical explanation on the page.
+The endpoint is https://hungjurors-trade-analysis.misbauddin-ahmed.workers.dev/gemini. Git-connected Cloudflare builds deploy from workers/trade-analysis. Its configuration keeps workers.dev enabled and previews disabled.
 
-After the first click, subsequent trade selections in the same page session generate locally after a short debounce. Completed reports are cached for ten minutes by trade, roster, week, market and injury state. Changing a trade cancels the old generation; one job runs at a time. Old results cannot replace the current selection. Heavy model work runs in a dedicated Web Worker, terminated on completion, failure, cancellation and page exit; model weights remain in the browser download cache, not resident GPU memory.
+Do not send a key through chat, commit it to GitHub, or add it to page JavaScript. The previous OPENAI_API_KEY and MODEL variables are ignored. There is no alternate model, retry loop, upgrade operation or paid-provider fallback.
 
-Managers and selected players are saved before loading starts and whenever the selection changes. A reload after an interrupted analysis restores the Trade Desk and its selections, without restarting inference. Drafts expire after 24 hours or a season change.
+**The API key does not disclose its billing tier to this Worker.** The confirmation flag is a required deployment check, not automatic billing verification. The project must remain Free; do not enable billing later while continuing to use this key. Google's Free tier enforces its allowance. Exhaustion stops generation rather than buying more capacity. Other unrelated account usage can also consume that quota. Cloudflare must also remain on its Free plan.
 
-## Implementation
+[Google pricing](https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash) lists a free search-grounding allowance for Gemini 2.5 Flash, shared with Flash-Lite. [Model/account rate limits](https://ai.google.dev/gemini-api/docs/rate-limits) can be lower; 500 grounded requests is not a promise of 500 completed reports. Newer models have different search billing and are not automatic substitutes.
 
-- `scripts/trade-desk.js`: existing dossier/lineup calculations and UI; dynamically imports the local client after activation.
-- `scripts/trade-analysis-local.mjs`: cancellation-safe browser-to-worker requests.
-- `scripts/trade-analysis-worker.mjs`: WebLLM 0.2.85, Llama-3.2-1B-Instruct with q4f16 or q4f32 according to shader-f16 support. The 6,144-token context bounds GPU cache memory. Model/CDN downloads use no credentials and receive no league dossier.
-- `scripts/trade-analysis-shared.mjs`: original analyst brief, full dossier and HTML validation, context sizing and generation. The engine’s existing tokenizer counts input tokens; no second tokenizer module, tokenizer instance or WASM heap is created. This small adapter is coupled to the pinned WebLLM version and must be checked before upgrading the runtime. Output is parsed and validated after ordinary generation, without loading the separate grammar runtime or copying its vocabulary table. Dossiers that exceed the context window are split losslessly and read by the model in portions; only the model's notes are condensed for the final report. No article, Spin, source evidence or displayed output is cut off to fit. A response that ends at its token limit, contains invalid JSON or includes unexpected HTML is rejected.
-- `workers/trade-analysis/worker.mjs`: a retired endpoint returning HTTP 410 for old tabs. It never reads a key or calls any model. The Cloudflare service is no longer part of analysis. A previously saved OpenAI secret is unused and can be removed from Cloudflare.
+## Behavior and scope
 
-The same dossier supplies manager records, needs, exact lineup slots, drops, bye coverage, free agents, player and teammate news/Spin, usage samples, timelines and schedules. The local model is substantially smaller than the previous hosted model; equivalent prose/reasoning quality is not promised. Reducing the previous Qwen3-1.7B workload addresses memory pressure, but browser support and available device memory still constrain real generation.
+Only an explicit **Write analysis** click sends a request. Editing the deal, browsing rosters or refreshing does not automatically consume the allowance. An unchanged report stays on screen through ordinary rerenders. Changing the trade removes that report and requires another explicit click. The saved trade selection survives a reload; model output is not saved.
 
-Generated HTML remains restricted to p, ul, li and b, with independent browser sanitization. Dossier strings remain untrusted evidence, never instructions. The paid-model cache is not reused.
+The compact input contains both complete rosters, outgoing player IDs, record, roster slots/capacity, league scoring/playoff rules, current market values and 30-day changes. Gemini receives the current server date and researches current news, usage, teammate injuries, role windows and playoff schedules itself. It is instructed to qualify sample sizes and verify injury/return dates. Configuring search alone is not sufficient: the response must include evidence of a search and its associated search suggestions.
 
-These changes remove identified extra allocations after model loading. They do not establish the cause of any particular iOS process termination and cannot override browser memory limits.
+The entire written report follows the existing Breakdown and seven-row Factor scorecard. Source links and Google's search suggestions accompany it. Empty optional sections are omitted. No setup, provider limits, billing or model-loading explanation appears in the site UI. On failure, the deterministic comparisons remain and the button permits a manual retry.
 
-## Verification
+Google's [grounding terms](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) require the associated search suggestions to be displayed and restrict caching. Reports are held only as the current view; there is no browser storage cache, shared response cache, link tracking or automated reuse. The report text is rendered in full and sources open directly. Google's supplied suggestion markup is validated, then displayed intact in a shadow root so its styles stay scoped to the suggestion area.
 
-`node scripts/test-trade-desk.mjs` checks existing calculations, lossless evidence splitting/context handling, rejected truncated output and that the retired endpoint cannot make network calls.
+## Implementation and checks
 
-`node scripts/test-trade-desk-browser.mjs` checks the local Worker lifecycle, activation, cache, changing selections, failure and the 390px layout with mocked inference. It does not download model weights or make paid requests. Real generation speed, model quality and device-specific GPU compatibility require a supported device; the automated checks do not simulate those performance characteristics.
+- scripts/trade-desk.js: compact request, explicit activation, cancellation, draft recovery, safe section rendering and source display.
+- scripts/trade-analysis-shared.mjs: analyst instructions, request contract and complete response validation.
+- workers/trade-analysis/worker.mjs: exact Origin and path checks, required free-tier confirmation, bounded input/output, request timeout, rate limit bindings and server-only key. Legacy paths remain HTTP 410.
+- workers/trade-analysis/wrangler.jsonc: existing Worker identity, production URL and rate limit bindings. Limiters are Cloudflare location-based abuse controls, not a global billing cap or authentication. A non-browser caller can forge Origin; no claim is made that CORS authenticates a league member.
 
-References: [WebLLM](https://webllm.mlc.ai/docs/), [Web Workers](https://webllm.mlc.ai/docs/user/advanced_usage.html), [model records](https://github.com/mlc-ai/web-llm/blob/main/src/config.ts).
+node scripts/test-trade-desk.mjs covers unchanged calculations and mocked Gemini request/response, free-tier/key gates, old-client rejection, origin checks, size bounds and quota errors. node scripts/test-trade-desk-browser.mjs covers explicit activation, compact input, sources, 390px layout, cancellation and quiet failure with a mocked HTTP endpoint. Neither check uses a real model or incurs inference charges.
+
+**Live generation and report quality still require one real trial after the Free-tier key is configured.** Passing mock checks is not proof of provider availability or football accuracy.
