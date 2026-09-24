@@ -53,22 +53,39 @@ export default {
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),90000);
   const cancel=()=>controller.abort();request.signal.addEventListener('abort',cancel,{once:true});
   try{
-   const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+MODEL+':generateContent',{
-    method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':env.GEMINI_API_KEY},
-    body:JSON.stringify(geminiRequest(trade)),signal:controller.signal
-   });
-   if(!response.ok){
-    let reason='';
+   const models=[MODEL,'gemini-3.5-flash-lite'];
+   const attempts=[],body=JSON.stringify(geminiRequest(trade));
+   let response,usedModel;
+   for(const model of models){
+    usedModel=model;
+    response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{
+     method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':env.GEMINI_API_KEY},
+     body,signal:controller.signal
+    });
+    if(response.ok)break;
+    let reason='',cause='';
     try{
-     const body=await boundedJson(response,16000);
-     reason=[body.error?.status,...(body.error?.details||[]).map(d=>d.reason)]
+     const error=(await boundedJson(response,16000)).error||{};
+     reason=[error.status,...(error.details||[]).map(d=>d.reason)]
       .filter(s=>typeof s==='string'&&/^[A-Z_]{1,80}$/.test(s)).join(':');
+     const message=String(error.message||'');
+     // Expose only a category, never Google's raw body, key or submitted text.
+     cause=/overload|high demand|capacity/i.test(message)?'MODEL_CAPACITY':
+      /url.?context|retrieval tool/i.test(message)?'RETRIEVAL_UNAVAILABLE':'';
     }catch(_){}
-    console.warn('trade_analysis_upstream',{status:response.status,reason});
-    return reply(response.status===429?429:502,response.status===429?'busy':'upstream_rejected',{upstreamStatus:response.status,reason});
+    attempts.push({model,status:response.status,reason,cause});
+    console.warn('trade_analysis_upstream',attempts.at(-1));
+    // A second supported free model can serve an overloaded model's request.
+    // Quota, billing, authentication and other client errors never trigger another call.
+    if(response.status!==503||model===models.at(-1)){
+     return reply(response.status===429?429:502,response.status===429?'busy':'upstream_rejected',
+      {upstreamStatus:response.status,reason,cause,attempts});
+    }
+    await new Promise(resolve=>setTimeout(resolve,1000));
+    controller.signal.throwIfAborted();
    }
    const data=parseGeminiResponse(await boundedJson(response,200000));
-   return new Response(JSON.stringify(data),{headers});
+   return new Response(JSON.stringify({...data,engine:usedModel}),{headers});
   }catch(error){
    // Never log the prompt, generated report, upstream body or API key.
    console.warn('trade_analysis_failed',{kind:error.name==='AbortError'?'timeout':'invalid_response'});
