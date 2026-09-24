@@ -1223,7 +1223,7 @@
   const data=Object.fromEntries(ANALYSIS_FIELDS.map(k=>[k,cleanAnalysisHtml(value[k])]));
   if(!data.summary||!data.overall)throw Error('Empty analysis');
   data.researchMode=value.researchMode;
-  data.searchSuggestions=value.researchMode==='url-context'?'':safeSearchSuggestions(value.searchSuggestions);
+  data.searchSuggestions=['url-context','source-context'].includes(value.researchMode)?'':safeSearchSuggestions(value.searchSuggestions);
   if(!Array.isArray(value.sources)||value.sources.some(s=>typeof s?.url!=='string'||!/^https:\/\//i.test(s.url)||
    s.url.length>4000||typeof s.title!=='string'||s.title.length>1000))throw Error('Invalid sources');
   data.sources=value.sources;
@@ -1278,7 +1278,7 @@
   return ANALYSIS.state;
  }
  function searchAttribution(data){
-  if(!data||data.researchMode==='url-context')return '';
+  if(!data||['url-context','source-context'].includes(data.researchMode))return '';
   // Keep Google's supplied search suggestions with the result, in their own style scope.
   setTimeout(()=>{
    const el=document.querySelector('.td-search-suggestions');

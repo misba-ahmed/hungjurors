@@ -1,5 +1,7 @@
 import {MODEL,PROTOCOL,validateTrade,geminiRequest,parseGeminiResponse} from '../../scripts/trade-analysis-shared.mjs';
 
+import {loadResearch} from '../../scripts/trade-analysis-context.mjs';
+
 const ORIGIN='https://hungjurors.com';
 const LIMIT=24000;
 
@@ -53,8 +55,10 @@ export default {
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),90000);
   const cancel=()=>controller.abort();request.signal.addEventListener('abort',cancel,{once:true});
   try{
+   let evidence;
+   try{evidence=await loadResearch(trade,controller.signal)}catch(_){return reply(503,'context_unavailable')}
    const models=[MODEL,'gemini-3.5-flash-lite'];
-   const attempts=[],body=JSON.stringify(geminiRequest(trade));
+   const attempts=[],body=JSON.stringify(geminiRequest(trade,new Date(),evidence));
    let response,usedModel;
    for(const model of models){
     usedModel=model;
@@ -86,7 +90,7 @@ export default {
    }
    const payload=await boundedJson(response,200000);
    let data;
-   try{data=parseGeminiResponse(payload)}catch(error){
+   try{data=parseGeminiResponse(payload,evidence)}catch(error){
     const allowed=['Incomplete report','Invalid report','Invalid section','Unsafe report markup','Unbalanced report','Invalid report markup','Empty report','Ungrounded report'];
     const validation=allowed.includes(error.message)?error.message:error.name==='SyntaxError'?'Invalid JSON':'Invalid response';
     const candidate=payload?.candidates?.[0];

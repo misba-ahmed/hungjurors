@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {prepareSite} from './prepare-site.mjs';
 import worker from '../workers/trade-analysis/worker.mjs';
+import {currentNews} from './trade-analysis-context.mjs';
 import {FIELDS,researchSources,validateTrade,validateOutput,geminiRequest,parseGeminiResponse} from './trade-analysis-shared.mjs';
 const source=readFileSync(new URL('./trade-desk.js',import.meta.url),'utf8');
 const prepared=prepareSite(readFileSync(new URL('../index.html',import.meta.url),'utf8'));
@@ -54,12 +55,23 @@ assert.ok(JSON.stringify(trade).length<12000,'Compact roster request');
 assert.equal(trade.managers.length,2);
 assert.ok(trade.managers[0].roster.some(p=>p.name==='A Runner'));
 assert.ok(trade.managers[0].record,'Include manager records');
-const call=geminiRequest(trade);
-assert.deepEqual(call.tools,[{urlContext:{}}]);
+const evidence={newsItems:1,sources:[{url:'https://site.api.espn.com/news',title:'Current player news'}],facts:[{data:{news:[{text:'Runner is on injured reserve.',spin:'He will miss six weeks.'}]}}]};
+const call=geminiRequest(trade,new Date(),evidence);
+assert.equal(call.tools,undefined,'Research is fetched directly, not delegated to optional model tools');
+assert.ok(call.contents[0].parts[0].text.includes('He will miss six weeks.'));
+assert.throws(()=>geminiRequest(trade),'Require fetched current evidence');
+const newsNow=Date.now(),newsPlayer={id:'2',name:'A Runner'};
+const newsFeed={feed:[
+ {playerId:2,type:'rotowire',published:new Date(newsNow).toISOString(),description:'Runner has landed on injured reserve.',story:'He will miss six weeks.'},
+ {playerId:2,type:'column',published:new Date(newsNow).toISOString(),description:'Runner is discussed.'},
+ {playerId:2,type:'rotowire',published:new Date(newsNow).toISOString(),description:'An NFL roundup. Runner is discussed.'},
+ {playerId:2,type:'rotowire',published:new Date(newsNow-22*864e5).toISOString(),description:'Runner practiced.'}
+]};
+assert.deepEqual(currentNews(newsFeed,newsPlayer,newsNow).map(n=>n.spin),['He will miss six weeks.']);
 assert.equal(call.generationConfig.responseMimeType,'application/json');
 assert.deepEqual(call.generationConfig.responseSchema.required,FIELDS);
 assert.ok(call.systemInstruction.parts[0].text.includes('Current date:'));
-assert.ok(!JSON.stringify(call).includes('weeklySeries'),'Research runs on Gemini, not a huge dossier');
+assert.ok(!JSON.stringify(call).includes('weeklySeries'),'The request includes current evidence without a duplicate browser dossier');
 assert.throws(()=>validateTrade({...trade,protocol:'old-paid-client'}));
 assert.throws(()=>validateTrade({...trade,managers:[trade.managers[0],trade.managers[0]]}));
 const grounded={candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(output)}]},
@@ -68,11 +80,23 @@ assert.equal(call.generationConfig.thinkingConfig.thinkingLevel,'LOW');
 assert.ok(researchSources(trade).length<=20);
 assert.ok(researchSources(trade).every(s=>s.url.startsWith('https://')));
 assert.equal(parseGeminiResponse(grounded).summary,output.summary);
+const directlyInformed={candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(output)}]}}]};
+assert.equal(parseGeminiResponse(directlyInformed,evidence).researchMode,'source-context');
 assert.throws(()=>parseGeminiResponse({candidates:[{...grounded.candidates[0],finishReason:'MAX_TOKENS'}]}));
 assert.throws(()=>parseGeminiResponse({candidates:[{...grounded.candidates[0],urlContextMetadata:{}}]}),'Never show an ungrounded report as live research');
 let remoteCalls=0,mode='ok',bodySeen,keySeen;const calledModels=[];
 const originalFetch=globalThis.fetch;
 globalThis.fetch=async(url,options)=>{
+ if(!url.startsWith('https://generativelanguage.googleapis.com/')){
+  assert.equal(options.headers['x-goog-api-key'],undefined,'API key never goes to evidence sources');
+  const playerId=new URL(url).searchParams.get('playerId');
+  if(playerId){
+   const player=trade.managers.flatMap(m=>m.roster).find(p=>p.id===playerId);
+   return Response.json({feed:[{playerId:Number(playerId),type:'rotowire',published:new Date().toISOString(),
+    description:player.name+' handled 18 touches.',story:'The lead role continued throughout the second half.'}]});
+  }
+  return Response.json({});
+ }
  remoteCalls++;
  const model=url.match(/models\/([^:]+):generateContent$/)?.[1];calledModels.push(model);
  assert.ok(['gemini-3.8-flash','gemini-3.5-flash-lite'].includes(model),'Only explicitly free models');
@@ -82,7 +106,7 @@ globalThis.fetch=async(url,options)=>{
  if(mode==='auth')return Response.json({error:{status:'PERMISSION_DENIED'}},{status:403});
  if(mode==='quota')return new Response('{}',{status:429});
  if(mode==='bad')return Response.json({candidates:[{...grounded.candidates[0],finishReason:'MAX_TOKENS'}]});
- return Response.json(grounded);
+ return Response.json(directlyInformed);
 };
 const env={GEMINI_API_KEY:'fake-test-key',GEMINI_FREE_TIER_CONFIRMED:'true',
  OPENAI_API_KEY:'never-used',MODEL:'gpt-5.4',PER_IP:{limit:async()=>({success:true})},TOTAL:{limit:async()=>({success:true})}};
@@ -106,7 +130,8 @@ try{
  const response=await worker.fetch(request(),env);
  assert.equal(response.status,200);assert.equal(response.headers.get('Cache-Control'),'no-store');
  assert.equal((await response.json()).overall,output.overall);
- assert.equal(keySeen,'fake-test-key');assert.deepEqual(bodySeen.tools,[{urlContext:{}}]);
+ assert.equal(keySeen,'fake-test-key');assert.equal(bodySeen.tools,undefined);
+ assert.ok(JSON.stringify(bodySeen.contents).includes('The lead role continued throughout the second half.'));
  mode='quota';assert.equal((await worker.fetch(request(),env)).status,429);
  assert.equal(remoteCalls,2,'Quota exhaustion never retries or switches providers');
  mode='overload';const beforeFallback=remoteCalls;
@@ -129,4 +154,4 @@ try{
 }finally{globalThis.fetch=originalFetch}
 assert.ok(!source.includes('localAnalysis')&&!source.includes('webllm'),'No browser inference runtime');
 assert.ok(!source.includes('readAnalysisCache'),'No shared or persistent grounding cache');
-console.log('Compact research input, URL context, free-tier gate, origin, quota failure and response validation: passed (mock API; no external inference)');
+console.log('Direct current evidence, free-tier gate, origin, quota failure and response validation: passed (mock API; no external inference)');
