@@ -1,8 +1,13 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
+import {prepareSite} from './prepare-site.mjs';
 import worker,{FIELDS,validateOutput} from '../workers/trade-analysis/worker.mjs';
 const source=readFileSync(new URL('./trade-desk.js',import.meta.url),'utf8');
+const prepared=prepareSite(readFileSync(new URL('../index.html',import.meta.url),'utf8'));
+const injected=prepared.match(/<script id="hj-trade-desk">([\s\S]*?)<\/script>/)?.[1];
+assert.equal(injected,source,'Site preparation must preserve script text, including dollar replacement tokens');
+new vm.Script(injected);
 const fixture=readFileSync(new URL('./fixtures/trade-desk.js',import.meta.url),'utf8');
 const expose="\n HJTD._test={model,analyse,posture,balanceOptions,dropPlan,lineupPoints,newsItemFrom,newsFor,byeCoverage,cleanAnalysisHtml,validateAnalysis,\n  requestAnalysis,cancelAnalysis,ANALYSIS,readAnalysisCache,saveAnalysisCache,analysisKey,projectionFact,TEAM_CONTEXT,shell,\n  hydrate:fn=>hydrateDossier=fn};\n";
 const context=vm.createContext({console,Date,Map,Set,URLSearchParams,setTimeout:()=>1,clearTimeout(){},

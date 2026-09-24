@@ -2,25 +2,23 @@
 
 The Trade Desk keeps market totals, the lineup optimizer, roster ranks, position bars, Breakdown and the seven-factor scorecard in the browser. Its written analysis comes from a Cloudflare Worker using the OpenAI Responses API. The frontend contains no API key. The rest of the site, including index.html, is unchanged.
 
-## Deploy (three steps)
+## Set up through the website
 
-Prerequisites: an OpenAI API account with billing enabled, Node.js, a Cloudflare account, and a current checkout of this repository.
+No terminal commands or DNS changes are needed.
 
-1. In the repository, run:
-   ```sh
-   cd workers/trade-analysis
-   npx wrangler login
-   npx wrangler deploy
-   ```
-   The configuration attaches **trade-analysis.hungjurors.com** to the Worker. This requires hungjurors.com to be an active zone in that Cloudflare account; the main site continues to use GitHub Pages. If DNS is managed elsewhere, remove the configuration's `routes` entry before deploying and use the printed `workers.dev` address in step 3 instead. There is no need to move the site.
-2. Store the key as a Worker secret:
-   ```sh
-   npx wrangler secret put OPENAI_API_KEY
-   ```
-   Paste the API key into the hidden prompt. Never put it in JavaScript, a repository file, a GitHub Pages setting, or a URL. This creates a new deployed Worker version with the secret.
-3. Open **hungjurors.com → League HQ → Roster Strength → Trade Desk**, select players on both sides, and wait for the analysis. The custom-domain configuration works with the committed frontend as-is. If using workers.dev instead, set `ANALYSIS_ENDPOINT` in `scripts/trade-desk.js` to the exact URL printed in step 1, commit that one-line change, and let Publish finish first.
+1. Create a [Cloudflare account](https://dash.cloudflare.com/sign-up) and verify your email.
+2. Open **Workers & Pages → Create application → Import a repository / Continue with GitHub**. Connect GitHub and select **misba-ahmed/hungjurors**. Use these settings:
+   - Worker name: **hungjurors-trade-analysis**
+   - Branch: **main**
+   - Root directory: **workers/trade-analysis**
+   - Build command: leave empty
+   - Deploy command: keep the default **npx wrangler deploy**
+   
+   Click **Deploy**. Cloudflare runs the command for you. The site itself stays on GitHub Pages.
+3. Open the new Worker → **Settings → Variables and Secrets → Add**. Choose **Secret**, name it **OPENAI_API_KEY**, and enter your OpenAI API key as its value. Click **Deploy** to save it. This is a runtime secret, not a build variable. An OpenAI API account with billing is needed to generate the analysis.
+4. Copy the Worker's public **https://hungjurors-trade-analysis.…workers.dev/** address and send that address to Codex. Codex can connect the frontend to it. Do not send the API key in chat.
 
-Before the Worker is deployed or the secret is set, the deterministic trade comparisons still work. A failed request quietly removes the writing indicator.
+The configuration uses a workers.dev address, so no custom domain or change to hungjurors.com's DNS is required. Until the Worker is configured and connected, the deterministic comparisons remain available and failed analysis requests stay quiet.
 
 ## Configuration and behavior
 

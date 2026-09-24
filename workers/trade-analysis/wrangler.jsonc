@@ -7,12 +7,6 @@
   ],
   "workers_dev": true,
   "preview_urls": false,
-  "routes": [
-    {
-      "pattern": "trade-analysis.hungjurors.com",
-      "custom_domain": true
-    }
-  ],
   "vars": {
     "MODEL": "gpt-5.4"
   },
