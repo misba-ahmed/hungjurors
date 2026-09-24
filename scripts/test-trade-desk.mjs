@@ -46,7 +46,7 @@ const engine={resetChat:async()=>{},chat:{completions:{create:async request=>{
  assert.equal(request.extra_body.enable_thinking,false);
  return {choices:[{finish_reason:truncated?'length':'stop',message:{content:request.response_format?
   JSON.stringify(output):'The teammate is expected back in Week 12. This role window ends before the fantasy playoffs.'}}]};
-}}};
+}}}};
 assert.deepEqual(await generateAnalysis(engine,dossier,{countTokens}),output);
 assert.ok(inputs.some(x=>x.messages[1].content.includes('RETURN IN WEEK 12')),'Read the end of long evidence');
 assert.ok(inputs.filter(x=>!x.response_format).length>0,'Large dossiers are read in bounded portions');
