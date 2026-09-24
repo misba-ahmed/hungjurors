@@ -16,13 +16,15 @@ Managers and selected players are saved before loading starts and whenever the s
 
 - `scripts/trade-desk.js`: existing dossier/lineup calculations and UI; dynamically imports the local client after activation.
 - `scripts/trade-analysis-local.mjs`: cancellation-safe browser-to-worker requests.
-- `scripts/trade-analysis-worker.mjs`: WebLLM 0.2.85, WebTokenizers 0.1.6, Llama-3.2-1B-Instruct with q4f16 or q4f32 according to shader-f16 support. The 6,144-token context bounds GPU cache memory. Model/CDN downloads use no credentials and receive no league dossier.
-- `scripts/trade-analysis-shared.mjs`: original analyst brief, full dossier and HTML validation, context sizing and generation. The model tokenizer counts input tokens. Dossiers that exceed the context window are split losslessly and read by the model in portions; only the model's notes are condensed for the final report. No article, Spin, source evidence or displayed output is cut off to fit. A response that ends at its token limit is rejected.
+- `scripts/trade-analysis-worker.mjs`: WebLLM 0.2.85, Llama-3.2-1B-Instruct with q4f16 or q4f32 according to shader-f16 support. The 6,144-token context bounds GPU cache memory. Model/CDN downloads use no credentials and receive no league dossier.
+- `scripts/trade-analysis-shared.mjs`: original analyst brief, full dossier and HTML validation, context sizing and generation. The engine’s existing tokenizer counts input tokens; no second tokenizer module, tokenizer instance or WASM heap is created. This small adapter is coupled to the pinned WebLLM version and must be checked before upgrading the runtime. Output is parsed and validated after ordinary generation, without loading the separate grammar runtime or copying its vocabulary table. Dossiers that exceed the context window are split losslessly and read by the model in portions; only the model's notes are condensed for the final report. No article, Spin, source evidence or displayed output is cut off to fit. A response that ends at its token limit, contains invalid JSON or includes unexpected HTML is rejected.
 - `workers/trade-analysis/worker.mjs`: a retired endpoint returning HTTP 410 for old tabs. It never reads a key or calls any model. The Cloudflare service is no longer part of analysis. A previously saved OpenAI secret is unused and can be removed from Cloudflare.
 
 The same dossier supplies manager records, needs, exact lineup slots, drops, bye coverage, free agents, player and teammate news/Spin, usage samples, timelines and schedules. The local model is substantially smaller than the previous hosted model; equivalent prose/reasoning quality is not promised. Reducing the previous Qwen3-1.7B workload addresses memory pressure, but browser support and available device memory still constrain real generation.
 
 Generated HTML remains restricted to p, ul, li and b, with independent browser sanitization. Dossier strings remain untrusted evidence, never instructions. The paid-model cache is not reused.
+
+These changes remove identified extra allocations after model loading. They do not establish the cause of any particular iOS process termination and cannot override browser memory limits.
 
 ## Verification
 

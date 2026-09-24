@@ -1,17 +1,8 @@
-import {generateAnalysis,CONTEXT_SIZE} from './trade-analysis-shared.mjs?v=20260924-webllm3';
+import {generateAnalysis,CONTEXT_SIZE} from './trade-analysis-shared.mjs?v=20260924-webllm4';
 const WEBLLM='https://esm.run/@mlc-ai/web-llm@0.2.85';
-const TOKENIZERS='https://cdn.jsdelivr.net/npm/@mlc-ai/web-tokenizers@0.1.6/lib/index.js';
 let engine=null,tokenizer=null,loading=null,queue=Promise.resolve(),active=null;
 const jobs=new Map();
 function progress(info){if(active&&!active.controller.signal.aborted)postMessage({type:'progress',id:active.id,progress:info})}
-async function tokenizerBytes(url){
- let cache=null;
- try{cache=await caches.open('hj-trade-tokenizer-v1');const hit=await cache.match(url);if(hit)return hit.arrayBuffer()}catch(_){}
- const response=await fetch(url,{credentials:'omit'});
- if(!response.ok)throw Error('Tokenizer download failed');
- if(cache)try{await cache.put(url,response.clone())}catch(_){}
- return response.arrayBuffer();
-}
 async function loadEngine(){
  if(engine&&tokenizer)return;
  if(loading)return loading;
@@ -21,21 +12,19 @@ async function loadEngine(){
   if(!adapter)throw Error('WebGPU unavailable');
   const format=adapter.features.has('shader-f16')?'q4f16_1':'q4f32_1';
   const modelId='Llama-3.2-1B-Instruct-'+format+'-MLC';
-  const [llm,tokenModule]=await Promise.all([import(WEBLLM),import(TOKENIZERS)]);
-  // The published tokenizer is UMD. Load its browser artifact directly;
-  // asking the CDN to rebundle it as ESM fails before model loading begins.
-  const tokens=tokenModule.Tokenizer?tokenModule:globalThis.tokenizers;
-  if(typeof tokens?.Tokenizer?.fromJSON!=='function')throw Error('Tokenizer unavailable');
+  const llm=await import(WEBLLM);
   const record=llm.prebuiltAppConfig.model_list.find(m=>m.model_id===modelId);
   if(!record)throw Error('Model unavailable');
   engine=new llm.MLCEngine({appConfig:{...llm.prebuiltAppConfig,model_list:[record]},
    logLevel:'ERROR',initProgressCallback:info=>progress({phase:'loading',fraction:Math.max(0,Math.min(1,info.progress||0))})});
   await engine.reload(modelId,{context_window_size:CONTEXT_SIZE});
-  const url=record.model.replace(/\/$/,'')+'/resolve/main/tokenizer.json';
-  tokenizer=await tokens.Tokenizer.fromJSON(await tokenizerBytes(url));
+  // The pinned runtime already owns this tokenizer. Reuse it for exact budgeting;
+  // constructing another copy also loads a second tokenizer WASM heap.
+  tokenizer=engine.loadedModelIdToPipeline?.get(modelId)?.tokenizer;
+  if(typeof tokenizer?.encode!=='function')throw Error('Tokenizer unavailable');
  })().catch(async error=>{
   try{await engine?.unload()}catch(_){}
-  engine=null;tokenizer?.dispose();tokenizer=null;throw error;
+  engine=null;tokenizer=null;throw error;
  }).finally(()=>{loading=null});
  return loading;
 }

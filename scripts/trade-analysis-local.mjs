@@ -8,7 +8,7 @@ export function analyse(dossier,{signal,onProgress}={}){
  dispose();
  return new Promise((resolve,reject)=>{
   let worker;
-  try{worker=new Worker(new URL('./trade-analysis-worker.mjs?v=20260924-webllm3',import.meta.url),{type:'module'})}
+  try{worker=new Worker(new URL('./trade-analysis-worker.mjs?v=20260924-webllm4',import.meta.url),{type:'module'})}
   catch(error){reject(error);return}
   const id=++sequence;
   let settled=false;

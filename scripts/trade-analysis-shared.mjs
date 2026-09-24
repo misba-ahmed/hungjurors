@@ -85,13 +85,15 @@ export async function generateAnalysis(engine,dossier,{countTokens,onProgress=()
  validateDossier(dossier);
  const check=()=>{if(signal?.aborted)throw new DOMException('Aborted','AbortError')};
  const measure=(system,text)=>countTokens(system)+countTokens(text)+RESERVE;
- const complete=async(system,text,maxTokens,json=false)=>{
+ const complete=async(system,text,maxTokens)=>{
   check();
   if(measure(system,text)+maxTokens>contextSize)throw Error('Context budget exceeded');
   await engine.resetChat();check();
   const result=await engine.chat.completions.create({messages:[{role:'system',content:system},{role:'user',content:text}],
    temperature:0.35,top_p:0.9,max_tokens:maxTokens,extra_body:{enable_thinking:false},
-   ...(json?{response_format:{type:'json_object',schema:JSON.stringify(SCHEMA)}}:{})});
+   // Validate JSON after generation. Avoid loading a separate grammar runtime
+   // and materializing its full vocabulary while the model is resident.
+  });
   check();
   const choice=result.choices?.[0],content=choice?.message?.content;
   if(choice?.finish_reason!=='stop'||typeof content!=='string'||!content.trim())throw Error('Incomplete analysis');
@@ -123,6 +125,6 @@ export async function generateAnalysis(engine,dossier,{countTokens,onProgress=()
   }
  }
  onProgress({phase:'writing'});
- const answer=await complete(BRIEF,evidence,OUTPUT_TOKENS,true);
+ const answer=await complete(BRIEF,evidence,OUTPUT_TOKENS);
  return validateOutput(JSON.parse(answer));
 }

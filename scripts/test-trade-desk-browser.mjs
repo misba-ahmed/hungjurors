@@ -14,29 +14,28 @@ const server=createServer(async(req,res)=>{
  if(path==='/completion'){
   let body='';for await(const part of req)body+=part;
   const input=JSON.parse(body);seen.push(input);
-  const chosen=mode,index=input.response_format?++requests:0;
+  assert.equal(input.response_format,undefined,'Do not initialize a second grammar runtime');
+  const final=input.messages[0].content.startsWith('You are writing the analysis');
+  const chosen=mode,index=final?++requests:0;
   if(chosen==='slow')await new Promise(r=>setTimeout(r,1600));
   const data=Object.fromEntries(fields.map(k=>[k,'<p>'+k+' response '+index+'</p>']));
   data.context='';data.accept='<p>ALPHA has a need. Likely</p><p>BETA needs depth. Could go either way</p>';
   res.setHeader('Content-Type','application/json');
   res.end(JSON.stringify({choices:[{finish_reason:chosen==='fail'?'length':'stop',message:{content:
-   input.response_format?JSON.stringify(data):'ALPHA and BETA trade running backs. Two games of usage are available.'}}]}));return;
+   final?JSON.stringify(data):'ALPHA and BETA trade running backs. Two games of usage are available.'}}]}));return;
  }
  res.setHeader('Content-Type','text/javascript');
  if(path==='/model.mjs'){
   runtimeLoads++;
   res.end("export const prebuiltAppConfig={model_list:['q4f16_1','q4f32_1'].map(format=>({model_id:'Llama-3.2-1B-Instruct-'+format+'-MLC',model:location.origin+'/model'}))};"+
-   "export class MLCEngine{constructor(options){this.options=options;this.chat={completions:{create:async request=>(await fetch('/completion',{method:'POST',body:JSON.stringify(request)})).json()}}}"+
-   "async reload(id,options){if(options.context_window_size!==6144)throw Error('Unexpected context size');this.options.initProgressCallback({progress:0.5});this.options.initProgressCallback({progress:1})}async resetChat(){}interruptGenerate(){}async unload(){}}");return;
+   "export class MLCEngine{constructor(options){this.options=options;this.loadedModelIdToPipeline=new Map();this.chat={completions:{create:async request=>(await fetch('/completion',{method:'POST',body:JSON.stringify(request)})).json()}}}"+
+   "async reload(id,options){if(options.context_window_size!==6144)throw Error('Unexpected context size');this.loadedModelIdToPipeline.set(id,{tokenizer:{encode:text=>new Uint8Array(Math.ceil(text.length/4))}});this.options.initProgressCallback({progress:0.5});this.options.initProgressCallback({progress:1})}async resetChat(){}interruptGenerate(){}async unload(){}}");return;
  }
- if(path==='/tokenizers.mjs'){res.end("globalThis.tokenizers={Tokenizer:{fromJSON:async()=>({encode:text=>new Uint8Array(Math.ceil(text.length/4)),dispose(){}})}};");return}
- if(path==='/model/resolve/main/tokenizer.json'){res.setHeader('Content-Type','application/json');res.end('{}');return}
  if(/^\/scripts\/trade-analysis-(local|worker|shared)\.mjs$/.test(path)){
   let code=readFileSync(new URL('..'+path,import.meta.url),'utf8');
   if(path.endsWith('-worker.mjs')){
    code="Object.defineProperty(navigator,'gpu',{value:{requestAdapter:async()=>({features:new Set(['shader-f16'])})}});\n"+code
-    .replace('https://esm.run/@mlc-ai/web-llm@0.2.85','/model.mjs')
-    .replace('https://cdn.jsdelivr.net/npm/@mlc-ai/web-tokenizers@0.1.6/lib/index.js','/tokenizers.mjs');
+    .replace('https://esm.run/@mlc-ai/web-llm@0.2.85','/model.mjs');
   }
   res.end(code);return;
  }

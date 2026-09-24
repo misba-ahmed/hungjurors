@@ -44,12 +44,13 @@ const inputs=[];let truncated=false;
 const engine={resetChat:async()=>{},chat:{completions:{create:async request=>{
  inputs.push(request);
  assert.equal(request.extra_body.enable_thinking,false);
- return {choices:[{finish_reason:truncated?'length':'stop',message:{content:request.response_format?
+ assert.equal(request.response_format,undefined,'Avoid the extra grammar runtime');
+ return {choices:[{finish_reason:truncated?'length':'stop',message:{content:request.messages[0].content.startsWith('You are writing the analysis')?
   JSON.stringify(output):'The teammate is expected back in Week 12. This role window ends before the fantasy playoffs.'}}]};
 }}}};
 assert.deepEqual(await generateAnalysis(engine,dossier,{countTokens}),output);
 assert.ok(inputs.some(x=>x.messages[1].content.includes('RETURN IN WEEK 12')),'Read the end of long evidence');
-assert.ok(inputs.filter(x=>!x.response_format).length>0,'Large dossiers are read in bounded portions');
+assert.ok(inputs.filter(x=>!x.messages[0].content.startsWith('You are writing the analysis')).length>0,'Large dossiers are read in bounded portions');
 truncated=true;
 await assert.rejects(()=>generateAnalysis(engine,{...dossier,players:dossier.players.map(p=>({...p,news:[]}))},{countTokens}),/Incomplete analysis/);
 const controller=new AbortController();controller.abort();

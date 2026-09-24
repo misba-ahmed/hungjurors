@@ -1114,7 +1114,7 @@
  /* Model output is untrusted. Rebuild only four allowed elements, with no attributes. */
  const ANALYSIS_FIELDS=['summary','value','context','usage','roster','schedule','verdictA','verdictB','accept','overall'];
  const ANALYSIS={cache:new Map(),key:'',state:null,timer:null,controller:null,token:0,enabled:false};
- let localAnalysis=()=>import('/scripts/trade-analysis-local.mjs?v=20260924-webllm3');
+ let localAnalysis=()=>import('/scripts/trade-analysis-local.mjs?v=20260924-webllm4');
  const CACHE_TTL=600000;
  function cleanAnalysisHtml(html){
   const parsed=new DOMParser().parseFromString(String(html||''),'text/html');
@@ -1133,7 +1133,7 @@
   return Object.fromEntries(ANALYSIS_FIELDS.map(k=>[k,cleanAnalysisHtml(value[k])]));
  }
  function analysisKey(m){
-  return JSON.stringify({version:3,provider:'webllm',season:Number(NFL_SEASON),week:week(),a:HJTD.a,b:HJTD.b,
+  return JSON.stringify({version:4,provider:'webllm',season:Number(NFL_SEASON),week:week(),a:HJTD.a,b:HJTD.b,
    give:[...HJTD.give].sort(),get:[...HJTD.get].sort(),market:window.HJMV?.generatedAt,scope:scopeNow(),
    rosters:teams().map(t=>[t.id,rosterOf(t.id).map(e=>[entryId(e),valueOf(e),injuryOf(e),e.lineupSlotId])])});
  }
