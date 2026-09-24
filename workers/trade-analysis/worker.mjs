@@ -29,7 +29,12 @@ export default {
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
   const path=new URL(request.url).pathname;
   const configured=Boolean(env?.GEMINI_API_KEY&&env.GEMINI_FREE_TIER_CONFIRMED==='true');
-  if(path==='/health'&&request.method==='GET')return new Response(JSON.stringify({ready:configured,protocol:PROTOCOL}),{headers});
+  const rateLimitsReady=typeof env?.PER_IP?.limit==='function'&&typeof env?.TOTAL?.limit==='function';
+  if(path==='/health'&&request.method==='GET')return new Response(JSON.stringify({
+   ready:configured&&rateLimitsReady,protocol:PROTOCOL,
+   checks:{key:Boolean(env?.GEMINI_API_KEY),freeTier:env?.GEMINI_FREE_TIER_CONFIRMED==='true',
+    perIpLimiter:typeof env?.PER_IP?.limit==='function',totalLimiter:typeof env?.TOTAL?.limit==='function'}
+  }),{headers});
   // Legacy clients cannot reactivate the former OpenAI endpoint.
   if(path!=='/gemini')return reply(410,'retired');
   if(request.method!=='POST')return reply(405,'method');
@@ -40,7 +45,7 @@ export default {
   let trade;
   try{trade=validateTrade(await boundedJson(request,LIMIT))}
   catch(_){return reply(400,'invalid_trade')}
-  if(!env.PER_IP||!env.TOTAL)return reply(503,'not_configured');
+  if(!rateLimitsReady)return reply(503,'missing_rate_limits');
   const ip=request.headers.get('CF-Connecting-IP')||'unknown';
   try{
    if(!(await env.PER_IP.limit({key:ip})).success||!(await env.TOTAL.limit({key:'trade-analysis'})).success)return reply(429,'busy');

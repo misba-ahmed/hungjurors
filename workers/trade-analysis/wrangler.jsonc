@@ -11,22 +11,26 @@
     "enabled": true,
     "head_sampling_rate": 0.1
   },
-  "ratelimits": [
-    {
-      "name": "PER_IP",
-      "namespace_id": "49301",
-      "simple": {
-        "limit": 4,
-        "period": 60
+  "unsafe": {
+    "bindings": [
+      {
+        "name": "PER_IP",
+        "namespace_id": "49301",
+        "simple": {
+          "limit": 4,
+          "period": 60
+        },
+        "type": "ratelimit"
+      },
+      {
+        "name": "TOTAL",
+        "namespace_id": "49302",
+        "simple": {
+          "limit": 10,
+          "period": 60
+        },
+        "type": "ratelimit"
       }
-    },
-    {
-      "name": "TOTAL",
-      "namespace_id": "49302",
-      "simple": {
-        "limit": 10,
-        "period": 60
-      }
-    }
-  ]
+    ]
+  }
 }

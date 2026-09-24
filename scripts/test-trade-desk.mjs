@@ -54,6 +54,12 @@ const env={GEMINI_API_KEY:'fake-test-key',GEMINI_FREE_TIER_CONFIRMED:'true',
 const request=(path='/gemini',origin='https://hungjurors.com',body=trade)=>new Request('https://worker.example'+path,
  {method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify(body)});
 try{
+ const health=()=>new Request('https://worker.example/health',{headers:{Origin:'https://hungjurors.com'}});
+ assert.equal((await (await worker.fetch(health(),env)).json()).ready,true);
+ const missing={...env,PER_IP:undefined,TOTAL:undefined};
+ assert.equal((await (await worker.fetch(health(),missing)).json()).ready,false,'Readiness must include required rate limits');
+ assert.equal((await (await worker.fetch(request(),missing)).json()).error,'missing_rate_limits');
+ assert.equal(remoteCalls,0,'Readiness never calls a model');
  assert.equal((await worker.fetch(request('/'),env)).status,410);
  assert.equal((await worker.fetch(request('/gemini','https://elsewhere.example'),env)).status,403);
  assert.equal((await worker.fetch(request(),{...env,GEMINI_FREE_TIER_CONFIRMED:undefined})).status,503);
