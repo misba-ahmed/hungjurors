@@ -84,7 +84,17 @@ export default {
     await new Promise(resolve=>setTimeout(resolve,1000));
     controller.signal.throwIfAborted();
    }
-   const data=parseGeminiResponse(await boundedJson(response,200000));
+   const payload=await boundedJson(response,200000);
+   let data;
+   try{data=parseGeminiResponse(payload)}catch(error){
+    const allowed=['Incomplete report','Invalid report','Invalid section','Unsafe report markup','Unbalanced report','Invalid report markup','Empty report','Ungrounded report'];
+    const validation=allowed.includes(error.message)?error.message:error.name==='SyntaxError'?'Invalid JSON':'Invalid response';
+    const candidate=payload?.candidates?.[0];
+    return reply(502,'invalid_response',{validation,engine:usedModel,
+     finish:typeof candidate?.finishReason==='string'?candidate.finishReason:null,
+     textLength:(candidate?.content?.parts||[]).filter(p=>!p.thought).reduce((n,p)=>n+(p.text?.length||0),0),
+     retrieval:(candidate?.urlContextMetadata?.urlMetadata||[]).map(s=>s.urlRetrievalStatus)});
+   }
    return new Response(JSON.stringify({...data,engine:usedModel}),{headers});
   }catch(error){
    // Never log the prompt, generated report, upstream body or API key.

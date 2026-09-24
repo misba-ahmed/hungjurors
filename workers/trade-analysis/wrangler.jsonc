@@ -34,6 +34,6 @@
     ]
   },
   "vars": {
-    "RELEASE": "20260924-free-failover"
+    "RELEASE": "20260924-structured"
   }
 }
