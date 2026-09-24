@@ -1,54 +1,50 @@
 import {createServer} from 'node:http';
-import {chromium,webkit} from 'playwright';
+import {chromium} from 'playwright';
 const worker=String.raw`
 (async()=>{
- let phase='runtime';
+ let stage='import';
  try{
   const llm=await import('https://esm.run/@mlc-ai/web-llm@0.2.85');
-  postMessage({phase,exports:{MLCEngine:typeof llm.MLCEngine},gpu:!!navigator.gpu});
-  phase='tokenizer-module';
-  const module=await import('https://cdn.jsdelivr.net/npm/@mlc-ai/web-tokenizers@0.1.6/lib/index.js');
-  const tokens=module.Tokenizer?module:globalThis.tokenizers;
-  if(typeof tokens?.Tokenizer?.fromJSON!=='function')throw Error('Tokenizer export unavailable');
-  postMessage({phase,exports:Object.keys(tokens)});
-  const record=llm.prebuiltAppConfig.model_list.find(x=>x.model_id==='Qwen3-1.7B-q4f16_1-MLC');
-  postMessage({phase:'catalog',record});
-  const wasmResponse=await fetch(record.model_lib);if(!wasmResponse.ok)throw Error('Model library HTTP '+wasmResponse.status);
-  postMessage({phase:'model-library',compiled:!!(await WebAssembly.compile(await wasmResponse.arrayBuffer()))});
-  phase='config';
-  const configURL=record.model+'/resolve/main/mlc-chat-config.json';
-  const configResponse=await fetch(configURL);if(!configResponse.ok)throw Error('Config HTTP '+configResponse.status);
-  const config=await configResponse.json();postMessage({phase,context:config.context_window_size,prefill:config.prefill_chunk_size,tokenizer:config.tokenizer_files});
-  phase='tokenizer-json';
-  const tokenResponse=await fetch(record.model+'/resolve/main/tokenizer.json');
-  if(!tokenResponse.ok)throw Error('Tokenizer HTTP '+tokenResponse.status);
-  const tokenizer=await tokens.Tokenizer.fromJSON(await tokenResponse.arrayBuffer());
-  postMessage({phase,tokenCount:tokenizer.encode('Trade analysis startup check').length});tokenizer.dispose();
+  const adapter=await navigator.gpu?.requestAdapter();
+  if(!adapter)throw Error('No GPU adapter on runner');
+  const format=adapter.features.has('shader-f16')?'q4f16_1':'q4f32_1';
+  const id='Llama-3.2-1B-Instruct-'+format+'-MLC';
+  const record=llm.prebuiltAppConfig.model_list.find(x=>x.model_id===id);
+  postMessage({stage:'catalog',id,memory:record.vram_required_MB,adapter:{...adapter.info}});
+  stage='load';
+  let last=-1;
+  const engine=new llm.MLCEngine({appConfig:{...llm.prebuiltAppConfig,model_list:[record]},logLevel:'ERROR',initProgressCallback:info=>{
+   const p=Math.floor(info.progress*10);if(p!==last){last=p;postMessage({stage:'load',progress:info.progress,text:info.text})}
+  }});
+  await engine.reload(id,{context_window_size:6144});
+  stage='loaded-tokenizer';
+  const pipeline=engine.loadedModelIdToPipeline?.get(id);
+  postMessage({stage,hasTokenizer:typeof pipeline?.tokenizer?.encode,keys:Object.keys(engine)});
+  if(typeof pipeline?.tokenizer?.encode!=='function')throw Error('Existing tokenizer unavailable');
+  postMessage({stage:'count',tokens:pipeline.tokenizer.encode('ALPHA trades a running back to BETA.').length});
+  stage='generate';
+  const result=await engine.chat.completions.create({messages:[{role:'user',content:'Write one short sentence about a fair fantasy football trade.'}],max_tokens:32});
+  postMessage({stage,finish:result.choices?.[0]?.finish_reason,text:result.choices?.[0]?.message?.content,usage:result.usage});
+  await engine.unload();
   postMessage({done:true});
- }catch(e){postMessage({done:true,phase,error:String(e),stack:e.stack})}
-})();
-`;
-const server=createServer((req,res)=>{res.setHeader('Content-Type',req.url==='/worker.mjs'?'text/javascript':'text/html');res.end(req.url==='/worker.mjs'?worker:'<!doctype html>Startup probe');});
+ }catch(e){postMessage({done:true,stage,error:String(e),stack:e.stack})}
+})();`;
+const server=createServer((req,res)=>{
+ res.setHeader('Content-Type',req.url==='/worker.mjs'?'text/javascript':'text/html');
+ res.end(req.url==='/worker.mjs'?worker:'<!doctype html>Generation probe');
+});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
+const browser=await chromium.launch({headless:true,args:['--enable-unsafe-webgpu','--use-angle=swiftshader','--enable-features=Vulkan','--disable-vulkan-surface','--ignore-gpu-blocklist']});
 try{
- for(const [name,type]of Object.entries({chromium,webkit})){
-  const browser=await type.launch({headless:true});
-  try{
-   const page=await browser.newPage();
-   page.on('console',m=>{if(m.type()==='error')console.log(name,'console',m.text().slice(0,300))});
-   page.on('requestfailed',r=>console.log(name,'failed',r.url(),r.failure()));
-   await page.goto('http://127.0.0.1:'+server.address().port);
-   const results=await page.evaluate(()=>new Promise(resolve=>{
-    const reports=[],worker=new Worker('/worker.mjs',{type:'module'});
-    const timeout=setTimeout(()=>{reports.push({error:'Startup timed out'});worker.terminate();resolve(reports)},120000);
-    worker.onerror=e=>{reports.push({error:e.message});clearTimeout(timeout);worker.terminate();resolve(reports)};
-    worker.onmessage=({data})=>{reports.push(data);if(data.done){clearTimeout(timeout);worker.terminate();resolve(reports)}};
-   }));
-   console.log(name,JSON.stringify(results));
-  }finally{await browser.close()}
- }
- for(const path of ['trade-analysis-local.mjs','trade-analysis-worker.mjs','trade-analysis-shared.mjs']){
-  const response=await fetch('https://hungjurors.com/scripts/'+path+'?v=20260924-webllm1');
-  console.log('LIVE',path,response.status,response.headers.get('content-type'),(await response.text()).slice(0,120));
- }
-}finally{server.closeAllConnections();await new Promise(r=>server.close(r))}
+ const page=await browser.newPage();
+ await page.exposeFunction('report',data=>console.log(JSON.stringify(data)));
+ page.on('crash',()=>console.log('PAGE_CRASH'));
+ page.on('pageerror',error=>console.log('PAGE_ERROR',error.message));
+ await page.goto('http://127.0.0.1:'+server.address().port);
+ await page.evaluate(()=>new Promise(resolve=>{
+  const worker=new Worker('/worker.mjs',{type:'module'});
+  const timer=setTimeout(()=>{window.report({error:'Real generation timed out'});worker.terminate();resolve()},150000);
+  worker.onmessage=({data})=>{window.report(data);if(data.done){clearTimeout(timer);worker.terminate();resolve()}};
+  worker.onerror=e=>{window.report({error:e.message});clearTimeout(timer);worker.terminate();resolve()};
+ }));
+}finally{await browser.close();server.closeAllConnections();await new Promise(r=>server.close(r))}

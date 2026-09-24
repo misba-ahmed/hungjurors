@@ -14,5 +14,5 @@ jobs:
         with:
           node-version: '24'
       - run: npm install --no-save --package-lock=false playwright
-      - run: npx playwright install chromium webkit --with-deps
+      - run: npx playwright install chromium --with-deps
       - run: node scripts/check-trade-startup.mjs
