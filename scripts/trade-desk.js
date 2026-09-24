@@ -136,7 +136,10 @@
  /* Numeric dossier facts. These functions make no acceptance or prose verdict. */
  const remainingWeeks=()=>Math.max(1,PLAYOFF_WEEKS.at(-1)-week()+1);
  function projectionFact(entry,source='combo'){
-  const full=hj6Projection(entry,source,'season',week(),HJ_LEAGUE_SEASON);
+  const raw=hj6Projection(entry,source,'season',week(),HJ_LEAGUE_SEASON);
+  const espn=source==='combo'?hj6Projection(entry,'espn','season',week(),HJ_LEAGUE_SEASON):null;
+  const vegas=source==='combo'?hj6Projection(entry,'vegas','season',week(),HJ_LEAGUE_SEASON):null;
+  const full=Number.isFinite(raw)?raw:source==='combo'?(Number.isFinite(espn)?espn:vegas):null;
   const games=teamGames(hjPlayerTeam(entry));
   const future=games?.filter(g=>g.week>=week()&&g.week<=18);
   const fantasy=future?.filter(g=>g.week<=PLAYOFF_WEEKS.at(-1));
@@ -206,12 +209,13 @@
  }
  function lineupChanges(side){
   const before=side.lineupBefore,after=side.lineupAfter;
+  const ready=side.after.filter(e=>POS.includes(hjPlayerPosition(e))&&!isIR(e)&&injuryOf(e)!=='INJURY_RESERVE').every(e=>Number.isFinite(projOf(e)));
   const oldIds=new Set(before.slots.filter(x=>x.entry).map(x=>entryId(x.entry)));
   const newIds=new Set(after.slots.filter(x=>x.entry).map(x=>entryId(x.entry)));
   return {incoming:side.in.map(e=>({player:entryFact(e),
-   slot:after.slots.find(x=>x.entry&&entryId(x.entry)===entryId(e))?.slot||(side.drops.some(d=>entryId(d)===entryId(e))?'dropped':isIR(e)?'IR':'bench'),
+   slot:after.slots.find(x=>x.entry&&entryId(x.entry)===entryId(e))?.slot||(side.drops.some(d=>entryId(d)===entryId(e))?'dropped':isIR(e)?'IR':ready?'bench':'unassigned'),
    replaces:entryFact(before.slots.find(x=>x.slot===after.slots.find(y=>y.entry&&entryId(y.entry)===entryId(e))?.slot)?.entry)})),
-   benched:side.after.filter(e=>oldIds.has(entryId(e))&&!newIds.has(entryId(e))).map(entryFact)};
+   benched:ready?side.after.filter(e=>oldIds.has(entryId(e))&&!newIds.has(entryId(e))).map(entryFact):[]};
  }
  function byeCoverage(side){
   const calendar=[...new Set([...side.before,...side.after].map(e=>byeOf(hjPlayerTeam(e))).filter(w=>w>=week()&&w<=16))].sort((a,b)=>a-b);
@@ -792,11 +796,21 @@
  const SCHED={map:null,pending:false,byTeam:null,sos:new Map()};
  function ensureSchedule(){
   if(SCHED.promise)return SCHED.promise;
-  if(SCHED.map||typeof pcLoadSchedules!=='function')return Promise.resolve();
+  if(SCHED.map)return Promise.resolve();
+  if(typeof pcLoadSchedules!=='function'&&typeof hjDataScheduleMap!=='function')return Promise.resolve();
   SCHED.pending=true;
-  SCHED.promise=Promise.resolve().then(()=>pcLoadSchedules()).then(map=>{
+  SCHED.promise=(async()=>{
+   let map=new Map();
+   if(typeof pcLoadSchedules==='function')try{map=new Map(await pcLoadSchedules())}catch(_){}
+   const season=Number(NFL_SEASON);
+   const current=[...map.values()].filter(g=>Number(g.season)===season);
+   // The embedded archive can stop at last season. Load this season from ESPN.
+   if(current.length<272&&typeof hjDataScheduleMap==='function'){
+    const live=await hjDataScheduleMap(season,Array.from({length:18},(_,i)=>i+1));
+    for(const [id,g] of live)if(Number(g.season)===season)map.set(id,g);
+   }
    SCHED.map=map;SCHED.byTeam=null;SCHED.sos=new Map();
-  }).catch(()=>{}).finally(()=>{SCHED.pending=false;SCHED.promise=null;rerenderIfTrade()});
+  })().catch(()=>{}).finally(()=>{SCHED.pending=false;SCHED.promise=null;rerenderIfTrade()});
   return SCHED.promise;
  }
  HJTD.injectSchedule=map=>{SCHED.map=map;SCHED.byTeam=null;SCHED.sos=new Map()};
@@ -1048,6 +1062,54 @@
  }
  const posRank=p=>p.row?`${p.row.position}${p.row.positionRank}`:'';
 
+ const sentenceList=items=>items.length<2?(items[0]||''):items.length===2?items.join(' and '):items.slice(0,-1).join(', ')+', and '+items.at(-1);
+ const positionWord=pos=>({QB:'quarterback',RB:'running back',WR:'wide receiver',TE:'tight end','D/ST':'defense',K:'kicker'}[pos]||pos);
+ const slotWord=slot=>({QB:'starting quarterback',RB1:'first starting running back',RB2:'second starting running back',
+  WR1:'first starting wide receiver',WR2:'second starting wide receiver',TE:'starting tight end',FLEX:'flex starter','D/ST':'starting defense',K:'starting kicker'}[slot]||slot);
+ function fitSentences(side){
+  const changes=lineupChanges(side),lines=[];
+  for(const x of changes.incoming){
+   if(x.slot==='dropped'){lines.push(side.manager+' would need to release '+x.player.name+' to fit the trade within the roster limit.');continue}
+   if(x.slot==='IR'){lines.push(x.player.name+' would occupy an injured-reserve spot on '+side.manager+'’s roster.');continue}
+   if(x.slot==='unassigned'){
+    const peers=side.after.filter(e=>entryId(e)!==x.player.id&&hjPlayerPosition(e)===x.player.position&&!isIR(e)).map(entryName);
+    lines.push(x.player.name+' would join '+side.manager+'’s '+positionWord(x.player.position)+' group'+(peers.length?' alongside '+sentenceList(peers):'')+'.');continue;
+   }
+   if(x.slot==='bench'){
+    const starters=side.lineupAfter.slots.filter(y=>y.entry&&hjPlayerPosition(y.entry)===x.player.position).map(y=>entryName(y.entry));
+    lines.push(x.player.name+' would be a bench option for '+side.manager+(starters.length?', behind '+sentenceList(starters)+' in the projected lineup':'')+'.');
+   }else lines.push(x.player.name+' would be '+side.manager+'’s '+slotWord(x.slot)+'.');
+  }
+  if(changes.benched.length)lines.push(sentenceList(changes.benched.map(p=>p.name))+' would move from '+side.manager+'’s starting lineup to the bench.');
+  if(side.drops.length)lines.push(side.manager+' would need to drop '+sentenceList(side.drops.map(entryName))+' to make room.');
+  return lines.join(' ');
+ }
+ function weeklyEffect(manager,delta,when){
+  if(Math.abs(delta)<2)return manager+'’s projected starting lineup would be about the same '+when+'.';
+  return 'The trade would '+(delta>0?'add':'remove')+' about '+one(Math.abs(delta))+' projected points '+when+' '+(delta>0?'for':'from')+' '+manager+'’s starting lineup.';
+ }
+ function restSentences(rows){
+  const lines=[];
+  for(const [source,label] of [['espn','ESPN'],['vegas','Vegas']]){
+   const known=rows.filter(s=>Number.isFinite(s.projectionDeltas[source]));
+   if(known.length===2&&known.every(s=>Math.abs(s.projectionDeltas[source])<2)){
+    lines.push(label+' projects little change to either starting lineup over the rest of the season.');continue;
+   }
+   for(const side of known){
+    const delta=side.projectionDeltas[source];
+    lines.push(Math.abs(delta)<2?label+' projects little change to '+side.manager+'’s starting lineup over the rest of the season.':
+     label+' projects that '+side.manager+'’s starting lineup would score about '+one(Math.abs(delta))+' '+(delta>0?'more':'fewer')+' points per week over the rest of the season.');
+   }
+  }
+  return lines.join(' ');
+ }
+ function wireSentences(side){
+  return side.gets.filter(p=>p.rep&&Number.isFinite(p.value)&&Number.isFinite(p.rep.value)).map(p=>{
+   const gap=(p.value-p.rep.value)/Math.max(p.value,p.rep.value,1);
+   const comparison=Math.abs(gap)<.1?'similarly to':gap>0?'above':'below';
+   return side.manager+' would receive '+p.name+', who is valued '+comparison+' '+p.rep.name+', the highest-valued '+positionWord(p.pos)+' available as a free agent.';
+  }).join(' ');
+ }
  function analyse(m){
   if(!m.give.length||!m.take.length)return null;
   const rows=m.sides.map(side=>{
@@ -1066,27 +1128,25 @@
   A.gets=B.profiles;B.gets=A.profiles;
   const all=[...A.profiles,...B.profiles];
   const lean=(a,b,margin)=>!Number.isFinite(a)||!Number.isFinite(b)||Math.abs(a-b)<margin?'even':a>b?'a':'b';
-  const signed=n=>(n>0?'+':n<0?'−':'')+one(Math.abs(n));
-  const perWeek=n=>Math.abs(n)<2?'about the same':signed(n)+' points/week';
-  const fit=s=>lineupChanges(s).incoming.map(x=>x.player.name+' → '+x.slot).join(', ');
-  const best=side=>side.gets.map(p=>p.rep?p.name+' / '+p.rep.name:'').filter(Boolean).join('; ');
   const above=side=>side.gets.reduce((n,p)=>n+(p.rep&&Number.isFinite(p.value)?Math.max(0,p.value-p.rep.value):0),0);
   const form=side=>side.gets.every(p=>Number.isFinite(p.row?.trend30))?side.gets.reduce((n,p)=>n+p.row.trend30,0):null;
   const pff=side=>mean(side.gets.map(p=>p.grade));
   const weakest=s=>UNITS.slice().sort((a,b)=>s.unitRankBefore[b]-s.unitRankBefore[a])[0];
   const fitGain=s=>s.unitRankBefore[weakest(s)]-s.unitRankAfter[weakest(s)];
-  const ros=rows.map(s=>{
-   const e=s.projectionDeltas.espn,v=s.projectionDeltas.vegas;
-   return [Number.isFinite(e)?'ESPN '+perWeek(e):'',Number.isFinite(v)?'Vegas '+perWeek(v):''].filter(Boolean).join(', ');
-  });
   const factors=[
-   {label:'Market value',lean:m.band==='even'?'even':m.winner,note:m.band==='even'?'Balanced between '+A.manager+' and '+B.manager:Math.round(m.gap*100)+'% more to '+rows.find(s=>s.key===m.winner).manager},
-   {label:'This week',lean:lean(A.weekDelta,B.weekDelta,2),note:rows.filter(s=>s.weekReady).map(s=>s.manager+': '+(Math.abs(s.weekDelta)<2?'about the same':signed(s.weekDelta)+' points')+' in Week '+week()).join('; ')},
-   {label:'Rest of season',lean:lean(A.projectionDeltas.combo,B.projectionDeltas.combo,2),note:rows.map((s,i)=>ros[i]?s.manager+': '+ros[i]:'').filter(Boolean).join('; ')},
-   {label:'Positional fit',lean:lean(fitGain(A),fitGain(B),1),note:rows.map(s=>s.manager+': '+fit(s)).join('; ')},
-   {label:'Above the wire',lean:lean(above(A),above(B),Math.max(m.outA,m.outB)*.1),note:rows.filter(s=>best(s)).map(s=>s.manager+' receives / best free agent: '+best(s)).join('; ')},
-   {label:'Market form',lean:lean(form(A),form(B),Math.max(m.outA,m.outB)*.1),note:all.filter(p=>Number.isFinite(p.row?.trend30)).map(p=>p.name+': '+(p.row.trend30>0?'+':'')+money(p.row.trend30)+' in 30 days').join('; ')},
-   {label:'Play quality (PFF)',lean:lean(pff(A),pff(B),3),note:all.filter(p=>Number.isFinite(p.grade)).map(p=>p.name+': '+one(p.grade)).join('; ')}
+   {label:'Market value',lean:m.band==='even'?'even':m.winner,note:m.band==='even'?'The market values are essentially even between '+A.manager+' and '+B.manager+'.':
+    'Market value tilts toward '+rows.find(s=>s.key===m.winner).manager+', with a gap of about '+Math.round(m.gap*100)+'%.'},
+   {label:'This week',lean:lean(A.weekDelta,B.weekDelta,2),note:rows.filter(s=>s.weekReady).map(s=>weeklyEffect(s.manager,s.weekDelta,'in Week '+week())).join(' ')},
+   {label:'Rest of season',lean:lean(A.projectionDeltas.combo,B.projectionDeltas.combo,2),note:restSentences(rows)},
+   {label:'Positional fit',lean:lean(fitGain(A),fitGain(B),1),note:rows.map(fitSentences).join(' ')},
+   {label:'Above the wire',lean:lean(above(A),above(B),Math.max(m.outA,m.outB)*.1),note:rows.map(wireSentences).join(' ')},
+   {label:'Market form',lean:lean(form(A),form(B),Math.max(m.outA,m.outB)*.1),note:all.filter(p=>Number.isFinite(p.row?.trend30)).map(p=>{
+    const change=p.row.trend30;
+    return p.name+'’s market value '+(Math.abs(change)<Math.max(p.value,1)*.1?'has been fairly stable over the last 30 days.':
+     'has '+(change>0?'risen':'fallen')+' by '+money(Math.abs(change))+' over the last 30 days.');
+   }).join(' ')},
+   {label:'Play quality (PFF)',lean:lean(pff(A),pff(B),3),note:all.filter(p=>Number.isFinite(p.grade)).map(p=>
+    'PFF gives '+p.name+' an overall grade of '+one(p.grade)+' this season'+(p.u?.games?', through '+plural(p.u.games,'game'):'')+'.').join(' ')}
   ];
   return {rows,factors};
  }
@@ -1391,7 +1451,7 @@
  function shell(){
   if(!window.HJMV?.ready){window.HJMV?.load?.();return `<section class="hq-module hj15-shell td-shell"><div class="hq-module-head"><h3 class="hq-module-title">Trade Desk</h3></div>${toolbar()}<div class="hq-empty">Loading market values…</div></section>`}
   if(!ensureSides())return `<section class="hq-module hj15-shell td-shell"><div class="hq-module-head"><h3 class="hq-module-title">Trade Desk</h3></div>${toolbar()}<div class="hq-empty">League rosters are still loading.</div></section>`;
-  warmWeek();ensureUsage();ensureSchedule();
+  warmWeek();warmScorecardSources();ensureUsage();ensureSchedule();
   const m=model();
   if(HJTD.mode!=='build')cancelAnalysis();
   const body=HJTD.mode==='finder'?finderPanel()
@@ -1402,6 +1462,20 @@
  /* ---------- wiring ---------- */
  function rerender(){saveTradeDraft();if(typeof hjRerenderStrength==='function')hjRerenderStrength()}
 
+ const SCORE_SOURCES={key:'',at:0,promise:null};
+ function warmScorecardSources(){
+  const key=String(NFL_SEASON)+':'+week();
+  if(SCORE_SOURCES.promise||(SCORE_SOURCES.key===key&&Date.now()-SCORE_SOURCES.at<60000))return SCORE_SOURCES.promise;
+  SCORE_SOURCES.key=key;SCORE_SOURCES.at=Date.now();
+  const jobs=[];
+  if(typeof hjMathLoadRosterSeasonProjections==='function')jobs.push(()=>hjMathLoadRosterSeasonProjections(HJ_LEAGUE_STATE.data));
+  if(typeof hjEnsureProjectionSources==='function')jobs.push(()=>hjEnsureProjectionSources());
+  if(typeof hjPffLoadFeed==='function')jobs.push(()=>hjPffLoadFeed());
+  SCORE_SOURCES.promise=Promise.allSettled(jobs.map(fn=>Promise.resolve().then(fn))).finally(()=>{
+   SCORE_SOURCES.promise=null;rerenderIfTrade();
+  });
+  return SCORE_SOURCES.promise;
+ }
  function warmWeek(){
   if(typeof hj6LoadWeek!=='function'||HJTD._warm)return;
   HJTD._warm=true;
@@ -1490,12 +1564,13 @@
  }
 
 
+ document.addEventListener('hj:pff-updated',()=>rerenderIfTrade());
  HJTD.buildResearchTrade=()=>researchTrade(model());
  HJTD.buildDossier=()=>{standingsCache=null;injuryMapCache=null;const m=model(),a=analyse(m);return a?dossierFor(m,a):null};
  HJTD.hydrateDossier=hydrateDossier;
  document.addEventListener('hj:season-data',event=>{
   if(Number(event.detail?.season)!==Number(NFL_SEASON))return;
-  USAGE.rows=event.detail.rows;indexUsage();USAGE.ready=Boolean(USAGE.rows?.length);SCHED.sos=new Map();
+  USAGE.rows=event.detail.rows;indexUsage();USAGE.ready=Boolean(USAGE.rows?.length);SCHED.sos=new Map();rerenderIfTrade();
  });
  document.addEventListener('hj:snaps-data',event=>{
   if(Number(event.detail?.season)!==Number(NFL_SEASON))return;
