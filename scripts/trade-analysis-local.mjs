@@ -3,7 +3,7 @@ let worker=null,sequence=0;
 const jobs=new Map();
 function getWorker(){
  if(worker)return worker;
- worker=new Worker(new URL('./trade-analysis-worker.mjs?v=20260924-webllm1',import.meta.url),{type:'module'});
+ worker=new Worker(new URL('./trade-analysis-worker.mjs?v=20260924-webllm2',import.meta.url),{type:'module'});
  worker.onmessage=({data})=>{
   const job=jobs.get(data.id);if(!job)return;
   if(data.type==='progress'){job.onProgress?.(data.progress);return}

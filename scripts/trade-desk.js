@@ -1076,7 +1076,7 @@
  /* Model output is untrusted. Rebuild only four allowed elements, with no attributes. */
  const ANALYSIS_FIELDS=['summary','value','context','usage','roster','schedule','verdictA','verdictB','accept','overall'];
  const ANALYSIS={cache:new Map(),key:'',state:null,timer:null,controller:null,token:0,enabled:false};
- let localAnalysis=()=>import('/scripts/trade-analysis-local.mjs?v=20260924-webllm1');
+ let localAnalysis=()=>import('/scripts/trade-analysis-local.mjs?v=20260924-webllm2');
  const CACHE_TTL=600000;
  function cleanAnalysisHtml(html){
   const parsed=new DOMParser().parseFromString(String(html||''),'text/html');

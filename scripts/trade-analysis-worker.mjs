@@ -1,6 +1,6 @@
 import {generateAnalysis,CONTEXT_SIZE} from './trade-analysis-shared.mjs?v=20260924-webllm1';
 const WEBLLM='https://esm.run/@mlc-ai/web-llm@0.2.85';
-const TOKENIZERS='https://esm.run/@mlc-ai/web-tokenizers@0.1.6';
+const TOKENIZERS='https://cdn.jsdelivr.net/npm/@mlc-ai/web-tokenizers@0.1.6/lib/index.js';
 let engine=null,tokenizer=null,loading=null,queue=Promise.resolve(),active=null;
 const jobs=new Map();
 function progress(info){if(active&&!active.controller.signal.aborted)postMessage({type:'progress',id:active.id,progress:info})}
@@ -21,7 +21,11 @@ async function loadEngine(){
   if(!adapter)throw Error('WebGPU unavailable');
   const format=adapter.features.has('shader-f16')?'q4f16_1':'q4f32_1';
   const modelId='Qwen3-1.7B-'+format+'-MLC';
-  const [llm,tokens]=await Promise.all([import(WEBLLM),import(TOKENIZERS)]);
+  const [llm,tokenModule]=await Promise.all([import(WEBLLM),import(TOKENIZERS)]);
+  // The published tokenizer is UMD. Load its browser artifact directly;
+  // asking the CDN to rebundle it as ESM fails before model loading begins.
+  const tokens=tokenModule.Tokenizer?tokenModule:globalThis.tokenizers;
+  if(typeof tokens?.Tokenizer?.fromJSON!=='function')throw Error('Tokenizer unavailable');
   const record=llm.prebuiltAppConfig.model_list.find(m=>m.model_id===modelId);
   if(!record)throw Error('Model unavailable');
   engine=new llm.MLCEngine({appConfig:{...llm.prebuiltAppConfig,model_list:[record]},

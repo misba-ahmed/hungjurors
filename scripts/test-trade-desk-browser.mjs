@@ -29,14 +29,14 @@ const server=createServer(async(req,res)=>{
    "export class MLCEngine{constructor(options){this.options=options;this.chat={completions:{create:async request=>(await fetch('/completion',{method:'POST',body:JSON.stringify(request)})).json()}}}"+
    "async reload(){this.options.initProgressCallback({progress:0.5});this.options.initProgressCallback({progress:1})}async resetChat(){}interruptGenerate(){}async unload(){}}");return;
  }
- if(path==='/tokenizers.mjs'){res.end("export const Tokenizer={fromJSON:async()=>({encode:text=>new Uint8Array(Math.ceil(text.length/4)),dispose(){}})};");return}
+ if(path==='/tokenizers.mjs'){res.end("globalThis.tokenizers={Tokenizer:{fromJSON:async()=>({encode:text=>new Uint8Array(Math.ceil(text.length/4)),dispose(){}})}};");return}
  if(path==='/model/resolve/main/tokenizer.json'){res.setHeader('Content-Type','application/json');res.end('{}');return}
  if(/^\/scripts\/trade-analysis-(local|worker|shared)\.mjs$/.test(path)){
   let code=readFileSync(new URL('..'+path,import.meta.url),'utf8');
   if(path.endsWith('-worker.mjs')){
    code="Object.defineProperty(navigator,'gpu',{value:{requestAdapter:async()=>({features:new Set(['shader-f16'])})}});\n"+code
     .replace('https://esm.run/@mlc-ai/web-llm@0.2.85','/model.mjs')
-    .replace('https://esm.run/@mlc-ai/web-tokenizers@0.1.6','/tokenizers.mjs');
+    .replace('https://cdn.jsdelivr.net/npm/@mlc-ai/web-tokenizers@0.1.6/lib/index.js','/tokenizers.mjs');
   }
   res.end(code);return;
  }
