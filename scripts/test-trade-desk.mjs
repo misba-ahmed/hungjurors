@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {prepareSite} from './prepare-site.mjs';
 import worker from '../workers/trade-analysis/worker.mjs';
-import {FIELDS,validateTrade,validateOutput,geminiRequest,parseGeminiResponse} from './trade-analysis-shared.mjs';
+import {FIELDS,researchSources,validateTrade,validateOutput,geminiRequest,parseGeminiResponse} from './trade-analysis-shared.mjs';
 const source=readFileSync(new URL('./trade-desk.js',import.meta.url),'utf8');
 const prepared=prepareSite(readFileSync(new URL('../index.html',import.meta.url),'utf8'));
 const injected=prepared.match(/<script id="hj-trade-desk">([\s\S]*?)<\/script>/)?.[1];
@@ -55,22 +55,24 @@ assert.equal(trade.managers.length,2);
 assert.ok(trade.managers[0].roster.some(p=>p.name==='A Runner'));
 assert.ok(trade.managers[0].record,'Include manager records');
 const call=geminiRequest(trade);
-assert.deepEqual(call.tools,[{google_search:{}}]);
+assert.deepEqual(call.tools,[{urlContext:{}}]);
 assert.equal(call.generationConfig.responseMimeType,undefined,'Search-compatible ordinary generation');
 assert.ok(call.systemInstruction.parts[0].text.includes('Current date:'));
 assert.ok(!JSON.stringify(call).includes('weeklySeries'),'Research runs on Gemini, not a huge dossier');
 assert.throws(()=>validateTrade({...trade,protocol:'old-paid-client'}));
 assert.throws(()=>validateTrade({...trade,managers:[trade.managers[0],trade.managers[0]]}));
 const grounded={candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(output)}]},
- groundingMetadata:{webSearchQueries:['player injury'],searchEntryPoint:{renderedContent:'<div><a href="https://www.google.com/search?q=football">Search</a></div>'},
- groundingChunks:[{web:{uri:'https://www.nfl.com',title:'NFL'}}]}}]};
+ urlContextMetadata:{urlMetadata:[{retrievedUrl:'https://www.nfl.com',urlRetrievalStatus:'URL_RETRIEVAL_STATUS_SUCCESS'}]}}]};
+assert.equal(call.generationConfig.thinkingConfig.thinkingLevel,'LOW');
+assert.ok(researchSources(trade).length<=20);
+assert.ok(researchSources(trade).every(s=>s.url.startsWith('https://')));
 assert.equal(parseGeminiResponse(grounded).summary,output.summary);
 assert.throws(()=>parseGeminiResponse({candidates:[{...grounded.candidates[0],finishReason:'MAX_TOKENS'}]}));
-assert.throws(()=>parseGeminiResponse({candidates:[{...grounded.candidates[0],groundingMetadata:{}}]}),'Never show an ungrounded report as live research');
+assert.throws(()=>parseGeminiResponse({candidates:[{...grounded.candidates[0],urlContextMetadata:{}}]}),'Never show an ungrounded report as live research');
 let remoteCalls=0,mode='ok',bodySeen,keySeen;
 const originalFetch=globalThis.fetch;
 globalThis.fetch=async(url,options)=>{
- remoteCalls++;assert.equal(url,'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent');
+ remoteCalls++;assert.equal(url,'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent');
  bodySeen=JSON.parse(options.body);keySeen=options.headers['x-goog-api-key'];
  if(mode==='quota')return new Response('{}',{status:429});
  if(mode==='bad')return Response.json({candidates:[{...grounded.candidates[0],finishReason:'MAX_TOKENS'}]});
@@ -98,7 +100,7 @@ try{
  const response=await worker.fetch(request(),env);
  assert.equal(response.status,200);assert.equal(response.headers.get('Cache-Control'),'no-store');
  assert.equal((await response.json()).overall,output.overall);
- assert.equal(keySeen,'fake-test-key');assert.deepEqual(bodySeen.tools,[{google_search:{}}]);
+ assert.equal(keySeen,'fake-test-key');assert.deepEqual(bodySeen.tools,[{urlContext:{}}]);
  mode='quota';assert.equal((await worker.fetch(request(),env)).status,429);
  assert.equal(remoteCalls,2,'Quota exhaustion never retries or switches providers');
  mode='bad';assert.equal((await worker.fetch(request(),env)).status,502);
@@ -108,4 +110,4 @@ try{
 }finally{globalThis.fetch=originalFetch}
 assert.ok(!source.includes('localAnalysis')&&!source.includes('webllm'),'No browser inference runtime');
 assert.ok(!source.includes('readAnalysisCache'),'No shared or persistent grounding cache');
-console.log('Compact research input, Google Search, free-tier gate, origin, quota failure and response validation: passed (mock API; no external inference)');
+console.log('Compact research input, URL context, free-tier gate, origin, quota failure and response validation: passed (mock API; no external inference)');
