@@ -7,7 +7,9 @@ const worker=String.raw`
   const llm=await import('https://esm.run/@mlc-ai/web-llm@0.2.85');
   postMessage({phase,exports:{MLCEngine:typeof llm.MLCEngine},gpu:!!navigator.gpu});
   phase='tokenizer-module';
-  const tokens=await import('https://cdn.jsdelivr.net/npm/@mlc-ai/web-tokenizers@0.1.6/lib/index.js');
+  const module=await import('https://cdn.jsdelivr.net/npm/@mlc-ai/web-tokenizers@0.1.6/lib/index.js');
+  const tokens=module.Tokenizer?module:globalThis.tokenizers;
+  if(typeof tokens?.Tokenizer?.fromJSON!=='function')throw Error('Tokenizer export unavailable');
   postMessage({phase,exports:Object.keys(tokens)});
   const record=llm.prebuiltAppConfig.model_list.find(x=>x.model_id==='Qwen3-1.7B-q4f16_1-MLC');
   postMessage({phase:'catalog',record});
