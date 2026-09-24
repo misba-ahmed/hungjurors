@@ -324,6 +324,18 @@
     displayedFacts:a.factors.map(f=>({factor:f.label,note:f.note}))}};
  }
 
+ // Reuse complete player records by ID instead of sending them in every lineup and bye week.
+ function analysisContext(m,a){
+  const players={};
+  const context=JSON.parse(JSON.stringify(dossierFor(m,a),(key,value)=>{
+   if(value&&typeof value==='object'&&!Array.isArray(value)&&value.id&&value.name&&
+    Object.prototype.hasOwnProperty.call(value,'projectedRemaining')&&Object.prototype.hasOwnProperty.call(value,'rosterSlotId')){
+    players[value.id]=value;return {playerId:value.id};
+   }
+   return value;
+  }));
+  return {...context,rosterPlayers:players};
+ }
  // The site supplies league facts; Gemini researches the current NFL context.
  function researchTrade(m){
   const player=e=>({id:entryId(e),name:entryName(e),position:hjPlayerPosition(e),team:T(hjPlayerTeam(e)),
@@ -1069,48 +1081,30 @@
  const slotWord=slot=>({QB:'starting quarterback',RB1:'first starting running back',RB2:'second starting running back',
   WR1:'first starting wide receiver',WR2:'second starting wide receiver',TE:'starting tight end',FLEX:'flex starter','D/ST':'starting defense',K:'starting kicker'}[slot]||slot);
  function fitSentences(side){
-  const changes=lineupChanges(side),lines=[];
-  for(const x of changes.incoming){
-   if(x.slot==='dropped'){lines.push(side.manager+' would need to release '+x.player.name+' to fit the trade within the roster limit.');continue}
-   if(x.slot==='IR'){lines.push(x.player.name+' would occupy an injured-reserve spot on '+side.manager+'’s roster.');continue}
-   if(x.slot==='unassigned'){
-    const peers=side.after.filter(e=>entryId(e)!==x.player.id&&hjPlayerPosition(e)===x.player.position&&!isIR(e)).map(entryName);
-    lines.push(x.player.name+' would join '+side.manager+'’s '+positionWord(x.player.position)+' group'+(peers.length?' alongside '+sentenceList(peers):'')+'.');continue;
-   }
-   if(x.slot==='bench'){
-    const starters=side.lineupAfter.slots.filter(y=>y.entry&&hjPlayerPosition(y.entry)===x.player.position).map(y=>entryName(y.entry));
-    lines.push(x.player.name+' would be a bench option for '+side.manager+(starters.length?', behind '+sentenceList(starters)+' in the projected lineup':'')+'.');
-   }else lines.push(x.player.name+' would be '+side.manager+'’s '+slotWord(x.slot)+'.');
-  }
-  if(changes.benched.length)lines.push(sentenceList(changes.benched.map(p=>p.name))+' would move from '+side.manager+'’s starting lineup to the bench.');
-  if(side.drops.length)lines.push(side.manager+' would need to drop '+sentenceList(side.drops.map(entryName))+' to make room.');
-  return lines.join(' ');
+  const lines=lineupChanges(side).incoming.map(x=>{
+   const role=x.slot==='bench'?'adds '+x.player.position+' depth for ':x.slot==='IR'?'takes an IR spot for ':
+    x.slot==='dropped'?'would be dropped by ':x.slot==='unassigned'?'joins the '+x.player.position+' group for ':'starts at '+x.slot+' for ';
+   return x.player.name+' '+role+side.manager+'.';
+  });
+  if(side.drops.length)lines.push(side.manager+' drops '+sentenceList(side.drops.map(entryName))+'.');
+  return lines.join('\n');
  }
- function weeklyEffect(manager,delta,when){
-  if(Math.abs(delta)<2)return manager+'’s projected starting lineup would be about the same '+when+'.';
-  return 'The trade would '+(delta>0?'add':'remove')+' about '+one(Math.abs(delta))+' projected points '+when+' '+(delta>0?'for':'from')+' '+manager+'’s starting lineup.';
+ function weeklyEffect(manager,delta){
+  return manager+': '+(Math.abs(delta)<2?'little change':(delta>0?'+':'−')+one(Math.abs(delta))+' projected pts');
  }
  function restSentences(rows){
-  const lines=[];
-  for(const [source,label] of [['espn','ESPN'],['vegas','Vegas']]){
-   const known=rows.filter(s=>Number.isFinite(s.projectionDeltas[source]));
-   if(known.length===2&&known.every(s=>Math.abs(s.projectionDeltas[source])<2)){
-    lines.push(label+' projects little change to either starting lineup over the rest of the season.');continue;
-   }
-   for(const side of known){
-    const delta=side.projectionDeltas[source];
-    lines.push(Math.abs(delta)<2?label+' projects little change to '+side.manager+'’s starting lineup over the rest of the season.':
-     label+' projects that '+side.manager+'’s starting lineup would score about '+one(Math.abs(delta))+' '+(delta>0?'more':'fewer')+' points per week over the rest of the season.');
-   }
-  }
-  return lines.join(' ');
+  return rows.map(side=>{
+   const known=[['espn','ESPN'],['vegas','Vegas']].filter(([source])=>Number.isFinite(side.projectionDeltas[source]));
+   if(!known.length)return '';
+   if(known.every(([source])=>Math.abs(side.projectionDeltas[source])<2))return side.manager+': little change';
+   return side.manager+': '+known.map(([source,label])=>{
+    const d=side.projectionDeltas[source];
+    return label+' '+(Math.abs(d)<2?'little change':(d>0?'+':'−')+one(Math.abs(d))+' pts/week');
+   }).join(' · ');
+  }).filter(Boolean).join('\n');
  }
  function wireSentences(side){
-  return side.gets.filter(p=>p.rep&&Number.isFinite(p.value)&&Number.isFinite(p.rep.value)).map(p=>{
-   const gap=(p.value-p.rep.value)/Math.max(p.value,p.rep.value,1);
-   const comparison=Math.abs(gap)<.1?'similarly to':gap>0?'above':'below';
-   return side.manager+' would receive '+p.name+', who is valued '+comparison+' '+p.rep.name+', the highest-valued '+positionWord(p.pos)+' available as a free agent.';
-  }).join(' ');
+  return side.gets.filter(p=>p.rep).map(p=>side.manager+' gets: '+p.name+'\nBest free-agent '+p.pos+': '+p.rep.name).join('\n\n');
  }
  function analyse(m){
   if(!m.give.length||!m.take.length)return null;
@@ -1136,19 +1130,17 @@
   const weakest=s=>UNITS.slice().sort((a,b)=>s.unitRankBefore[b]-s.unitRankBefore[a])[0];
   const fitGain=s=>s.unitRankBefore[weakest(s)]-s.unitRankAfter[weakest(s)];
   const factors=[
-   {label:'Market value',lean:m.band==='even'?'even':m.winner,note:m.band==='even'?'The market values are essentially even between '+A.manager+' and '+B.manager+'.':
-    'Market value tilts toward '+rows.find(s=>s.key===m.winner).manager+', with a gap of about '+Math.round(m.gap*100)+'%.'},
-   {label:'This week',lean:lean(A.weekDelta,B.weekDelta,2),note:rows.filter(s=>s.weekReady).map(s=>weeklyEffect(s.manager,s.weekDelta,'in Week '+week())).join(' ')},
+   {label:'Market value',lean:m.band==='even'?'even':m.winner,note:m.band==='even'?'Essentially even':
+    Math.round(m.gap*100)+'% more value to '+rows.find(s=>s.key===m.winner).manager},
+   {label:'This week',lean:lean(A.weekDelta,B.weekDelta,2),note:rows.filter(s=>s.weekReady).map(s=>weeklyEffect(s.manager,s.weekDelta)).join('\n')},
    {label:'Rest of season',lean:lean(A.projectionDeltas.combo,B.projectionDeltas.combo,2),note:restSentences(rows)},
-   {label:'Positional fit',lean:lean(fitGain(A),fitGain(B),1),note:rows.map(fitSentences).join(' ')},
-   {label:'Above the wire',lean:lean(above(A),above(B),Math.max(m.outA,m.outB)*.1),note:rows.map(wireSentences).join(' ')},
-   {label:'Market form',lean:lean(form(A),form(B),Math.max(m.outA,m.outB)*.1),note:all.filter(p=>Number.isFinite(p.row?.trend30)).map(p=>{
-    const change=p.row.trend30;
-    return p.name+'’s market value '+(Math.abs(change)<Math.max(p.value,1)*.1?'has been fairly stable over the last 30 days.':
-     'has '+(change>0?'risen':'fallen')+' by '+money(Math.abs(change))+' over the last 30 days.');
-   }).join(' ')},
+   {label:'Positional fit',lean:lean(fitGain(A),fitGain(B),1),note:rows.map(fitSentences).join('\n')},
+   {label:'Above the wire',lean:lean(above(A),above(B),Math.max(m.outA,m.outB)*.1),note:rows.map(wireSentences).join('\n\n')},
+   {label:'Market form',lean:lean(form(A),form(B),Math.max(m.outA,m.outB)*.1),note:all.filter(p=>Number.isFinite(p.row?.trend30)).map(p=>
+    p.name+' — '+(Math.abs(p.row.trend30)<Math.max(p.value,1)*.1?'stable':(p.row.trend30>0?'+':'−')+money(Math.abs(p.row.trend30)))+' (30 days)').join('\n')},
    {label:'Play quality (PFF)',lean:lean(pff(A),pff(B),3),note:all.filter(p=>Number.isFinite(p.grade)).map(p=>
-    'PFF gives '+p.name+' an overall grade of '+one(p.grade)+' this season'+(p.u?.games?', through '+plural(p.u.games,'game'):'')+'.').join(' ')}
+    p.name+' — '+one(p.grade)).join('\n')}
+
   ];
   return {rows,factors};
  }
@@ -1187,7 +1179,8 @@
 
 
  /* Model output is untrusted. Rebuild only four allowed elements, with no attributes. */
- const ANALYSIS_FIELDS=['summary','value','context','usage','roster','schedule','verdictA','verdictB','accept','overall'];
+ const ANALYSIS_FIELDS=['summary','value','context','usage','verdictA','verdictB','accept','overall'];
+ const ANALYSIS_CACHE=new Map();
  const ANALYSIS={key:'',state:null,timer:null,controller:null,token:0,requestedKey:''};
  const ANALYSIS_ENDPOINT='https://hungjurors-trade-analysis.misbauddin-ahmed.workers.dev/gemini';
  function cleanAnalysisHtml(html){
@@ -1243,16 +1236,19 @@
   await Promise.allSettled([ensureUsage(),ensureSchedule(),ensureTeamContext()]);
  }
  function analysisControls(state){
-  if(state.status==='pending')return '<p class="td-writing" role="status">Writing the analysis…</p>';
+  if(state.status==='pending')return '<div class="td-analyzing" role="status" aria-live="polite"><span class="td-analyzing-ring" aria-hidden="true"></span><span>Analyzing this trade<span class="td-analyzing-dots" aria-hidden="true"><i></i><i></i><i></i></span></span></div>';
   if(state.status==='ready')return '';
   return '<button type="button" class="td-analysis-action" data-td-analysis-start>'+
-   (state.status==='failed'?'Try analysis again':'Write analysis')+'</button>';
+   'Analyze This Trade'+'</button>';
  }
  function requestAnalysis(m){
   const key=analysisKey(m);
   if(ANALYSIS.key===key&&ANALYSIS.state)return ANALYSIS.state;
   const requested=ANALYSIS.requestedKey===key;
   cancelAnalysis();ANALYSIS.key=key;
+  const cached=ANALYSIS_CACHE.get(key);
+  if(cached&&Date.now()-cached.at<600000){ANALYSIS.state={status:'ready',data:cached.data};return ANALYSIS.state}
+  ANALYSIS_CACHE.delete(key);
   ANALYSIS.state={status:requested?'pending':'idle',data:null};
   if(!requested)return ANALYSIS.state;
   const token=ANALYSIS.token;
@@ -1263,14 +1259,7 @@
    const timeout=setTimeout(()=>controller.abort(),95000);
    try{
     const proposal=researchTrade(m);
-    proposal.context=dossierFor(m,analyse(m));
-    try{
-     const {loadResearch}=await import('/scripts/trade-analysis-context.mjs?v=20260924-b');
-     proposal.evidence=await loadResearch(proposal,controller.signal,async(url,options)=>{
-      if(/^https:\/\/(?:site|site.web)\.api\.espn\.com\//.test(url))return Response.json(await espnJson(url));
-      return fetch(url,options);
-     });
-    }catch(_){}
+    proposal.context=analysisContext(m,analyse(m));
     if(token!==ANALYSIS.token)return;
     const response=await fetch(ANALYSIS_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},
      body:JSON.stringify(proposal),signal:controller.signal,credentials:'omit',cache:'no-store'});
@@ -1278,6 +1267,8 @@
     const data=validateAnalysis(await response.json());
     if(token!==ANALYSIS.token)return;
     ANALYSIS.state={status:'ready',data};
+    ANALYSIS_CACHE.set(key,{at:Date.now(),data});
+    if(ANALYSIS_CACHE.size>8)ANALYSIS_CACHE.delete(ANALYSIS_CACHE.keys().next().value);
    }catch(_){
     if(token===ANALYSIS.token)ANALYSIS.state={status:'failed',data:null};
    }finally{
@@ -1328,8 +1319,7 @@
    E(s.manager)+' sends</h5>'+s.profiles.map(breakdownCard).join('')+'</div>').join('')+'</div>';
   return '<div class="td-report">'+section('breakdown','Breakdown',breakdown)+section('score','Factor scorecard',scorecard(a))+
    analysisControls(state)+section('summary','Summary',data?.summary)+
-   [['value','Is it a good value?'],['context','What actually changes the picture'],['usage','Usage and opportunity'],
-    ['roster','Roster fit'],['schedule','Schedule and playoff leverage']].map(([k,title])=>section(k,title,data?.[k])).join('')+
+   [['value','Is it a good value?'],['context','What actually changes the picture'],['usage','Usage and opportunity']].map(([k,title])=>section(k,title,data?.[k])).join('')+
    modelVerdict(a,data)+searchAttribution(data)+'</div>';
  }
 

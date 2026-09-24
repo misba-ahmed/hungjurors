@@ -357,7 +357,7 @@
 /* Neutral builder badges and model-written analysis. */
 #hq-panel-strength .td-side-grade{min-width:0}
 #hq-panel-strength .td-side-grade b{font-size:14px;overflow-wrap:anywhere}
-#hq-panel-strength .td-writing{margin:0;padding:4px 2px;font:400 11.5px/1.5 var(--sans);color:var(--td-mute)}
+
 #hq-panel-strength .td-sec-verdict h5{margin:12px 0 7px;font:800 12px/1.4 var(--sans);color:var(--td-ink)}
 #hq-panel-strength .td-sec-verdict .td-move-head b{overflow-wrap:anywhere}
 #hq-panel-strength .td-units-key{flex-wrap:wrap}
@@ -381,3 +381,17 @@
 #hq-panel-strength .td-search-links{display:flex;flex-wrap:wrap;gap:7px 14px}
 #hq-panel-strength .td-search-links a{font:400 11px/1.5 var(--sans);color:var(--td-ink);overflow-wrap:anywhere}
 #hq-panel-strength .td-search-suggestions{display:block;min-width:0;max-width:100%;contain:inline-size}
+
+/* Compact scorecard lines and an active analysis indicator. */
+#hq-panel-strength .td-score-note{white-space:pre-line;line-height:1.55}
+#hq-panel-strength .td-analyzing{display:flex;align-items:center;gap:12px;padding:13px 15px;min-width:0;border:1px solid var(--td-line);border-radius:10px;background:rgba(189,144,44,.07);color:var(--td-ink);font:700 12px/1.5 var(--sans)}
+#hq-panel-strength .td-analyzing-ring{flex:0 0 23px;width:23px;height:23px;box-sizing:border-box;border:3px solid rgba(23,54,81,.15);border-top-color:var(--td-gold,#bd902c);border-right-color:var(--td-ink,#173651);border-radius:50%;animation:td-analyze-turn 1s linear infinite}
+#hq-panel-strength .td-analyzing-dots{display:inline-flex;align-items:center;gap:3px;margin-left:5px}
+#hq-panel-strength .td-analyzing-dots i{width:4px;height:4px;border-radius:50%;background:var(--td-gold,#bd902c);animation:td-analyze-pulse 1.2s ease-in-out infinite}
+#hq-panel-strength .td-analyzing-dots i:nth-child(2){animation-delay:.16s}
+#hq-panel-strength .td-analyzing-dots i:nth-child(3){animation-delay:.32s}
+@keyframes td-analyze-turn{to{transform:rotate(360deg)}}
+@keyframes td-analyze-pulse{0%,70%,100%{opacity:.3;transform:translateY(0)}35%{opacity:1;transform:translateY(-3px)}}
+@media(prefers-reduced-motion:reduce){
+ #hq-panel-strength .td-analyzing-ring,#hq-panel-strength .td-analyzing-dots i{animation:none}
+}

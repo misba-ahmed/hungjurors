@@ -11,7 +11,7 @@ const injected=prepared.match(/<script id="hj-trade-desk">([\s\S]*?)<\/script>/)
 assert.equal(injected,source,'Site preparation must preserve script text, including dollar replacement tokens');
 new vm.Script(injected);
 const fixture=readFileSync(new URL('./fixtures/trade-desk.js',import.meta.url),'utf8');
-const expose="\n HJTD._test={model,analyse,posture,balanceOptions,dropPlan,lineupPoints,newsItemFrom,newsFor,byeCoverage,cleanAnalysisHtml,validateAnalysis,\n  requestAnalysis,cancelAnalysis,ANALYSIS,researchTrade,analysisKey,projectionFact,TEAM_CONTEXT,shell,ensureSchedule,SCHED,warmScorecardSources,SCORE_SOURCES,lineupChanges,\n  hydrate:fn=>hydrateDossier=fn};\n";
+const expose="\n HJTD._test={model,analyse,posture,balanceOptions,dropPlan,lineupPoints,newsItemFrom,newsFor,byeCoverage,cleanAnalysisHtml,validateAnalysis,\n  requestAnalysis,cancelAnalysis,ANALYSIS,researchTrade,analysisKey,projectionFact,TEAM_CONTEXT,shell,ensureSchedule,SCHED,warmScorecardSources,SCORE_SOURCES,lineupChanges,analysisContext,analysisControls,report,ANALYSIS_CACHE,\n  hydrate:fn=>hydrateDossier=fn};\n";
 const context=vm.createContext({console,Date,Map,Set,URLSearchParams,setTimeout:()=>1,clearTimeout(){},
  window:{},document:{readyState:'loading',addEventListener(){},querySelector(){return null}}});
 vm.runInContext(fixture+source.replace(" if(document.readyState==='loading')",expose+"\n if(document.readyState==='loading')"),context);
@@ -40,8 +40,22 @@ await vm.runInContext(`(async()=>{
  await t.warmScorecardSources();
  assert(calls.join('|')==='season|vegas|pff','Trade Desk must request every scorecard source');
  const notes=t.analyse(t.model()).factors.map(f=>f.note);
- assert(notes.every(n=>n.endsWith('.')),'Loaded factor notes use complete sentences');
+ assert(notes[1].includes('\\n')&&notes[4].includes('Best free-agent'),'Factor notes have labeled lines');
  assert(notes.every(n=>!n.includes(' → ')&&!n.includes('receives /')),'Do not expose compact code-like factor notes');
+ const full=window.HJTD.buildDossier(),packed=t.analysisContext(t.model(),t.analyse(t.model()));
+ assert(JSON.stringify(packed).length<JSON.stringify(full).length,'Avoid repeated player records');
+ const ref=packed.managers[0].lineup.after.slots.find(s=>s.player).player.playerId;
+ assert(packed.rosterPlayers[ref].name,'Lineup references retain complete player facts');
+ assert(packed.players[0].usage.lastGame.receivingYards===40,'Keep the actual usage and last game');
+ assert(t.analysisControls({status:'pending'}).includes('td-analyzing-ring'),'Visible activity while pending');
+ assert(t.analysisControls({status:'idle'}).includes('Analyze This Trade'),'Requested action label');
+ const cached={summary:'Saved report'};
+ const key=t.analysisKey(t.model());
+ t.cancelAnalysis();t.ANALYSIS_CACHE.set(key,{at:Date.now(),data:cached});
+ assert(t.requestAnalysis(t.model()).data===cached,'Reuse a completed analysis for the same trade');
+ t.cancelAnalysis();t.ANALYSIS_CACHE.set(key,{at:Date.now()-600001,data:cached});
+ assert(t.requestAnalysis(t.model()).status==='idle','Expired analysis must be generated again');
+ t.cancelAnalysis();
 })()`,context);
 
 const output=Object.fromEntries(FIELDS.map(k=>[k,'<p>Specific analysis.</p>']));
@@ -71,7 +85,7 @@ assert.deepEqual(currentNews(newsFeed,newsPlayer,newsNow).map(n=>n.spin),['He wi
 assert.equal(call.generationConfig.responseMimeType,'application/json');
 assert.deepEqual(call.generationConfig.responseSchema.required,FIELDS);
 assert.ok(call.systemInstruction.parts[0].text.includes('Current date:'));
-assert.ok(!JSON.stringify(call).includes('weeklySeries'),'The request includes current evidence without a duplicate browser dossier');
+assert.ok(!FIELDS.includes('roster')&&!FIELDS.includes('schedule'),'Do not generate removed sections');
 assert.throws(()=>validateTrade({...trade,protocol:'old-paid-client'}));
 assert.throws(()=>validateTrade({...trade,managers:[trade.managers[0],trade.managers[0]]}));
 const grounded={candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(output)}]},

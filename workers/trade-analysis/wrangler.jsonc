@@ -34,6 +34,6 @@
     ]
   },
   "vars": {
-    "RELEASE": "20260924-direct-analysis"
+    "RELEASE": "20260924-concise-analysis"
   }
 }
