@@ -1,9 +1,8 @@
 import {MODEL,PROTOCOL,validateTrade,geminiRequest,parseGeminiResponse} from '../../scripts/trade-analysis-shared.mjs';
 
-import {loadResearch} from '../../scripts/trade-analysis-context.mjs';
 
 const ORIGIN='https://hungjurors.com';
-const LIMIT=24000;
+const LIMIT=500000;
 
 async function boundedJson(message,limit){
  if(Number(message.headers.get('Content-Length'))>limit)throw Error('Body too large');
@@ -55,10 +54,9 @@ export default {
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),90000);
   const cancel=()=>controller.abort();request.signal.addEventListener('abort',cancel,{once:true});
   try{
-   let evidence;
-   try{evidence=await loadResearch(trade,controller.signal)}catch(_){return reply(503,'context_unavailable')}
+   const {evidence=null,...proposal}=trade;
    const models=[MODEL,'gemini-3.5-flash-lite'];
-   const attempts=[],body=JSON.stringify(geminiRequest(trade,new Date(),evidence));
+   const attempts=[],body=JSON.stringify(geminiRequest(proposal,new Date(),evidence));
    let response,usedModel;
    for(const model of models){
     usedModel=model;

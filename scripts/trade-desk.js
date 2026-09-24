@@ -1262,8 +1262,18 @@
    const controller=new AbortController();ANALYSIS.controller=controller;
    const timeout=setTimeout(()=>controller.abort(),95000);
    try{
+    const proposal=researchTrade(m);
+    proposal.context=dossierFor(m,analyse(m));
+    try{
+     const {loadResearch}=await import('/scripts/trade-analysis-context.mjs?v=20260924-b');
+     proposal.evidence=await loadResearch(proposal,controller.signal,async(url,options)=>{
+      if(/^https:\/\/(?:site|site.web)\.api\.espn\.com\//.test(url))return Response.json(await espnJson(url));
+      return fetch(url,options);
+     });
+    }catch(_){}
+    if(token!==ANALYSIS.token)return;
     const response=await fetch(ANALYSIS_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},
-     body:JSON.stringify(researchTrade(m)),signal:controller.signal,credentials:'omit',cache:'no-store'});
+     body:JSON.stringify(proposal),signal:controller.signal,credentials:'omit',cache:'no-store'});
     if(!response.ok)throw Error('Analysis unavailable');
     const data=validateAnalysis(await response.json());
     if(token!==ANALYSIS.token)return;

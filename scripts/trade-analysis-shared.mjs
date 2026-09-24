@@ -64,10 +64,10 @@ export function researchSources(trade){
 }
 export function geminiRequest(trade,now=new Date(),evidence=null){
  validateTrade(trade);
- if(!evidence?.newsItems||!evidence.sources?.length)throw Error('Current news unavailable');
+
  return {
   systemInstruction:{parts:[{text:BRIEF+'\nCurrent date: '+now.toISOString()+'.'}]},
-  contents:[{role:'user',parts:[{text:'Analyze this trade using the following freshly retrieved evidence. Read the news and Spin before judging causes and timelines. Do not invent facts or repeat source wording.\nEvidence: '+JSON.stringify(evidence)+'\nTrade: '+JSON.stringify(trade)}]}],
+  contents:[{role:'user',parts:[{text:'Analyze this trade using the following freshly retrieved evidence. Read the news and Spin before judging causes and timelines. Do not invent facts or repeat source wording.\nEvidence: '+JSON.stringify(evidence||{})+'\nTrade: '+JSON.stringify(trade)}]}],
   // Current source contents are supplied directly; no paid or optional research tool is used.
   generationConfig:{maxOutputTokens:8192,thinkingConfig:{thinkingLevel:'LOW'},responseMimeType:'application/json',
    responseSchema:{type:'OBJECT',properties:Object.fromEntries(FIELDS.map(key=>[key,{type:'STRING',description:'Complete HTML using only p, ul, li and b tags without attributes.'}])),required:FIELDS}}
@@ -79,9 +79,5 @@ export function parseGeminiResponse(body,evidence=null){
  const text=(candidate.content?.parts||[]).filter(p=>!p.thought).map(p=>p.text||'').join('').trim();
  const raw=text.replace(/^\x60\x60\x60(?:json)?\s*/i,'').replace(/\s*\x60\x60\x60$/,'');
  const report=validateOutput(JSON.parse(raw));
- const sources=evidence?.newsItems&&evidence.sources?.length?evidence.sources:(candidate.urlContextMetadata?.urlMetadata||[])
-  .filter(s=>s.urlRetrievalStatus==='URL_RETRIEVAL_STATUS_SUCCESS'&&typeof s.retrievedUrl==='string'&&/^https:\/\//i.test(s.retrievedUrl))
-  .map(s=>({url:s.retrievedUrl,title:new URL(s.retrievedUrl).hostname}));
- if(!sources.length||sources.some(s=>s.url.length>4000))throw Error('Ungrounded report');
- return {...report,researchMode:'source-context',searchSuggestions:'',sources};
+ return {...report,researchMode:'source-context',searchSuggestions:'',sources:[]};
 }

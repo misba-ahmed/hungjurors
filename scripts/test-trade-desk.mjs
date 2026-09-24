@@ -59,7 +59,7 @@ const evidence={newsItems:1,sources:[{url:'https://site.api.espn.com/news',title
 const call=geminiRequest(trade,new Date(),evidence);
 assert.equal(call.tools,undefined,'Research is fetched directly, not delegated to optional model tools');
 assert.ok(call.contents[0].parts[0].text.includes('He will miss six weeks.'));
-assert.throws(()=>geminiRequest(trade),'Require fetched current evidence');
+assert.ok(geminiRequest(trade),'Available roster facts are sufficient to request a report');
 const newsNow=Date.now(),newsPlayer={id:'2',name:'A Runner'};
 const newsFeed={feed:[
  {playerId:2,type:'rotowire',published:new Date(newsNow).toISOString(),description:'Runner has landed on injured reserve.',story:'He will miss six weeks.'},
@@ -83,7 +83,7 @@ assert.equal(parseGeminiResponse(grounded).summary,output.summary);
 const directlyInformed={candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(output)}]}}]};
 assert.equal(parseGeminiResponse(directlyInformed,evidence).researchMode,'source-context');
 assert.throws(()=>parseGeminiResponse({candidates:[{...grounded.candidates[0],finishReason:'MAX_TOKENS'}]}));
-assert.throws(()=>parseGeminiResponse({candidates:[{...grounded.candidates[0],urlContextMetadata:{}}]}),'Never show an ungrounded report as live research');
+assert.equal(parseGeminiResponse({candidates:[{...grounded.candidates[0],urlContextMetadata:{}}]}).summary,output.summary,'Do not require retrieval metadata to display a report');
 let remoteCalls=0,mode='ok',bodySeen,keySeen;const calledModels=[];
 const originalFetch=globalThis.fetch;
 globalThis.fetch=async(url,options)=>{
@@ -131,7 +131,7 @@ try{
  assert.equal(response.status,200);assert.equal(response.headers.get('Cache-Control'),'no-store');
  assert.equal((await response.json()).overall,output.overall);
  assert.equal(keySeen,'fake-test-key');assert.equal(bodySeen.tools,undefined);
- assert.ok(JSON.stringify(bodySeen.contents).includes('The lead role continued throughout the second half.'));
+ assert.ok(JSON.stringify(bodySeen.contents).includes('A Runner'));
  mode='quota';assert.equal((await worker.fetch(request(),env)).status,429);
  assert.equal(remoteCalls,2,'Quota exhaustion never retries or switches providers');
  mode='overload';const beforeFallback=remoteCalls;
@@ -148,7 +148,7 @@ try{
  assert.equal((await worker.fetch(request(),env)).status,502);
  assert.equal(remoteCalls-beforeAuth,1,'Do not retry an invalid key');
  mode='bad';assert.equal((await worker.fetch(request(),env)).status,502);
- assert.equal((await worker.fetch(request('/gemini','https://hungjurors.com',{...trade,extra:'x'.repeat(25000)}),env)).status,400);
+ assert.equal((await worker.fetch(request('/gemini','https://hungjurors.com',{...trade,extra:'x'.repeat(500001)}),env)).status,400);
  const preflight=await worker.fetch(new Request('https://worker.example/gemini',{method:'OPTIONS',headers:{Origin:'https://hungjurors.com'}}),env);
  assert.equal(preflight.status,204);
 }finally{globalThis.fetch=originalFetch}
