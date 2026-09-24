@@ -1076,7 +1076,7 @@
  /* Model output is untrusted. Rebuild only four allowed elements, with no attributes. */
  const ANALYSIS_FIELDS=['summary','value','context','usage','roster','schedule','verdictA','verdictB','accept','overall'];
  const ANALYSIS={cache:new Map(),key:'',state:null,timer:null,controller:null,token:0};
- const ANALYSIS_ENDPOINT='https://trade-analysis.hungjurors.com/';
+ const ANALYSIS_ENDPOINT='https://hungjurors-trade-analysis.misbauddin-ahmed.workers.dev/';
  const CACHE_TTL=600000;
  function cleanAnalysisHtml(html){
   const parsed=new DOMParser().parseFromString(String(html||''),'text/html');

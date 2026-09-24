@@ -16,7 +16,7 @@ No terminal commands or DNS changes are needed.
    
    Click **Deploy**. Cloudflare runs the command for you. The site itself stays on GitHub Pages.
 3. Open the new Worker → **Settings → Variables and Secrets → Add**. Choose **Secret**, name it **OPENAI_API_KEY**, and enter your OpenAI API key as its value. Click **Deploy** to save it. This is a runtime secret, not a build variable. An OpenAI API account with billing is needed to generate the analysis.
-4. Copy the Worker's public **https://hungjurors-trade-analysis.…workers.dev/** address and send that address to Codex. Codex can connect the frontend to it. Do not send the API key in chat.
+4. Open **Domains** and enable the **Production** Worker URL. The frontend is configured to call **https://hungjurors-trade-analysis.misbauddin-ahmed.workers.dev/**. The Preview URL can remain disabled. If the Worker address changes, update `ANALYSIS_ENDPOINT` in `scripts/trade-desk.js`. Do not send the API key in chat.
 
 The configuration uses a workers.dev address, so no custom domain or change to hungjurors.com's DNS is required. Until the Worker is configured and connected, the deterministic comparisons remain available and failed analysis requests stay quiet.
 
