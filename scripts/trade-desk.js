@@ -16,6 +16,41 @@
  const HJTD={a:'',b:'',give:new Set(),get:new Set(),pick:'',query:'',mode:'build',finder:null,finding:false,scope:'all'};
  window.HJTD=HJTD;
 
+ const DRAFT_KEY='hj-trade-draft-v1';
+ let draftInFlight=false,restoreTradeView=false;
+ function saveTradeDraft(pending=draftInFlight){
+  if(!HJTD.a||!HJTD.b)return;
+  draftInFlight=pending;
+  const saved=JSON.stringify({season:Number(NFL_SEASON),at:Date.now(),a:HJTD.a,b:HJTD.b,
+   give:[...HJTD.give],get:[...HJTD.get],mode:HJTD.mode,scope:scopeNow(),pending,
+   tradeView:HJ_HQ_STATE?.activeTab==='strength'&&HJ_STRENGTH_STATE.view==='trade'});
+  // Keep a fallback for browsers that discard session storage when reclaiming a tab.
+  try{sessionStorage.setItem(DRAFT_KEY,saved)}catch(_){}
+  try{localStorage.setItem(DRAFT_KEY,saved)}catch(_){}
+ }
+ function restoreTradeDraft(){
+  let saved;
+  for(const name of ['sessionStorage','localStorage']){
+   try{saved=JSON.parse(globalThis[name]?.getItem(DRAFT_KEY)||'null')}catch(_){saved=null}
+   if(saved&&saved.season===Number(NFL_SEASON)&&Number.isFinite(saved.at)&&Date.now()-saved.at<86400000&&
+    typeof saved.a==='string'&&typeof saved.b==='string'&&saved.a!==saved.b&&
+    ['give','get'].every(key=>Array.isArray(saved[key])&&saved[key].length<=40&&saved[key].every(id=>typeof id==='string'&&id.length<100)))break;
+   saved=null;
+  }
+  if(!saved)return;
+  HJTD.a=saved.a;HJTD.b=saved.b;HJTD.give=new Set(saved.give);HJTD.get=new Set(saved.get);
+  HJTD.mode=saved.mode==='finder'?'finder':'build';
+  if(saved.pending||(saved.tradeView&&location.hash==='#roster-strength')){
+   restoreTradeView=true;
+   HJ_STRENGTH_STATE.view='trade';HJ_STRENGTH_STATE.scope=saved.scope==='starters'?'starters':'all';
+   HJ_HQ_STATE.activeTab='strength';
+   try{history.replaceState(history.state,'','#roster-strength')}catch(_){}
+  }
+  // Never resume generation automatically after an interrupted page.
+  saveTradeDraft(false);
+ }
+
+
  const esc0=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const E=s=>typeof esc==='function'?esc(s):esc0(s);
  const money=v=>Number.isFinite(v)?Math.round(v).toLocaleString('en-US'):'—';
@@ -291,6 +326,9 @@
   if(!all.length)return false;
   if(!teamById(HJTD.a))HJTD.a=String(all[0].id);
   if(!teamById(HJTD.b)||String(HJTD.b)===String(HJTD.a))HJTD.b=String((all.find(t=>String(t.id)!==String(HJTD.a))||all[0]).id);
+  const ownA=new Set(rosterOf(HJTD.a).map(entryId)),ownB=new Set(rosterOf(HJTD.b).map(entryId));
+  if(ownA.size)HJTD.give=new Set([...HJTD.give].filter(id=>ownA.has(id)));
+  if(ownB.size)HJTD.get=new Set([...HJTD.get].filter(id=>ownB.has(id)));
   return true;
  }
 
@@ -1076,7 +1114,7 @@
  /* Model output is untrusted. Rebuild only four allowed elements, with no attributes. */
  const ANALYSIS_FIELDS=['summary','value','context','usage','roster','schedule','verdictA','verdictB','accept','overall'];
  const ANALYSIS={cache:new Map(),key:'',state:null,timer:null,controller:null,token:0,enabled:false};
- let localAnalysis=()=>import('/scripts/trade-analysis-local.mjs?v=20260924-webllm2');
+ let localAnalysis=()=>import('/scripts/trade-analysis-local.mjs?v=20260924-webllm3');
  const CACHE_TTL=600000;
  function cleanAnalysisHtml(html){
   const parsed=new DOMParser().parseFromString(String(html||''),'text/html');
@@ -1095,7 +1133,7 @@
   return Object.fromEntries(ANALYSIS_FIELDS.map(k=>[k,cleanAnalysisHtml(value[k])]));
  }
  function analysisKey(m){
-  return JSON.stringify({version:2,provider:'webllm',season:Number(NFL_SEASON),week:week(),a:HJTD.a,b:HJTD.b,
+  return JSON.stringify({version:3,provider:'webllm',season:Number(NFL_SEASON),week:week(),a:HJTD.a,b:HJTD.b,
    give:[...HJTD.give].sort(),get:[...HJTD.get].sort(),market:window.HJMV?.generatedAt,scope:scopeNow(),
    rosters:teams().map(t=>[t.id,rosterOf(t.id).map(e=>[entryId(e),valueOf(e),injuryOf(e),e.lineupSlotId])])});
  }
@@ -1114,6 +1152,7 @@
  function cancelAnalysis(){
   ANALYSIS.token++;clearTimeout(ANALYSIS.timer);ANALYSIS.controller?.abort();
   ANALYSIS.controller=null;ANALYSIS.key='';ANALYSIS.state=null;
+  if(draftInFlight)saveTradeDraft(false);
  }
  async function hydrateDossier(){
   standingsCache=null;injuryMapCache=null;
@@ -1151,6 +1190,8 @@
    {status:'pending',data:null,label:'Writing the analysis…'};
   if(cached||!ANALYSIS.enabled)return ANALYSIS.state;
   const token=ANALYSIS.token;
+  saveTradeDraft(true);
+  try{history.replaceState(history.state,'','#roster-strength')}catch(_){}
   ANALYSIS.timer=setTimeout(async()=>{
    const controller=new AbortController();ANALYSIS.controller=controller;
    let hydrationTimer;
@@ -1171,7 +1212,7 @@
     if(token===ANALYSIS.token)ANALYSIS.state={status:'failed',data:null};
    }finally{
     clearTimeout(hydrationTimer);
-    if(token===ANALYSIS.token){ANALYSIS.controller=null;rerenderIfTrade()}
+    if(token===ANALYSIS.token){ANALYSIS.controller=null;saveTradeDraft(false);rerenderIfTrade()}
    }
   },1100);
   return ANALYSIS.state;
@@ -1350,7 +1391,7 @@
  }
 
  /* ---------- wiring ---------- */
- function rerender(){if(typeof hjRerenderStrength==='function')hjRerenderStrength()}
+ function rerender(){saveTradeDraft();if(typeof hjRerenderStrength==='function')hjRerenderStrength()}
 
  function warmWeek(){
   if(typeof hj6LoadWeek!=='function'||HJTD._warm)return;
@@ -1435,6 +1476,7 @@
    },220);
   });
 
+  if(restoreTradeView){restoreTradeView=false;window.dispatchEvent(new Event('hashchange'))}
   document.addEventListener('hj:market-updated',()=>{if(HJ_HQ_STATE?.activeTab==='strength'&&HJ_STRENGTH_STATE.view==='trade')rerender()});
  }
 
@@ -1449,5 +1491,6 @@
   if(Number(event.detail?.season)!==Number(NFL_SEASON))return;
   USAGE.snaps=event.detail.snaps;USAGE.cache=new Map();
  });
+ restoreTradeDraft();
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();

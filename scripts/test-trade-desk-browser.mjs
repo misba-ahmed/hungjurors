@@ -25,9 +25,9 @@ const server=createServer(async(req,res)=>{
  res.setHeader('Content-Type','text/javascript');
  if(path==='/model.mjs'){
   runtimeLoads++;
-  res.end("export const prebuiltAppConfig={model_list:['q4f16_1','q4f32_1'].map(format=>({model_id:'Qwen3-1.7B-'+format+'-MLC',model:location.origin+'/model'}))};"+
+  res.end("export const prebuiltAppConfig={model_list:['q4f16_1','q4f32_1'].map(format=>({model_id:'Llama-3.2-1B-Instruct-'+format+'-MLC',model:location.origin+'/model'}))};"+
    "export class MLCEngine{constructor(options){this.options=options;this.chat={completions:{create:async request=>(await fetch('/completion',{method:'POST',body:JSON.stringify(request)})).json()}}}"+
-   "async reload(){this.options.initProgressCallback({progress:0.5});this.options.initProgressCallback({progress:1})}async resetChat(){}interruptGenerate(){}async unload(){}}");return;
+   "async reload(id,options){if(options.context_window_size!==6144)throw Error('Unexpected context size');this.options.initProgressCallback({progress:0.5});this.options.initProgressCallback({progress:1})}async resetChat(){}interruptGenerate(){}async unload(){}}");return;
  }
  if(path==='/tokenizers.mjs'){res.end("globalThis.tokenizers={Tokenizer:{fromJSON:async()=>({encode:text=>new Uint8Array(Math.ceil(text.length/4)),dispose(){}})}};");return}
  if(path==='/model/resolve/main/tokenizer.json'){res.setHeader('Content-Type','application/json');res.end('{}');return}
@@ -53,9 +53,20 @@ try{
  const page=await context.newPage(),errors=[],externalPosts=[];
  page.on('pageerror',e=>errors.push(e.message));
  context.on('request',req=>{if(req.method()==='POST'&&!req.url().startsWith(base+'/'))externalPosts.push(req.url())});
+ await context.addInitScript(()=>{
+  window.workerStarts=0;window.workerStops=0;
+  const NativeWorker=window.Worker;
+  window.Worker=new Proxy(NativeWorker,{construct(Target,args){
+   window.workerStarts++;const worker=new Target(...args),terminate=worker.terminate.bind(worker);
+   worker.terminate=()=>{window.workerStops++;terminate()};return worker;
+  }});
+ });
  await page.goto(base);
  await page.addStyleTag({content:css});
- await page.addScriptTag({content:fixture+'\nfunction hjStrengthHTML(){return ""}\nfunction hjRerenderStrength(){document.querySelector("#hq-panel-strength").innerHTML=window.HJTD._test.shell()}\n'+source+"\nconst t=window.HJTD._test;\nwindow.HJTD.a='1';window.HJTD.b='2';window.HJTD.give=new Set(['2']);window.HJTD.get=new Set(['12']);\nconst schedules=new Map();\nfor(let w=1;w<=18;w++){if(w!==8)schedules.set('a'+w,{season:2026,week:w,home_team:'AAA',away_team:'CCC'});\n if(w!==9)schedules.set('b'+w,{season:2026,week:w,home_team:'BBB',away_team:'DDD'});}\nwindow.HJTD.injectSchedule(schedules);\nconst rows=[...fixtures,...second].flatMap(e=>[1,2].map(week=>({id:e.player.id,player_display_name:e.player.fullName,position:e.player.position,team:e.player.team,week,points:10,carries:8,targets:3,receiving_yards:40})));\nwindow.HJTD.injectUsage(rows,null);\n"+'\nwindow.HJTD._test.hydrate(async()=>{});hjRerenderStrength();'});
+ const installFixture=async(seed=true)=>{
+  await page.addScriptTag({content:fixture+'\nfunction hjStrengthHTML(){return ""}\nfunction hjRerenderStrength(){document.querySelector("#hq-panel-strength").innerHTML=window.HJTD._test.shell()}\n'+source+"\nconst t=window.HJTD._test;\n"+(seed?"window.HJTD.a='1';window.HJTD.b='2';window.HJTD.give=new Set(['2']);window.HJTD.get=new Set(['12']);\n":"")+"\nconst schedules=new Map();\nfor(let w=1;w<=18;w++){if(w!==8)schedules.set('a'+w,{season:2026,week:w,home_team:'AAA',away_team:'CCC'});\n if(w!==9)schedules.set('b'+w,{season:2026,week:w,home_team:'BBB',away_team:'DDD'});}\nwindow.HJTD.injectSchedule(schedules);\nconst rows=[...fixtures,...second].flatMap(e=>[1,2].map(week=>({id:e.player.id,player_display_name:e.player.fullName,position:e.player.position,team:e.player.team,week,points:10,carries:8,targets:3,receiving_yards:40})));\nwindow.HJTD.injectUsage(rows,null);\n"+'\nwindow.HJTD._test.hydrate(async()=>{});hjRerenderStrength();'});
+ };
+ await installFixture();
  await page.getByRole('button',{name:'Write analysis',exact:true}).waitFor();
  await page.waitForTimeout(1200);
  assert.equal(requests,0,'No inference before the user asks');
@@ -88,7 +99,8 @@ try{
  mode='ok';
  await page.evaluate(()=>{HJTD.get=new Set(['14']);hjRerenderStrength()});
  await page.waitForFunction(()=>document.querySelector('.td-sec-summary')?.textContent.includes('response 3'));
- assert.equal(runtimeLoads,1,'Reuse the model Worker between trades');
+ assert.equal(await page.evaluate(()=>window.workerStarts),3,'Each trade uses a new Worker after releasing the previous one');
+ assert.equal(await page.evaluate(()=>window.workerStops),3,'Completed and cancelled Workers release their resources');
  mode='fail';
  await page.evaluate(()=>{HJTD.get=new Set(['13']);hjRerenderStrength()});
  await page.waitForFunction(()=>HJTD._test.ANALYSIS.state.status==='failed');
@@ -97,8 +109,28 @@ try{
  assert.equal(await page.locator('.td-sec-breakdown').count(),1);
  assert.equal(await page.locator('.td-score-row').count(),7);
  assert.equal(await page.getByRole('button',{name:'Try analysis again',exact:true}).count(),1);
+ assert.equal(await page.evaluate(()=>window.workerStarts),4);
+ assert.equal(await page.evaluate(()=>window.workerStops),4,'A failed Worker is also released');
+ // A browser process can disappear without delivering an error or pagehide.
+ // Preserve the in-flight draft exactly as it would remain after that interruption.
+ await page.evaluate(()=>{
+  const key='hj-trade-draft-v1',saved=JSON.parse(sessionStorage.getItem(key));
+  saved.pending=true;
+  sessionStorage.setItem(key,JSON.stringify(saved));localStorage.setItem(key,JSON.stringify(saved));
+  history.replaceState(null,'','#top');
+ });
+ await page.reload();
+ await page.addStyleTag({content:css});
+ await installFixture(false);
+ assert.equal(await page.evaluate(()=>location.hash),'#roster-strength');
+ assert.deepEqual(await page.evaluate(()=>({a:HJTD.a,b:HJTD.b,give:[...HJTD.give],get:[...HJTD.get]})),
+  {a:'1',b:'2',give:['2'],get:['13']},'Restore both managers and every selected player');
+ assert.equal(await page.getByRole('button',{name:'Write analysis',exact:true}).count(),1);
+ await page.waitForTimeout(1200);
+ assert.equal(await page.evaluate(()=>window.workerStarts),0,'An interrupted analysis never restarts on reload');
+ assert.equal(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('hj-trade-draft-v1')).pending),false);
  assert.deepEqual(errors,[]);assert.deepEqual(externalPosts,[]);
- console.log('Local Worker integration (mock model), lazy loading, 390px layout, cache, cancellation and quiet failure: passed');
+ console.log('Local Worker integration (mock model), lazy loading, 390px layout, cache, Worker disposal, draft recovery and quiet failure: passed');
 }finally{
  await browser.close();
  server.closeAllConnections();await new Promise(resolve=>server.close(resolve));

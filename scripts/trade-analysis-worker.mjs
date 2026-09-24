@@ -1,4 +1,4 @@
-import {generateAnalysis,CONTEXT_SIZE} from './trade-analysis-shared.mjs?v=20260924-webllm1';
+import {generateAnalysis,CONTEXT_SIZE} from './trade-analysis-shared.mjs?v=20260924-webllm3';
 const WEBLLM='https://esm.run/@mlc-ai/web-llm@0.2.85';
 const TOKENIZERS='https://cdn.jsdelivr.net/npm/@mlc-ai/web-tokenizers@0.1.6/lib/index.js';
 let engine=null,tokenizer=null,loading=null,queue=Promise.resolve(),active=null;
@@ -20,7 +20,7 @@ async function loadEngine(){
   const adapter=await navigator.gpu.requestAdapter();
   if(!adapter)throw Error('WebGPU unavailable');
   const format=adapter.features.has('shader-f16')?'q4f16_1':'q4f32_1';
-  const modelId='Qwen3-1.7B-'+format+'-MLC';
+  const modelId='Llama-3.2-1B-Instruct-'+format+'-MLC';
   const [llm,tokenModule]=await Promise.all([import(WEBLLM),import(TOKENIZERS)]);
   // The published tokenizer is UMD. Load its browser artifact directly;
   // asking the CDN to rebundle it as ESM fails before model loading begins.

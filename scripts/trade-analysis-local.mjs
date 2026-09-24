@@ -1,38 +1,39 @@
-// Local inference only. This module never sends the dossier to a network endpoint.
-let worker=null,sequence=0;
-const jobs=new Map();
-function getWorker(){
- if(worker)return worker;
- worker=new Worker(new URL('./trade-analysis-worker.mjs?v=20260924-webllm2',import.meta.url),{type:'module'});
- worker.onmessage=({data})=>{
-  const job=jobs.get(data.id);if(!job)return;
-  if(data.type==='progress'){job.onProgress?.(data.progress);return}
-  jobs.delete(data.id);job.cleanup();
-  if(data.type==='result')job.resolve(data.result);
-  else job.reject(new Error('Local analysis unavailable'));
- };
- worker.onerror=()=>{
-  const failed=worker;worker=null;failed?.terminate();
-  for(const job of jobs.values()){job.cleanup();job.reject(new Error('Local analysis unavailable'))}
-  jobs.clear();
- };
- return worker;
+// Local inference only. Each request owns its Worker and releases it on every exit.
+let active=null,sequence=0;
+export function dispose(){
+ active?.abort();
 }
 export function analyse(dossier,{signal,onProgress}={}){
  if(signal?.aborted)return Promise.reject(new DOMException('Aborted','AbortError'));
+ dispose();
  return new Promise((resolve,reject)=>{
-  let w;
-  try{w=getWorker()}catch(error){reject(error);return}
+  let worker;
+  try{worker=new Worker(new URL('./trade-analysis-worker.mjs?v=20260924-webllm3',import.meta.url),{type:'module'})}
+  catch(error){reject(error);return}
   const id=++sequence;
-  const abort=()=>{w.postMessage({type:'cancel',id});jobs.delete(id);cleanup();reject(new DOMException('Aborted','AbortError'))};
-  const cleanup=()=>signal?.removeEventListener('abort',abort);
-  jobs.set(id,{resolve,reject,onProgress,cleanup});
+  let settled=false;
+  const finish=(error,result)=>{
+   if(settled)return;
+   settled=true;
+   signal?.removeEventListener('abort',abort);
+   worker.onmessage=null;worker.onerror=null;worker.onmessageerror=null;
+   // Termination also stops a download/reload that interruptGenerate cannot cancel.
+   worker.terminate();
+   if(active?.id===id)active=null;
+   if(error)reject(error);else resolve(result);
+  };
+  const abort=()=>finish(new DOMException('Aborted','AbortError'));
+  active={id,abort};
+  worker.onmessage=({data})=>{
+   if(data.id!==id||settled)return;
+   if(data.type==='progress'){onProgress?.(data.progress);return}
+   if(data.type==='result')finish(null,data.result);
+   else finish(new Error('Local analysis unavailable'));
+  };
+  worker.onerror=()=>finish(new Error('Local analysis unavailable'));
+  worker.onmessageerror=()=>finish(new Error('Local analysis unavailable'));
   signal?.addEventListener('abort',abort,{once:true});
-  w.postMessage({type:'analyse',id,dossier});
+  try{worker.postMessage({type:'analyse',id,dossier})}catch(error){finish(error)}
  });
 }
-export function dispose(){
- worker?.terminate();worker=null;
- for(const job of jobs.values()){job.cleanup();job.reject(new DOMException('Aborted','AbortError'))}
- jobs.clear();
-}
+globalThis.addEventListener?.('pagehide',dispose);
