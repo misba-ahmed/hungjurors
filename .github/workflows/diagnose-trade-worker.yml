@@ -8,7 +8,7 @@ permissions:
 jobs:
   endpoint:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 4
     steps:
       - uses: actions/setup-node@v6
         with:
@@ -20,7 +20,7 @@ jobs:
           node --input-type=module <<'NODE'
           import {chromium} from 'playwright';
           const browser=await chromium.launch({headless:true});
-          const page=await browser.newPage({viewport:{width:390,height:844}});
+          const page=await browser.newPage({viewport:{width:390,height:844}});page.setDefaultTimeout(30000);console.log('BROWSER_OPEN');
           page.on('pageerror',e=>console.log('PAGE_ERROR',e.message.slice(0,300)));
           await page.goto('https://hungjurors.com/#roster-strength',{waitUntil:'domcontentloaded',timeout:90000});
           await page.waitForFunction(()=>window.HJTD&&typeof HJ_LEAGUE_STATE!=='undefined'&&HJ_LEAGUE_STATE.data?.teams?.length,{timeout:90000});
@@ -43,10 +43,10 @@ jobs:
            factors:[...document.querySelectorAll('.td-score-row')].map(n=>n.textContent.trim()),
            width:document.documentElement.clientWidth,
            reportWidth:document.querySelector('.td-report')?.getBoundingClientRect().width,
-           lineups:HJTD.buildDossier()?.managers?.map(m=>({name:m.name,lineup:m.lineup,roster:m.rosterConstruction}))
+           stage:'scorecard'
           }))));
           const responsePromise=page.waitForResponse(r=>r.url().endsWith('/gemini')&&r.request().method()==='POST',{timeout:105000});
-          await page.locator('[data-td-analysis-start]').click();
+          await page.evaluate(()=>document.querySelector('[data-td-analysis-start]').click());console.log('ANALYSIS_CLICKED');
           const response=await responsePromise;const body=await response.text();
           console.log('ACTUAL_TRADE_RESPONSE',JSON.stringify({status:response.status(),body:body.slice(0,30000)}));
           await page.waitForFunction(()=>!!document.querySelector('.td-sec-summary')||document.querySelector('[data-td-analysis-start]')?.textContent.includes('Try'),{timeout:15000}).catch(()=>{});
