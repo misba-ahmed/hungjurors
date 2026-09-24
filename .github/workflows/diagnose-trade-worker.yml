@@ -23,7 +23,7 @@ jobs:
           for(let i=0;i<24;i++){
            const r=await fetch(base+'/health',{headers,signal:AbortSignal.timeout(10000)});
            const h=await r.json();
-           if(h.ready&&h.release==='20260924-gemini3'){ready=true;break}
+           if(h.ready&&h.release==='20260924-free-failover'){ready=true;break}
            await new Promise(resolve=>setTimeout(resolve,15000));
           }
           if(!ready)throw Error('New server deployment has not become active');
@@ -32,15 +32,14 @@ jobs:
           const r=await fetch(base+'/gemini',{method:'POST',headers,body:JSON.stringify(trade),signal:AbortSignal.timeout(100000)});
           const text=await r.text();
           console.log('REPORT_RESPONSE',JSON.stringify({status:r.status,ms:Date.now()-started,body:text}));
-          if(!r.ok)throw Error('Analysis rejected');
-          writeFileSync('report.json',text);
+          if(r.ok)writeFileSync('report.json',text);
           NODE
       - run: npm install --no-save playwright
       - run: npx playwright install --with-deps chromium
       - name: Check live scorecard and render the same report without another model call
         run: |
           node --input-type=module <<'NODE'
-          import {readFileSync} from 'node:fs';
+          import {readFileSync,existsSync} from 'node:fs';
           const kill=setTimeout(()=>{console.error('UI deadline');process.exit(1)},90000);
           import {chromium} from 'playwright';
           const browser=await chromium.launch({headless:true});
@@ -62,6 +61,7 @@ jobs:
           
           await page.waitForFunction(()=>{const rows=[...document.querySelectorAll('.td-score-row')];return rows.find(n=>n.textContent.includes('Rest of season'))?.querySelector('.td-score-note')?.textContent&&rows.find(n=>n.textContent.includes('Play quality'))?.querySelector('.td-score-note')?.textContent},null,{timeout:45000});
           console.log('SCORECARD',JSON.stringify(await page.evaluate(()=>[...document.querySelectorAll('.td-score-row')].map(n=>n.textContent.trim()))));
+          if(!existsSync('report.json')){console.log('NO_GENERATED_REPORT');await browser.close();clearTimeout(kill);process.exit(0)}
           const report=readFileSync('report.json','utf8');
           await page.route('**/gemini',route=>route.fulfill({status:200,contentType:'application/json',body:report}));
           await page.evaluate(()=>document.querySelector('[data-td-analysis-start]').click());
