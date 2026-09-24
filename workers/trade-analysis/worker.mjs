@@ -31,7 +31,7 @@ export default {
   const configured=Boolean(env?.GEMINI_API_KEY&&env.GEMINI_FREE_TIER_CONFIRMED==='true');
   const rateLimitsReady=typeof env?.PER_IP?.limit==='function'&&typeof env?.TOTAL?.limit==='function';
   if(path==='/health'&&request.method==='GET')return new Response(JSON.stringify({
-   ready:configured&&rateLimitsReady,protocol:PROTOCOL,
+   ready:configured&&rateLimitsReady,protocol:PROTOCOL,release:env.RELEASE||null,
    checks:{key:Boolean(env?.GEMINI_API_KEY),freeTier:env?.GEMINI_FREE_TIER_CONFIRMED==='true',
     perIpLimiter:typeof env?.PER_IP?.limit==='function',totalLimiter:typeof env?.TOTAL?.limit==='function'}
   }),{headers});
