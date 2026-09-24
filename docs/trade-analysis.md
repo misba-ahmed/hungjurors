@@ -1,42 +1,31 @@
 # Trade Desk analysis
 
-The Trade Desk keeps market totals, the lineup optimizer, roster ranks, position bars, Breakdown and the seven-factor scorecard in the browser. Its written analysis comes from a Cloudflare Worker using the OpenAI Responses API. The frontend contains no API key. The rest of the site, including index.html, is unchanged.
+Trade analysis now runs entirely on the visitor's device through WebLLM. There is no OpenAI request, hosted inference fallback, API key, token bill, or provider usage allowance. The site remains on GitHub Pages.
 
-## Set up through the website
+## Browser behavior
 
-No terminal commands or DNS changes are needed.
+Select a trade and click **Write analysis** beneath the factor scorecard. The first use downloads the model and tokenizer. WebLLM caches model files in browser storage; clearing that storage requires another download. Initial download and inference can take time and require substantial device memory. A working WebGPU adapter is required. No claim is made that every phone or browser supports this workload.
 
-1. Create a [Cloudflare account](https://dash.cloudflare.com/sign-up) and verify your email.
-2. Open **Workers & Pages → Create application → Import a repository / Continue with GitHub**. Connect GitHub and select **misba-ahmed/hungjurors**. Use these settings:
-   - Worker name: **hungjurors-trade-analysis**
-   - Branch: **main**
-   - Root directory: **workers/trade-analysis**
-   - Build command: leave empty
-   - Deploy command: keep the default **npx wrangler deploy**
-   
-   Click **Deploy**. Cloudflare runs the command for you. The site itself stays on GitHub Pages.
-3. Open the new Worker → **Settings → Variables and Secrets → Add**. Choose **Secret**, name it **OPENAI_API_KEY**, and enter your OpenAI API key as its value. Click **Deploy** to save it. This is a runtime secret, not a build variable. An OpenAI API account with billing is needed to generate the analysis.
-4. Open **Domains** and enable the **Production** Worker URL. The frontend is configured to call **https://hungjurors-trade-analysis.misbauddin-ahmed.workers.dev/**. The Preview URL can remain disabled. If the Worker address changes, update `ANALYSIS_ENDPOINT` in `scripts/trade-desk.js`. Do not send the API key in chat.
+The page shows only the analysis control, loading progress and the existing write-up sections. Failures retain all deterministic comparisons and offer another attempt. There is no provider, setup, billing or technical explanation on the page.
 
-The configuration uses a workers.dev address, so no custom domain or change to hungjurors.com's DNS is required. Until the Worker is configured and connected, the deterministic comparisons remain available and failed analysis requests stay quiet.
+After the first click, subsequent trade selections in the same page session generate locally after a short debounce. Completed reports are cached for ten minutes by trade, roster, week, market and injury state. Changing a trade cancels the old generation; one job runs at a time. Old results cannot replace the current selection. Heavy model work runs in a dedicated Web Worker.
 
-## Configuration and behavior
+## Implementation
 
-- `workers/trade-analysis/wrangler.jsonc` selects the model (`gpt-5.4` by default). Change `MODEL` there and deploy to select another Responses model supporting reasoning and strict JSON schema output.
-- The API accepts browser requests only from the exact origin `https://hungjurors.com`. No wildcard or credentials are allowed. Origin checks are browser access control, not user authentication; non-browser clients can spoof Origin. The function also limits requests per IP and across the function, bounds input/output size, rejects stale or malformed dossiers, and times out model requests.
-- Rate-limit namespaces 49301 and 49302 must be unused by other Workers in the same account. Defaults are six calls per IP per minute and 30 total per minute. Cloudflare's limits are local to each location, not an account-wide billing cap.
-- Successful analyses are cached for ten minutes in the browser (including the current tab's session storage). The key includes the managers, selected players, season/week, market snapshot, roster identities, injuries and roster-view basis. Server caching uses the complete dossier without its request timestamp.
-- Selection is debounced. Responses for a previous selection cannot replace the current trade. Failures show only the deterministic sections, never an error paragraph. The full returned paragraphs are rendered without truncation.
-- Only p, ul, li and b are accepted from the Worker. The browser independently rebuilds this allowlist without attributes. News and other dossier strings are explicitly treated as untrusted evidence in the model brief.
+- `scripts/trade-desk.js`: existing dossier/lineup calculations and UI; dynamically imports the local client after activation.
+- `scripts/trade-analysis-local.mjs`: cancellation-safe browser-to-worker requests.
+- `scripts/trade-analysis-worker.mjs`: WebLLM 0.2.85, WebTokenizers 0.1.6, Qwen3-1.7B with q4f16 or q4f32 according to shader-f16 support. The 8,192-token context bounds GPU cache memory. Model/CDN downloads use no credentials and receive no league dossier.
+- `scripts/trade-analysis-shared.mjs`: original analyst brief, full dossier and HTML validation, context sizing and generation. The model tokenizer counts input tokens. Dossiers that exceed the context window are split losslessly and read by the model in portions; only the model's notes are condensed for the final report. No article, Spin, source evidence or displayed output is cut off to fit. A response that ends at its token limit is rejected.
+- `workers/trade-analysis/worker.mjs`: a retired endpoint returning HTTP 410 for old tabs. It never reads a key or calls any model. The Cloudflare service is no longer part of analysis. A previously saved OpenAI secret is unused and can be removed from Cloudflare.
 
-## Facts and boundaries
+The same dossier supplies manager records, needs, exact lineup slots, drops, bye coverage, free agents, player and teammate news/Spin, usage samples, timelines and schedules. The local model is substantially smaller than the previous hosted model; equivalent prose/reasoning quality is not promised.
 
-The dossier contains both rosters, optimized slots before/after, incoming roles, benched players, the lowest-valued drop candidates when required by league capacity, bye-specific lineups, unit ranks, records and observed season metrics, fantasy schedules and head-to-head games. Player facts include full recent Rotowire blurbs and Spin, injury reports, relevant teammates, with/without samples, weekly usage, the latest game, market movement, PFF, team offensive ranks/red-zone trips, wire alternatives and defense-vs-position schedules through Week 16.
+Generated HTML remains restricted to p, ul, li and b, with independent browser sanitization. Dossier strings remain untrusted evidence, never instructions. The paid-model cache is not reused.
 
-Full-season projections are not relabeled as remaining totals. The adapter subtracts completed-week points and allocates the remaining estimate across scheduled games through this league's Week 16 finish. This is an estimate, recorded with its basis in the dossier; it does not claim a new weekly projection model. This-week effects are gated on the loaded current-week feed. IR return dates and temporary role windows remain facts for the analyst to weigh, rather than being converted into an invented exact points adjustment.
+## Verification
 
-Under 10% market differences are balanced; under two points per week are treated as a lineup wash. Posture labels are withheld before four games. Balance options must be above replacement and cannot add another required drop. Observed absences are not diagnosed as injuries.
+`node scripts/test-trade-desk.mjs` checks existing calculations, lossless evidence splitting/context handling, rejected truncated output and that the retired endpoint cannot make network calls.
 
-Verification: `node scripts/test-trade-desk.mjs` checks roster math, sample gates, news filtering and the server contract. `node scripts/test-trade-desk-browser.mjs` checks the request lifecycle, sanitization and 390px layout with Playwright. These tests use fixtures and never call a paid model.
+`node scripts/test-trade-desk-browser.mjs` checks the local Worker lifecycle, activation, cache, changing selections, failure and the 390px layout with mocked inference. It does not download model weights or make paid requests. Real generation speed, model quality and device-specific GPU compatibility require a supported device; the automated checks do not simulate those performance characteristics.
 
-References: [Worker secrets](https://developers.cloudflare.com/workers/configuration/secrets/), [custom domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/), [structured model output](https://developers.openai.com/api/docs/guides/structured-outputs).
+References: [WebLLM](https://webllm.mlc.ai/docs/), [Web Workers](https://webllm.mlc.ai/docs/user/advanced_usage.html), [model records](https://github.com/mlc-ai/web-llm/blob/main/src/config.ts).

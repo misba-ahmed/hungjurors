@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {prepareSite} from './prepare-site.mjs';
-import worker,{FIELDS,validateOutput} from '../workers/trade-analysis/worker.mjs';
+import worker from '../workers/trade-analysis/worker.mjs';
+import {FIELDS,validateOutput,evidenceChunks,generateAnalysis} from './trade-analysis-shared.mjs';
 const source=readFileSync(new URL('./trade-desk.js',import.meta.url),'utf8');
 const prepared=prepareSite(readFileSync(new URL('../index.html',import.meta.url),'utf8'));
 const injected=prepared.match(/<script id="hj-trade-desk">([\s\S]*?)<\/script>/)?.[1];
@@ -19,32 +20,38 @@ const output=Object.fromEntries(FIELDS.map(k=>[k,'<p>Specific analysis.</p>']));
 assert.deepEqual(validateOutput(output),output);
 assert.throws(()=>validateOutput({...output,summary:'<p onclick="alert(1)">No</p>'}));
 assert.throws(()=>validateOutput({...output,summary:'<img src=x>'}));
-const env={OPENAI_API_KEY:'test-only',PER_IP:{limit:async()=>({success:true})},TOTAL:{limit:async()=>({success:true})}};
-const ctx={waitUntil(p){return p}};
-const req=(origin='https://hungjurors.com',body={})=>new Request('https://trade-analysis.hungjurors.com/',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify(body)});
-assert.equal((await worker.fetch(req('https://evil.example'),env,ctx)).status,403);
-assert.equal((await worker.fetch(req('https://hungjurors.com.evil.example'),env,ctx)).status,403);
-const options=await worker.fetch(new Request('https://trade-analysis.hungjurors.com/',{method:'OPTIONS',headers:{Origin:'https://hungjurors.com'}}),env,ctx);
-assert.equal(options.status,204);assert.equal(options.headers.get('Access-Control-Allow-Origin'),'https://hungjurors.com');
-assert.equal((await worker.fetch(req(),{},ctx)).status,503);
-assert.equal((await worker.fetch(req(),{...env,PER_IP:{limit:async()=>({success:false})}},ctx)).status,429);
-assert.equal((await worker.fetch(req(),env,ctx)).status,502);
+
+const originalFetch=globalThis.fetch;let remoteCalls=0;
+globalThis.fetch=async()=>{remoteCalls++;throw Error('No paid calls allowed')};
+try{
+ const request=new Request('https://retired.example/',{method:'POST',headers:{Origin:'https://hungjurors.com'}});
+ assert.equal((await worker.fetch(request,{OPENAI_API_KEY:'unused-secret'})).status,410);
+ assert.equal(remoteCalls,0,'Retired endpoint must never contact a paid API');
+ assert.equal((await worker.fetch(new Request('https://retired.example/',{method:'OPTIONS',headers:{Origin:'https://hungjurors.com'}}))).status,204);
+}finally{globalThis.fetch=originalFetch}
+assert.ok(!source.includes('ANALYSIS_ENDPOINT'));
+assert.ok(!source.includes('workers.dev'));
+const countTokens=text=>Math.ceil(text.length/4);
+const huge={news:'Every fact matters. 🏈 '.repeat(1500)+'RETURN IN WEEK 12',availability:'out'};
+const packed=evidenceChunks(huge,text=>text.length,200);
+assert.ok(packed.every(text=>text.length<=200),'Each evidence chunk fits');
+const fragments=packed.flatMap(text=>JSON.parse(text)).filter(x=>x.path==='dossier.news');
+assert.equal(fragments.map(x=>x.value).join(''),huge.news,'Preserve full news, including its end and Unicode');
 const dossier=vm.runInContext('window.HJTD.buildDossier()',context);
 dossier.asOf=new Date().toISOString();
-globalThis.caches={default:{match:async()=>null,put:async()=>{}}};
-const originalFetch=globalThis.fetch;
-globalThis.fetch=async(url,options)=>{
- assert.equal(url,'https://api.openai.com/v1/responses');
- assert.equal(options.headers.Authorization,'Bearer test-only');
- const body=JSON.parse(options.body);
- assert.equal(body.store,false);assert.equal(body.text.format.strict,true);
- assert.equal(body.input[0].role,'user');assert.ok(body.instructions.includes('untrusted'));
- return Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify(output)}]}]});
-};
-try{
- const response=await worker.fetch(req('https://hungjurors.com',dossier),env,ctx);
- assert.equal(response.status,200);assert.deepEqual(await response.json(),output);
- globalThis.fetch=async()=>Response.json({status:'incomplete',output:[]});
- assert.equal((await worker.fetch(req('https://hungjurors.com',dossier),env,ctx)).status,502);
-}finally{globalThis.fetch=originalFetch}
-console.log('Worker origin, key boundary, schema, rate limit and failure handling: passed');
+dossier.players[0].news=[{text:huge.news,spin:'The teammate is expected back in Week 12.'}];
+const inputs=[];let truncated=false;
+const engine={resetChat:async()=>{},chat:{completions:{create:async request=>{
+ inputs.push(request);
+ assert.equal(request.extra_body.enable_thinking,false);
+ return {choices:[{finish_reason:truncated?'length':'stop',message:{content:request.response_format?
+  JSON.stringify(output):'The teammate is expected back in Week 12. This role window ends before the fantasy playoffs.'}}]};
+}}};
+assert.deepEqual(await generateAnalysis(engine,dossier,{countTokens}),output);
+assert.ok(inputs.some(x=>x.messages[1].content.includes('RETURN IN WEEK 12')),'Read the end of long evidence');
+assert.ok(inputs.filter(x=>!x.response_format).length>0,'Large dossiers are read in bounded portions');
+truncated=true;
+await assert.rejects(()=>generateAnalysis(engine,{...dossier,players:dossier.players.map(p=>({...p,news:[]}))},{countTokens}),/Incomplete analysis/);
+const controller=new AbortController();controller.abort();
+await assert.rejects(()=>generateAnalysis(engine,dossier,{countTokens,signal:controller.signal}),{name:'AbortError'});
+console.log('Local evidence budgeting, complete output, cancellation and retired paid endpoint: passed');

@@ -372,3 +372,6 @@
  #hq-panel-strength .td-sec{padding:9px}
  #hq-panel-strength .td-move-head{flex-wrap:wrap}
 }
+
+#hq-panel-strength .td-analysis-action{justify-self:start;min-height:44px;max-width:100%;padding:9px 15px;border:1px solid var(--td-gold,#bd902c);border-radius:10px;background:var(--td-ink,#173651);color:#fff;font:800 12px/1.4 var(--sans);white-space:normal;cursor:pointer}
+#hq-panel-strength .td-analysis-action:focus-visible{outline:3px solid var(--td-gold,#bd902c);outline-offset:3px}

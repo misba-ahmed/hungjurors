@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - 'scripts/trade-desk.js'
+      - 'scripts/trade-analysis-*.mjs'
       - 'styles/trade-desk.css'
       - 'scripts/test-trade-desk*.mjs'
       - 'scripts/fixtures/trade-desk.js'

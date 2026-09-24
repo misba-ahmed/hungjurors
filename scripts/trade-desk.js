@@ -1075,8 +1075,8 @@
 
  /* Model output is untrusted. Rebuild only four allowed elements, with no attributes. */
  const ANALYSIS_FIELDS=['summary','value','context','usage','roster','schedule','verdictA','verdictB','accept','overall'];
- const ANALYSIS={cache:new Map(),key:'',state:null,timer:null,controller:null,token:0};
- const ANALYSIS_ENDPOINT='https://hungjurors-trade-analysis.misbauddin-ahmed.workers.dev/';
+ const ANALYSIS={cache:new Map(),key:'',state:null,timer:null,controller:null,token:0,enabled:false};
+ let localAnalysis=()=>import('/scripts/trade-analysis-local.mjs?v=20260924-webllm1');
  const CACHE_TTL=600000;
  function cleanAnalysisHtml(html){
   const parsed=new DOMParser().parseFromString(String(html||''),'text/html');
@@ -1095,13 +1095,13 @@
   return Object.fromEntries(ANALYSIS_FIELDS.map(k=>[k,cleanAnalysisHtml(value[k])]));
  }
  function analysisKey(m){
-  return JSON.stringify({version:1,season:Number(NFL_SEASON),week:week(),a:HJTD.a,b:HJTD.b,
+  return JSON.stringify({version:2,provider:'webllm',season:Number(NFL_SEASON),week:week(),a:HJTD.a,b:HJTD.b,
    give:[...HJTD.give].sort(),get:[...HJTD.get].sort(),market:window.HJMV?.generatedAt,scope:scopeNow(),
    rosters:teams().map(t=>[t.id,rosterOf(t.id).map(e=>[entryId(e),valueOf(e),injuryOf(e),e.lineupSlotId])])});
  }
  function readAnalysisCache(key){
   let hit=ANALYSIS.cache.get(key);
-  if(!hit)try{const saved=JSON.parse(sessionStorage.getItem('hj-trade-analysis-v1')||'[]');hit=saved.find(x=>x.key===key)}catch(_){}
+  if(!hit)try{const saved=JSON.parse(sessionStorage.getItem('hj-trade-analysis-webllm-v1')||'[]');hit=saved.find(x=>x.key===key)}catch(_){}
   if(hit&&Date.now()-hit.at<CACHE_TTL){try{return validateAnalysis(hit.data)}catch(_){}}
   return null;
  }
@@ -1109,7 +1109,7 @@
   const now=Date.now();ANALYSIS.cache.set(key,{key,at:now,data});
   for(const [k,v] of ANALYSIS.cache)if(now-v.at>=CACHE_TTL)ANALYSIS.cache.delete(k);
   while(ANALYSIS.cache.size>12)ANALYSIS.cache.delete(ANALYSIS.cache.keys().next().value);
-  try{sessionStorage.setItem('hj-trade-analysis-v1',JSON.stringify([...ANALYSIS.cache.values()]))}catch(_){}
+  try{sessionStorage.setItem('hj-trade-analysis-webllm-v1',JSON.stringify([...ANALYSIS.cache.values()]))}catch(_){}
  }
  function cancelAnalysis(){
   ANALYSIS.token++;clearTimeout(ANALYSIS.timer);ANALYSIS.controller?.abort();
@@ -1128,35 +1128,49 @@
   const m=model(),a=analyse(m);
   if(a)await Promise.allSettled([ensureContext(a.rows.flatMap(s=>s.profiles)),ensureTeamContext()]);
  }
+ function analysisProgress(token,info){
+  if(token!==ANALYSIS.token||ANALYSIS.state?.status!=='pending')return;
+  const fraction=Number(info?.fraction);
+  const label=info?.phase==='loading'?'Loading analysis…'+(Number.isFinite(fraction)?' '+Math.round(fraction*100)+'%':''):
+   info?.phase==='reading'?'Reviewing the trade…':'Writing the analysis…';
+  ANALYSIS.state.label=label;
+  const el=document.querySelector('.td-writing');if(el)el.textContent=label;
+ }
+ function analysisControls(state){
+  if(state.status==='pending')return '<p class="td-writing" role="status">'+E(state.label||'Writing the analysis…')+'</p>';
+  if(state.status==='ready')return '';
+  return '<button type="button" class="td-analysis-action" data-td-local-start>'+
+   (state.status==='failed'?'Try analysis again':'Write analysis')+'</button>';
+ }
  function requestAnalysis(m){
   const key=analysisKey(m);
   if(ANALYSIS.key===key&&ANALYSIS.state)return ANALYSIS.state;
   cancelAnalysis();ANALYSIS.key=key;
   const cached=readAnalysisCache(key);
-  ANALYSIS.state=cached?{status:'ready',data:cached}:{status:'pending',data:null};
-  if(cached)return ANALYSIS.state;
+  ANALYSIS.state=cached?{status:'ready',data:cached}:!ANALYSIS.enabled?{status:'idle',data:null}:
+   {status:'pending',data:null,label:'Writing the analysis…'};
+  if(cached||!ANALYSIS.enabled)return ANALYSIS.state;
   const token=ANALYSIS.token;
   ANALYSIS.timer=setTimeout(async()=>{
    const controller=new AbortController();ANALYSIS.controller=controller;
-   let hydrationTimer,requestTimer;
+   let hydrationTimer;
    try{
     await Promise.race([hydrateDossier(),new Promise(resolve=>{hydrationTimer=setTimeout(resolve,20000)})]);
     clearTimeout(hydrationTimer);
     if(token!==ANALYSIS.token)return;
     const fresh=model(),a=analyse(fresh);
     if(!a)return;
-    const dossier=dossierFor(fresh,a);
-    requestTimer=setTimeout(()=>controller.abort(),120000);
-    const response=await fetch(ANALYSIS_ENDPOINT,{method:'POST',mode:'cors',credentials:'omit',
-     headers:{'Content-Type':'application/json'},body:JSON.stringify(dossier),signal:controller.signal});
-    if(!response.ok)throw Error('Analysis request failed');
-    const data=validateAnalysis(await response.json());
+    const dossier=dossierFor(fresh,a),local=await localAnalysis();
+    if(token!==ANALYSIS.token)return;
+    const data=validateAnalysis(await local.analyse(dossier,{signal:controller.signal,
+     onProgress:info=>analysisProgress(token,info)}));
+    if(token!==ANALYSIS.token)return;
     saveAnalysisCache(key,data);
-    if(token===ANALYSIS.token)ANALYSIS.state={status:'ready',data};
+    ANALYSIS.state={status:'ready',data};
    }catch(_){
     if(token===ANALYSIS.token)ANALYSIS.state={status:'failed',data:null};
    }finally{
-    clearTimeout(hydrationTimer);clearTimeout(requestTimer);
+    clearTimeout(hydrationTimer);
     if(token===ANALYSIS.token){ANALYSIS.controller=null;rerenderIfTrade()}
    }
   },1100);
@@ -1190,7 +1204,7 @@
    E(s.manager)+' sends</h5>'+s.profiles.map(breakdownCard).join('')+'</div>').join('')+'</div>';
   return '<div class="td-report">'+section('summary','Summary',data?.summary)+
    section('breakdown','Breakdown',breakdown)+section('score','Factor scorecard',scorecard(a))+
-   (state.status==='pending'?'<p class="td-writing" role="status">Writing the analysis…</p>':'')+
+   analysisControls(state)+
    [['value','Is it a good value?'],['context','What actually changes the picture'],['usage','Usage and opportunity'],
     ['roster','Roster fit'],['schedule','Schedule and playoff leverage']].map(([k,title])=>section(k,title,data?.[k])).join('')+
    modelVerdict(a,data)+'</div>';
@@ -1362,6 +1376,9 @@
 
   root.addEventListener('click',event=>{
    const t=event.target;
+   if(t.closest?.('[data-td-local-start]')){
+    event.preventDefault();event.stopPropagation();ANALYSIS.enabled=true;cancelAnalysis();rerender();return;
+   }
    const toggle=t.closest?.('[data-td-toggle]');
    if(toggle){
     event.preventDefault();event.stopPropagation();
