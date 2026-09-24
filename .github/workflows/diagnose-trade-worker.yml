@@ -8,17 +8,51 @@ permissions:
 jobs:
   endpoint:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 3
     steps:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - name: Inspect current NFL schedule
+      - run: npm install --no-save playwright
+      - run: npx playwright install --with-deps chromium
+      - name: Verify live scorecard and one analysis
         run: |
           node --input-type=module <<'NODE'
-          for(const week of [3,15]){
-            const url='https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=2026&seasontype=2&week='+week+'&limit=100';
-            const r=await fetch(url,{signal:AbortSignal.timeout(15000)});
-            const body=await r.json();console.log(JSON.stringify({week,status:r.status,cors:r.headers.get('access-control-allow-origin'),season:body.season,events:body.events?.length,sample:body.events?.slice(0,1).map(e=>({id:e.id,name:e.name,season:e.season,week:e.week}))}));
-          }
+          import {chromium} from 'playwright';
+          const browser=await chromium.launch({headless:true});
+          const page=await browser.newPage({viewport:{width:390,height:844}});
+          page.on('pageerror',e=>console.log('PAGE_ERROR',e.message.slice(0,300)));
+          await page.goto('https://hungjurors.com/#roster-strength',{waitUntil:'domcontentloaded',timeout:90000});
+          await page.waitForFunction(()=>window.HJTD&&typeof HJ_LEAGUE_STATE!=='undefined'&&HJ_LEAGUE_STATE.data?.teams?.length,{timeout:90000});
+          await page.evaluate(async()=>{
+           await window.HJMV.load();
+           const teams=HJ_LEAGUE_STATE.data.teams,manager=t=>hjMatchManager(t,HJ_LEAGUE_STATE.data);
+           const a=teams.find(t=>manager(t)==='MISBA'),b=teams.find(t=>manager(t)==='CESAR');
+           if(!a||!b)throw Error('Managers not found');
+           const select=(team,names)=>hjRosterEntries(team).filter(e=>names.includes(hjPlayer(e).fullName)).map(e=>String(hjPlayer(e).id));
+           HJTD.a=String(a.id);HJTD.b=String(b.id);
+           HJTD.give=new Set(select(a,['Jalen Coker','Dalton Schultz']));HJTD.get=new Set(select(b,['Chuba Hubbard']));
+           if(HJTD.give.size!==2||HJTD.get.size!==1)throw Error('Trade not found on selected rosters');
+           HJ_HQ_STATE.activeTab='strength';HJ_STRENGTH_STATE.view='trade';hjRerenderStrength();
+          });
+          
+          await page.waitForTimeout(3000);
+          console.log('SCHEDULE_STATUS',JSON.stringify(await page.evaluate(()=>({
+           helper:typeof hjDataScheduleMap,currentSeason:NFL_SEASON,
+           archiveSeasonCount:[...pcScheduleValue.values()].filter(g=>Number(g.season)===Number(NFL_SEASON)).length,
+           requests:[...HJ_DATA.requests.entries()].filter(([k])=>k.startsWith('nfl:')).map(([k,r])=>({key:k,pending:!!r.pending,error:r.error?.message,events:r.value?.events?.length})),
+           control:document.querySelector('[data-td-analysis-start]')?.outerHTML,
+           bound:document.querySelector('#league-hq-tools')?.dataset.tdBound
+          }))));
+          console.log('DIRECT_SCHEDULE',JSON.stringify(await page.evaluate(async()=>{
+           try{
+           const map=await hjDataScheduleMap(Number(NFL_SEASON),Array.from({length:18},(_,i)=>i+1));
+           const games=[...map.values()].filter(g=>Number(g.season)===Number(NFL_SEASON));
+           HJTD.injectSchedule(map);hjRerenderStrength();
+           return {games:games.length,sample:games.slice(0,1).map(g=>({week:g.week,home:g.home_team,away:g.away_team})),
+           factors:[...document.querySelectorAll('.td-score-row')].map(n=>n.textContent.trim())};
+           }catch(e){return {error:e.message}}
+          })));
+          await browser.close();
+          
           NODE
