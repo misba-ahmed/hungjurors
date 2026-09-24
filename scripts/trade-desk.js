@@ -433,8 +433,8 @@
 
    const evaluate=(out,inc)=>{
     const outIds=new Set(out.map(entryId)),incIds=new Set(inc.map(entryId));
-    const myAfter=mine.filter(e=>!outIds.has(entryId(e))).concat(inc);
-    const theirAfter=theirs.filter(e=>!incIds.has(entryId(e))).concat(out);
+    const myAfter=dropPlan(mine,mine.filter(e=>!outIds.has(entryId(e))).concat(inc),inc).after;
+    const theirAfter=dropPlan(theirs,theirs.filter(e=>!incIds.has(entryId(e))).concat(out),out).after;
     const myLine=lineupPoints(toItems(myAfter)),theirLine=lineupPoints(toItems(theirAfter));
     if(myLine.short>0||theirLine.short>0)return null;    // never propose a deal that breaks a lineup
     const myGain=myLine.total-myBase,theirGain=theirLine.total-theirBase;
@@ -444,8 +444,8 @@
     const outV=out.reduce((s,e)=>s+valueOf(e),0),incV=inc.reduce((s,e)=>s+valueOf(e),0);
     const gap=Math.abs(incV-outV)/Math.max(outV,incV,1);
     if(gap>.22)return null;                              // never propose something far off on value
-    if(myPct<=.004)return null;                          // it has to actually help the asking side
-    const tone=theirPct>.002?'good':theirPct>-.006?'even':'bad';
+    if(myGain/remainingWeeks()<2)return null;                          // it has to actually help the asking side
+    const tone=theirGain/remainingWeeks()>=2?'good':theirGain/remainingWeeks()>-2?'even':'bad';
     return {team,manager,out,inc,myGain,theirGain,myPct,theirPct,outV,incV,gap,tone,
      mutual:tone==='good',
      score:myPct*100+theirPct*55-gap*25};
@@ -761,8 +761,8 @@
     if(!home||!away)continue;
     const roof=String(g.roof||'').toLowerCase(),roofWord=roof==='dome'||roof==='closed'?'indoors':roof==='outdoors'||roof==='open'?'outdoors':'';
     const hm=num(g.home_moneyline),am=num(g.away_moneyline);
-    add(home,{week:wk,opp:away,home:true,roof:roofWord,line:Number.isFinite(hm)&&Number.isFinite(am)?(hm<am?'favoured':hm>am?'underdog':''):''});
-    add(away,{week:wk,opp:home,home:false,roof:roofWord,line:Number.isFinite(hm)&&Number.isFinite(am)?(am<hm?'favoured':am>hm?'underdog':''):''});
+    add(home,{week:wk,date:g.gameday||g.game_date||null,opp:away,home:true,roof:roofWord,line:Number.isFinite(hm)&&Number.isFinite(am)?(hm<am?'favoured':hm>am?'underdog':''):''});
+    add(away,{week:wk,date:g.gameday||g.game_date||null,opp:home,home:false,roof:roofWord,line:Number.isFinite(hm)&&Number.isFinite(am)?(am<hm?'favoured':am>hm?'underdog':''):''});
    }
    SCHED.byTeam.forEach((list,team)=>{const seen=new Set();SCHED.byTeam.set(team,list.filter(g=>{if(seen.has(g.week))return false;seen.add(g.week);return true}).sort((a,b)=>a.week-b.week))});
   }
@@ -879,7 +879,7 @@
    .map(i=>({id:String(i.id),playerId:String(id),type:'rotowire',text:stripHtml(i.text||i.headline),spin:stripHtml(i.spin),at:Date.parse(i.published_at||'')||0}));
   const seen=new Set();
   return [...own,...rail].filter(i=>i.type==='rotowire'&&i.at>=Date.now()-21*864e5&&i.at<=Date.now()+300000&&
-   i.text.split(/[.!?](?:\s|$)/)[0].split(/\s+/).some(token=>fold(token)===fold(last)||fold(token.replace(/[’']s$/,''))===fold(last)))
+   i.text.replace(/\b(?:[A-Z]\.){1,3}/g,m=>m.replace(/\./g,'')).split(/[.!?](?:\s|$)/)[0].split(/\s+/).some(token=>fold(token)===fold(last)||fold(token.replace(/[’']s$/,''))===fold(last)))
    .sort((a,b)=>b.at-a.at).filter(i=>{const key=i.text.toLowerCase();if(seen.has(key))return false;seen.add(key);return true});
  }
  function ensureNews(ids){
@@ -1117,8 +1117,11 @@
  }
  async function hydrateDossier(){
   standingsCache=null;injuryMapCache=null;
+  const seed=model(),initial=analyse(seed);
+  const newsJob=initial?ensureContext(initial.rows.flatMap(s=>s.profiles)):Promise.resolve();
+  const teamJob=ensureTeamContext();
   const optional=f=>Promise.resolve().then(f);
-  await Promise.allSettled([ensureUsage(),ensureSchedule(),
+  await Promise.allSettled([ensureUsage(),ensureSchedule(),newsJob,teamJob,
    optional(()=>typeof hjMathLoadRosterSeasonProjections==='function'?hjMathLoadRosterSeasonProjections(HJ_LEAGUE_STATE.data):null),
    optional(()=>typeof hjEnsureProjectionSources==='function'?hjEnsureProjectionSources():null),
    optional(()=>typeof hj6LoadWeek==='function'?hj6LoadWeek(HJ_LEAGUE_STATE.data):null)]);
