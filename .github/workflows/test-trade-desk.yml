@@ -1,0 +1,26 @@
+name: Trade Desk checks
+on:
+  push:
+    paths:
+      - 'scripts/trade-desk.js'
+      - 'styles/trade-desk.css'
+      - 'scripts/test-trade-desk*.mjs'
+      - 'scripts/fixtures/trade-desk.js'
+      - 'workers/trade-analysis/**'
+      - '.github/workflows/test-trade-desk.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  trade-desk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: node scripts/test-trade-desk.mjs
+      - run: npm install --no-save --package-lock=false playwright
+      - run: npx playwright install chromium --with-deps
+      - run: node scripts/test-trade-desk-browser.mjs

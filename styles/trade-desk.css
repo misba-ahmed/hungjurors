@@ -352,3 +352,23 @@
 #hq-panel-strength .td-group-block+.td-group-block{margin-top:10px;padding-top:9px;border-top:1px dashed var(--td-line)}
 #hq-panel-strength .td-group-block h5{margin:0 0 5px;font:900 11px/1.3 var(--sans);color:var(--td-ink)}
 #hq-panel-strength .td-group-block h5 span{font:700 9px/1.3 var(--mono);color:#8494a1;letter-spacing:.05em;text-transform:uppercase;margin-left:6px}
+
+
+/* Neutral builder badges and model-written analysis. */
+#hq-panel-strength .td-side-grade{min-width:0}
+#hq-panel-strength .td-side-grade b{font-size:14px;overflow-wrap:anywhere}
+#hq-panel-strength .td-writing{margin:0;padding:4px 2px;font:400 11.5px/1.5 var(--sans);color:var(--td-mute)}
+#hq-panel-strength .td-sec-verdict h5{margin:12px 0 7px;font:800 12px/1.4 var(--sans);color:var(--td-ink)}
+#hq-panel-strength .td-sec-verdict .td-move-head b{overflow-wrap:anywhere}
+#hq-panel-strength .td-units-key{flex-wrap:wrap}
+#hq-panel-strength .td-impact-head{flex-wrap:wrap}
+#hq-panel-strength .td-impact-net{flex-shrink:1;overflow-wrap:anywhere}
+#hq-panel-strength .td-shell .td-sec,#hq-panel-strength .td-score-note,
+#hq-panel-strength .td-accept-pill{overflow-wrap:anywhere}
+#hq-panel-strength .td-accept-pill{max-width:100%;flex-wrap:wrap}
+#hq-panel-strength .td-metric{min-width:0}
+@media(max-width:390px){
+ #hq-panel-strength .td-analysis{padding:8px}
+ #hq-panel-strength .td-sec{padding:9px}
+ #hq-panel-strength .td-move-head{flex-wrap:wrap}
+}
