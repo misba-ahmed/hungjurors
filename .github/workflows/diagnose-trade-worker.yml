@@ -8,56 +8,17 @@ permissions:
 jobs:
   endpoint:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 2
     steps:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - run: npm install --no-save playwright
-      - run: npx playwright install --with-deps chromium
-      - name: Verify live scorecard and one analysis
+      - name: Inspect current NFL schedule
         run: |
           node --input-type=module <<'NODE'
-          import {chromium} from 'playwright';
-          const browser=await chromium.launch({headless:true});
-          const page=await browser.newPage({viewport:{width:390,height:844}});page.setDefaultTimeout(30000);console.log('BROWSER_OPEN');
-          page.on('pageerror',e=>console.log('PAGE_ERROR',e.message.slice(0,300)));
-          await page.goto('https://hungjurors.com/#roster-strength',{waitUntil:'domcontentloaded',timeout:90000});
-          await page.waitForFunction(()=>window.HJTD&&typeof HJ_LEAGUE_STATE!=='undefined'&&HJ_LEAGUE_STATE.data?.teams?.length,{timeout:90000});
-          await page.evaluate(async()=>{
-           await window.HJMV.load();
-           const teams=HJ_LEAGUE_STATE.data.teams,manager=t=>hjMatchManager(t,HJ_LEAGUE_STATE.data);
-           const a=teams.find(t=>manager(t)==='MISBA'),b=teams.find(t=>manager(t)==='CESAR');
-           if(!a||!b)throw Error('Managers not found');
-           const select=(team,names)=>hjRosterEntries(team).filter(e=>names.includes(hjPlayer(e).fullName)).map(e=>String(hjPlayer(e).id));
-           HJTD.a=String(a.id);HJTD.b=String(b.id);
-           HJTD.give=new Set(select(a,['Jalen Coker','Dalton Schultz']));HJTD.get=new Set(select(b,['Chuba Hubbard']));
-           if(HJTD.give.size!==2||HJTD.get.size!==1)throw Error('Trade not found on selected rosters');
-           HJ_HQ_STATE.activeTab='strength';HJ_STRENGTH_STATE.view='trade';hjRerenderStrength();
-          });
-          
-          await page.waitForFunction(()=>document.querySelector('.td-score-row')&&document.querySelector('#hj-trade-desk')?.textContent.includes('warmScorecardSources'),{timeout:15000});
-          await page.waitForFunction(()=>{const rows=[...document.querySelectorAll('.td-score-row')];return rows.find(n=>n.textContent.includes('Rest of season'))?.querySelector('.td-score-note')?.textContent&&rows.find(n=>n.textContent.includes('Play quality'))?.querySelector('.td-score-note')?.textContent},{timeout:60000}).catch(()=>{});
-          await page.waitForTimeout(1000);
-          console.log('LIVE_SCORECARD',JSON.stringify(await page.evaluate(()=>({
-           factors:[...document.querySelectorAll('.td-score-row')].map(n=>n.textContent.trim()),
-           width:document.documentElement.clientWidth,
-           reportWidth:document.querySelector('.td-report')?.getBoundingClientRect().width,
-           stage:'scorecard'
-          }))));
-          const responsePromise=page.waitForResponse(r=>r.url().endsWith('/gemini')&&r.request().method()==='POST',{timeout:105000});
-          await page.evaluate(()=>document.querySelector('[data-td-analysis-start]').click());console.log('ANALYSIS_CLICKED');
-          const response=await responsePromise;const body=await response.text();
-          console.log('ACTUAL_TRADE_RESPONSE',JSON.stringify({status:response.status(),body:body.slice(0,30000)}));
-          await page.waitForFunction(()=>!!document.querySelector('.td-sec-summary')||document.querySelector('[data-td-analysis-start]')?.textContent.includes('Try'),{timeout:15000}).catch(()=>{});
-          console.log('RENDERED_REPORT',JSON.stringify(await page.evaluate(()=>({
-           summary:document.querySelector('.td-sec-summary')?.textContent||null,
-           verdict:document.querySelector('.td-sec-verdict')?.textContent||null,
-           sections:[...document.querySelectorAll('.td-sec h4')].map(n=>n.textContent),
-           control:document.querySelector('[data-td-analysis-start]')?.textContent||null,
-           suggestions:!!document.querySelector('.td-search-suggestions')?.shadowRoot?.textContent,
-           overflow:document.querySelector('.td-report')?.scrollWidth>document.querySelector('.td-report')?.clientWidth
-          }))));
-          await browser.close();
-          
+          for(const week of [3,15]){
+            const url='https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=2026&seasontype=2&week='+week+'&limit=100';
+            const r=await fetch(url,{signal:AbortSignal.timeout(15000)});
+            const body=await r.json();console.log(JSON.stringify({week,status:r.status,cors:r.headers.get('access-control-allow-origin'),season:body.season,events:body.events?.length,sample:body.events?.slice(0,1).map(e=>({id:e.id,name:e.name,season:e.season,week:e.week}))}));
+          }
           NODE
