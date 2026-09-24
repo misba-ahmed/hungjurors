@@ -23,7 +23,7 @@ jobs:
           for(let i=0;i<24;i++){
            const r=await fetch(base+'/health',{headers,signal:AbortSignal.timeout(10000)});
            const h=await r.json();
-           if(h.ready&&h.release==='20260924-structured'){ready=true;break}
+           if(h.ready&&h.release==='20260924-current-evidence'){ready=true;break}
            await new Promise(resolve=>setTimeout(resolve,15000));
           }
           if(!ready)throw Error('New server deployment has not become active');
