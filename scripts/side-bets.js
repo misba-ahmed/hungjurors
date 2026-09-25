@@ -167,6 +167,38 @@
   event.preventDefault();picked.set(surface,button.dataset.sbPick);board.innerHTML=boardHTML(view,surface);
   board.querySelector('[aria-pressed="true"]')?.focus({preventScroll:true});
  });
+
+ // The horizontal rail follows the visible card, not the tallest offscreen matchup.
+ (function fitMatchupRail(){
+  const root=document.querySelector('#league-hq');if(!root)return;
+  const watched=new Set(),bound=new WeakSet();let queued=false;
+  const resize=new ResizeObserver(schedule);
+  function schedule(){if(!queued){queued=true;requestAnimationFrame(update)}}
+  function update(){
+   queued=false;
+   for(const el of watched)if(!el.isConnected){resize.unobserve(el);watched.delete(el)}
+   root.querySelectorAll('#hq-panel-matchups .hq-matchup-list').forEach(rail=>{
+    if(!bound.has(rail)){bound.add(rail);rail.addEventListener('scroll',schedule,{passive:true})}
+    rail.setAttribute('data-hj-fit-height','');
+    const cards=Array.from(rail.children).filter(el=>el.classList.contains('hq-matchup'));
+    for(const el of [rail,...cards])if(!watched.has(el)){watched.add(el);resize.observe(el)}
+    if(!rail.clientWidth||!cards.length)return;
+    const box=rail.getBoundingClientRect(),center=box.left+rail.clientWidth/2;
+    const active=cards.reduce((best,card)=>{
+     const r=card.getBoundingClientRect(),distance=Math.abs(r.left+r.width/2-center);
+     return !best||distance<best.distance?{card,distance}:best;
+    },null).card;
+    const style=getComputedStyle(rail);
+    const chrome=rail.offsetHeight-rail.clientHeight+(parseFloat(style.paddingTop)||0)+(parseFloat(style.paddingBottom)||0);
+    const height=Math.ceil(active.getBoundingClientRect().height+chrome)+'px';
+    if(rail.style.getPropertyValue('--hj-matchup-height')!==height)rail.style.setProperty('--hj-matchup-height',height);
+   });
+  }
+  new MutationObserver(records=>{
+   if(records.some(r=>r.type==='childList'||r.attributeName==='open'||r.target.matches?.('.hq-matchup-list,.hq-tab-panel')))schedule();
+  }).observe(root,{subtree:true,childList:true,attributes:true,attributeFilter:['open','class','style']});
+  window.addEventListener('resize',schedule);schedule();
+ })();
  window.HJSB={bet:BET,chipFor};
  try{wireRender(true);if(HJ_HQ_STATE.activeTab==='matchups')hjRenderMatchupCenter();if(HJ_HQ_STATE.activeTab==='recap')hjRefreshRecap()}catch(error){console.warn('Side bet display deferred',error)}
 })();

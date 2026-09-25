@@ -90,3 +90,6 @@
 .sb-detail[data-sb-detail="matchup"]>.sb-detail-body{padding-top:0}
 .sb-detail-body>.sb-rules-fold:first-child{margin-top:0}
 .sb-detail-body>.sb-rules-fold:first-child>summary{padding-top:5px;padding-bottom:5px}
+
+#league-hq #hq-panel-matchups .hq-matchup-list[data-hj-fit-height]{align-items:flex-start!important;height:var(--hj-matchup-height,auto)!important;min-height:0!important}
+#league-hq #hq-panel-matchups .hq-matchup-list[data-hj-fit-height]>.hq-matchup{align-self:flex-start!important;height:auto!important;min-height:0!important}
