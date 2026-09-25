@@ -126,7 +126,7 @@
   views.set(surface,view);
   return '<details class="sb-detail" data-sb-detail="'+surface+'"'+(opened.has(surface)?' open':'')+'><summary>'+
    '<span class="sb-mini-chip" aria-hidden="true">$</span><b>Side Bet <span>· $32</span></b><span class="sb-detail-label">Rules &amp; bets</span><span class="sb-chevron" aria-hidden="true">⌄</span></summary>'+
-   '<div class="sb-detail-body">'+faces()+(surface==='recap'?'':result(view))+rules()+'<div class="sb-board" data-sb-board="'+surface+'">'+boardHTML(view,surface)+'</div></div></details>';
+   '<div class="sb-detail-body">'+(surface==='matchup'?'':faces())+(surface==='recap'?'':result(view))+rules()+'<div class="sb-board" data-sb-board="'+surface+'">'+boardHTML(view,surface)+'</div></div></details>';
  }
  function wireHTML(view){
   const key=esc(view.key);
