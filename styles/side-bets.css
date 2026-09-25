@@ -86,3 +86,7 @@
 .sb-rules-fold>summary>span{font-size:16px;line-height:1;transition:transform .15s}
 .sb-rules-fold[open]>summary>span{transform:rotate(180deg)}
 .sb-rules-fold>summary:focus-visible{outline:2px solid var(--brass-bright);outline-offset:3px}
+
+.sb-detail[data-sb-detail="matchup"]>.sb-detail-body{padding-top:0}
+.sb-detail-body>.sb-rules-fold:first-child{margin-top:0}
+.sb-detail-body>.sb-rules-fold:first-child>summary{padding-top:5px;padding-bottom:5px}
