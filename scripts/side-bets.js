@@ -85,7 +85,7 @@
  }
  function faces(){return '<div class="sb-faces">'+manager('MISBA')+'<span class="sb-vs">vs</span>'+manager('GARRETT')+'</div>';}
  function rules(){
-  return '<details class="sb-rules-fold" open><summary>Rules <span aria-hidden="true">⌄</span></summary><div class="sb-rules">'+COPY.map(p=>'<p>'+esc(p)+'</p>').join('')+'</div></details><p class="sb-invite">'+esc(INVITE)+'</p>';
+  return '<details class="sb-rules-fold" open><summary>Rules <span aria-hidden="true">⌄</span></summary><div class="sb-rules">'+COPY.map(p=>'<p>'+esc(p)+'</p>').join('')+'</div><p class="sb-invite">'+esc(INVITE)+'</p></details>';
  }
  function result(view){
   if(!view?.final)return '';
