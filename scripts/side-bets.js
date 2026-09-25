@@ -89,33 +89,35 @@
   if(view.tie)return '<p class="sb-result">The matchup finished tied, '+fmt(view.sides[0].score)+'–'+fmt(view.sides[1].score)+'.</p>';
   return '<p class="sb-result"><b>'+esc(view.winner.name)+'</b> won '+fmt(view.winner.score)+'–'+fmt(view.loser.score)+'. <b>'+esc(view.loser.name)+'</b> takes the $32 to the casino; '+esc(view.winner.name)+' keeps any profit.</p>';
  }
- function playerHTML(p){
-  return '<button type="button" class="sb-player pc-player-trigger" '+ffnPlayerDataAttrs(p)+' aria-label="Open '+esc(p.name)+' profile">'+
-   (p.photo?'<img src="'+esc(p.photo)+'" alt="" loading="lazy" onerror="ffnImageFallback(this)">':'')+
-   '<span><b>'+esc(p.name)+'</b><small>'+esc(p.position)+' · '+esc(p.team)+(p.bench?' · Bench':'')+'</small></span></button>';
+ function rouletteHTML(list){
+  const fixed=new Map(),zeros=list.filter(p=>p.kind==='zero'),wild=list.filter(p=>p.kind==='wild');
+  list.filter(p=>p.kind==='number').forEach(p=>{if(!fixed.has(p.number))fixed.set(p.number,[]);fixed.get(p.number).push(p)});
+  const pocket=(number,people,cls,style='')=>{
+   const count=people.length,label=String(number)+': '+(count?money(count*BET.chip)+' bet':'no bet');
+   return '<div class="sb-pocket '+cls+(count?' has-bet':'')+'"'+(style?' style="'+style+'"':'')+' role="img" aria-label="'+esc(label)+'" title="'+esc(count?people.map(p=>p.name).join(', '):label)+'"><span class="sb-pocket-number">'+number+'</span>'+
+    (count?'<span class="sb-table-chip'+(count>1?' is-stack':'')+'"><b>'+money(count*BET.chip)+'</b></span>':'')+'</div>';
+  };
+  // Two zero-score chips cover both green pockets; any extras remain a choice.
+  const green= '<div class="sb-zero-pockets">'+pocket('0',zeros.length>=2?[zeros[0]]:[],'is-green')+pocket('00',zeros.length>=2?[zeros[1]]:[],'is-green')+'</div>';
+  const numbers=Array.from({length:36},(_,i)=>{
+   const n=i+1;
+   return pocket(n,fixed.get(n)||[],red.has(n)?'is-red':'is-black','--sb-col:'+Math.ceil(n/3)+';--sb-row:'+(3-i%3));
+  }).join('');
+  const optionalZeros=zeros.length===1?zeros:zeros.slice(2);
+  const tray=(people,label)=>people.length?'<div class="sb-chip-tray"><span class="sb-table-chip"><b>'+money(people.length*BET.chip)+'</b></span><span>'+label+'</span></div>':'';
+  return '<div class="sb-roulette" aria-label="American roulette betting board">'+green+'<div class="sb-number-pockets">'+numbers+'</div></div>'+
+   tray(optionalZeros,'Choose 0 or 00'+(optionalZeros.length>1?' for each $2 chip.':'.'))+
+   tray(wild,'Wild card'+(wild.length>1?'s':'')+' · '+(wild.length>1?'Choose any number for each $2 chip.':'Choose any number.'));
  }
  function boardHTML(view,surface){
   const options=view.loser?[view.loser]:view.sides;
   const selected=options.find(s=>s.name===picked.get(surface))||options[0];
   if(!selected)return '';
-  const list=selected.players,numbers=new Map();
-  list.filter(p=>p.kind==='number').forEach(p=>numbers.set(p.number,(numbers.get(p.number)||0)+1));
-  const zeros=list.filter(p=>p.kind==='zero'),wild=list.filter(p=>p.kind==='wild'),pending=list.filter(p=>p.kind==='pending');
+  const list=selected.players,pending=list.filter(p=>p.kind==='pending').length;
   const tabs=options.length>1?'<div class="sb-tabs" role="group" aria-label="Choose roster">'+options.map(s=>
    '<button type="button" data-sb-pick="'+esc(s.name)+'" aria-pressed="'+(s===selected)+'">'+esc(s.name)+'</button>').join('')+'</div>':'';
-  const bets=[...numbers].sort((a,b)=>a[0]-b[0]).map(([n,count])=>
-   '<div class="sb-bet"><span class="sb-number '+(red.has(n)?'is-red':'is-black')+'">'+n+'</span><b>'+money(count*BET.chip)+'</b><small>'+count+(count===1?' player':' players')+'</small></div>').join('');
-  const zeroCopy=zeros.length===1?'Choose 0 or 00 for this $2 bet.':zeros.length>=2?
-   '$2 on 0 and $2 on 00.'+(zeros.length>2?' Put the remaining '+money((zeros.length-2)*BET.chip)+' on either one.':''):'';
-  const choices=(zeroCopy?'<div class="sb-choice"><b>0 / 00 · '+money(zeros.length*BET.chip)+'</b><span>'+zeroCopy+'</span></div>':'')+
-   (wild.length?'<div class="sb-choice"><b>Wild card'+(wild.length>1?'s':'')+' · '+money(wild.length*BET.chip)+'</b><span>Choose any number for '+(wild.length===1?'this $2 bet.':'each player’s $2 bet.')+'</span></div>':'');
-  const totals=list.length?'<p class="sb-board-meta">'+list.length+' players · '+money(list.length*BET.chip)+' in $2 bets'+
-   (pending.length?' · '+pending.length+' score'+(pending.length===1?'':'s')+' pending':'')+'</p>':'';
-  const rows=list.map(p=>'<div class="sb-player-row">'+playerHTML(p)+'<span class="sb-score">'+fmt(p.score)+'</span><b class="sb-player-bet">'+
-   (p.kind==='pending'?'—':p.kind==='wild'?'Any number':p.kind==='zero'?'0 / 00':String(p.number))+'</b></div>').join('');
-  return '<div class="sb-board-head"><h4>'+esc(selected.name)+'’s '+(view.final?'roulette bets':'live numbers')+'</h4>'+tabs+'</div>'+totals+
-   (bets?'<div class="sb-bets" aria-label="Bets grouped by number">'+bets+'</div>':'')+choices+
-   (rows?'<div class="sb-player-table"><div class="sb-player-labels"><span>Player</span><span>Score</span><span>Number</span></div>'+rows+'</div>':'');
+  return '<div class="sb-board-head"><h4>'+esc(selected.name)+'’s '+(view.final?'roulette bets':'live bets')+'</h4>'+tabs+'</div>'+
+   '<p class="sb-board-meta">$2 per player · Matching numbers stack'+(pending?' · '+pending+' score'+(pending===1?'':'s')+' pending':'')+'</p>'+rouletteHTML(list);
  }
  function detail(view,surface){
   views.set(surface,view);
@@ -139,11 +141,12 @@
  };
  const baseBuild=wireBuild;
  WIRE_SECTION_LABELS.sidebet='Side Bet';
+ if(!HJ_WIRE_ORDER.includes('sidebet'))HJ_WIRE_ORDER.unshift('sidebet');
  wireBuild=function(data){
   const built=baseBuild.apply(this,arguments);
   if(hjCurrentWeek(data)<BET.week||hjCurrentWeek(data)>BET.week+1)return built;
   const view=currentSnapshot(data);
-  if(view)built.cards.splice(Math.min(1,built.cards.length),0,{section:'sidebet',html:wireHTML(view)});
+  if(view)built.cards.unshift({section:'sidebet',html:wireHTML(view)});
   return built;
  };
  const baseStories=hjRcStories;
