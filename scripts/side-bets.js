@@ -31,8 +31,11 @@
   let score=stat?hjNumber(stat.appliedTotal):null;
   if(current&&!final){
    score=hjPlayerActualScore(entry,BET.week,data);
-   // ESPN sometimes supplies zero before kickoff. Do not turn that placeholder into a bet.
-   if(score===0&&hjPlayerGameState(hjPlayerTeam(entry))==='pre')score=null;
+   const status=String(entry.injuryStatus||p.injuryStatus||'').toUpperCase();
+   const unavailable=['OUT','IR','INJURY_RESERVE','SUSPENSION','SUSPENDED'].includes(status);
+   // Players ruled out count as zero, including before kickoff; healthy players still awaiting kickoff do not.
+   if((score===null||score===0)&&unavailable)score=0;
+   else if(score===0&&hjPlayerGameState(hjPlayerTeam(entry))==='pre')score=null;
   }
   return {id:String(p.id||entry.playerId||''),name:p.fullName||p.displayName||p.name||'Player',
    position:hjPlayerPosition(entry),team:hjPlayerTeam(entry),photo:hjPlayerPhoto(entry),
@@ -97,13 +100,13 @@
    return '<div class="sb-pocket '+cls+(count?' has-bet':'')+'"'+(style?' style="'+style+'"':'')+' role="img" aria-label="'+esc(label)+'" title="'+esc(count?people.map(p=>p.name).join(', '):label)+'"><span class="sb-pocket-number">'+number+'</span>'+
     (count?'<span class="sb-table-chip'+(count>1?' is-stack':'')+'"><b>'+money(count*BET.chip)+'</b></span>':'')+'</div>';
   };
-  // Two zero-score chips cover both green pockets; any extras remain a choice.
-  const green= '<div class="sb-zero-pockets">'+pocket('0',zeros.length>=2?[zeros[0]]:[],'is-green')+pocket('00',zeros.length>=2?[zeros[1]]:[],'is-green')+'</div>';
+  // Show the first zero-score chip on 0; a second covers 00. Extras remain a choice.
+  const green= '<div class="sb-zero-pockets">'+pocket('0',zeros.length?[zeros[0]]:[],'is-green')+pocket('00',zeros.length>=2?[zeros[1]]:[],'is-green')+'</div>';
   const numbers=Array.from({length:36},(_,i)=>{
    const n=i+1;
    return pocket(n,fixed.get(n)||[],red.has(n)?'is-red':'is-black','--sb-col:'+Math.ceil(n/3)+';--sb-row:'+(3-i%3));
   }).join('');
-  const optionalZeros=zeros.length===1?zeros:zeros.slice(2);
+  const optionalZeros=zeros.slice(2);
   const tray=(people,label)=>people.length?'<div class="sb-chip-tray"><span class="sb-table-chip"><b>'+money(people.length*BET.chip)+'</b></span><span>'+label+'</span></div>':'';
   return '<div class="sb-roulette" aria-label="American roulette betting board">'+green+'<div class="sb-number-pockets">'+numbers+'</div></div>'+
    tray(optionalZeros,'Choose 0 or 00'+(optionalZeros.length>1?' for each $2 chip.':'.'))+
