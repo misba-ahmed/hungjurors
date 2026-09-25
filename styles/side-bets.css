@@ -13,8 +13,8 @@
 .sb-manager{appearance:none;border:0;background:none;color:inherit;font:800 12px/1.3 var(--sans);display:flex;align-items:center;flex-direction:column;gap:6px;cursor:pointer;padding:5px;min-width:0}
 .sb-manager .av,.wc.sb-wire .sb-manager .av{width:46px!important;height:46px!important;min-width:46px!important;flex:0 0 46px!important;border:2px solid var(--brass);border-radius:50%;margin:0!important}
 .sb-vs{color:var(--brass);font:700 11px/1.3 var(--mono)}
-.sb-rules{font:400 14px/1.6 var(--sans);text-align:left;overflow-wrap:break-word}
-.sb-rules p{margin:14px 0 0}
+.sb-rules{font:400 11.5px/1.55 var(--sans);text-align:left;overflow-wrap:break-word}
+.sb-rules p{font:inherit;margin:8px 0 0}
 .sb-invite{font:400 11.5px/1.55 var(--sans);color:#707a83;text-align:left;margin:14px 0 0}
 .sb-result{font:500 14px/1.5 var(--sans);margin:12px 0;color:var(--navy);text-align:left}
 .sb-board{border-top:1px solid var(--line);margin-top:18px;padding-top:15px;min-width:0}
@@ -45,7 +45,7 @@
 .sb-recap .sb-detail{margin-top:10px}
 @media(max-width:520px){
  .sb-detail>summary{padding:9px 10px;gap:6px}.sb-detail-body{padding:8px 10px 12px}
- .sb-rules{font-size:13px}
+
  
  .sb-wire-intro{gap:14px}.sb-big-chip{width:78px;height:78px;flex-basis:78px;font-size:24px}
  .sb-stake{gap:14px}.sb-wire-copy{font-size:14px}.sb-detail-label{font-size:10px}
@@ -66,11 +66,16 @@
 .sb-chip-tray{display:flex;align-items:center;gap:10px;margin:9px 0;padding:9px 12px;background:#e9e1ce;border-radius:8px;color:var(--navy);font:500 12px/1.4 var(--sans)}
 .sb-chip-tray .sb-table-chip{flex-shrink:0}
 @media(max-width:700px){
- .sb-roulette{grid-template-columns:minmax(0,1fr);padding:8px;max-width:350px;margin:12px auto}
- .sb-zero-pockets{grid-template-columns:1fr 1fr;grid-template-rows:50px}
- .sb-number-pockets{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(12,45px)}
- .sb-number-pockets .sb-pocket{grid-column:auto;grid-row:auto}
- .sb-pocket-number{font-size:18px}
- .sb-pocket.has-bet .sb-pocket-number{left:8px;top:7px;font-size:14px}
- .sb-pocket .sb-table-chip{margin:2px 0 0 16px}
+ .sb-roulette{grid-template-columns:30px minmax(0,1fr);gap:1px;padding:5px;border-width:3px;border-radius:9px}
+ .sb-zero-pockets,.sb-number-pockets{gap:1px}
+ .sb-number-pockets{grid-template-rows:repeat(3,48px)}
+ .sb-pocket-number{font-size:12px}
+ .sb-pocket.has-bet .sb-pocket-number{left:2px;top:3px;font-size:10px}
+ .sb-pocket .sb-table-chip{width:24px;height:24px;flex:0 0 24px;border-width:2px;font-size:10px;margin:14px 0 0}
+}
+@media(max-width:520px){
+ .sb-roulette{grid-template-columns:24px minmax(0,1fr);padding:3px}
+ .sb-number-pockets{grid-template-rows:repeat(3,43px)}
+ .sb-pocket .sb-table-chip{width:18px;height:18px;flex-basis:18px;font-size:9px}
+ .sb-pocket.has-bet .sb-pocket-number{left:1px;font-size:9px}
 }
