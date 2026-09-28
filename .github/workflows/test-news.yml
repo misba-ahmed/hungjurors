@@ -17,6 +17,12 @@ on:
       - 'scripts/test-news-spin.mjs'
       - 'styles/news-spin.css'
       - 'scripts/prepare-site.mjs'
+      - 'scripts/prepare-live-display.mjs'
+      - 'scripts/news-feed.js'
+      - 'scripts/matchup-navigation.js'
+      - 'scripts/espn-win-probability.js'
+      - 'scripts/test-live-display.mjs'
+      - 'styles/live-display.css'
       - '.github/workflows/test-news.yml'
 permissions:
   contents: read
@@ -33,7 +39,10 @@ jobs:
         run: |
           npm install --no-save --package-lock=false playwright@1.56.1
           npx playwright install --with-deps chromium webkit
+      - name: Verify live matchup display and chronological news
+        run: node scripts/test-live-display.mjs
       - name: Verify news expansion
+        if: ${{ !cancelled() }}
         run: node scripts/test-news-spin.mjs
       - name: Verify records and recap navigation
         if: ${{ !cancelled() }}

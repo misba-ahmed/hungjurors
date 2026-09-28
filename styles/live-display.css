@@ -1,0 +1,34 @@
+/* Week leaves match the 38px score strips while retaining square geometry. */
+html #league-hq #hq-panel-matchups .schedule-week-btn{
+ flex:0 0 38px!important;width:38px!important;min-width:38px!important;max-width:38px!important;
+ height:38px!important;min-height:38px!important;max-height:38px!important;aspect-ratio:1!important;
+ box-sizing:border-box!important;padding:8px 2px 3px!important;
+}
+html #league-hq #hq-panel-matchups .schedule-week-btn::before{top:5px!important}
+html #league-hq #hq-panel-matchups .schedule-week-n{font-size:17px!important;line-height:1!important}
+html #league-hq #hq-panel-matchups .schedule-weeknav{gap:7px!important}
+
+/* Card offsets and snap points use the exact same border-box width. */
+html #league-hq #hq-panel-matchups .hq-matchup-list{
+ padding:0!important;border:0!important;gap:0!important;scroll-padding:0!important;
+ overflow-anchor:none!important;scroll-behavior:auto!important;
+}
+html #league-hq #hq-panel-matchups .hq-matchup-list>.hq-matchup{
+ margin:0!important;scroll-margin:0!important;scroll-snap-align:start!important;scroll-snap-stop:always!important;
+}
+
+/* The game and stat lines always begin below the avatar and player identity. */
+.hj-player-v3{
+ grid-template-areas:"avatar identity score" "game game score"!important;row-gap:2px!important;
+}
+.hj-player-v3.is-right{grid-template-areas:"score identity avatar" "score game game"!important}
+.hj-player-v3 .hj-v3-avatar,.hj-player-v3 .hj-v3-identity{align-self:center!important}
+.hj-player-v3>.hj-game-context{width:auto!important;margin:0!important}
+
+/* Darkness now identifies a live NFL game, never pointer hover. */
+.hj-player-v3,.hj-player-v3:hover{background:var(--hq-sheet,#fffdf7)!important;box-shadow:none!important}
+.hj-player-v3[data-game-in-progress="true"],
+#league-hq #league-sync-content .hj-player-v3[data-game-in-progress="true"],
+html #league-hq #hq-panel-matchups .hj-player-v3[data-game-in-progress="true"]{background:#eeede5!important;box-shadow:none!important}
+
+.hq-match-win[hidden]{display:none!important}

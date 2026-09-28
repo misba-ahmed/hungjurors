@@ -17,11 +17,7 @@
   const states=list.map(gameState),yet=states.filter(s=>s==='pre').length,playing=states.filter(s=>s==='in').length,done=states.filter(s=>s==='post').length;
   return {...side,proj,yet,playing,done,count:list.length};
  }
- // Same number as the League HQ matchup card: its "Est. win chance" bar, from ESPN's live projected totals.
- function winChance(a,b){
-  if(!Number.isFinite(a.proj)||!Number.isFinite(b.proj))return null;
-  return Math.max(1,Math.min(99,Math.round(100/(1+Math.exp(-(a.proj-b.proj)/15)))));
- }
+ function winChance(game,week,data){return hjEspnWinProbability(game,week,data)}
  function matchupAttr(week,r){return `data-wire-matchup="${esc(`${week}:${r.home.teamId}:${r.away.teamId}`)}"`}
  function sideHTML(s,right){
   return `<div class="wl-side${right?' right':''}"><span class="${known(s.name)?'manager-profile-trigger':''}" ${known(s.name)?`data-manager="${esc(s.name)}" role="button" tabindex="0" aria-label="Open ${esc(s.name)} profile"`:''}>${portrait(s.name,'wl-av wl-av-big')}</span><b class="${known(s.name)?'manager-profile-trigger':''}" ${known(s.name)?`data-manager="${esc(s.name)}" role="button" tabindex="0"`:''}>${esc(s.name)}</b><strong>${pcFmt(s.score,2)}</strong><small>${Number.isFinite(s.proj)?`proj ${s.proj.toFixed(1)}`:'—'}${s.count?` · ${s.done===s.count?'done':`${s.count-s.done} left`}`:''}</small></div>`;
@@ -32,9 +28,9 @@
  }
  function liveCards(data,week,results){
   const section='live',cards=[],box=WIRE.box.get(week),boxReady=!!box&&typeof box==='object';
-  const games=results.map(r=>{const g=gameFor(data,week,r),home=liveSide(g,'home',r.home,week,data),away=liveSide(g,'away',r.away,week,data),pct=winChance(home,away);return {r,home,away,pct,gap:Math.abs(home.score-away.score),leader:home.score>=away.score?home:away,trailer:home.score>=away.score?away:home}});
+  const games=results.map(r=>{const g=gameFor(data,week,r),home=liveSide(g,'home',r.home,week,data),away=liveSide(g,'away',r.away,week,data),pct=winChance(g,week,data);return {r,home,away,pct,gap:Math.abs(home.score-away.score),leader:home.score>=away.score?home:away,trailer:home.score>=away.score?away:home}});
   const sides=games.flatMap(g=>[g.home,g.away]).filter(s=>s.score>0),high=[...sides].sort((a,b)=>b.score-a.score)[0],started=results.filter(r=>r.played).length;
-  const rows=games.map(g=>`<button type="button" class="wl-row" ${matchupAttr(week,g.r)} aria-label="Open ${esc(g.home.name)} versus ${esc(g.away.name)} in League HQ"><span class="wl-row-side"><span class="wl-row-name">${portrait(g.home.name)}<b>${esc(g.home.name)}</b></span><strong class="${g.r.played&&g.home.score>g.away.score?'is-up':''}">${pcFmt(g.home.score,1)}</strong></span><span class="wl-row-mid"><small>${g.pct===null?'vs':`${g.pct}%`}</small><span class="wl-row-bar"><i style="width:${g.pct===null?50:g.pct}%"></i></span><small>${g.pct===null?'':`${100-g.pct}%`}</small></span><span class="wl-row-side right"><strong class="${g.r.played&&g.away.score>g.home.score?'is-up':''}">${pcFmt(g.away.score,1)}</strong><span class="wl-row-name"><b>${esc(g.away.name)}</b>${portrait(g.away.name)}</span></span></button>`).join('');
+  const rows=games.map(g=>`<button type="button" class="wl-row" ${matchupAttr(week,g.r)} aria-label="Open ${esc(g.home.name)} versus ${esc(g.away.name)} in League HQ"><span class="wl-row-side"><span class="wl-row-name">${portrait(g.home.name)}<b>${esc(g.home.name)}</b></span><strong class="${g.r.played&&g.home.score>g.away.score?'is-up':''}">${pcFmt(g.home.score,1)}</strong></span><span class="wl-row-mid"><small>${g.pct===null?'vs':`${g.pct}%`}</small>${g.pct===null?'':`<span class="wl-row-bar"><i style="width:${g.pct}%"></i></span>`}<small>${g.pct===null?'':`${100-g.pct}%`}</small></span><span class="wl-row-side right"><strong class="${g.r.played&&g.away.score>g.home.score?'is-up':''}">${pcFmt(g.away.score,1)}</strong><span class="wl-row-name"><b>${esc(g.away.name)}</b>${portrait(g.away.name)}</span></span></button>`).join('');
   cards.push({section,html:wireCard({kicker:`Week ${week} · Live`,tag:'In progress',cls:'is-lead wl-lead',body:`<div class="wl-head"><div class="wl-title">Week ${week} is live</div><div class="wl-sub">${high?`<span class="wl-chip">${portrait(high.name)}<span>High score <b>${esc(high.name)}</b> ${pcFmt(high.score,2)}</span></span>`:'<span class="wl-chip">No points yet</span>'}<span class="wl-chip"><b>${started}</b> of ${results.length} games started</span></div></div><div class="wl-rows">${rows}</div>`})});
   for(const g of games){
    const {r,home,away,pct,gap,leader,trailer}=g;
