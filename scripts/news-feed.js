@@ -16,7 +16,7 @@ function ffnFeedSession(){
  if(!session){
   const shards=[];
   for(let i=0;i<players.length;i+=FFN_LATEST_BATCH_SIZE)shards.push({players:players.slice(i,i+FFN_LATEST_BATCH_SIZE),offset:0,through:Infinity,done:false});
-  session={key,shards,items:new Map(),visible:[],pending:null,retryAt:0};
+  session={key,shards,items:new Map(),visible:[],pending:null,retryAt:0,stamp:Date.now()};
   HJ_NEWS_FEED.sessions.set(key,session);
  }
  HJ_NEWS_FEED.active=session;
@@ -28,7 +28,7 @@ function ffnFeedRows(session){
   .sort((a,b)=>Date.parse(b.published_at)-Date.parse(a.published_at)||String(a.id).localeCompare(String(b.id)));
 }
 async function ffnFeedPage(session,shard){
- const params=new URLSearchParams({limit:String(FFN_PLAYER_NEWS_LIMIT),offset:String(shard.offset)});
+ const params=new URLSearchParams({limit:String(FFN_PLAYER_NEWS_LIMIT),offset:String(shard.offset),_:String(session.stamp||0)});
  const byId=new Map(shard.players.map(p=>[String(p.id),p]));
  for(const id of byId.keys())params.append('playerId',id);
  const data=await fetchEspnJson('https://site.api.espn.com/apis/fantasy/v2/games/ffl/news/players?'+params);
@@ -101,14 +101,22 @@ async function ffnLoadFilteredNews({refresh=false,returnToStart=false}={}){
   await ffnBuildRoster();
   if(serial!==HJ_NEWS_FEED.serial)return [];
   ffnUpdateFilterOptions();ffnRenderManagerFilter();
+  const previous=HJ_NEWS_FEED.active,rail=$('#ffn-scroll');
+  const saved=!returnToStart&&previous?.visible.length&&rail?ffnCaptureRailState(rail):null;
   let session=ffnFeedSession();
   if(refresh){HJ_NEWS_FEED.sessions.delete(session.key);session=ffnFeedSession()}
   if(returnToStart)$('#ffn-scroll')?.scrollTo({left:0,behavior:'instant'});
-  if(!session.visible.length)ffnShowLoading();
+  if(refresh&&previous?.visible.length)HJ_NEWS_FEED.active=previous;
+  else if(!session.visible.length)ffnShowLoading();
   else ffnPublishFeed(session,false);
-  await ffnFeedFill(session,2*FFN_BATCH);
+  await ffnFeedFill(session,Math.max(2*FFN_BATCH,saved?.rendered||0));
   if(serial!==HJ_NEWS_FEED.serial)return [];
-  ffnPublishFeed(session,!returnToStart);
+  if(refresh&&previous?.visible.length&&!session.visible.length){
+   HJ_NEWS_FEED.sessions.set(previous.key,previous);return previous.visible;
+  }
+  HJ_NEWS_FEED.active=session;
+  ffnPublishFeed(session,false);
+  if(saved)ffnRestoreRailState(rail,saved);
   return session.visible;
  }catch(error){
   console.warn('Fantasy news feed',error);
