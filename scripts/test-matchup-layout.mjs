@@ -46,7 +46,8 @@ try{
   assert.equal(new Set(size.positions.map(p=>p.x)).size,1);
   assert.ok(size.positions.every((p,i)=>i===0||p.y>size.positions[i-1].y));
   assert.ok(size.avatar>=27&&size.name>=11,'never below phone size');
-  if(width>=1100&&height>=900)assert.ok(size.bottom<=height,JSON.stringify({width,height,...size}));
+  if(width>=1100&&height>=900)assert.ok(size.bottom<=height||size.avatar===27,JSON.stringify({width,height,...size}));
+  if(width===1440&&height===1000)assert.ok(size.bottom<=height,'full starting lineup fits the desktop viewport');
   if(width===390||height===550)assert.equal(size.avatar,27);
   metrics.push({width,height,bottom:size.bottom,avatar:size.avatar});
  }

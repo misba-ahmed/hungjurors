@@ -11,7 +11,9 @@ function hjFitStarterSpace(){
   lineup.removeAttribute('data-density');
   lineup.dataset.columns='1';
   const before=grid.getBoundingClientRect().top-card.getBoundingClientRect().top;
-  const available=Math.max(0,viewport-pinned-before-10);
+  const visibleTop=grid.getBoundingClientRect().top;
+  const top=visibleTop>=0&&visibleTop<viewport?Math.max(pinned+before,visibleTop):pinned+before;
+  const available=Math.max(0,viewport-top-10);
   const key=[lineup.clientWidth,Math.round(available),grid.textContent].join('|');
   if(HJ_STARTER_FITS.get(lineup)===key)return;
   HJ_STARTER_FITS.set(lineup,key);
