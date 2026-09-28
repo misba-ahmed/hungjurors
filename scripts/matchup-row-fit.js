@@ -15,7 +15,7 @@ function hjFitStarterSpace(){
   const top=visibleTop>=0&&visibleTop<viewport?Math.max(pinned+before,visibleTop):pinned+before;
   const available=Math.max(0,viewport-top-10);
   const key=[lineup.clientWidth,Math.round(available),grid.textContent].join('|');
-  if(HJ_STARTER_FITS.get(lineup)===key)return;
+  if(HJ_STARTER_FITS.get(lineup)===key&&lineup.style.getPropertyValue('--hj-row-room'))return;
   HJ_STARTER_FITS.set(lineup,key);
   const set=room=>lineup.style.setProperty('--hj-row-room',String(room));
   // At phone widths, preserve the phone design. Larger screens may reduce
