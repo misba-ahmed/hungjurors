@@ -17,6 +17,7 @@
   hjCenterMatchupJumpChipV32(key);
  }
  function fit(deck,index){
+  if(typeof hjFitStarterSpace==='function')hjFitStarterSpace();
   const card=cards(deck)[index];if(!card||!deck.clientWidth)return;
   const style=getComputedStyle(deck),height=Math.ceil(card.getBoundingClientRect().height+
    (parseFloat(style.paddingTop)||0)+(parseFloat(style.paddingBottom)||0)+deck.offsetHeight-deck.clientHeight)+'px';

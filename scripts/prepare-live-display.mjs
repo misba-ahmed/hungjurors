@@ -1,6 +1,7 @@
 import {readFileSync} from 'node:fs';
 const news=readFileSync(new URL('./news-feed.js',import.meta.url),'utf8');
 const navigation=readFileSync(new URL('./matchup-navigation.js',import.meta.url),'utf8');
+const rowFit=readFileSync(new URL('./matchup-row-fit.js',import.meta.url),'utf8');
 const probability=readFileSync(new URL('./espn-win-probability.js',import.meta.url),'utf8');
 const patches=[
   {
@@ -101,5 +102,6 @@ export function prepareLiveDisplay(html){
  html=html.replace(/^\.hj-player-v3(?:\.is-right)?\[data-narrow-info="true"\][^\n]*\n/gm,'');
  html=html.replaceAll('"avatar identity score" "avatar game score"','"avatar identity score" "game game score"').replaceAll('"score identity avatar" "score game avatar"','"score identity avatar" "score game game"');
  html=html.replace(/(?:#league-hq :is\(\.league-player,\.hq-player-card\)|\.league-player|\.hq-lineup-player|\.hq-player-card|\.hj-player-v2|\.hj-player-v3):hover\{[^}]*\}/g,'');
+ html=once(html,/function hjFitStarterSpace\(\)\{\n const lineup=[^]*?\n\}/g,rowFit,'single-column starter fitting');
  return html;
 }

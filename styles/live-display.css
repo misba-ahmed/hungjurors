@@ -32,3 +32,25 @@ html #league-hq #hq-panel-matchups .hq-matchup-list>.hq-matchup{
 html #league-hq #hq-panel-matchups .hj-player-v3[data-game-in-progress="true"]{background:#eeede5!important;box-shadow:none!important}
 
 .hq-match-win[hidden]{display:none!important}
+
+
+/* One opposing pair per row at every width. Never split starters into columns. */
+html #league-hq #hq-panel-matchups .hj-lineup-v2 .hj-lineup-v2-starters{
+ grid-template-columns:minmax(0,1fr)!important;column-gap:0!important;
+}
+html #league-hq #hq-panel-matchups .hj-lineup-v2{
+ --hj-row-room:1;
+ --lp-name:calc(11px + 2px * var(--hj-row-room));
+ --lp-text:calc(9px + 1px * var(--hj-row-room));
+ --lp-line:calc(10.5px + 1.5px * var(--hj-row-room));
+ --lp-score:calc(11px + 4px * var(--hj-row-room));
+}
+html #league-hq #hq-panel-matchups .hj-lineup-v2 .hj-player-v3{
+ --v3-avatar:calc(27px + 13px * var(--hj-row-room));
+ --v3-score:calc(45px + 19px * var(--hj-row-room));
+ padding:calc(3px + 1px * var(--hj-row-room))!important;
+ column-gap:calc(4px + 3px * var(--hj-row-room))!important;
+}
+@media(max-width:450px){
+ html #league-hq #hq-panel-matchups .hj-lineup-v2{--hj-row-room:0}
+}
