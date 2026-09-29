@@ -11,6 +11,7 @@ await Promise.all(urls.map(async url=>{
  if(!response.ok)throw new Error('Headshot unavailable: '+url+' '+response.status);
  const data=Buffer.from(await response.arrayBuffer());
  const uri='data:image/png;base64,'+data.toString('base64');
+ await fs.writeFile(dir+'/avatar-'+url.split('/').pop()+'.base64.txt',data.toString('base64'));
  html=html.split(url).join(uri);
  manifest.push({url,bytes:data.length});
 }));

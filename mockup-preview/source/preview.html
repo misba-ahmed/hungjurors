@@ -8,25 +8,23 @@ function makeCanvas(w,h){let c=document.createElement('canvas');c.width=w;c.heig
 function cropPhoto(im,p){
  const c=makeCanvas(im.naturalWidth,im.naturalHeight),cx=c.getContext('2d');cx.drawImage(im,0,0);
  const W=c.width,H=c.height;
- let top=0,neck=Math.round(H*.70),left=W*.25,right=W*.75,readable=true;
+ let top=0,neck=Math.round(H*.86),left=W*.25,right=W*.75,readable=true;
  try{
   const d=cx.getImageData(0,0,W,H).data,rows=[];
   for(let y=0;y<H;y++){let a=W,b=-1;for(let x=0;x<W;x++){if(d[(y*W+x)*4+3]>90){a=Math.min(a,x);b=x;}}rows.push({a,b,w:Math.max(0,b-a+1)});}
   top=rows.findIndex(r=>r.w>4);if(top<0)top=0;
-  // Neck is the narrowest silhouette below the middle of the portrait,
-  // before the shoulders flare outward. Preserve all original photo pixels.
-  let best=Infinity;
-  for(let y=Math.round(top+(H-top)*.50);y<Math.round(top+(H-top)*.79);y++){
-   let r=rows[y];if(r.w>W*.10&&r.w<best){best=r.w;neck=y;}
-  }
-  neck=Math.min(H-1,neck+Math.round(H*.025));
+
+  neck=Math.round(H*.86);
   left=W;right=0;
-  for(let y=top;y<neck;y++){if(rows[y].w){left=Math.min(left,rows[y].a);right=Math.max(right,rows[y].b);}}
- }catch(e){readable=false;top=Math.round(H*.025);neck=Math.round(H*.69);}
+  for(let y=top;y<Math.round(H*.56);y++){if(rows[y].w){left=Math.min(left,rows[y].a);right=Math.max(right,rows[y].b);}}
+  left=Math.max(0,left-Math.round(W*.025));right=Math.min(W-1,right+Math.round(W*.025));
+ }catch(e){readable=false;top=Math.round(H*.025);neck=Math.round(H*.86);}
  // Crop only the head, hair, and upper neck; never repaint the photograph.
  const w=right-left+1,h=neck-top;
  const out=makeCanvas(Math.ceil(w),Math.ceil(h));
- const oc=out.getContext('2d');oc.drawImage(im,left,top,w,h,0,0,w,h);
+ const oc=out.getContext('2d');
+ oc.save();oc.beginPath();oc.moveTo(0,0);oc.lineTo(w,0);oc.lineTo(w,h*.69);oc.lineTo(w*.70,h);oc.lineTo(w*.30,h);oc.lineTo(0,h*.69);oc.closePath();oc.clip();
+ oc.drawImage(im,left,top,w,h,0,0,w,h);oc.restore();
  // Soften only the neck seam, preserving the face and hair without filters.
  oc.globalCompositeOperation='destination-in';
  const grad=oc.createLinearGradient(0,h-5,0,h);grad.addColorStop(0,'rgba(0,0,0,1)');grad.addColorStop(1,'rgba(0,0,0,0)');
@@ -41,9 +39,9 @@ async function render(){
  players.forEach(p=>{
    const x=(p.x-p.eraseWidth/2)*S,y=(p.top-5)*S,w=p.eraseWidth*S,h=(p.neck-p.top+8)*S;
    ctx.save();
-   ctx.beginPath();ctx.roundRect(x,y,w,h,Math.min(16*S,w/4));ctx.clip();
+   ctx.beginPath();ctx.moveTo(x+10*S,y);ctx.lineTo(x+w-10*S,y);ctx.quadraticCurveTo(x+w,y,x+w,y+10*S);ctx.lineTo(x+w,y+h-18*S);ctx.lineTo(x+w*.67,y+h);ctx.lineTo(x+w*.33,y+h);ctx.lineTo(x,y+h-18*S);ctx.lineTo(x,y+10*S);ctx.quadraticCurveTo(x,y,x+10*S,y);ctx.closePath();ctx.clip();
    // Copy the adjacent untouched paper texture at the same vertical position.
-   ctx.drawImage(bg,1803*S,y,Math.min(100*S,w),h,x,y,w,h);
+   ctx.drawImage(bg,900*S,182*S,60*S,35*S,x,y,w,h);
    ctx.restore();
  });
  const prepared=players.map((p,i)=>cropPhoto(faceImages[i],p));
