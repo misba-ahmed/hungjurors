@@ -94,3 +94,21 @@ html .profile-schedule-compact .profile-schedule-h2h{
  font-size:9px!important;line-height:1.2!important;white-space:normal!important;
  overflow:visible!important;text-overflow:clip!important;padding-top:4px!important;
 }
+
+/* Fill the existing text height without letting the portrait make a row taller. */
+.hj-player-v3.hj-roster-player{position:relative;--v3-avatar:48px!important}
+.hj-player-v3.hj-roster-player>.hj-v3-avatar{
+ position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+ width:auto!important;height:min(100%,var(--v3-avatar))!important;
+ aspect-ratio:1;max-width:100%;margin:0;
+}
+@media(min-width:761px){
+ html #league-hq #hq-panel-matchups .hj-lineup-v2 .hj-player-v3{
+  position:relative;--v3-avatar:calc(43px + 7px * var(--hj-row-room))!important;
+ }
+ html #league-hq #hq-panel-matchups .hj-lineup-v2 .hj-player-v3>.hj-v3-avatar{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:auto!important;height:min(100%,var(--v3-avatar))!important;
+  aspect-ratio:1;max-width:100%;margin:0;
+ }
+}
