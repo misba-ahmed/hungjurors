@@ -1,0 +1,16 @@
+{
+  "players": 151,
+  "teams": 10,
+  "desktop": {
+    "count": 16,
+    "width": 660,
+    "height": 137.625
+  },
+  "refreshPreservesNodes": true,
+  "viewports": [
+    1600,
+    900,
+    390
+  ],
+  "pageErrors": []
+}
