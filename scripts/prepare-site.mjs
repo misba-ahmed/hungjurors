@@ -130,6 +130,10 @@ export function prepareSite(html){
  // Game status lines read FINAL in caps everywhere.
  html=replaceOnce(html,/`Final \$\{result\}`/g,'`FINAL ${result}`');
  html=replaceOnce(html,/<b>\$\{past\?'Final':winChance===null\?'Unavailable':'Est\. win chance'\}<\/b>/g,"<b>${past?'FINAL':winChance===null?'Unavailable':'Est. win chance'}</b>");
+ // The roster manager rail follows the same live standings rank shown on each note.
+ const oldManagerOrder="const teams=[...(data.teams||[])].sort((a,b)=>(Number(a.draftDayProjectedRank)||99)-(Number(b.draftDayProjectedRank)||99)||Number(a.id)-Number(b.id));";
+ if(html.split(oldManagerOrder).length!==2)throw Error('Manager order source changed');
+ html=html.replace(oldManagerOrder,"const teams=[...(data.teams||[])].sort((a,b)=>(hjCurrentStandingRank(a,data)||Infinity)-(hjCurrentStandingRank(b,data)||Infinity)||Number(a.id)-Number(b.id));");
  html=prepareLiveDisplay(html);
  html=replaceOnce(html,/function hjTeamViewHTML\(team,data\)\{/g,'const HJ_TEAM_PHOTO_ASSETS='+teamPhotoAssets+';\n'+teamPhotoScript+'\nfunction hjTeamViewHTML(team,data){');
  const rosterHead='<div class="league-roster-head">${identity}${matchupHTML}</div>';

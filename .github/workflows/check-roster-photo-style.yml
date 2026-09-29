@@ -1,0 +1,26 @@
+name: Match Henry style and check roster order
+on:
+  push:
+    branches: ["fix/henry-team-photo-style"]
+    paths: ["photo-style-preview/sheet.png", "scripts/check-roster-photo-style.mjs", "scripts/prepare-site.mjs", ".github/workflows/check-roster-photo-style.yml"]
+permissions:
+  contents: write
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false sharp@0.34.5 playwright@1.56.1
+      - run: npx playwright install chromium --with-deps
+      - run: node scripts/check-roster-photo-style.mjs
+      - name: Save corrected artwork
+        run: |
+          git config user.name "Team photo assets"
+          git config user.email "preview@users.noreply.github.com"
+          git add assets/team-photos/catalog.json assets/team-photos/players/3043078-v3.webp photo-style-preview
+          git diff --cached --quiet || git commit -m "Match Henry to the team photo style"
+          git push origin HEAD:refs/heads/fix/henry-team-photo-style
