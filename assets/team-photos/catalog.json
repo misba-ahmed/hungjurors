@@ -20,10 +20,10 @@
     "jersey": "87"
   },
   "16737": {
-    "file": "16737-v1.webp",
-    "width": 128,
-    "height": 320,
-    "ratio": 0.4,
+    "file": "16737-faces-v2.webp",
+    "width": 318,
+    "height": 850,
+    "ratio": 0.37412,
     "heightInches": 77,
     "name": "Mike Evans",
     "teamId": 25,
@@ -40,10 +40,10 @@
     "jersey": "17"
   },
   "17372": {
-    "file": "17372-v1.webp",
-    "width": 126,
-    "height": 290,
-    "ratio": 0.43448,
+    "file": "17372-faces-v2.webp",
+    "width": 324,
+    "height": 850,
+    "ratio": 0.38118,
     "heightInches": 74,
     "name": "Chris Boswell",
     "teamId": 23,
@@ -90,10 +90,10 @@
     "jersey": "3"
   },
   "3040151": {
-    "file": "3040151-v1.webp",
-    "width": 132,
-    "height": 319,
-    "ratio": 0.41379,
+    "file": "3040151-faces-v2.webp",
+    "width": 318,
+    "height": 850,
+    "ratio": 0.37412,
     "heightInches": 76,
     "name": "George Kittle",
     "teamId": 25,
@@ -170,10 +170,10 @@
     "jersey": "14"
   },
   "3116365": {
-    "file": "3116365-v1.webp",
-    "width": 139,
-    "height": 319,
-    "ratio": 0.43574,
+    "file": "3116365-faces-v2.webp",
+    "width": 331,
+    "height": 850,
+    "ratio": 0.38941,
     "heightInches": 77,
     "name": "Mark Andrews",
     "teamId": 33,
@@ -260,10 +260,10 @@
     "jersey": "2"
   },
   "3915511": {
-    "file": "3915511-v1.webp",
-    "width": 125,
-    "height": 320,
-    "ratio": 0.39063,
+    "file": "3915511-faces-v2.webp",
+    "width": 311,
+    "height": 850,
+    "ratio": 0.36588,
     "heightInches": 76,
     "name": "Joe Burrow",
     "teamId": 4,
@@ -450,10 +450,10 @@
     "jersey": "1"
   },
   "4047650": {
-    "file": "4047650-v1.webp",
-    "width": 129,
-    "height": 320,
-    "ratio": 0.40313,
+    "file": "4047650-faces-v2.webp",
+    "width": 320,
+    "height": 850,
+    "ratio": 0.37647,
     "heightInches": 76,
     "name": "DK Metcalf",
     "teamId": 23,
@@ -510,10 +510,10 @@
     "jersey": "6"
   },
   "4241985": {
-    "file": "4241985-v1.webp",
-    "width": 135,
-    "height": 317,
-    "ratio": 0.42587,
+    "file": "4241985-faces-v2.webp",
+    "width": 327,
+    "height": 850,
+    "ratio": 0.38471,
     "heightInches": 70,
     "name": "J.K. Dobbins",
     "teamId": 7,
@@ -560,10 +560,10 @@
     "jersey": "4"
   },
   "4262921": {
-    "file": "4262921-v1.webp",
-    "width": 124,
-    "height": 312,
-    "ratio": 0.39744,
+    "file": "4262921-faces-v2.webp",
+    "width": 313,
+    "height": 850,
+    "ratio": 0.36824,
     "heightInches": 73,
     "name": "Justin Jefferson",
     "teamId": 16,
@@ -700,10 +700,10 @@
     "jersey": "33"
   },
   "4361741": {
-    "file": "4361741-v1.webp",
-    "width": 125,
-    "height": 318,
-    "ratio": 0.39308,
+    "file": "4361741-faces-v2.webp",
+    "width": 312,
+    "height": 850,
+    "ratio": 0.36706,
     "heightInches": 73,
     "name": "Brock Purdy",
     "teamId": 25,
@@ -780,10 +780,10 @@
     "jersey": "14"
   },
   "4379399": {
-    "file": "4379399-v1.webp",
-    "width": 122,
-    "height": 316,
-    "ratio": 0.38608,
+    "file": "4379399-faces-v2.webp",
+    "width": 304,
+    "height": 850,
+    "ratio": 0.35765,
     "heightInches": 71,
     "name": "James Cook III",
     "teamId": 2,
@@ -820,10 +820,10 @@
     "jersey": "3"
   },
   "4426385": {
-    "file": "4426385-v1.webp",
-    "width": 127,
-    "height": 290,
-    "ratio": 0.43793,
+    "file": "4426385-faces-v2.webp",
+    "width": 334,
+    "height": 850,
+    "ratio": 0.39294,
     "heightInches": 73,
     "name": "Zach Charbonnet",
     "teamId": 26,
@@ -860,10 +860,10 @@
     "jersey": "12"
   },
   "4427366": {
-    "file": "4427366-v1.webp",
-    "width": 121,
-    "height": 312,
-    "ratio": 0.38782,
+    "file": "4427366-faces-v2.webp",
+    "width": 314,
+    "height": 850,
+    "ratio": 0.36941,
     "heightInches": 71,
     "name": "Breece Hall",
     "teamId": 20,
@@ -1190,10 +1190,10 @@
     "jersey": "85"
   },
   "4574716": {
-    "file": "4574716-v1.webp",
-    "width": 130,
-    "height": 319,
-    "ratio": 0.40752,
+    "file": "4574716-faces-v2.webp",
+    "width": 330,
+    "height": 850,
+    "ratio": 0.38824,
     "heightInches": 72,
     "name": "Harrison Mevis",
     "teamId": 14,
@@ -1210,10 +1210,10 @@
     "jersey": "22"
   },
   "4595348": {
-    "file": "4595348-v1.webp",
-    "width": 126,
-    "height": 313,
-    "ratio": 0.40256,
+    "file": "4595348-faces-v2.webp",
+    "width": 317,
+    "height": 850,
+    "ratio": 0.37294,
     "heightInches": 72,
     "name": "Malik Nabers",
     "teamId": 19,
