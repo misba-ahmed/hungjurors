@@ -1,0 +1,257 @@
+{
+  "passed": true,
+  "report": [
+    {
+      "viewport": 320,
+      "manager": "WASI",
+      "width": 304,
+      "height": 184
+    },
+    {
+      "viewport": 320,
+      "manager": "NATHAN M",
+      "width": 304,
+      "height": 184
+    },
+    {
+      "viewport": 320,
+      "manager": "JARRETT",
+      "width": 304,
+      "height": 184
+    },
+    {
+      "viewport": 390,
+      "manager": "WASI",
+      "width": 374,
+      "height": 226.359375
+    },
+    {
+      "viewport": 390,
+      "manager": "NATHAN M",
+      "width": 374,
+      "height": 226.359375
+    },
+    {
+      "viewport": 390,
+      "manager": "JARRETT",
+      "width": 374,
+      "height": 226.359375
+    },
+    {
+      "viewport": 600,
+      "manager": "WASI",
+      "width": 380,
+      "height": 230
+    },
+    {
+      "viewport": 600,
+      "manager": "NATHAN M",
+      "width": 380,
+      "height": 230
+    },
+    {
+      "viewport": 600,
+      "manager": "JARRETT",
+      "width": 380,
+      "height": 230
+    },
+    {
+      "viewport": 601,
+      "manager": "WASI",
+      "width": 333.125,
+      "height": 201.625
+    },
+    {
+      "viewport": 601,
+      "manager": "NATHAN M",
+      "width": 333.125,
+      "height": 201.625
+    },
+    {
+      "viewport": 601,
+      "manager": "JARRETT",
+      "width": 333.125,
+      "height": 201.625
+    },
+    {
+      "viewport": 768,
+      "manager": "WASI",
+      "width": 380,
+      "height": 230
+    },
+    {
+      "viewport": 768,
+      "manager": "NATHAN M",
+      "width": 380,
+      "height": 230
+    },
+    {
+      "viewport": 768,
+      "manager": "JARRETT",
+      "width": 380,
+      "height": 230
+    },
+    {
+      "viewport": 900,
+      "manager": "WASI",
+      "width": 380,
+      "height": 230
+    },
+    {
+      "viewport": 900,
+      "manager": "NATHAN M",
+      "width": 380,
+      "height": 230
+    },
+    {
+      "viewport": 900,
+      "manager": "JARRETT",
+      "width": 380,
+      "height": 230
+    },
+    {
+      "viewport": 1024,
+      "manager": "WASI",
+      "width": 380,
+      "height": 230
+    },
+    {
+      "viewport": 1024,
+      "manager": "NATHAN M",
+      "width": 380,
+      "height": 230
+    },
+    {
+      "viewport": 1024,
+      "manager": "JARRETT",
+      "width": 380,
+      "height": 230
+    },
+    {
+      "viewport": 1050,
+      "manager": "WASI",
+      "width": 380,
+      "height": 230
+    },
+    {
+      "viewport": 1050,
+      "manager": "NATHAN M",
+      "width": 380,
+      "height": 230
+    },
+    {
+      "viewport": 1050,
+      "manager": "JARRETT",
+      "width": 380,
+      "height": 230
+    },
+    {
+      "viewport": 1051,
+      "manager": "WASI",
+      "width": 250,
+      "height": 151.3125
+    },
+    {
+      "viewport": 1051,
+      "manager": "NATHAN M",
+      "width": 250,
+      "height": 151.3125
+    },
+    {
+      "viewport": 1051,
+      "manager": "JARRETT",
+      "width": 250,
+      "height": 151.3125
+    },
+    {
+      "viewport": 1100,
+      "manager": "WASI",
+      "width": 250,
+      "height": 151.3125
+    },
+    {
+      "viewport": 1100,
+      "manager": "NATHAN M",
+      "width": 250,
+      "height": 151.3125
+    },
+    {
+      "viewport": 1100,
+      "manager": "JARRETT",
+      "width": 250,
+      "height": 151.3125
+    },
+    {
+      "viewport": 1280,
+      "manager": "WASI",
+      "width": 288,
+      "height": 174.3125
+    },
+    {
+      "viewport": 1280,
+      "manager": "NATHAN M",
+      "width": 288,
+      "height": 174.3125
+    },
+    {
+      "viewport": 1280,
+      "manager": "JARRETT",
+      "width": 288,
+      "height": 174.3125
+    },
+    {
+      "viewport": 1600,
+      "manager": "WASI",
+      "width": 288,
+      "height": 174.3125
+    },
+    {
+      "viewport": 1600,
+      "manager": "NATHAN M",
+      "width": 288,
+      "height": 174.3125
+    },
+    {
+      "viewport": 1600,
+      "manager": "JARRETT",
+      "width": 288,
+      "height": 174.3125
+    },
+    {
+      "viewport": 1920,
+      "manager": "WASI",
+      "width": 288,
+      "height": 174.3125
+    },
+    {
+      "viewport": 1920,
+      "manager": "NATHAN M",
+      "width": 288,
+      "height": 174.3125
+    },
+    {
+      "viewport": 1920,
+      "manager": "JARRETT",
+      "width": 288,
+      "height": 174.3125
+    },
+    {
+      "viewport": 390,
+      "manager": "WASI",
+      "width": 374,
+      "height": 226.359375
+    },
+    {
+      "viewport": 900,
+      "manager": "WASI",
+      "width": 380,
+      "height": 230
+    },
+    {
+      "viewport": 1600,
+      "manager": "WASI",
+      "width": 288,
+      "height": 174.3125
+    }
+  ]
+}
