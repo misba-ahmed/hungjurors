@@ -4,6 +4,9 @@ import {createServer} from 'node:http';
 import {chromium} from 'playwright';
 const fixture=readFileSync(new URL('./fixtures/trade-desk.js',import.meta.url),'utf8');
 const css=readFileSync(new URL('../styles/trade-desk.css',import.meta.url),'utf8');
+// Include the real page's global section rules so nested-layout regressions
+// cannot pass in a fixture that omits the styles responsible for the gap.
+const sectionCSS=(readFileSync(new URL('../index.html',import.meta.url),'utf8').match(/^\s*section\s*\{[^}]*\}/gm)||[]).join('\n');
 let source=readFileSync(new URL('./trade-desk.js',import.meta.url),'utf8');
 const expose="\n HJTD._test={model,analyse,posture,balanceOptions,dropPlan,lineupPoints,newsItemFrom,newsFor,byeCoverage,cleanAnalysisHtml,validateAnalysis,\n  requestAnalysis,cancelAnalysis,ANALYSIS,researchTrade,analysisKey,projectionFact,TEAM_CONTEXT,shell,\n  hydrate:fn=>hydrateDossier=fn};\n";
 source=source.replace(" if(document.readyState==='loading')",expose+"\n if(document.readyState==='loading')");
@@ -39,7 +42,7 @@ try{
  context.on('request',req=>{if(req.method()==='POST'&&!req.url().startsWith(base+'/'))externalPosts.push(req.url())});
  await context.addInitScript(()=>{window.Worker=class{constructor(){throw Error('Browser inference must not run')}}});
  await page.goto(base);
- await page.addStyleTag({content:css});
+ await page.addStyleTag({content:sectionCSS+'\n'+css});
  const installFixture=async(seed=true)=>{
   await page.addScriptTag({content:fixture+'\nfunction hjStrengthHTML(){return ""}\nfunction hjRerenderStrength(){document.querySelector("#hq-panel-strength").innerHTML=window.HJTD._test.shell()}\n'+source+"\nconst t=window.HJTD._test;\n"+(seed?"window.HJTD.a='1';window.HJTD.b='2';window.HJTD.give=new Set(['2']);window.HJTD.get=new Set(['12']);\n":"")+"\nconst schedules=new Map();\nfor(let w=1;w<=18;w++){if(w!==8)schedules.set('a'+w,{season:2026,week:w,home_team:'AAA',away_team:'CCC'});\n if(w!==9)schedules.set('b'+w,{season:2026,week:w,home_team:'BBB',away_team:'DDD'});}\nwindow.HJTD.injectSchedule(schedules);\nconst rows=[...fixtures,...second].flatMap(e=>[1,2].map(week=>({id:e.player.id,player_display_name:e.player.fullName,position:e.player.position,team:e.player.team,week,points:10,carries:8,targets:3,receiving_yards:40})));\nwindow.HJTD.injectUsage(rows,null);\n"+'\nhjRerenderStrength();'});
  };
@@ -100,7 +103,7 @@ try{
   history.replaceState(null,'','#top');
  });
  await page.reload();
- await page.addStyleTag({content:css});
+ await page.addStyleTag({content:sectionCSS+'\n'+css});
  await installFixture(false);
  assert.equal(await page.evaluate(()=>location.hash),'#roster-strength');
  assert.deepEqual(await page.evaluate(()=>({a:HJTD.a,b:HJTD.b,give:[...HJTD.give],get:[...HJTD.get]})),
@@ -119,6 +122,18 @@ try{
  for(const width of [390,768,1280]){
   await page.setViewportSize({width,height:844});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Expanded lineups fit '+width);
+  const spacing=await page.evaluate(()=>{
+   const details=document.querySelector('.td-post-lineups');
+   const note=details.querySelector(':scope > p').getBoundingClientRect();
+   const teams=[...details.querySelectorAll('.td-post-lineup-grid > section')];
+   const first=teams[0].querySelector('h4').getBoundingClientRect(),second=teams[1].querySelector('h4').getBoundingClientRect();
+   return {top:first.top-note.bottom,between:second.top-teams[0].getBoundingClientRect().bottom,
+    stacked:second.top>first.top+5,padding:teams.map(t=>[getComputedStyle(t).paddingTop,getComputedStyle(t).paddingBottom])};
+  });
+  assert.ok(spacing.top>=0&&spacing.top<=20,'Compact space above lineup at '+width+': '+JSON.stringify(spacing));
+  assert.deepEqual(spacing.padding,[['0px','0px'],['0px','0px']],'Lineups never inherit page section padding');
+  if(spacing.stacked)assert.ok(spacing.between>=10&&spacing.between<=24,'Small gap between stacked teams at '+width+': '+JSON.stringify(spacing));
+
  }
  await page.locator('[data-td-mode="finder"]').click();
  assert.equal(await page.locator('[data-td-finder-team]').inputValue(),'');
