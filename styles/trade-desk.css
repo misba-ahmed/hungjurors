@@ -435,3 +435,5 @@
  #hq-panel-strength .td-finder-controls .td-run{grid-column:1/-1;justify-self:start}
  #hq-panel-strength .td-post-lineup-grid{grid-template-columns:minmax(0,1fr)}
 }
+
+#hq-panel-strength .td-find-cuts{margin:5px 0;font:500 10px/1.4 var(--sans);color:#5f7385}

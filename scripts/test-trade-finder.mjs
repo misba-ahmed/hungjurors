@@ -1,5 +1,5 @@
 import {readFileSync} from 'node:fs';
-function runTradeTests(source){
+async function runTradeTests(source){
  const checks=[],assert=(v,msg)=>{if(!v)throw Error(msg);checks.push(msg)};
  const docEvents={},rootEvents={},root={dataset:{},addEventListener(name,fn){rootEvents[name]=fn}};
  const data={teams:[],settings:{rosterSettings:{lineupSlotCounts:{0:1,2:2,4:2,6:1,23:1,16:1,17:1,20:5,21:1}}}};
@@ -11,7 +11,7 @@ function runTradeTests(source){
   hjMatchManager:t=>t.manager,hjOwnerName:()=>'',hj6Projection:e=>e.projected,
   av:(name,cls)=>'<span class="'+cls+'">'+name+'</span>',hjRerenderStrength:()=>{},
   hjStrengthHTML:()=>'',location:{hash:''}};
- const hook='window.__tdTest={finderNeeds,finderUnitValue,finderNeedsHTML,finderRun,finderPanel,finderMatchesPosition,lineupPoints,postTradeLineups,wireSentences,scorecard,ensureSides,install,model,projectionFact,rosterOf};\n';
+ const hook='window.__tdTest={finderPackages,finderNeeds,finderUnitValue,finderNeedsHTML,finderRun,finderPanel,finderMatchesPosition,lineupPoints,postTradeLineups,wireSentences,scorecard,ensureSides,install,model,projectionFact,rosterOf};\n';
  const code=source.replace(' restoreTradeDraft();\n if(document.readyState',hook+' restoreTradeDraft();\n if(document.readyState');
  assert(code!==source,'test hooks inserted');
  new Function(...Object.keys(globals),code)(...Object.values(globals));
@@ -28,7 +28,7 @@ function runTradeTests(source){
   {id:3,manager:'Gamma',roster:roster('C',[4000,14],[4000,14],8,9)}
  ];
  state.injectSchedule(new Map(Array.from({length:18},(_,i)=>[i,{season:2026,week:i+1,home_team:'TEST',away_team:'OPP'}])));
- assert(state.finderTeam===''&&t.finderRun()===null,'finder starts without a selected team');
+ assert(state.finderTeam===''&&(await t.finderRun())===null,'finder starts without a selected team');
  assert(t.finderPanel().includes('>YOUR TEAM</option>'),'team placeholder is rendered');
  t.ensureSides();
  assert(state.a==='1'&&state.finderTeam==='','builder default never becomes finder default');
@@ -43,27 +43,27 @@ function runTradeTests(source){
  assert(t.finderNeeds('1').units.find(u=>u.pos==='K').rank===kBefore,'extra weak kicker cannot inflate positional strength');
  data.teams[0].roster.pop();
  data.teams[1].roster[7].projected=null;
- assert(t.finderNeeds('1').units.find(u=>u.pos==='D/ST').rank===null,'missing DST projection is not ranked as zero');
+ assert(t.finderNeeds('1').units.find(u=>u.pos==='D/ST').rank===1,'missing peer DST projection does not blank other managers');
  data.teams[1].roster[7].projected=180;
  data.teams[1].roster[1].value=null;
- assert(t.finderNeeds('1').units.find(u=>u.pos==='RB').rank===null,'missing market value leaves group unranked');
+ assert(Number.isFinite(t.finderNeeds('1').units.find(u=>u.pos==='RB').rank),'unpriced peer reserve does not blank a whole position');
  data.teams[1].roster[1].value=6000;
  state.finderTeam='1';state.finderPosition='RB';state.scope='2';
- let results=t.finderRun();
+ let results=(await t.finderRun());
  assert(results.rows.length>0,'finder produces real lineup upgrades');
  assert(t.finderPanel().includes('data-td-load'),'finder results render actionable cards');
  assert(results.rows.every(r=>r.inc.some(e=>e.position==='RB')),'every RB-filter result includes an incoming RB');
  assert(results.rows.every(r=>String(r.team.id)==='2'),'partner filter is enforced');
  assert(results.rows.every(r=>r.myGain>0&&r.gap<=.22),'suggestions improve lineup and stay within value tolerance');
- assert(results.rows.every(r=>r.out.length<=2&&r.inc.length<=2),'candidate package sizes remain bounded');
- state.finderPosition='ANY';state.scope='all';results=t.finderRun();
+ assert(results.rows.every(r=>r.out.length<=3&&r.inc.length<=3),'candidate package sizes remain bounded');
+ state.finderPosition='ANY';state.scope='all';results=(await t.finderRun());
  assert(results.rows[0].addressesNeed,'Any position prioritizes a weak position');
  assert(results.rows.every(r=>String(r.team.id)!=='1'),'finder excludes your own team');
- state.finderPosition='TE';results=t.finderRun();
+ state.finderPosition='TE';results=(await t.finderRun());
  assert(results.rows.every(r=>r.inc.some(e=>e.position==='TE')),'TE filtering never returns only other positions');
- state.finderPosition='FLEX';results=t.finderRun();
+ state.finderPosition='FLEX';results=(await t.finderRun());
  assert(results.rows.every(r=>r.inc.some(e=>['RB','WR','TE'].includes(e.position))),'FLEX filter accepts only eligible receiving packages');
- state.finderPosition='K';state.scope='2';results=t.finderRun();
+ state.finderPosition='K';state.scope='2';results=(await t.finderRun());
  assert(results.rows.length>0&&results.rows.every(r=>r.inc.some(e=>e.position==='K')),'kicker filter supports projection-backed upgrades');
  assert(results.rows.some(r=>r.balanceBasis==='Combo projection'),'K-only deals use explicitly labeled Combo balance');
  const sent=data.teams[0].roster.find(e=>e.id==='Aspare'),received=data.teams[1].roster.find(e=>e.id==='Bspare');
@@ -76,6 +76,33 @@ function runTradeTests(source){
  assert(html.includes('Injured reserve')&&html.includes('IR sample')&&html.includes('Bench'),'post-trade view includes bench and IR');
  assert(html.includes('D/ST')&&html.includes('AK')&&html.includes('ADST'),'post-trade view includes kicker and defense');
  assert(!html.includes('<strong>AQB</strong>'),'unchanged players remain normal text');
+ data.teams[1].roster.push(entry('Unpriced TE','TE',null,4));
+ assert(t.finderNeeds('1').units.find(u=>u.pos==='TE').rank===1,'unpriced TE does not erase anyone’s TE rank');
+ assert(t.finderNeedsHTML('1').includes('weakest position'),'roster needs remain visible with incomplete peer pricing');
+ assert(!t.finderNeedsHTML('1').includes('Waiting for complete'),'no all-or-nothing waiting message');
+ data.teams[1].roster.pop();
+ state.finder=null;
+ const cleanPanel=t.finderPanel();
+ assert(!cleanPanel.includes('Choose your filters')&&!cleanPanel.includes('one- or two-player')&&!cleanPanel.includes('League position ranks ·'),'crossed-out explanatory copy is removed');
+ assert(t.finderPackages([1,2,3,4]).filter(p=>p.length===3).length===4,'generate every unique three-player package');
+ const savedTeams=data.teams;
+ const ma=roster('MA',[100,8],[8000,30]);
+ for(const e of ma)if(['QB','WR','TE'].includes(e.position))e.value=1000000;
+ ma.push(entry('MextraRB','RB',1000,14),entry('MextraWR1','WR',1000,24),entry('MextraWR2','WR',1000,24));
+ const mb=roster('MB',[100000000,35],[null,3]);
+ for(const e of mb)if(['QB','TE'].includes(e.position))e.value=100000000;
+ mb.push(entry('TargetRB','RB',3300,30));
+ data.teams=[{id:1,manager:'Alpha',roster:ma},{id:2,manager:'Beta',roster:mb}];
+ state.finderTeam='1';state.scope='2';state.finderPosition='RB';
+ let largeResults=await t.finderRun();
+ assert(largeResults.rows.some(r=>r.out.length===3&&r.inc.length===1),'find a sensible three-for-one lineup upgrade');
+ assert(largeResults.rows.filter(r=>r.out.length===3||r.inc.length===3).every(r=>r.theirGain/16>=-.5),'three-player deals protect partner lineup');
+ mb.find(e=>e.id==='TargetRB').value=2000;
+ mb[5].projected=35*18;
+ mb.push(entry('TargetTE','TE',1300,28));
+ state.finderPosition='TE';largeResults=await t.finderRun();
+ assert(largeResults.rows.some(r=>r.out.length===3&&r.inc.length===2),'find a sensible three-for-two lineup upgrade');
+ data.teams=savedTeams;
  const wire=t.wireSentences({manager:'Alpha',gets:[{name:'Player',value:4000,pos:'RB',rep:{name:'Free Agent',value:2100}}]});
  assert(wire.includes('Player (4,000)')&&wire.includes('Free Agent (2,100)'),'wire comparison shows both market values');
  assert(source.includes('Play quality (PFF GRADE)'),'factor scorecard uses PFF GRADE');
@@ -91,5 +118,5 @@ function runTradeTests(source){
  return checks;
 }
 const source=readFileSync(new URL('./trade-desk.js',import.meta.url),'utf8');
-const checks=runTradeTests(source);
+const checks=await runTradeTests(source);
 console.log('Trade Finder: '+checks.length+' checks passed.');

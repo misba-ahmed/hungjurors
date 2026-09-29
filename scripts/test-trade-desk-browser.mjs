@@ -127,7 +127,14 @@ try{
  assert.equal(await page.locator('.td-finder-unit').count(),6);
  assert.equal(await page.locator('[data-td-scope]').inputValue(),'all');
  assert.equal(await page.locator('[data-td-position]').inputValue(),'ANY');
- assert.ok((await page.locator('.td-finder-needs').innerText()).includes('Combo'));
+ assert.ok((await page.locator('.td-finder-unit').nth(4).getAttribute('title')).includes('Combo'));
+ await page.evaluate(()=>{second.push(fixtureEntry('unpriced-te','Unpriced reserve','TE',null,60,'BBB'));hjRerenderStrength()});
+ assert.match(await page.locator('.td-finder-unit').nth(3).locator('b').innerText(),/^#[0-9]+$/);
+ const finderText=await page.locator('.td-finder').innerText();
+ assert.ok(!finderText.includes('Waiting for complete'));
+ assert.ok(!finderText.includes('one- or two-player'));
+ assert.ok(!finderText.includes('League position ranks ·'));
+ assert.ok(!finderText.includes('Choose your filters'));
  for(const width of [390,768,1280]){
   await page.setViewportSize({width,height:844});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Finder fits '+width);

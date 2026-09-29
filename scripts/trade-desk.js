@@ -168,18 +168,21 @@
   }
   return Math.max(before.filter(e=>!isIR(e)).length,...teams().map(t=>rosterOf(t.id).filter(e=>!isIR(e)).length));
  }
- function dropPlan(before,rawAfter,incoming=[]){
-  const capacity=rosterCapacity(before),after=rawAfter.slice(),drops=[];
+ function dropPlan(before,rawAfter,incoming=[],cached=null){
+  const capacity=cached?.capacity??rosterCapacity(before),after=rawAfter.slice(),drops=[];
   const irCapacity=Number(HJ_LEAGUE_STATE?.data?.settings?.rosterSettings?.lineupSlotCounts?.[21]??before.filter(isIR).length);
   let irUsed=0;
   for(let i=0;i<after.length;i++)if(isIR(after[i])){if(irUsed++>=irCapacity)after[i]={...after[i],lineupSlotId:20}}
   let excess=Math.max(0,after.filter(e=>!isIR(e)).length-capacity);
-  const low=(a,b)=>(valueOf(a)??Infinity)-(valueOf(b)??Infinity)||(projOf(a)??0)-(projOf(b)??0)||entryId(a).localeCompare(entryId(b));
+  const projected=cached?.projected||projOf;
+  const low=(a,b)=>(valueOf(a)??Infinity)-(valueOf(b)??Infinity)||(projected(a)??0)-(projected(b)??0)||entryId(a).localeCompare(entryId(b));
   while(excess>0){
-   const eligible=after.filter(e=>!isIR(e));
+   const counts=countByPos(after),flexCount=FLEXABLE.reduce((n,pos)=>n+(counts[pos]||0),0);
+   const eligible=after.filter(e=>!isIR(e)&&counts[hjPlayerPosition(e)]>(MINIMUMS[hjPlayerPosition(e)]||0)&&
+    (!FLEXABLE.includes(hjPlayerPosition(e))||flexCount>6));
    // Compare valued players first; an unvalued kicker is not a zero-value RB.
    const valued=eligible.filter(e=>Number.isFinite(valueOf(e))).sort(low);
-   const candidate=valued[0]||eligible.slice().sort((a,b)=>(projOf(a)??0)-(projOf(b)??0))[0];
+   const candidate=valued[0]||eligible.slice().sort((a,b)=>(projected(a)??0)-(projected(b)??0))[0];
    if(!candidate)break;
    drops.push(candidate);after.splice(after.indexOf(candidate),1);excess--;
   }
@@ -497,18 +500,21 @@
    seen.add(id);return true;
   });
   const special=pos==='K'||pos==='D/ST';
-  const values=group.map(e=>special?hj6Projection(e,'combo','season',week(),HJ_LEAGUE_SEASON):valueOf(e));
-  if(!values.every(Number.isFinite))return null;
-  return special?(values.length?Math.max(...values):0):values.reduce((a,b)=>a+b,0);
+  // Match Power Ranking: total priced players, rather than invalidating an
+  // entire position because one reserve has no entry in the market feed.
+  const values=group.map(e=>special?hj6Projection(e,'combo','season',week(),HJ_LEAGUE_SEASON):valueOf(e)).filter(Number.isFinite);
+  if(!group.length)return 0;
+  if(!values.length)return null;
+  return special?Math.max(...values):values.reduce((a,b)=>a+b,0);
  }
  function finderNeeds(id){
   const league=teams().map(team=>({id:String(team.id),units:Object.fromEntries(FINDER_UNITS.map(pos=>[pos,finderUnitValue(rosterOf(team.id),pos)]))}));
   const mine=league.find(row=>row.id===String(id));
   if(!mine)return null;
   const units=FINDER_UNITS.map(pos=>{
-   const value=mine.units[pos],peers=league.map(row=>row.units[pos]),complete=peers.every(Number.isFinite);
-   const average=complete?peers.reduce((a,b)=>a+b,0)/Math.max(1,peers.length):null;
-   return {pos,value,rank:Number.isFinite(value)&&complete?1+peers.filter(v=>v>value).length:null,
+   const value=mine.units[pos],peers=league.map(row=>row.units[pos]).filter(Number.isFinite);
+   const average=peers.length?peers.reduce((a,b)=>a+b,0)/peers.length:null;
+   return {pos,value,rank:Number.isFinite(value)?1+peers.filter(v=>v>value).length:null,
     average,relative:Number.isFinite(value)&&average>0?value/average:null,special:!UNITS.includes(pos)};
   });
   const ranked=units.filter(u=>Number.isFinite(u.rank)).sort((a,b)=>b.rank-a.rank||(a.relative??1)-(b.relative??1));
@@ -519,72 +525,101 @@
  function finderNeedsHTML(id){
   const needs=finderNeeds(id);if(!needs)return '';
   const tone=u=>!Number.isFinite(u.rank)?'unknown':u.rank<=Math.ceil(needs.count/3)?'strong':u.rank>Math.ceil(needs.count*2/3)?'weak':'middle';
-  const description=!needs.complete?'Waiting for complete values before identifying your weakest positions.':
-   needs.even?'Your position groups are evenly ranked across the league.':
-   sentenceList(needs.weakest)+(needs.weakest.length===1?' is your weakest position.':' are your weakest positions.');
+  const description=needs.even?'Your position groups are evenly ranked across the league.':
+   needs.weakest.length?sentenceList(needs.weakest)+(needs.weakest.length===1?' is your weakest position.':' are your weakest positions.') : '';
   return '<div class="td-finder-needs" aria-live="polite"><div class="td-finder-needs-bar" aria-label="Positional rankings across your league">'+
-   needs.units.map(u=>'<div class="td-finder-unit is-'+tone(u)+'"><span>'+E(u.pos)+'</span><b>'+
+   needs.units.map(u=>'<div class="td-finder-unit is-'+tone(u)+'" title="'+(u.special?'Best Combo season projection':'Total roster market value')+'"><span>'+E(u.pos)+'</span><b>'+
     (Number.isFinite(u.rank)?'#'+u.rank:'—')+'</b><small>'+money(u.value)+(u.special?' pts':' MV')+'</small></div>').join('')+
-   '</div><p>'+E(description)+'</p><small>League position ranks · QB/RB/WR/TE: total active-roster market value · K/DST: best player’s Combo season projection</small></div>';
+   '</div>'+(description?'<p>'+E(description)+'</p>':'')+'</div>';
  }
  function finderMatchesPosition(entries,position){
   return position==='ANY'||entries.some(e=>position==='FLEX'?FLEXABLE.includes(hjPlayerPosition(e)):hjPlayerPosition(e)===position);
  }
 
- function finderRun(){
-  const from=HJTD.finderTeam,position=HJTD.finderPosition||'ANY';
+ function finderPackages(list){
+  const out=[];
+  for(let a=0;a<list.length;a++){
+   out.push([list[a]]);
+   for(let b=a+1;b<list.length;b++){
+    out.push([list[a],list[b]]);
+    for(let c=b+1;c<list.length;c++)out.push([list[a],list[b],list[c]]);
+   }
+  }
+  return out;
+ }
+ async function finderRun(){
+  const from=HJTD.finderTeam,position=HJTD.finderPosition||'ANY',scopeId=HJTD.scope;
   if(!teamById(from)){HJTD.finder=null;return null}
-  const scope=HJTD.scope==='all'?teams().filter(t=>String(t.id)!==String(from)):[teamById(HJTD.scope)].filter(t=>t&&String(t.id)!==String(from));
-  const mine=rosterOf(from),needs=finderNeeds(from),weakest=needs?.complete?needs.weakest:[];
-  // Cache expensive projections once per player, not once per candidate package.
+  const current=()=>HJTD.finderTeam===from&&HJTD.finderPosition===position&&HJTD.scope===scopeId;
+  const scope=scopeId==='all'?teams().filter(t=>String(t.id)!==String(from)):[teamById(scopeId)].filter(t=>t&&String(t.id)!==String(from));
+  const mine=rosterOf(from),needs=finderNeeds(from),weakest=needs?.weakest||[];
+  // Evaluate each feed once per player; scan value-matched packages rather than
+  // rerunning expensive projection lookups for every three-player combination.
   const facts=new Map();
-  const item=e=>{const id=entryId(e);if(!facts.has(id))facts.set(id,{pos:hjPlayerPosition(e),pts:projOf(e),ir:isIR(e)||injuryOf(e)==='INJURY_RESERVE'});return {...facts.get(id),entry:e}};
-  const items=list=>list.map(item),myBase=lineupPoints(items(mine)).total,results=[];
-  const priced=list=>list.filter(e=>!isIR(e)&&injuryOf(e)!=='INJURY_RESERVE'&&FINDER_UNITS.includes(hjPlayerPosition(e))&&
-   (UNITS.includes(hjPlayerPosition(e))?Number.isFinite(valueOf(e)):Number.isFinite(item(e).pts)));
-  const specialValue=entries=>entries.filter(e=>!UNITS.includes(hjPlayerPosition(e))).reduce((n,e)=>n+item(e).pts,0);
-  const packages=list=>list.map(e=>[e]).concat(list.flatMap((e,i)=>list.slice(i+1).map(other=>[e,other])));
-  const minePackages=packages(priced(mine)).map(entries=>({entries,value:sumValues(entries)}));
-  const ready=list=>list.filter(e=>!isIR(e)&&injuryOf(e)!=='INJURY_RESERVE').every(e=>Number.isFinite(item(e).pts));
+  const item=e=>{const id=entryId(e);if(!facts.has(id))facts.set(id,{pos:hjPlayerPosition(e),pts:projOf(e),ir:isIR(e)||injuryOf(e)==='INJURY_RESERVE',entry:e});return facts.get(id)};
+  const items=list=>list.map(item),myLineBefore=lineupPoints(items(mine)),myBase=myLineBefore.total,results=[];
+  const priced=list=>list.filter(e=>!item(e).ir&&FINDER_UNITS.includes(hjPlayerPosition(e))&&Number.isFinite(item(e).pts)&&
+   (UNITS.includes(hjPlayerPosition(e))?Number.isFinite(valueOf(e)):true));
+  const prepare=list=>finderPackages(priced(list)).map(entries=>{
+   const ids=new Set(entries.map(entryId));
+   const value=sumValues(entries),special=entries.filter(e=>!UNITS.includes(hjPlayerPosition(e))).reduce((n,e)=>n+item(e).pts,0);
+   return {entries,ids,value,special,remaining:list.filter(e=>!ids.has(entryId(e)))};
+  });
+  const minePackages=prepare(mine),myCache={capacity:rosterCapacity(mine),projected:e=>item(e).pts};
+  const myUnits=Object.fromEntries(weakest.map(pos=>[pos,finderUnitValue(mine,pos)]));
   const waiting=[];
-  if(!ready(mine)){HJTD.finder={at:Date.now(),scope:HJTD.scope,position,from,rows:[],scanned:0,waiting:true};return HJTD.finder}
+  if(myLineBefore.short){HJTD.finder={at:Date.now(),scope:scopeId,position,from,rows:[],scanned:0,waiting:true};return HJTD.finder}
+  const lowerBound=(list,value,get)=>{let lo=0,hi=list.length;while(lo<hi){const mid=(lo+hi)>>>1;if(get(list[mid])<value)lo=mid+1;else hi=mid}return lo};
+  let sliceAt=Date.now(),examined=0;
   for(const team of scope){
-   const theirs=rosterOf(team.id);
-   if(!ready(theirs)){waiting.push(String(team.id));continue}
-   const theirBase=lineupPoints(items(theirs)).total,manager=managerOf(team);
-   const incoming=packages(priced(theirs)).filter(pkg=>finderMatchesPosition(pkg,position)).map(entries=>({entries,value:sumValues(entries)}));
-   for(const sent of minePackages)for(const received of incoming){
-    const out=sent.entries,inc=received.entries,outV=sent.value,incV=received.value;
-    const specialOnly=outV===0&&incV===0;
-    // Projection points never masquerade as market value. Unpriced K/DST trades
-    // use Combo on both sides; mixed packages still have to balance market value.
-    const balanceOut=specialOnly?specialValue(out):outV,balanceIn=specialOnly?specialValue(inc):incV;
-    const gap=Math.abs(balanceIn-balanceOut)/Math.max(balanceOut,balanceIn,1);
-    if(gap>.22)continue;
-    const outIds=new Set(out.map(entryId)),incIds=new Set(inc.map(entryId));
-    const myAfter=dropPlan(mine,mine.filter(e=>!outIds.has(entryId(e))).concat(inc),inc).after;
-    // A requested player cannot count toward a match if the roster limit drops him.
-    if(!inc.every(e=>myAfter.some(kept=>entryId(kept)===entryId(e))))continue;
-    const myLine=lineupPoints(items(myAfter)),myGain=myLine.total-myBase;
-    if(myLine.short>0||myGain/remainingWeeks()<(specialOnly?.5:2))continue;
-    const theirAfter=dropPlan(theirs,theirs.filter(e=>!incIds.has(entryId(e))).concat(out),out).after;
-    if(!out.every(e=>theirAfter.some(kept=>entryId(kept)===entryId(e))))continue;
-    const theirLine=lineupPoints(items(theirAfter));if(theirLine.short>0)continue;
-    const theirGain=theirLine.total-theirBase,myPct=myGain/Math.max(myBase,1),theirPct=theirGain/Math.max(theirBase,1);
-    const needDelta=weakest.reduce((sum,pos)=>{
-     const average=needs.units.find(u=>u.pos===pos)?.average||1;
-     return sum+(finderUnitValue(myAfter,pos)-finderUnitValue(mine,pos))/average;
-    },0);
-    const addressesNeed=needDelta>0&&inc.some(e=>weakest.includes(hjPlayerPosition(e)));
-    const tone=theirGain/remainingWeeks()>=2?'good':theirGain/remainingWeeks()>-2?'even':'bad';
-    results.push({team,manager,out,inc,myGain,theirGain,myPct,theirPct,outV,incV,gap,balanceBasis:specialOnly?'Combo projection':'market value',tone,addressesNeed,
-     needPositions:weakest.filter(pos=>inc.some(e=>hjPlayerPosition(e)===pos)),mutual:tone==='good',
-     score:myPct*100+theirPct*55-gap*25});
+   const theirs=rosterOf(team.id),theirBefore=lineupPoints(items(theirs));
+   if(theirBefore.short){waiting.push(String(team.id));continue}
+   const theirBase=theirBefore.total,manager=managerOf(team),theirCache={capacity:rosterCapacity(theirs),projected:e=>item(e).pts};
+   const incoming=prepare(theirs).filter(pkg=>finderMatchesPosition(pkg.entries,position));
+   const market=incoming.filter(p=>p.value>0).sort((a,b)=>a.value-b.value);
+   const special=incoming.filter(p=>p.value===0).sort((a,b)=>a.special-b.special);
+   for(const sent of minePackages){
+    const specialOnly=sent.value===0,pool=specialOnly?special:market,get=p=>specialOnly?p.special:p.value;
+    const balanceOut=get(sent),lo=lowerBound(pool,balanceOut*.78,get),hi=lowerBound(pool,balanceOut/.78+.00001,get);
+    for(let n=lo;n<hi;n++){
+     if((++examined&63)===0&&Date.now()-sliceAt>12){
+      await new Promise(resolve=>setTimeout(resolve,0));
+      if(!current())return null;
+      sliceAt=Date.now();
+     }
+     const received=pool[n],out=sent.entries,inc=received.entries,outV=sent.value,incV=received.value;
+     const balanceIn=get(received),gap=Math.abs(balanceIn-balanceOut)/Math.max(balanceOut,balanceIn,1);
+     if(gap>.22)continue;
+     const minePlan=dropPlan(mine,sent.remaining.concat(inc),inc,myCache),myAfter=minePlan.after;
+     if(myAfter.filter(e=>!isIR(e)).length>myCache.capacity||!inc.every(e=>myAfter.some(kept=>entryId(kept)===entryId(e))))continue;
+     const myLine=lineupPoints(items(myAfter)),myGain=myLine.total-myBase;
+     if(myLine.short>0||myGain/remainingWeeks()<(specialOnly?.5:2))continue;
+     const theirPlan=dropPlan(theirs,received.remaining.concat(out),out,theirCache),theirAfter=theirPlan.after;
+     if(theirAfter.filter(e=>!isIR(e)).length>theirCache.capacity||!out.every(e=>theirAfter.some(kept=>entryId(kept)===entryId(e))))continue;
+     const theirLine=lineupPoints(items(theirAfter));if(theirLine.short>0)continue;
+     const theirGain=theirLine.total-theirBase,myPct=myGain/Math.max(myBase,1),theirPct=theirGain/Math.max(theirBase,1);
+     // An uneven package must remain fair after the extra roster cuts.
+     const myDropValue=sumValues(minePlan.drops),theirDropValue=sumValues(theirPlan.drops);
+     if(!specialOnly&&((outV+myDropValue)*.78>incV||(incV+theirDropValue)*.78>outV))continue;
+     const large=out.length===3||inc.length===3;
+     // Do not dress up a bench dump as a three-player "upgrade": the partner
+     // must improve too, or retain its lineup and receive at least equal value.
+     if(large&&(theirGain/remainingWeeks()<-.5||(theirGain/remainingWeeks()<.5&&outV<incV+theirDropValue)))continue;
+     const needDelta=weakest.reduce((sum,pos)=>{
+      const average=needs.units.find(u=>u.pos===pos)?.average||1;
+      return sum+(finderUnitValue(myAfter,pos)-myUnits[pos])/average;
+     },0);
+     const addressesNeed=needDelta>0&&inc.some(e=>weakest.includes(hjPlayerPosition(e)));
+     const tone=theirGain/remainingWeeks()>=2?'good':theirGain/remainingWeeks()>-2?'even':'bad';
+     results.push({team,manager,out,inc,myGain,theirGain,myPct,theirPct,outV,incV,gap,
+      myDrops:minePlan.drops,theirDrops:theirPlan.drops,balanceBasis:specialOnly?'Combo projection':'market value',tone,addressesNeed,
+      needPositions:weakest.filter(pos=>inc.some(e=>weakest.includes(pos)&&hjPlayerPosition(e)===pos)),mutual:tone==='good',
+      score:myPct*100+theirPct*55-gap*25-(out.length+inc.length-2)*.12});
+    }
    }
   }
   results.sort((a,b)=>(position==='ANY'?(Number(b.addressesNeed)-Number(a.addressesNeed)):0)||(b.mutual-a.mutual)||b.score-a.score);
   const trimmed=[],seen=new Set(),seenIn=new Map(),seenOut=new Map();
-  // Keep a few other strong improvements even when many need-focused deals qualify.
   const groups=position==='ANY'?[results.filter(r=>r.addressesNeed),results.filter(r=>!r.addressesNeed)]:[results];
   const otherAvailable=groups.length>1&&groups[1].length>0;
   for(let g=0;g<groups.length;g++){
@@ -596,7 +631,8 @@
     seen.add(key);seenOut.set(outKey,(seenOut.get(outKey)||0)+1);seenIn.set(inKey,(seenIn.get(inKey)||0)+1);trimmed.push(r);
    }
   }
-  HJTD.finder={at:Date.now(),scope:HJTD.scope,position,from,rows:trimmed,scanned:scope.length-waiting.length,waiting:waiting.length>0};
+  if(!current())return null;
+  HJTD.finder={at:Date.now(),scope:scopeId,position,from,rows:trimmed,scanned:scope.length-waiting.length,waiting:waiting.length>0};
   return HJTD.finder;
  }
 
@@ -1487,13 +1523,13 @@
    '<div class="td-finder-controls"><label class="td-finder-who"><span>Trade with</span><select data-td-scope aria-label="Trade with">'+options+'</select></label>'+
    '<label class="td-finder-who"><span>Trade for</span><select data-td-position aria-label="Trade for position">'+positions.map(([id,label])=>'<option value="'+id+'"'+(HJTD.finderPosition===id?' selected':'')+'>'+label+'</option>').join('')+'</select></label>'+
    '<button type="button" class="td-run" data-td-find'+(!selected||HJTD.finding?' disabled':'')+'>'+(HJTD.finding?'Finding trades…':found?'Scan again':'Find me a trade')+'</button></div></div>';
-  const intro='<div class="td-finder-head"><h3>Trade finder</h3><p>Find balanced one- or two-player deals that improve your lineup. Any position puts your roster needs first; choose a position to require it in the players you receive.</p></div>';
-  let message=!selected?'Choose your team to see its positional strengths and find trades.':HJTD.finding?'Checking lineup improvements…':
-   !found?'Choose your filters, then find a trade.':found.error?'The scan could not finish. Please try again.':
+  const intro='<div class="td-finder-head"><h3>Trade finder</h3></div>';
+  if(!selected||HJTD.finding||!found)return '<section class="td-finder">'+intro+controls+'</section>';
+  let message=found.error?'The scan could not finish. Please try again.':
    found.waiting&&!found.rows.length?'Projections are still loading for some rosters. Try again once they are ready.':
    !found.rows.length?'No balanced lineup upgrades matched these filters. Try another position, every manager, or build a trade yourself.':'';
   if(message)return '<section class="td-finder">'+intro+controls+'<p class="td-empty" role="status">'+message+'</p></section>';
-  return '<section class="td-finder">'+intro+controls+'<p class="td-finder-summary">'+found.rows.length+' suggestions · '+found.scanned+' rosters checked'+(found.waiting?' · Some rosters are still loading':'')+'</p><div class="td-finds">'+found.rows.map((r,i)=>`<article class="td-find${r.mutual?' is-mutual':''}">
+  return '<section class="td-finder">'+intro+controls+'<p class="td-finder-summary">'+found.rows.length+' suggestions · '+found.scanned+' rosters checked'+'</p><div class="td-finds">'+found.rows.map((r,i)=>`<article class="td-find${r.mutual?' is-mutual':''}">
     <div class="td-find-rank">${i+1}</div>
     <div class="td-find-body">
      <div class="td-find-head">${av(r.manager,'td-av-sm')}<b>${E(r.manager)}</b><span class="td-tag ${r.tone==='good'?'is-good':r.tone==='bad'?'is-bad':''}">${r.tone==='good'?'Helps both':r.tone==='even'?'Fair ask':'Tough sell'}</span></div>
@@ -1503,6 +1539,7 @@
       <div class="leg arrow">⇄</div>
       <div class="leg in"><small>You get</small>${r.inc.map(e=>'<span>'+E(entryName(e))+' <i>'+finderPlayerValue(e)+'</i></span>').join('')}</div>
      </div>
+     ${r.myDrops?.length||r.theirDrops?.length?'<p class="td-find-cuts">'+(r.myDrops.length?'You drop: '+E(sentenceList(r.myDrops.map(entryName))):'')+(r.myDrops.length&&r.theirDrops.length?' · ':'')+(r.theirDrops.length?E(r.manager)+' drops: '+E(sentenceList(r.theirDrops.map(entryName))):'')+'</p>':''}
      <div class="td-find-foot"><span class="is-up">+${one(r.myGain/remainingWeeks())}/week to your lineup</span><span class="${r.theirGain>0?'is-up':'is-down'}">${r.theirGain>0?'+':'−'}${one(Math.abs(r.theirGain)/remainingWeeks())}/week to theirs</span><span>${(r.gap*100).toFixed(0)}% ${E(r.balanceBasis)} gap</span></div>
     </div>
     <button type="button" class="td-find-load" data-td-load="${i}">Open</button>
@@ -1594,8 +1631,11 @@
     event.preventDefault();event.stopPropagation();
     if(!teamById(HJTD.finderTeam)||HJTD.finding)return;
     HJTD.finding=true;rerender();
-    setTimeout(()=>{
-     try{finderRun()}catch(error){console.warn('Trade finder unavailable',error);HJTD.finder={at:Date.now(),scope:HJTD.scope,position:HJTD.finderPosition,from:HJTD.finderTeam,rows:[],scanned:0,error:true}}
+    setTimeout(async()=>{
+     try{
+      await Promise.allSettled([warmScorecardSources(),ensureUsage(),ensureSchedule()]);
+      await finderRun();
+     }catch(error){console.warn('Trade finder unavailable',error);HJTD.finder={at:Date.now(),scope:HJTD.scope,position:HJTD.finderPosition,from:HJTD.finderTeam,rows:[],scanned:0,error:true}}
      finally{HJTD.finding=false;rerender()}
     },30);return;
    }
