@@ -336,7 +336,7 @@
     ===================================================================== */
  const MV_KEYS=['QB','RB','WR','TE','FLEX'];
  const DESCRIPTIONS={
-  value:{title:'Market',copy:'Player market value generated based on millions of real trades completed in real leagues. Player values are updated in real time as new trades are scraped from all major fantasy sites.'},
+  value:{title:'Market Value',copy:'Player market value generated based on millions of real trades completed in real leagues. Player values are updated in real time as new trades are scraped from all major fantasy sites.'},
   espn:{title:'ESPN',copy:'Player values determined by ESPN fantasy point projections for every player.'},
   vegas:{title:'Vegas',copy:'Player values determined by projections built from posted Vegas sportsbook player props, converted into this league\u2019s scoring system. Where a book has not priced a player (kickers and DST\u2019s), ESPN\u2019s projection fills the gap so every roster still ranks.'},
   combo:{title:'E/V Combo',copy:'Player values determined by ESPN and Vegas projections averaged together for each player.'},
@@ -464,7 +464,7 @@
   const scope=HJ_STRENGTH_STATE.scope==='all'?'all':'starters';
   const group=(items,active,attr)=>`<div class="hj15-group">${items.map(([id,text,title])=>`<button type="button" class="hj15-toggle${active===id?' active':''}" ${attr}="${id}" aria-pressed="${active===id}"${title?` title="${escape(title)}"`:''}>${text}</button>`).join('')}</div>`;
   return `<div class="hj15-toolbar">`
-   +group([['dashboard','Dashboard'],['compare','Compare']],view,'data-hq-strength-view')
+   +group([['dashboard','Power Ranking'],['compare','Compare']],view,'data-hq-strength-view')
    +group([
      ['value','Market','Market value of every rostered player, from real completed trades.'],
      ['espn','ESPN','ESPN\u2019s own point projections.'],
@@ -478,6 +478,7 @@
 
  function decorate(html,model){
   let out=String(html);
+  out=out.replace(/(data-hq-strength-view="dashboard"[^>]*>)[\s\S]*?(<\/button>)/,'$1Power Ranking$2');
   /* The Value control sits at the end of the model group. */
   if(!/data-hq-strength-model="value"/.test(out)){
    /* Market leads the model group. */

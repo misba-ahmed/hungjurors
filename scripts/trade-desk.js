@@ -12,8 +12,9 @@
  const LINEUP=[['QB',1],['RB',2],['WR',2],['TE',1]];
  const FLEXABLE=['RB','WR','TE'];
  const UNITS=['QB','RB','WR','TE'];
+ const FINDER_UNITS=[...UNITS,'K','D/ST'];
 
- const HJTD={a:'',b:'',give:new Set(),get:new Set(),pick:'',query:'',mode:'build',finder:null,finding:false,scope:'all'};
+ const HJTD={a:'',b:'',give:new Set(),get:new Set(),pick:'',query:'',mode:'build',finder:null,finding:false,scope:'all',finderTeam:'',finderPosition:'ANY'};
  window.HJTD=HJTD;
 
  const DRAFT_KEY='hj-trade-draft-v1';
@@ -23,6 +24,7 @@
   draftInFlight=pending;
   const saved=JSON.stringify({season:Number(NFL_SEASON),at:Date.now(),a:HJTD.a,b:HJTD.b,
    give:[...HJTD.give],get:[...HJTD.get],mode:HJTD.mode,scope:scopeNow(),pending,
+   finderTeam:HJTD.finderTeam,finderPosition:HJTD.finderPosition,finderScope:HJTD.scope,
    tradeView:HJ_HQ_STATE?.activeTab==='strength'&&HJ_STRENGTH_STATE.view==='trade'});
   // Keep a fallback for browsers that discard session storage when reclaiming a tab.
   try{sessionStorage.setItem(DRAFT_KEY,saved)}catch(_){}
@@ -40,6 +42,9 @@
   if(!saved)return;
   HJTD.a=saved.a;HJTD.b=saved.b;HJTD.give=new Set(saved.give);HJTD.get=new Set(saved.get);
   HJTD.mode=saved.mode==='finder'?'finder':'build';
+  HJTD.finderTeam=typeof saved.finderTeam==='string'?saved.finderTeam:'';
+  HJTD.finderPosition=[...FINDER_UNITS,'FLEX'].includes(saved.finderPosition)?saved.finderPosition:'ANY';
+  HJTD.scope=typeof saved.finderScope==='string'?saved.finderScope:'all';
   if(saved.pending||(saved.tradeView&&location.hash==='#roster-strength')){
    restoreTradeView=true;
    HJ_STRENGTH_STATE.view='trade';HJ_STRENGTH_STATE.scope=saved.scope==='starters'?'starters':'all';
@@ -483,72 +488,115 @@
     what each side's starting lineup gains. Deals that only help one team
     are kept but marked; deals that help both are surfaced first.
     ===================================================================== */
+ /* Compare total active-roster market value within the same position across managers.
+    A missing price is unknown, never a zero-valued player. This ignores the builder scope. */
+ function finderUnitValue(list,pos){
+  const seen=new Set(),group=list.filter(e=>{
+   const id=entryId(e);
+   if(!id||seen.has(id)||isIR(e)||injuryOf(e)==='INJURY_RESERVE'||hjPlayerPosition(e)!==pos)return false;
+   seen.add(id);return true;
+  });
+  const special=pos==='K'||pos==='D/ST';
+  const values=group.map(e=>special?hj6Projection(e,'combo','season',week(),HJ_LEAGUE_SEASON):valueOf(e));
+  if(!values.every(Number.isFinite))return null;
+  return special?(values.length?Math.max(...values):0):values.reduce((a,b)=>a+b,0);
+ }
+ function finderNeeds(id){
+  const league=teams().map(team=>({id:String(team.id),units:Object.fromEntries(FINDER_UNITS.map(pos=>[pos,finderUnitValue(rosterOf(team.id),pos)]))}));
+  const mine=league.find(row=>row.id===String(id));
+  if(!mine)return null;
+  const units=FINDER_UNITS.map(pos=>{
+   const value=mine.units[pos],peers=league.map(row=>row.units[pos]),complete=peers.every(Number.isFinite);
+   const average=complete?peers.reduce((a,b)=>a+b,0)/Math.max(1,peers.length):null;
+   return {pos,value,rank:Number.isFinite(value)&&complete?1+peers.filter(v=>v>value).length:null,
+    average,relative:Number.isFinite(value)&&average>0?value/average:null,special:!UNITS.includes(pos)};
+  });
+  const ranked=units.filter(u=>Number.isFinite(u.rank)).sort((a,b)=>b.rank-a.rank||(a.relative??1)-(b.relative??1));
+  const even=ranked.length===FINDER_UNITS.length&&ranked.every(u=>u.rank===ranked[0].rank);
+  const weakest=even?[]:ranked.filter(u=>u.rank>=ranked[0].rank-1).slice(0,2).map(u=>u.pos);
+  return {units,weakest,count:league.length,complete:units.every(u=>Number.isFinite(u.rank)),even};
+ }
+ function finderNeedsHTML(id){
+  const needs=finderNeeds(id);if(!needs)return '';
+  const tone=u=>!Number.isFinite(u.rank)?'unknown':u.rank<=Math.ceil(needs.count/3)?'strong':u.rank>Math.ceil(needs.count*2/3)?'weak':'middle';
+  const description=!needs.complete?'Waiting for complete values before identifying your weakest positions.':
+   needs.even?'Your position groups are evenly ranked across the league.':
+   sentenceList(needs.weakest)+(needs.weakest.length===1?' is your weakest position.':' are your weakest positions.');
+  return '<div class="td-finder-needs" aria-live="polite"><div class="td-finder-needs-bar" aria-label="Positional rankings across your league">'+
+   needs.units.map(u=>'<div class="td-finder-unit is-'+tone(u)+'"><span>'+E(u.pos)+'</span><b>'+
+    (Number.isFinite(u.rank)?'#'+u.rank:'—')+'</b><small>'+money(u.value)+(u.special?' pts':' MV')+'</small></div>').join('')+
+   '</div><p>'+E(description)+'</p><small>League position ranks · QB/RB/WR/TE: total active-roster market value · K/DST: best player’s Combo season projection</small></div>';
+ }
+ function finderMatchesPosition(entries,position){
+  return position==='ANY'||entries.some(e=>position==='FLEX'?FLEXABLE.includes(hjPlayerPosition(e)):hjPlayerPosition(e)===position);
+ }
+
  function finderRun(){
-  const scope=HJTD.scope==='all'?teams().filter(t=>String(t.id)!==String(HJTD.a)):[teamById(HJTD.scope)].filter(t=>t&&String(t.id)!==String(HJTD.a));
-  const mine=rosterOf(HJTD.a);
-  const myItems=toItems(mine);
-  const myBase=lineupPoints(myItems).total;
-  const myValue=marketTotal(mine);
-  const results=[];
-  const priced=list=>list.filter(e=>Number.isFinite(valueOf(e))&&!isIR(e));
-
+  const from=HJTD.finderTeam,position=HJTD.finderPosition||'ANY';
+  if(!teamById(from)){HJTD.finder=null;return null}
+  const scope=HJTD.scope==='all'?teams().filter(t=>String(t.id)!==String(from)):[teamById(HJTD.scope)].filter(t=>t&&String(t.id)!==String(from));
+  const mine=rosterOf(from),needs=finderNeeds(from),weakest=needs?.complete?needs.weakest:[];
+  // Cache expensive projections once per player, not once per candidate package.
+  const facts=new Map();
+  const item=e=>{const id=entryId(e);if(!facts.has(id))facts.set(id,{pos:hjPlayerPosition(e),pts:projOf(e),ir:isIR(e)||injuryOf(e)==='INJURY_RESERVE'});return {...facts.get(id),entry:e}};
+  const items=list=>list.map(item),myBase=lineupPoints(items(mine)).total,results=[];
+  const priced=list=>list.filter(e=>!isIR(e)&&injuryOf(e)!=='INJURY_RESERVE'&&FINDER_UNITS.includes(hjPlayerPosition(e))&&
+   (UNITS.includes(hjPlayerPosition(e))?Number.isFinite(valueOf(e)):Number.isFinite(item(e).pts)));
+  const specialValue=entries=>entries.filter(e=>!UNITS.includes(hjPlayerPosition(e))).reduce((n,e)=>n+item(e).pts,0);
+  const packages=list=>list.map(e=>[e]).concat(list.flatMap((e,i)=>list.slice(i+1).map(other=>[e,other])));
+  const minePackages=packages(priced(mine)).map(entries=>({entries,value:sumValues(entries)}));
+  const ready=list=>list.filter(e=>!isIR(e)&&injuryOf(e)!=='INJURY_RESERVE').every(e=>Number.isFinite(item(e).pts));
+  const waiting=[];
+  if(!ready(mine)){HJTD.finder={at:Date.now(),scope:HJTD.scope,position,from,rows:[],scanned:0,waiting:true};return HJTD.finder}
   for(const team of scope){
-   const theirs=rosterOf(team.id),theirItems=toItems(theirs);
-   const theirBase=lineupPoints(theirItems).total;
-   const manager=managerOf(team);
-   const mineP=priced(mine),theirsP=priced(theirs);
-
-   const evaluate=(out,inc)=>{
+   const theirs=rosterOf(team.id);
+   if(!ready(theirs)){waiting.push(String(team.id));continue}
+   const theirBase=lineupPoints(items(theirs)).total,manager=managerOf(team);
+   const incoming=packages(priced(theirs)).filter(pkg=>finderMatchesPosition(pkg,position)).map(entries=>({entries,value:sumValues(entries)}));
+   for(const sent of minePackages)for(const received of incoming){
+    const out=sent.entries,inc=received.entries,outV=sent.value,incV=received.value;
+    const specialOnly=outV===0&&incV===0;
+    // Projection points never masquerade as market value. Unpriced K/DST trades
+    // use Combo on both sides; mixed packages still have to balance market value.
+    const balanceOut=specialOnly?specialValue(out):outV,balanceIn=specialOnly?specialValue(inc):incV;
+    const gap=Math.abs(balanceIn-balanceOut)/Math.max(balanceOut,balanceIn,1);
+    if(gap>.22)continue;
     const outIds=new Set(out.map(entryId)),incIds=new Set(inc.map(entryId));
     const myAfter=dropPlan(mine,mine.filter(e=>!outIds.has(entryId(e))).concat(inc),inc).after;
+    // A requested player cannot count toward a match if the roster limit drops him.
+    if(!inc.every(e=>myAfter.some(kept=>entryId(kept)===entryId(e))))continue;
+    const myLine=lineupPoints(items(myAfter)),myGain=myLine.total-myBase;
+    if(myLine.short>0||myGain/remainingWeeks()<(specialOnly?.5:2))continue;
     const theirAfter=dropPlan(theirs,theirs.filter(e=>!incIds.has(entryId(e))).concat(out),out).after;
-    const myLine=lineupPoints(toItems(myAfter)),theirLine=lineupPoints(toItems(theirAfter));
-    if(myLine.short>0||theirLine.short>0)return null;    // never propose a deal that breaks a lineup
-    const myGain=myLine.total-myBase,theirGain=theirLine.total-theirBase;
-    /* Gains are scored as a share of each lineup, so the maths reads the same
-       whether the projections are weekly or season-long. */
-    const myPct=myGain/Math.max(myBase,1),theirPct=theirGain/Math.max(theirBase,1);
-    const outV=out.reduce((s,e)=>s+valueOf(e),0),incV=inc.reduce((s,e)=>s+valueOf(e),0);
-    const gap=Math.abs(incV-outV)/Math.max(outV,incV,1);
-    if(gap>.22)return null;                              // never propose something far off on value
-    if(myGain/remainingWeeks()<2)return null;                          // it has to actually help the asking side
+    if(!out.every(e=>theirAfter.some(kept=>entryId(kept)===entryId(e))))continue;
+    const theirLine=lineupPoints(items(theirAfter));if(theirLine.short>0)continue;
+    const theirGain=theirLine.total-theirBase,myPct=myGain/Math.max(myBase,1),theirPct=theirGain/Math.max(theirBase,1);
+    const needDelta=weakest.reduce((sum,pos)=>{
+     const average=needs.units.find(u=>u.pos===pos)?.average||1;
+     return sum+(finderUnitValue(myAfter,pos)-finderUnitValue(mine,pos))/average;
+    },0);
+    const addressesNeed=needDelta>0&&inc.some(e=>weakest.includes(hjPlayerPosition(e)));
     const tone=theirGain/remainingWeeks()>=2?'good':theirGain/remainingWeeks()>-2?'even':'bad';
-    return {team,manager,out,inc,myGain,theirGain,myPct,theirPct,outV,incV,gap,tone,
-     mutual:tone==='good',
-     score:myPct*100+theirPct*55-gap*25};
-   };
-
-   for(const out of mineP)for(const inc of theirsP){
-    const r=evaluate([out],[inc]);if(r)results.push(r);
-   }
-   /* Two-for-one in both directions, pruned to pairs that are close on value. */
-   for(let i=0;i<mineP.length;i++)for(let j=i+1;j<mineP.length;j++){
-    const pair=[mineP[i],mineP[j]],pv=valueOf(pair[0])+valueOf(pair[1]);
-    for(const inc of theirsP){
-     if(Math.abs(valueOf(inc)-pv)/Math.max(pv,valueOf(inc),1)>.22)continue;
-     const r=evaluate(pair,[inc]);if(r)results.push(r);
-    }
-   }
-   for(let i=0;i<theirsP.length;i++)for(let j=i+1;j<theirsP.length;j++){
-    const pair=[theirsP[i],theirsP[j]],pv=valueOf(pair[0])+valueOf(pair[1]);
-    for(const out of mineP){
-     if(Math.abs(valueOf(out)-pv)/Math.max(pv,valueOf(out),1)>.22)continue;
-     const r=evaluate([out],pair);if(r)results.push(r);
-    }
+    results.push({team,manager,out,inc,myGain,theirGain,myPct,theirPct,outV,incV,gap,balanceBasis:specialOnly?'Combo projection':'market value',tone,addressesNeed,
+     needPositions:weakest.filter(pos=>inc.some(e=>hjPlayerPosition(e)===pos)),mutual:tone==='good',
+     score:myPct*100+theirPct*55-gap*25});
    }
   }
-  results.sort((a,b)=>(b.mutual-a.mutual)||b.score-a.score);
-  /* One suggestion per package sent, and no more than two deals built around the
-     same incoming player, so the list reads as options rather than one idea twelve times. */
-  const seenOut=new Set(),seenIn=new Map(),trimmed=[];
-  for(const r of results){
-   const outKey=r.out.map(entryId).sort().join('+'),inKey=r.inc.map(entryId).sort().join('+');
-   if(seenOut.has(outKey))continue;
-   if((seenIn.get(inKey)||0)>=2)continue;
-   seenOut.add(outKey);seenIn.set(inKey,(seenIn.get(inKey)||0)+1);trimmed.push(r);
-   if(trimmed.length>=12)break;
+  results.sort((a,b)=>(position==='ANY'?(Number(b.addressesNeed)-Number(a.addressesNeed)):0)||(b.mutual-a.mutual)||b.score-a.score);
+  const trimmed=[],seen=new Set(),seenIn=new Map(),seenOut=new Map();
+  // Keep a few other strong improvements even when many need-focused deals qualify.
+  const groups=position==='ANY'?[results.filter(r=>r.addressesNeed),results.filter(r=>!r.addressesNeed)]:[results];
+  const otherAvailable=groups.length>1&&groups[1].length>0;
+  for(let g=0;g<groups.length;g++){
+   const limit=g===0&&otherAvailable?9:12;
+   for(const r of groups[g]){
+    if(trimmed.length>=limit)break;
+    const outKey=r.out.map(entryId).sort().join('+'),inKey=r.inc.map(entryId).sort().join('+'),key=String(r.team.id)+':'+outKey+'>'+inKey;
+    if(seen.has(key)||(seenOut.get(outKey)||0)>=2||(seenIn.get(inKey)||0)>=2)continue;
+    seen.add(key);seenOut.set(outKey,(seenOut.get(outKey)||0)+1);seenIn.set(inKey,(seenIn.get(inKey)||0)+1);trimmed.push(r);
+   }
   }
-  HJTD.finder={at:Date.now(),scope:HJTD.scope,from:HJTD.a,rows:trimmed,scanned:scope.length};
+  HJTD.finder={at:Date.now(),scope:HJTD.scope,position,from,rows:trimmed,scanned:scope.length-waiting.length,waiting:waiting.length>0};
   return HJTD.finder;
  }
 
@@ -1104,7 +1152,7 @@
   }).filter(Boolean).join('\n');
  }
  function wireSentences(side){
-  return side.gets.filter(p=>p.rep).map(p=>side.manager+' gets: '+p.name+'\nBest free-agent '+p.pos+': '+p.rep.name).join('\n\n');
+  return side.gets.filter(p=>p.rep).map(p=>side.manager+' gets: '+p.name+' ('+money(p.value)+')\nBest free-agent '+p.pos+': '+p.rep.name+' ('+money(p.rep.value)+')').join('\n\n');
  }
  function analyse(m){
   if(!m.give.length||!m.take.length)return null;
@@ -1138,7 +1186,7 @@
    {label:'Above the wire',lean:lean(above(A),above(B),Math.max(m.outA,m.outB)*.1),note:rows.map(wireSentences).join('\n\n')},
    {label:'Market form',lean:lean(form(A),form(B),Math.max(m.outA,m.outB)*.1),note:all.filter(p=>Number.isFinite(p.row?.trend30)).map(p=>
     p.name+' — '+(Math.abs(p.row.trend30)<Math.max(p.value,1)*.1?'stable':(p.row.trend30>0?'+':'−')+money(Math.abs(p.row.trend30)))+' (30 days)').join('\n')},
-   {label:'Play quality (PFF)',lean:lean(pff(A),pff(B),3),note:all.filter(p=>Number.isFinite(p.grade)).map(p=>
+   {label:'Play quality (PFF GRADE)',lean:lean(pff(A),pff(B),3),note:all.filter(p=>Number.isFinite(p.grade)).map(p=>
     p.name+' — '+one(p.grade)).join('\n')}
 
   ];
@@ -1396,11 +1444,26 @@
 
 
  /* ---------- analysis panel ---------- */
+ function postTradeLineups(rows){
+  const traded=new Set(rows.flatMap(side=>[...side.in,...side.out].map(entryId)));
+  const name=e=>traded.has(entryId(e))?'<strong>'+E(entryName(e))+'</strong>':E(entryName(e));
+  const line=(slot,e)=>'<li><span>'+E(slot)+'</span><span>'+(e?name(e):'Unfilled')+'</span></li>';
+  return '<details class="td-post-lineups"><summary>Show both post-trade lineups</summary><p>Projected starting lineups · traded players in bold</p><div class="td-post-lineup-grid">'+rows.map(side=>{
+   const used=new Set(side.lineupAfter.slots.filter(x=>x.entry).map(x=>entryId(x.entry)));
+   const reserves=side.after.filter(e=>!used.has(entryId(e)));
+   const bench=reserves.filter(e=>!isIR(e)&&injuryOf(e)!=='INJURY_RESERVE');
+   const ir=reserves.filter(e=>isIR(e)||injuryOf(e)==='INJURY_RESERVE');
+   return '<section><h4>'+E(side.manager)+'</h4><ul>'+side.lineupAfter.slots.map(x=>line(x.slot,x.entry)).join('')+'</ul>'+
+    (bench.length?'<h5>Bench</h5><ul>'+bench.map(e=>line(hjPlayerPosition(e),e)).join('')+'</ul>':'')+
+    (ir.length?'<h5>Injured reserve</h5><ul>'+ir.map(e=>line(hjPlayerPosition(e),e)).join('')+'</ul>':'')+
+    (side.drops?.length?'<p>Roster-limit drops: '+side.drops.map(name).join(', ')+'</p>':'')+'</section>';
+  }).join('')+'</div></details>';
+ }
  function scorecard(a){
   return `<div class="td-score"><div class="td-score-key"><span>${E(a.rows[0].manager)}</span><i aria-hidden="true">◄ ►</i><span>${E(a.rows[1].manager)}</span></div>${a.factors.map(f=>`<div class="td-score-row lean-${f.lean}">
    <span class="td-score-label">${E(f.label)}</span>
    <div class="td-score-meter"><i class="a"></i><i class="dot"></i><i class="b"></i></div>
-   <span class="td-score-note">${E(f.note)}</span>
+   <div class="td-score-note"><span>${E(f.note)}</span>${f.label==='Positional fit'?postTradeLineups(a.rows):''}</div>
   </div>`).join('')}</div>`;
  }
 
@@ -1412,42 +1475,52 @@
 
  /* ---------- finder ---------- */
  function finderPanel(){
-  const found=HJTD.finder&&HJTD.finder.from===HJTD.a&&HJTD.finder.scope===HJTD.scope?HJTD.finder:null;
-  const me=managerOf(teamById(HJTD.a));
-  const options=[`<option value="all"${HJTD.scope==='all'?' selected':''}>Every manager</option>`]
-   .concat(teams().filter(t=>String(t.id)!==String(HJTD.a)).map(t=>`<option value="${E(t.id)}"${String(HJTD.scope)===String(t.id)?' selected':''}>${E(managerOf(t))}</option>`)).join('');
-  const controls=`<div class="td-finder-controls">
-    <label class="td-finder-who"><span>Trade with</span><select data-td-scope aria-label="Which manager to scan">${options}</select></label>
-    <button type="button" class="td-run" data-td-find>${found?'Scan again':'Find me a trade'}</button>
-   </div>`;
-  if(!found)return `<section class="td-finder"><div class="td-finder-head"><h3>Trade finder</h3><p>Scans every one-for-one and two-for-one that lifts <b>${E(me)}</b>’s starting lineup without breaking either roster.</p></div>${controls}<p class="td-empty">No scan yet.</p></section>`;
-  if(!found.rows.length)return `<section class="td-finder"><div class="td-finder-head"><h3>Trade finder</h3></div>${controls}<p class="td-empty">Nothing clean came back from ${found.scanned} roster${found.scanned===1?'':'s'}. Try the whole league, or loosen up and build one by hand.</p></section>`;
-  return `<section class="td-finder"><div class="td-finder-head"><h3>Trade finder</h3><p>${found.rows.length} deal${found.rows.length===1?'':'s'} from ${found.scanned} roster${found.scanned===1?'':'s'}, best first. Deals that help both teams are marked.</p></div>${controls}
-   <div class="td-finds">${found.rows.map((r,i)=>`<article class="td-find${r.mutual?' is-mutual':''}">
+  const selected=teamById(HJTD.finderTeam);
+  const found=HJTD.finder&&HJTD.finder.from===HJTD.finderTeam&&HJTD.finder.scope===HJTD.scope&&HJTD.finder.position===HJTD.finderPosition?HJTD.finder:null;
+  const options='<option value="all"'+(HJTD.scope==='all'?' selected':'')+'>Every manager</option>'+
+   teams().filter(t=>String(t.id)!==String(HJTD.finderTeam)).map(t=>'<option value="'+E(t.id)+'"'+(String(HJTD.scope)===String(t.id)?' selected':'')+'>'+E(managerOf(t))+'</option>').join('');
+  const teamOptions='<option value=""'+(!selected?' selected':'')+'>YOUR TEAM</option>'+
+   teams().map(t=>'<option value="'+E(t.id)+'"'+(String(HJTD.finderTeam)===String(t.id)?' selected':'')+'>'+E(managerOf(t))+'</option>').join('');
+  const positions=[['ANY','Any position'],['QB','QB'],['RB','RB'],['WR','WR'],['TE','TE'],['FLEX','FLEX (RB / WR / TE)'],['K','K'],['D/ST','DST']];
+  const controls='<div class="td-finder-setup"><label class="td-finder-who td-finder-team"><span>Your team</span><select data-td-finder-team aria-label="Your team">'+teamOptions+'</select></label>'+
+   (selected?finderNeedsHTML(selected.id):'')+
+   '<div class="td-finder-controls"><label class="td-finder-who"><span>Trade with</span><select data-td-scope aria-label="Trade with">'+options+'</select></label>'+
+   '<label class="td-finder-who"><span>Trade for</span><select data-td-position aria-label="Trade for position">'+positions.map(([id,label])=>'<option value="'+id+'"'+(HJTD.finderPosition===id?' selected':'')+'>'+label+'</option>').join('')+'</select></label>'+
+   '<button type="button" class="td-run" data-td-find'+(!selected||HJTD.finding?' disabled':'')+'>'+(HJTD.finding?'Finding trades…':found?'Scan again':'Find me a trade')+'</button></div></div>';
+  const intro='<div class="td-finder-head"><h3>Trade finder</h3><p>Find balanced one- or two-player deals that improve your lineup. Any position puts your roster needs first; choose a position to require it in the players you receive.</p></div>';
+  let message=!selected?'Choose your team to see its positional strengths and find trades.':HJTD.finding?'Checking lineup improvements…':
+   !found?'Choose your filters, then find a trade.':found.error?'The scan could not finish. Please try again.':
+   found.waiting&&!found.rows.length?'Projections are still loading for some rosters. Try again once they are ready.':
+   !found.rows.length?'No balanced lineup upgrades matched these filters. Try another position, every manager, or build a trade yourself.':'';
+  if(message)return '<section class="td-finder">'+intro+controls+'<p class="td-empty" role="status">'+message+'</p></section>';
+  return '<section class="td-finder">'+intro+controls+'<p class="td-finder-summary">'+found.rows.length+' suggestions · '+found.scanned+' rosters checked'+(found.waiting?' · Some rosters are still loading':'')+'</p><div class="td-finds">'+found.rows.map((r,i)=>`<article class="td-find${r.mutual?' is-mutual':''}">
     <div class="td-find-rank">${i+1}</div>
     <div class="td-find-body">
      <div class="td-find-head">${av(r.manager,'td-av-sm')}<b>${E(r.manager)}</b><span class="td-tag ${r.tone==='good'?'is-good':r.tone==='bad'?'is-bad':''}">${r.tone==='good'?'Helps both':r.tone==='even'?'Fair ask':'Tough sell'}</span></div>
+     ${r.addressesNeed?'<p class="td-find-need">Strengthens '+E(sentenceList(r.needPositions))+'</p>':''}
      <div class="td-find-legs">
-      <div class="leg out"><small>You send</small>${r.out.map(e=>`<span>${E(entryName(e))} <i>${money(valueOf(e))}</i></span>`).join('')}</div>
+      <div class="leg out"><small>You send</small>${r.out.map(e=>'<span>'+E(entryName(e))+' <i>'+finderPlayerValue(e)+'</i></span>').join('')}</div>
       <div class="leg arrow">⇄</div>
-      <div class="leg in"><small>You get</small>${r.inc.map(e=>`<span>${E(entryName(e))} <i>${money(valueOf(e))}</i></span>`).join('')}</div>
+      <div class="leg in"><small>You get</small>${r.inc.map(e=>'<span>'+E(entryName(e))+' <i>'+finderPlayerValue(e)+'</i></span>').join('')}</div>
      </div>
-     <div class="td-find-foot"><span class="is-up">+${one(r.myGain/remainingWeeks())}/week to your lineup</span><span class="${r.theirGain>0?'is-up':'is-down'}">${r.theirGain>0?'+':'−'}${one(Math.abs(r.theirGain)/remainingWeeks())}/week to theirs</span><span>${(r.gap*100).toFixed(0)}% value gap</span></div>
+     <div class="td-find-foot"><span class="is-up">+${one(r.myGain/remainingWeeks())}/week to your lineup</span><span class="${r.theirGain>0?'is-up':'is-down'}">${r.theirGain>0?'+':'−'}${one(Math.abs(r.theirGain)/remainingWeeks())}/week to theirs</span><span>${(r.gap*100).toFixed(0)}% ${E(r.balanceBasis)} gap</span></div>
     </div>
     <button type="button" class="td-find-load" data-td-load="${i}">Open</button>
-   </article>`).join('')}</div>
-  </section>`;
+   </article>`).join('')+'</div></section>';
+ }
+ function finderPlayerValue(entry){
+  return Number.isFinite(valueOf(entry))?money(valueOf(entry))+' MV':one(projOf(entry)/remainingWeeks())+' Combo pts/wk';
  }
 
  /* ---------- shell ---------- */
  function toolbar(){
-  const views=[['dashboard','Dashboard'],['compare','Compare'],['trade','Trade Desk']];
+  const views=[['dashboard','Power Ranking'],['compare','Compare'],['trade','Trade Desk']];
   const modes=[['build','Builder'],['finder','Finder']];
   const scopes=[['all','All Players'],['starters','Starters']];
   return `<div class="hj15-toolbar td-toolbar">
    <div class="hj15-group">${views.map(([id,label])=>`<button type="button" class="hj15-toggle${id==='trade'?' active':''}" data-hq-strength-view="${id}" aria-pressed="${id==='trade'}">${label}</button>`).join('')}</div>
    <div class="hj15-group">${modes.map(([id,label])=>`<button type="button" class="hj15-toggle${HJTD.mode===id?' active':''}" data-td-mode="${id}" aria-pressed="${HJTD.mode===id}">${label}</button>`).join('')}</div>
-   <div class="hj15-group">${scopes.map(([id,label])=>`<button type="button" class="hj15-toggle${scopeNow()===id?' active':''}" data-hj6-scope="${id}" aria-pressed="${scopeNow()===id}" title="Roster value and league rank use this basis, the same as the Dashboard.">${label}</button>`).join('')}</div>
+   <div class="hj15-group">${scopes.map(([id,label])=>`<button type="button" class="hj15-toggle${scopeNow()===id?' active':''}" data-hj6-scope="${id}" aria-pressed="${scopeNow()===id}" title="Roster value and league rank use this basis, the same as Power Ranking.">${label}</button>`).join('')}</div>
   </div>`;
  }
 
@@ -1455,7 +1528,7 @@
   if(!window.HJMV?.ready){window.HJMV?.load?.();return `<section class="hq-module hj15-shell td-shell"><div class="hq-module-head"><h3 class="hq-module-title">Trade Desk</h3></div>${toolbar()}<div class="hq-empty">Loading market values…</div></section>`}
   if(!ensureSides())return `<section class="hq-module hj15-shell td-shell"><div class="hq-module-head"><h3 class="hq-module-title">Trade Desk</h3></div>${toolbar()}<div class="hq-empty">League rosters are still loading.</div></section>`;
   warmWeek();warmScorecardSources();ensureUsage();ensureSchedule();
-  const m=model();
+  const m=HJTD.mode==='finder'?null:model();
   if(HJTD.mode!=='build')cancelAnalysis();
   const body=HJTD.mode==='finder'?finderPanel()
    :`${verdict(m)}<div class="td-board">${sideColumn(m.sides[0],m)}<div class="td-mid"><button type="button" class="td-swap" data-td-swap aria-label="Swap sides">⇄</button><button type="button" class="td-clear" data-td-clear>Clear</button></div>${sideColumn(m.sides[1],m)}</div><div class="td-impacts">${m.sides.map(s=>impact(s,m)).join('')}</div>${balancePanel(m)}${analysisPanel(m)}`;
@@ -1519,14 +1592,18 @@
 
    if(t.closest?.('[data-td-find]')){
     event.preventDefault();event.stopPropagation();
-    try{finderRun()}catch(error){console.warn('Trade finder unavailable',error);HJTD.finder={at:Date.now(),scope:HJTD.scope,from:HJTD.a,rows:[],scanned:0}}
-    rerender();return;
+    if(!teamById(HJTD.finderTeam)||HJTD.finding)return;
+    HJTD.finding=true;rerender();
+    setTimeout(()=>{
+     try{finderRun()}catch(error){console.warn('Trade finder unavailable',error);HJTD.finder={at:Date.now(),scope:HJTD.scope,position:HJTD.finderPosition,from:HJTD.finderTeam,rows:[],scanned:0,error:true}}
+     finally{HJTD.finding=false;rerender()}
+    },30);return;
    }
    const load=t.closest?.('[data-td-load]');
    if(load){
     event.preventDefault();event.stopPropagation();
     const row=HJTD.finder?.rows?.[Number(load.dataset.tdLoad)];
-    if(row){HJTD.b=String(row.team.id);HJTD.give=new Set(row.out.map(entryId));HJTD.get=new Set(row.inc.map(entryId));HJTD.mode='build'}
+    if(row){HJTD.a=String(HJTD.finder.from);HJTD.b=String(row.team.id);HJTD.give=new Set(row.out.map(entryId));HJTD.get=new Set(row.inc.map(entryId));HJTD.mode='build'}
     rerender();return;
    }
    if(t.closest?.('[data-td-swap]')){
@@ -1539,6 +1616,10 @@
   },true);
 
   root.addEventListener('change',event=>{
+   const me=event.target.closest?.('[data-td-finder-team]');
+   if(me){HJTD.finderTeam=me.value;if(String(HJTD.scope)===String(me.value))HJTD.scope='all';HJTD.finder=null;rerender();return}
+   const position=event.target.closest?.('[data-td-position]');
+   if(position){HJTD.finderPosition=[...FINDER_UNITS,'FLEX'].includes(position.value)?position.value:'ANY';HJTD.finder=null;rerender();return}
    const scope=event.target.closest?.('[data-td-scope]');
    if(scope){HJTD.scope=scope.value;HJTD.finder=null;rerender();return}
    const sel=event.target.closest?.('[data-td-team]');
