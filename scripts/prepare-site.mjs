@@ -19,6 +19,8 @@ const recapScript=readFileSync(new URL('./recap-live.js',import.meta.url),'utf8'
 const standingsScript=readFileSync(new URL('./standings-live.js',import.meta.url),'utf8');
 const playerValue=readFileSync(new URL('./player-value.js',import.meta.url),'utf8');
 const tradeDesk=readFileSync(new URL('./trade-desk.js',import.meta.url),'utf8');
+const teamPhotoScript=readFileSync(new URL('./team-photos.js',import.meta.url),'utf8');
+const teamPhotoAssets=readFileSync(new URL('../assets/team-photos/catalog.json',import.meta.url),'utf8');
 const sideBets=readFileSync(new URL('./side-bets.js',import.meta.url),'utf8');
 const challengeScripts=['challenge-engine.js','challenge-live.js'].map(file=>readFileSync(new URL(file,import.meta.url),'utf8')).join('\n');
 function replaceOnce(html,pattern,replacement){
@@ -129,10 +131,15 @@ export function prepareSite(html){
  html=replaceOnce(html,/`Final \$\{result\}`/g,'`FINAL ${result}`');
  html=replaceOnce(html,/<b>\$\{past\?'Final':winChance===null\?'Unavailable':'Est\. win chance'\}<\/b>/g,"<b>${past?'FINAL':winChance===null?'Unavailable':'Est. win chance'}</b>");
  html=prepareLiveDisplay(html);
+ html=replaceOnce(html,/function hjTeamViewHTML\(team,data\)\{/g,'const HJ_TEAM_PHOTO_ASSETS='+teamPhotoAssets+';\n'+teamPhotoScript+'\nfunction hjTeamViewHTML(team,data){');
+ const rosterHead='<div class="league-roster-head">${identity}${matchupHTML}</div>';
+ if(!html.includes(rosterHead))throw Error('Roster header changed');
+ html=html.split(rosterHead).join('<div class="league-roster-head">${identity}${hjTeamPhotoHTML(team)}${matchupHTML}</div>');
+
  // Hosted Vegas projections stay visible for 36 hours after the last verified retrieval so a collector hiccup never blanks the site.
  if(!/<\/body>\s*<\/html>\s*$/.test(html))throw Error('Page end changed; review layout guard injection');
  return html.replace(old,'Date.now()-at<36*60*60*1000&&data.updated')
-  .replace('</head>','<link rel="stylesheet" href="/styles/player-search.css?v=20260924a">\n<link rel="stylesheet" href="/styles/wire-interaction.css?v=20260923b">\n<link rel="stylesheet" href="/styles/news-spin.css?v=20260924a">\n<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/standings.css?v=20260918-a1">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20260924-records">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3"><link rel="stylesheet" href="/styles/player-value.css?v=20260923-a3">\n<link rel="stylesheet" href="/styles/trade-desk.css?v=20260924-concise1">\n<link rel="stylesheet" href="/styles/side-bets.css?v=20260924f">\n<link rel="stylesheet" href="/styles/live-display.css?v=20260928d">\n</head>')
+  .replace('</head>','<link rel="stylesheet" href="/styles/team-photos.css?v=20260928-1">\n<link rel="stylesheet" href="/styles/player-search.css?v=20260924a">\n<link rel="stylesheet" href="/styles/wire-interaction.css?v=20260923b">\n<link rel="stylesheet" href="/styles/news-spin.css?v=20260924a">\n<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20260918-b3">\n<link rel="stylesheet" href="/styles/standings.css?v=20260918-a1">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20260924-records">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3"><link rel="stylesheet" href="/styles/player-value.css?v=20260923-a3">\n<link rel="stylesheet" href="/styles/trade-desk.css?v=20260924-concise1">\n<link rel="stylesheet" href="/styles/side-bets.css?v=20260924f">\n<link rel="stylesheet" href="/styles/live-display.css?v=20260928d">\n</head>')
   .replace(/<\/body>\s*<\/html>\s*$/,()=>'<script id="hj-player-search">'+playerSearch+'</script>\n<script>ffnInstallSpin();</script>\n<script id="hj-record-engine">'+recordEngine+'</script>\n<script id="hj-record-live">'+recordLive+'</script>\n<script id="hj-direct-links">'+directLinks+'</script>\n<script id="hj-wire-live">'+wireLive+'</script>\n<script id="hj-player-value">'+playerValue+'</script>\n<script id="hj-trade-desk">'+tradeDesk+'</script>\n<script id="hj-side-bets">'+sideBets+'</script>\n<script id="hj-layout-guard">'+layoutGuard+'</script>\n</body>\n</html>\n');
 }
 if(process.argv[2]){

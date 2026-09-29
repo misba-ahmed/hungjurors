@@ -1,0 +1,32 @@
+/* Only the League HQ roster banner is affected. */
+#league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo){
+ display:grid!important;
+ grid-template-columns:minmax(190px,24%) minmax(0,1fr) minmax(160px,19%)!important;
+ align-items:center!important;
+ column-gap:12px!important;
+}
+#league-hq #league-sync-content .league-roster-head>.hj-team-photo{
+ display:block!important;
+ min-width:0;
+ width:100%;
+ position:relative;
+ align-self:center;
+ isolation:isolate;
+ pointer-events:none;
+}
+.hj-team-photo-player{position:absolute;bottom:1.5%;display:block;pointer-events:auto}
+.hj-team-photo-player img{display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom}
+.hj-team-photo-player.is-starter img{filter:drop-shadow(0 0 2px #e1ad32e6) drop-shadow(0 0 3px #f0bd3c99)}
+.hj-team-photo-player.is-portrait img{object-fit:contain;object-position:center top;height:42%;margin-top:8%;border-radius:0}
+#league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo)>.hj-business-card{min-width:0!important;max-width:100%!important;width:100%!important;box-sizing:border-box}
+#league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo)>.league-matchup-score{min-width:0!important;width:100%!important;max-width:100%!important;box-sizing:border-box}
+@media(max-width:1050px){
+ #league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo){grid-template-columns:minmax(0,1fr) minmax(160px,.72fr)!important}
+ #league-hq #league-sync-content .league-roster-head>.hj-team-photo{grid-column:1/-1;grid-row:2;margin-top:8px;max-width:900px;justify-self:center}
+ #league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo)>.league-matchup-score{grid-column:2;grid-row:1}
+}
+@media(max-width:600px){
+ #league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo){grid-template-columns:minmax(0,1fr)!important}
+ #league-hq #league-sync-content .league-roster-head>.hj-team-photo{grid-column:1;grid-row:2;margin:2px 0 8px}
+ #league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo)>.league-matchup-score{grid-column:1;grid-row:3;justify-self:end}
+}

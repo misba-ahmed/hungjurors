@@ -4,7 +4,7 @@
  const targets=new Set(['league-sync-content','hq-matchup-content','hq-fa-results','hq-panel-strength','hq-panel-activity','hq-panel-recap']);
  function key(node){
   if(node.nodeType!==1)return '';
-  for(const attr of ['id','data-hq-directory-id','data-hq40-stat-rail','data-league-team','data-hq-matchup-jump','data-hq-lineup-mode','data-hq40-period','data-hq40-year','data-hq-matchup-key','data-pc-id','data-hq40-sort-stat','data-pc-section','data-pc-rz','data-wire-key','data-news-id']){
+  for(const attr of ['id','data-team-photo-player','data-hq-directory-id','data-hq40-stat-rail','data-league-team','data-hq-matchup-jump','data-hq-lineup-mode','data-hq40-period','data-hq40-year','data-hq-matchup-key','data-pc-id','data-hq40-sort-stat','data-pc-section','data-pc-rz','data-wire-key','data-news-id']){
    if(node.hasAttribute(attr))return node.tagName+':'+attr+':'+node.getAttribute(attr);
   }
   return '';
