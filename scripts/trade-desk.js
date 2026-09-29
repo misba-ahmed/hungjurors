@@ -12,7 +12,7 @@
  const LINEUP=[['QB',1],['RB',2],['WR',2],['TE',1]];
  const FLEXABLE=['RB','WR','TE'];
  const UNITS=['QB','RB','WR','TE'];
- const FINDER_UNITS=[...UNITS,'K','D/ST'];
+ const FINDER_UNITS=UNITS;
 
  const HJTD={a:'',b:'',give:new Set(),get:new Set(),pick:'',query:'',mode:'build',finder:null,finding:false,scope:'all',finderTeam:'',finderPosition:'ANY'};
  window.HJTD=HJTD;
@@ -1517,7 +1517,7 @@
    teams().filter(t=>String(t.id)!==String(HJTD.finderTeam)).map(t=>'<option value="'+E(t.id)+'"'+(String(HJTD.scope)===String(t.id)?' selected':'')+'>'+E(managerOf(t))+'</option>').join('');
   const teamOptions='<option value=""'+(!selected?' selected':'')+'>YOUR TEAM</option>'+
    teams().map(t=>'<option value="'+E(t.id)+'"'+(String(HJTD.finderTeam)===String(t.id)?' selected':'')+'>'+E(managerOf(t))+'</option>').join('');
-  const positions=[['ANY','Any position'],['QB','QB'],['RB','RB'],['WR','WR'],['TE','TE'],['FLEX','FLEX (RB / WR / TE)'],['K','K'],['D/ST','DST']];
+  const positions=[['ANY','Any position'],['QB','QB'],['RB','RB'],['WR','WR'],['TE','TE'],['FLEX','FLEX (RB / WR / TE)']];
   const controls='<div class="td-finder-setup"><label class="td-finder-who td-finder-team"><span>Your team</span><select data-td-finder-team aria-label="Your team">'+teamOptions+'</select></label>'+
    (selected?finderNeedsHTML(selected.id):'')+
    '<div class="td-finder-controls"><label class="td-finder-who"><span>Trade with</span><select data-td-scope aria-label="Trade with">'+options+'</select></label>'+

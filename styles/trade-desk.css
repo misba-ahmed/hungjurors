@@ -405,7 +405,7 @@
 #hq-panel-strength .td-finder-controls .td-run{min-height:34px}
 #hq-panel-strength .td-run:disabled{cursor:default;opacity:.55}
 #hq-panel-strength .td-finder-needs{margin-top:10px}
-#hq-panel-strength .td-finder-needs-bar{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;border-radius:8px;overflow:hidden}
+#hq-panel-strength .td-finder-needs-bar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;border-radius:8px;overflow:hidden}
 #hq-panel-strength .td-finder-unit{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;background:#e8edf1;color:#42576b;border-top:3px solid #8a99a7}
 #hq-panel-strength .td-finder-unit.is-strong{background:#e3eee6;color:#23603d;border-color:#41805a}
 #hq-panel-strength .td-finder-unit.is-middle{background:#f6edda;color:#795718;border-color:#b98b2b}

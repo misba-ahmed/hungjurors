@@ -124,10 +124,10 @@ try{
  assert.equal(await page.locator('[data-td-finder-team]').inputValue(),'');
  assert.equal(await page.locator('[data-td-find]').isDisabled(),true);
  await page.locator('[data-td-finder-team]').selectOption('1');
- assert.equal(await page.locator('.td-finder-unit').count(),6);
+ assert.equal(await page.locator('.td-finder-unit').count(),4);
  assert.equal(await page.locator('[data-td-scope]').inputValue(),'all');
  assert.equal(await page.locator('[data-td-position]').inputValue(),'ANY');
- assert.ok((await page.locator('.td-finder-unit').nth(4).getAttribute('title')).includes('Combo'));
+ assert.deepEqual(await page.locator('.td-finder-unit > span').allTextContents(),['QB','RB','WR','TE']);
  await page.evaluate(()=>{second.push(fixtureEntry('unpriced-te','Unpriced reserve','TE',null,60,'BBB'));hjRerenderStrength()});
  assert.match(await page.locator('.td-finder-unit').nth(3).locator('b').innerText(),/^#[0-9]+$/);
  const finderText=await page.locator('.td-finder').innerText();
@@ -139,10 +139,10 @@ try{
   await page.setViewportSize({width,height:844});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Finder fits '+width);
  }
- await page.locator('[data-td-position]').selectOption('D/ST');
+ await page.locator('[data-td-position]').selectOption('RB');
  await page.locator('[data-td-find]').click();
  await page.waitForFunction(()=>!HJTD.finding);
- assert.equal(await page.evaluate(()=>HJTD.finder.position),'D/ST');
+ assert.equal(await page.evaluate(()=>HJTD.finder.position),'RB');
  await page.locator('[data-td-scope]').selectOption('2');
  await page.locator('[data-td-finder-team]').selectOption('2');
  assert.equal(await page.locator('[data-td-scope]').inputValue(),'all');

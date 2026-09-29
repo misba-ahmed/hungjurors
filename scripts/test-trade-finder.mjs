@@ -33,18 +33,11 @@ async function runTradeTests(source){
  t.ensureSides();
  assert(state.a==='1'&&state.finderTeam==='','builder default never becomes finder default');
  let needs=t.finderNeeds('1');
- assert(needs.units.length===6,'ranking bar includes all six positions');
+ assert(needs.units.map(u=>u.pos).join(',')==='QB,RB,WR,TE','ranking bar includes only QB, RB, WR and TE');
  assert(needs.units.find(u=>u.pos==='RB').rank===3,'RB rank compares RB market totals across managers');
  assert(needs.units.find(u=>u.pos==='WR').rank===1,'WR rank reflects market-value depth');
  assert(needs.units.find(u=>u.pos==='TE').rank===1,'lower raw TE value is not misidentified as weakest');
- assert(needs.weakest.includes('RB')&&needs.weakest.includes('K'),'weakest positions use league rank including kicker');
- const kBefore=needs.units.find(u=>u.pos==='K').rank;
- data.teams[0].roster.push(entry('AextraK','K',null,4));
- assert(t.finderNeeds('1').units.find(u=>u.pos==='K').rank===kBefore,'extra weak kicker cannot inflate positional strength');
- data.teams[0].roster.pop();
- data.teams[1].roster[7].projected=null;
- assert(t.finderNeeds('1').units.find(u=>u.pos==='D/ST').rank===1,'missing peer DST projection does not blank other managers');
- data.teams[1].roster[7].projected=180;
+ assert(needs.weakest.includes('RB')&&!needs.weakest.includes('K')&&!needs.weakest.includes('D/ST'),'roster needs exclude kicker and defense');
  data.teams[1].roster[1].value=null;
  assert(Number.isFinite(t.finderNeeds('1').units.find(u=>u.pos==='RB').rank),'unpriced peer reserve does not blank a whole position');
  data.teams[1].roster[1].value=6000;
@@ -63,9 +56,10 @@ async function runTradeTests(source){
  assert(results.rows.every(r=>r.inc.some(e=>e.position==='TE')),'TE filtering never returns only other positions');
  state.finderPosition='FLEX';results=(await t.finderRun());
  assert(results.rows.every(r=>r.inc.some(e=>['RB','WR','TE'].includes(e.position))),'FLEX filter accepts only eligible receiving packages');
- state.finderPosition='K';state.scope='2';results=(await t.finderRun());
- assert(results.rows.length>0&&results.rows.every(r=>r.inc.some(e=>e.position==='K')),'kicker filter supports projection-backed upgrades');
- assert(results.rows.some(r=>r.balanceBasis==='Combo projection'),'K-only deals use explicitly labeled Combo balance');
+ state.finderPosition='ANY';state.scope='all';results=await t.finderRun();
+ assert(results.rows.every(r=>[...r.inc,...r.out].every(e=>!['K','D/ST'].includes(e.position))),'trade suggestions never include kicker or defense');
+ const positionOptions=t.finderPanel().split('data-td-position')[1].split('</select>')[0];
+ assert(!positionOptions.includes('value="K"')&&!positionOptions.includes('value="D/ST"'),'position menu excludes kicker and defense');
  const sent=data.teams[0].roster.find(e=>e.id==='Aspare'),received=data.teams[1].roster.find(e=>e.id==='Bspare');
  const afterA=data.teams[0].roster.filter(e=>e!==sent).concat(received),afterB=data.teams[1].roster.filter(e=>e!==received).concat(sent);
  const side=(manager,after,incoming,out)=>({manager,after,in:incoming,out,drops:[],lineupAfter:t.lineupPoints(after.map(e=>({entry:e,pos:e.position,pts:e.projected,ir:e.lineupSlotId===21})))});
@@ -114,7 +108,7 @@ async function runTradeTests(source){
  assert(state.finderTeam==='2'&&state.scope==='all'&&state.finder===null,'changing your team clears results and prevents self trades');
  state.finder={rows:[{}]};
  rootEvents.change({target:{closest:q=>q==='[data-td-position]'?{value:'D/ST'}:null}});
- assert(state.finderPosition==='D/ST'&&state.finder===null,'changing target position clears previous results');
+ assert(state.finderPosition==='ANY'&&state.finder===null,'legacy defense selection resets to Any position and clears results');
  return checks;
 }
 const source=readFileSync(new URL('./trade-desk.js',import.meta.url),'utf8');
