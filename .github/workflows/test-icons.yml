@@ -21,8 +21,8 @@ jobs:
         with:
           node-version: '24'
       - name: Install image verification tool
-        run: npm install --no-save --package-lock=false sharp@0.34.5
-      - name: Verify icons match the homepage logo
+        run: npm install --no-save --package-lock=false sharp@0.34.5 potrace@2.1.8
+      - name: Verify icons match the original crest
         run: node scripts/build-app-icons.mjs --check
       - name: Verify the staged site includes every icon
         run: |

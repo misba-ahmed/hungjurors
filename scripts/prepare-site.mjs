@@ -30,10 +30,10 @@ function replaceOnce(html,pattern,replacement){
 export function prepareSite(html){
  html=extractSiteArtwork(html).html;
  // Use real PNG files, with fresh URLs so failed icon requests are not reused.
- html=replaceOnce(html,/<link rel="apple-touch-icon"[^>]*>/g,'<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-hung-jurors-v1.png">');
- html=replaceOnce(html,/<link rel="icon" type="image\/png" sizes="192x192"[^>]*>/g,'<link rel="icon" type="image/png" sizes="192x192" href="/hung-jurors-icon-192-v1.png">');
- html=replaceOnce(html,/<link rel="icon" type="image\/png" sizes="512x512"[^>]*>/g,'<link rel="icon" type="image/png" sizes="512x512" href="/hung-jurors-icon-512-v1.png">');
- html=replaceOnce(html,/<link rel="manifest"[^>]*>/g,'<link rel="manifest" href="/site.webmanifest?v=hung-jurors-logo-v1">');
+ html=replaceOnce(html,/<link rel="apple-touch-icon"[^>]*>/g,'<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-hung-jurors-v2.png">');
+ html=replaceOnce(html,/<link rel="icon" type="image\/png" sizes="192x192"[^>]*>/g,'<link rel="icon" type="image/png" sizes="192x192" href="/hung-jurors-icon-192-v2.png">');
+ html=replaceOnce(html,/<link rel="icon" type="image\/png" sizes="512x512"[^>]*>/g,'<link rel="icon" type="image/png" sizes="512x512" href="/hung-jurors-icon-512-v2.png">');
+ html=replaceOnce(html,/<link rel="manifest"[^>]*>/g,'<link rel="manifest" href="/site.webmanifest?v=hung-jurors-logo-v2">');
 
  // Completed postseason matchups (including weeks with byes) can also carry record announcements.
  html=replaceOnce(html,/for\(const game of data\?\.schedule\|\|\[\]\)\{if\(!hjGameFinal\(game,data\)\)continue;/g,'for(const game of data?.schedule||[]){if(!hjRcGameFinal(game,data))continue;');
