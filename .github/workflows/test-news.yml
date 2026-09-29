@@ -25,6 +25,9 @@ on:
       - 'styles/live-display.css'
       - 'scripts/site-artwork.mjs'
       - 'scripts/matchup-row-fit.js'
+      - 'scripts/live-updates.js'
+      - 'scripts/layout-guard.js'
+      - 'scripts/test-live-refresh.mjs'
       - 'scripts/test-matchup-layout.mjs'
       - '.github/workflows/test-news.yml'
 permissions:
@@ -42,6 +45,8 @@ jobs:
         run: |
           npm install --no-save --package-lock=false playwright@1.56.1
           npx playwright install --with-deps chromium webkit
+      - name: Verify live refresh keeps the view steady
+        run: node scripts/test-live-refresh.mjs
       - name: Verify original artwork and single-column lineup
         run: node scripts/test-matchup-layout.mjs
       - name: Verify live matchup display and chronological news
