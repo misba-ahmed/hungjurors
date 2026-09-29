@@ -1,0 +1,184 @@
+[
+  {
+    "label": "chromium baseline",
+    "client": 390,
+    "inner": 402,
+    "doc": 402,
+    "body": 402,
+    "scale": 1,
+    "viewport": 390,
+    "nodes": [
+      {
+        "tag": "SPAN",
+        "id": "",
+        "cls": "hj-team-photo-caption",
+        "left": -8.953125,
+        "right": 53.046875,
+        "width": 62,
+        "visibility": "hidden",
+        "position": "absolute",
+        "overflow": "visible",
+        "text": "RBRJHarvey"
+      },
+      {
+        "tag": "SPAN",
+        "id": "",
+        "cls": "hj-team-photo-caption",
+        "left": 330.953125,
+        "right": 401.953125,
+        "width": 71,
+        "visibility": "hidden",
+        "position": "absolute",
+        "overflow": "visible",
+        "text": "QBCalebWilliams"
+      },
+      {
+        "tag": "SPAN",
+        "id": "",
+        "cls": "hj-team-photo-position",
+        "left": 339.953125,
+        "right": 392.953125,
+        "width": 53,
+        "visibility": "hidden",
+        "position": "static",
+        "overflow": "visible",
+        "text": "QB"
+      },
+      {
+        "tag": "SPAN",
+        "id": "",
+        "cls": "",
+        "left": 339.953125,
+        "right": 392.953125,
+        "width": 53,
+        "visibility": "hidden",
+        "position": "static",
+        "overflow": "visible",
+        "text": "Caleb"
+      },
+      {
+        "tag": "SPAN",
+        "id": "",
+        "cls": "",
+        "left": 339.953125,
+        "right": 392.953125,
+        "width": 53,
+        "visibility": "hidden",
+        "position": "static",
+        "overflow": "visible",
+        "text": "Williams"
+      }
+    ]
+  },
+  {
+    "label": "chromium hidden labels removed",
+    "client": 390,
+    "inner": 390,
+    "doc": 390,
+    "body": 390,
+    "scale": 1,
+    "viewport": 390,
+    "nodes": []
+  },
+  {
+    "label": "chromium root clip",
+    "client": 390,
+    "inner": 390,
+    "doc": 390,
+    "body": 390,
+    "scale": 1,
+    "viewport": 390,
+    "nodes": []
+  },
+  {
+    "label": "webkit baseline",
+    "client": 390,
+    "inner": 390,
+    "doc": 402,
+    "body": 402,
+    "scale": 1,
+    "viewport": 390,
+    "nodes": [
+      {
+        "tag": "SPAN",
+        "id": "",
+        "cls": "hj-team-photo-caption",
+        "left": -8.953125,
+        "right": 53.046875,
+        "width": 62,
+        "visibility": "hidden",
+        "position": "absolute",
+        "overflow": "visible",
+        "text": "RBRJHarvey"
+      },
+      {
+        "tag": "SPAN",
+        "id": "",
+        "cls": "hj-team-photo-caption",
+        "left": 330.953125,
+        "right": 402.328125,
+        "width": 71.375,
+        "visibility": "hidden",
+        "position": "absolute",
+        "overflow": "visible",
+        "text": "QBCalebWilliams"
+      },
+      {
+        "tag": "SPAN",
+        "id": "",
+        "cls": "hj-team-photo-position",
+        "left": 339.953125,
+        "right": 393.328125,
+        "width": 53.375,
+        "visibility": "hidden",
+        "position": "static",
+        "overflow": "visible",
+        "text": "QB"
+      },
+      {
+        "tag": "SPAN",
+        "id": "",
+        "cls": "",
+        "left": 339.953125,
+        "right": 393.328125,
+        "width": 53.375,
+        "visibility": "hidden",
+        "position": "static",
+        "overflow": "visible",
+        "text": "Caleb"
+      },
+      {
+        "tag": "SPAN",
+        "id": "",
+        "cls": "",
+        "left": 339.953125,
+        "right": 393.328125,
+        "width": 53.375,
+        "visibility": "hidden",
+        "position": "static",
+        "overflow": "visible",
+        "text": "Williams"
+      }
+    ]
+  },
+  {
+    "label": "webkit hidden labels removed",
+    "client": 390,
+    "inner": 390,
+    "doc": 390,
+    "body": 390,
+    "scale": 1,
+    "viewport": 390,
+    "nodes": []
+  },
+  {
+    "label": "webkit root clip",
+    "client": 390,
+    "inner": 390,
+    "doc": 390,
+    "body": 390,
+    "scale": 1,
+    "viewport": 390,
+    "nodes": []
+  }
+]
