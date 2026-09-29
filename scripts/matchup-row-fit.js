@@ -12,7 +12,8 @@ function hjFitStarterSpace(){
   lineup.dataset.columns='1';
   const before=grid.getBoundingClientRect().top-card.getBoundingClientRect().top;
   // Scroll position and ticking scores must not change row density.
-  const key=[lineup.clientWidth,viewport,Math.round(pinned+before),grid.children.length].join('|');
+  const expanded=[...card.querySelectorAll('details')].map(el=>el.open?'1':'0').join('');
+  const key=[lineup.clientWidth,viewport,grid.children.length,expanded].join('|');
   if(HJ_STARTER_FITS.get(lineup)===key&&lineup.style.getPropertyValue('--hj-row-room'))return;
   HJ_STARTER_FITS.set(lineup,key);
   const visibleTop=grid.getBoundingClientRect().top;

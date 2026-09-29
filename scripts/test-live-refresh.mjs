@@ -32,7 +32,7 @@ for(const engine of [chromium,webkit]){
     refs.card.querySelector('details').open=true;
    });
    await page.waitForTimeout(250);
-   const before=await page.evaluate(()=>({top:scrollY,left:refs.deck.scrollLeft,height:refs.deck.getBoundingClientRect().height,room:refs.lineup.style.getPropertyValue('--hj-row-room'),rowY:refs.row.getBoundingClientRect().top,profileScroll:document.querySelector('.manager-modal-scroll').scrollTop}));
+   const before=await page.evaluate(()=>({top:scrollY,left:refs.deck.scrollLeft,height:refs.deck.getBoundingClientRect().height,room:refs.lineup.style.getPropertyValue('--hj-row-room'),fitKey:HJ_STARTER_FITS.get(refs.lineup),rowY:refs.row.getBoundingClientRect().top,profileScroll:document.querySelector('.manager-modal-scroll').scrollTop}));
    for(let score=13;score<=15;score++){
     const after=await page.evaluate(({matchup,roster})=>{
      hjHoldLayout(()=>{
@@ -49,7 +49,7 @@ for(const engine of [chromium,webkit]){
     assert.equal(after.height,before.height,'no transient height reset during render');
     assert.equal(after.room,before.room,'no transient density reset');
     await page.waitForTimeout(400);
-    const settled=await page.evaluate(()=>({top:scrollY,left:refs.deck.scrollLeft,height:refs.deck.getBoundingClientRect().height,room:refs.lineup.style.getPropertyValue('--hj-row-room'),rowY:refs.row.getBoundingClientRect().top,profileScroll:document.querySelector('.manager-modal-scroll').scrollTop}));
+    const settled=await page.evaluate(()=>({top:scrollY,left:refs.deck.scrollLeft,height:refs.deck.getBoundingClientRect().height,room:refs.lineup.style.getPropertyValue('--hj-row-room'),fitKey:HJ_STARTER_FITS.get(refs.lineup),rowY:refs.row.getBoundingClientRect().top,profileScroll:document.querySelector('.manager-modal-scroll').scrollTop}));
     assert.deepEqual(settled,before,'background refresh must not move the view');
    }
    // Ordinary scrolling must not refit typography when another score ticks.
