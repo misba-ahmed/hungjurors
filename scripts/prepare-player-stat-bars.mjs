@@ -1,6 +1,9 @@
+import {readFileSync} from 'node:fs';
+const playerStatExtras=readFileSync(new URL('./player-stat-extras.js',import.meta.url),'utf8');
 /* Players-tab display order; retain the existing stat calculations and sorting. */
 export function preparePlayerStatBars(html){
  const defs={"RB":[["fpts","FPTS"],["snap","SNP %"],["rushYd","RUSH YD"],["recYd","REC YD"],["rushTd","RUSH TD"],["recTd","REC TD"],["rush","RUSH"],["rec","REC"],["tgt","TAR"],["catchPct","CATCH %"],["ypc","YPC"],["ydRec","YD/REC"],["ydTar","YD/TAR"],["rostPct","ROST%"]],"WR":[["fpts","FPTS"],["snap","SNP %"],["rec","REC"],["recYd","REC YD"],["recTd","REC TD"],["tgt","TAR"],["ydRec","YD/REC"],["ydTar","YD/TAR"],["catchPct","CATCH %"],["rostPct","ROST %"]],"QB":[["fpts","FPTS"],["snap","SNP %"],["passYd","PASS YD"],["rushYd","RUSH YD"],["passTd","PASS TD"],["rushTd","RUSH TD"],["rush","RUSH"],["passAtt","PASS ATT"],["passCmp","PASS CMP"],["cmpPct","CMP %"],["int","INT"],["airYd","AIR YD"],["passRtg","PASS RTG"],["rostPct","ROST %"]],"K":[["fpts","FPTS"],["fgm","FGM"],["xpm","XPM"],["xpa","XPA"],["fga","FGA"],["fgPct","FGM %"],["fgm60","FGM 60+"],["fgm50","FGM 50+"],["fgm40","FGM 40-49"],["fgm30","FGM 30-39"],["rostPct","ROST %"]],"TE":[["fpts","FPTS"],["snap","SNP %"],["rec","REC"],["recYd","REC YD"],["recTd","REC TD"],["tgt","TAR"],["ydRec","YD/REC"],["ydTar","YD/TAR"],["catchPct","CATCH %"],["rostPct","ROST %"]]};
+ for(const stats of Object.values(defs))stats.push(["startPct","START %"],["trend","TREND"],["oppRank","OPP RK"]);
  function replace(old,value){
   if(html.split(old).length!==2)throw Error('Player stat source changed: '+old.slice(0,70));
   html=html.replace(old,()=>value);
@@ -13,22 +16,18 @@ export function preparePlayerStatBars(html){
   if(!row.test(updated))throw Error('Missing stat position '+position);
   updated=updated.replace(row,'    '+position+':'+JSON.stringify(stats)+',');
  }
- updated=updated.replace(/('D\/ST':\[)([^\n]+)(\]\n)/,(_,start,items,end)=>start+items+',["rostPct","ROST %"]'+end);
+ updated=updated.replace(/('D\/ST':\[)([^\n]+)(\]\n)/,(_,start,items,end)=>start+items+',["rostPct","ROST %"],["startPct","START %"],["trend","TREND"],["oppRank","OPP RK"]'+end);
  replace(block,updated);
  replace("key!=='pffGrade'&&(key!=='snap'||HJ40.period!=='total')","key!=='pffGrade'");
- replace("['snap','catchPct','cmpPct','fgPct','airShare','targetShare']","['snap','catchPct','cmpPct','fgPct','airShare','targetShare','rostPct']");
- replace("const value=statKey==='pffGrade'?hj40PffGrade(player):hj40Finite(raw.values[statKey]);","const value=statKey==='rostPct'?hj40RosterPercent(player):statKey==='pffGrade'?hj40PffGrade(player):hj40Finite(raw.values[statKey]);");
- replace('function hj40Snapshot(player){',`function hj40RosterPercent(player){
-  const id=String(player.id),pool=HJ_DATA.requests.get('players:'+NFL_SEASON+':'+hjCurrentWeek())?.value||[];
-  const candidates=[HJ_PLAYER_DIRECTORY.espnCache.get(id),player._leagueEntry,HJ_ESPN_HQ_POOL.byId.get(id),pool.find(e=>String(hjPlayer(e).id)===id)];
-  for(const entry of candidates){
-   const p=hjPlayer(entry);
-   for(const value of [entry?.ownership?.percentOwned,p?.ownership?.percentOwned,entry?.playerPoolEntry?.ownership?.percentOwned]){
-    if(value!==null&&value!==undefined&&value!==''&&Number.isFinite(Number(value)))return Number(value);
-   }
-  }
-  return player.pct===null||player.pct===undefined||player.pct===''?null:hj40Finite(player.pct);
- }
- function hj40Snapshot(player){`);
+ replace("['snap','catchPct','cmpPct','fgPct','airShare','targetShare']","['snap','catchPct','cmpPct','fgPct','airShare','targetShare','rostPct','startPct']");
+ replace("const value=statKey==='pffGrade'?hj40PffGrade(player):hj40Finite(raw.values[statKey]);","const value=['rostPct','startPct','trend','oppRank'].includes(statKey)?hj40ExtraValue(player,statKey):statKey==='pffGrade'?hj40PffGrade(player):hj40Finite(raw.values[statKey]);");
+ replace('function hj40Snapshot(player){',playerStatExtras+'\nfunction hj40Snapshot(player){');
+ replace("if(HJ40.statSort){const av=hj40Snapshot(a)?.[HJ40.statSort]?.value,bv=hj40Snapshot(b)?.[HJ40.statSort]?.value,aa=Number.isFinite(av)?av:-Infinity,bb=Number.isFinite(bv)?bv:-Infinity;return bb-aa||a.name.localeCompare(b.name)}","if(HJ40.statSort)return hj40CompareStat(a,b,HJ40.statSort);");
+ replace("if(stat){HJ40.statSort=stat.dataset.hq40SortStat||'';","if(stat){hj40SelectStat(stat.dataset.hq40SortStat||'');");
+ replace("if(key==='pffGrade')return value.toFixed(1);","if(key==='pffGrade')return value.toFixed(1);\n    if(key==='trend'){const n=Number(value.toFixed(1));return (n>0?'+':'')+n.toFixed(1)}\n    if(key==='oppRank')return String(Math.round(value));");
+ replace("title=\"Sort by ${esc(label)}\" aria-pressed=\"${selected}\"><small>${esc(label)}</small><strong>${esc(metric?.display||'—')}</strong>","title=\"${esc(hj40StatTitle(key,label))}\" aria-pressed=\"${selected}\" data-sort-direction=\"${selected?(HJ40.statSortDir||'desc'):''}\"><small>${esc(label)}</small>${hj40StatValueHTML(player,key,metric)}");
+ replace("const statLabel=HJ40.statSort?(HJ40_LABELS.get(HJ40.statSort)||HJ40.statSort):'';","const statLabel=HJ40.statSort?(HJ40_LABELS.get(HJ40.statSort)||HJ40.statSort)+(['trend','oppRank'].includes(HJ40.statSort)?(HJ40.statSortDir==='asc'?' ↑':' ↓'):''):'';");
+ replace("function hj40StickyState(){","function hj40StickyState(){\n    hj40QueueTopBubble();hj40RefreshOwnership();");
+ replace("}catch(error){console.warn('Opponent ranks unavailable',error)}finally{HJ_GAME_RANKS.loading=false;hjRefreshGameContexts()}","}catch(error){console.warn('Opponent ranks unavailable',error)}finally{HJ_GAME_RANKS.loading=false;hjRefreshGameContexts();document.dispatchEvent(new Event('hj:game-ranks-updated'))}");
  return html;
 }

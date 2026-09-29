@@ -5,3 +5,31 @@
 #hq-fa-results .hq40-stat-btn[data-hq40-sort-stat="fpts"].is-sort :is(small,strong){
  color:#8dccff!important;
 }
+
+/* Keep directional colors readable when a colored stat is selected. */
+#hq-fa-results .hq40-stat-btn:is([data-hq40-sort-stat="trend"],[data-hq40-sort-stat="oppRank"]).is-sort{
+ background:var(--paper-dim,#f4ecd9)!important;color:var(--navy)!important;
+ box-shadow:inset 0 -2px 0 var(--brass,#b98a2e);
+}
+#hq-fa-results .hq40-stat-btn strong.hq40-trend{display:flex!important;align-items:center;gap:3px}
+#hq-fa-results .hq40-stat-btn .hq40-trend.is-up{color:#267552!important}
+#hq-fa-results .hq40-stat-btn .hq40-trend.is-down{color:#a33c42!important}
+.hq40-trend-arrow{width:8px;height:10px;fill:currentColor;flex:none}
+.hq40-trend.is-down .hq40-trend-arrow{transform:rotate(180deg)}
+#hq-fa-results .hq40-stat-btn strong.hj-opponent-hard{color:#a33c42!important}
+#hq-fa-results .hq40-stat-btn strong.hj-opponent-firm{color:#ad5a35!important}
+#hq-fa-results .hq40-stat-btn strong.hj-opponent-mid{color:#8a701c!important}
+#hq-fa-results .hq40-stat-btn strong.hj-opponent-soft{color:#548240!important}
+#hq-fa-results .hq40-stat-btn strong.hj-opponent-easy{color:#267552!important}
+#hq-players-back-top{
+ position:fixed;z-index:100;width:40px;height:40px;display:grid;place-items:center;
+ padding:0;border:1px solid var(--brass,#b98a2e);border-radius:50%;
+ background:var(--navy,#14324f);color:#fff;cursor:pointer;touch-action:manipulation;
+ box-shadow:0 3px 10px rgba(12,34,56,.2);transition:transform .15s ease;
+}
+#hq-players-back-top[hidden]{display:none!important}
+#hq-players-back-top svg{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+#hq-players-back-top:focus-visible{outline:3px solid var(--brass,#b98a2e);outline-offset:3px}
+@media(hover:hover){#hq-players-back-top:hover{transform:translateY(-2px)}}
+@media(prefers-reduced-motion:reduce){#hq-players-back-top{transition:none}}
+@media print{#hq-players-back-top{display:none!important}}
