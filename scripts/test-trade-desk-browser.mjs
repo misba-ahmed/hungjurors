@@ -44,17 +44,17 @@ try{
   await page.addScriptTag({content:fixture+'\nfunction hjStrengthHTML(){return ""}\nfunction hjRerenderStrength(){document.querySelector("#hq-panel-strength").innerHTML=window.HJTD._test.shell()}\n'+source+"\nconst t=window.HJTD._test;\n"+(seed?"window.HJTD.a='1';window.HJTD.b='2';window.HJTD.give=new Set(['2']);window.HJTD.get=new Set(['12']);\n":"")+"\nconst schedules=new Map();\nfor(let w=1;w<=18;w++){if(w!==8)schedules.set('a'+w,{season:2026,week:w,home_team:'AAA',away_team:'CCC'});\n if(w!==9)schedules.set('b'+w,{season:2026,week:w,home_team:'BBB',away_team:'DDD'});}\nwindow.HJTD.injectSchedule(schedules);\nconst rows=[...fixtures,...second].flatMap(e=>[1,2].map(week=>({id:e.player.id,player_display_name:e.player.fullName,position:e.player.position,team:e.player.team,week,points:10,carries:8,targets:3,receiving_yards:40})));\nwindow.HJTD.injectUsage(rows,null);\n"+'\nhjRerenderStrength();'});
  };
  await installFixture();
- await page.getByRole('button',{name:'Write analysis',exact:true}).waitFor();
+ await page.getByRole('button',{name:'Analyze This Trade',exact:true}).waitFor();
  await page.waitForTimeout(1200);
  assert.equal(requests,0,'No inference before the user asks');
 
- await page.getByRole('button',{name:'Write analysis',exact:true}).click();
+ await page.getByRole('button',{name:'Analyze This Trade',exact:true}).click();
  await page.locator('.td-sec-summary').waitFor();
  assert.equal(requests,1);
  assert.equal(await page.locator('.td-sec-context').count(),0);
  assert.equal(await page.locator('.td-accept-pill').count(),2);
  assert.deepEqual(await page.locator('.td-sec > h4').allTextContents(),
- ['Breakdown','Factor scorecard','Summary','Is it a good value?','Usage and opportunity','Roster fit','Schedule and playoff leverage','The verdict']);
+ ['Breakdown','Factor scorecard','Summary','Is it a good value?','Usage and opportunity','The verdict']);
  await page.evaluate(()=>hjRerenderStrength());
  assert.equal(requests,1);
  assert.equal(seen[0].managers[0].sends[0],'2');
@@ -74,23 +74,23 @@ try{
  await page.evaluate(()=>{HJTD.get=new Set(['16']);hjRerenderStrength()});
  const until=async(predicate)=>{const end=Date.now()+15000;while(!predicate()){assert.ok(Date.now()<end,'Timed out waiting for generation');await new Promise(r=>setTimeout(r,50))}};
  assert.equal(requests,1,'Changing selection does not generate');
- await page.getByRole('button',{name:'Write analysis',exact:true}).click();
+ await page.getByRole('button',{name:'Analyze This Trade',exact:true}).click();
  await until(()=>requests===2);
  mode='ok';
  await page.evaluate(()=>{HJTD.get=new Set(['14']);hjRerenderStrength()});
- await page.getByRole('button',{name:'Write analysis',exact:true}).click();
+ await page.getByRole('button',{name:'Analyze This Trade',exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('.td-sec-summary')?.textContent.includes('response 3'));
  await page.waitForTimeout(800);
  assert.ok((await page.locator('.td-sec-summary').innerText()).includes('response 3'),'Old response cannot overwrite new trade');
  mode='fail';
  await page.evaluate(()=>{HJTD.get=new Set(['13']);hjRerenderStrength()});
- await page.getByRole('button',{name:'Write analysis',exact:true}).click();
+ await page.getByRole('button',{name:'Analyze This Trade',exact:true}).click();
  await page.waitForFunction(()=>HJTD._test.ANALYSIS.state.status==='failed');
  assert.equal(await page.locator('.td-writing').count(),0);
  assert.equal(await page.locator('.td-sec-summary').count(),0);
  assert.equal(await page.locator('.td-sec-breakdown').count(),1);
  assert.equal(await page.locator('.td-score-row').count(),7);
- assert.equal(await page.getByRole('button',{name:'Try analysis again',exact:true}).count(),1);
+ assert.equal(await page.getByRole('button',{name:'Analyze This Trade',exact:true}).count(),1);
  // A browser process can disappear without delivering an error or pagehide.
  // Preserve the in-flight draft exactly as it would remain after that interruption.
  await page.evaluate(()=>{
@@ -105,10 +105,42 @@ try{
  assert.equal(await page.evaluate(()=>location.hash),'#roster-strength');
  assert.deepEqual(await page.evaluate(()=>({a:HJTD.a,b:HJTD.b,give:[...HJTD.give],get:[...HJTD.get]})),
   {a:'1',b:'2',give:['2'],get:['13']},'Restore both managers and every selected player');
- assert.equal(await page.getByRole('button',{name:'Write analysis',exact:true}).count(),1);
+ assert.equal(await page.getByRole('button',{name:'Analyze This Trade',exact:true}).count(),1);
  await page.waitForTimeout(1200);
  assert.equal(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('hj-trade-draft-v1')).pending),false);
  assert.equal(requests,4,'No auto retry or generation on reload');
+
+ // The post-trade view must expand in place, and the new controls must fit
+ // at phone, tablet, and desktop sizes without forcing page scrolling.
+ await page.locator('.td-post-lineups > summary').click();
+ assert.equal(await page.locator('.td-post-lineups[open]').count(),1);
+ assert.equal(await page.locator('.td-post-lineup-grid section').count(),2);
+ assert.equal(await page.locator('.td-post-lineup-grid strong').count(),2);
+ for(const width of [390,768,1280]){
+  await page.setViewportSize({width,height:844});
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Expanded lineups fit '+width);
+ }
+ await page.locator('[data-td-mode="finder"]').click();
+ assert.equal(await page.locator('[data-td-finder-team]').inputValue(),'');
+ assert.equal(await page.locator('[data-td-find]').isDisabled(),true);
+ await page.locator('[data-td-finder-team]').selectOption('1');
+ assert.equal(await page.locator('.td-finder-unit').count(),6);
+ assert.equal(await page.locator('[data-td-scope]').inputValue(),'all');
+ assert.equal(await page.locator('[data-td-position]').inputValue(),'ANY');
+ assert.ok((await page.locator('.td-finder-needs').innerText()).includes('Combo'));
+ for(const width of [390,768,1280]){
+  await page.setViewportSize({width,height:844});
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Finder fits '+width);
+ }
+ await page.locator('[data-td-position]').selectOption('D/ST');
+ await page.locator('[data-td-find]').click();
+ await page.waitForFunction(()=>!HJTD.finding);
+ assert.equal(await page.evaluate(()=>HJTD.finder.position),'D/ST');
+ await page.locator('[data-td-scope]').selectOption('2');
+ await page.locator('[data-td-finder-team]').selectOption('2');
+ assert.equal(await page.locator('[data-td-scope]').inputValue(),'all');
+ assert.equal(await page.evaluate(()=>HJTD.finder),null);
+ assert.equal(requests,4,'Finder and lineup expansion never invoke paid analysis');
  assert.deepEqual(errors,[]);assert.deepEqual(externalPosts,[]);
  console.log('Hosted analysis integration: explicit requests, sources, 390px layout, cancellation, draft recovery and quiet quota failure passed (mock API; no external inference)');
 }finally{
