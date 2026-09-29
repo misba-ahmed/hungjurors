@@ -5,12 +5,12 @@ import path from 'node:path';
 const root=process.argv[2]||'_site';
 const publicURL=process.argv[3];
 const expectedIcons=new Map([
- ['apple-touch-icon-hung-jurors-v1.png',180],
+ ['apple-touch-icon-hung-jurors-v2.png',180],
  ['apple-touch-icon.png',180],
  ['apple-touch-icon-precomposed.png',180],
- ['hung-jurors-icon-192-v1.png',192],
+ ['hung-jurors-icon-192-v2.png',192],
  ['icon-192.png',192],
- ['hung-jurors-icon-512-v1.png',512],
+ ['hung-jurors-icon-512-v2.png',512],
  ['icon-512.png',512]
 ]);
 const local=async file=>readFile(path.join(root,file));
@@ -28,11 +28,11 @@ assert(head,'Document head must exist');
 const links=[...head.matchAll(/<link\b[^>]*>/g)].map(([tag])=>Object.fromEntries([...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map(m=>[m[1],m[2]])));
 const apple=links.filter(x=>x.rel==='apple-touch-icon');
 assert.equal(apple.length,1,'One unambiguous Apple icon');
-assert.equal(apple[0].href,'/apple-touch-icon-hung-jurors-v1.png');
+assert.equal(apple[0].href,'/apple-touch-icon-hung-jurors-v2.png');
 assert.equal(apple[0].sizes,'180x180');
 const manifests=links.filter(x=>x.rel==='manifest');
 assert.equal(manifests.length,1);
-assert.equal(manifests[0].href,'/site.webmanifest?v=hung-jurors-logo-v1');
+assert.equal(manifests[0].href,'/site.webmanifest?v=hung-jurors-logo-v2');
 const manifest=JSON.parse(publicURL?(await published(manifests[0].href,/application\/(?:manifest\+)?json/)).toString():await local('site.webmanifest'));
 assert.equal(manifest.name,'The Hung Jurors');
 assert.equal(manifest.id,'/');
@@ -59,9 +59,9 @@ for(const [file,size] of expectedIcons){
  console.log('PASS '+(publicURL?'Published ':'Staged ')+file+' '+size+'x'+size);
 }
 for(const [alias,target] of [
- ['apple-touch-icon.png','apple-touch-icon-hung-jurors-v1.png'],
- ['apple-touch-icon-precomposed.png','apple-touch-icon-hung-jurors-v1.png'],
- ['icon-192.png','hung-jurors-icon-192-v1.png'],
- ['icon-512.png','hung-jurors-icon-512-v1.png']
+ ['apple-touch-icon.png','apple-touch-icon-hung-jurors-v2.png'],
+ ['apple-touch-icon-precomposed.png','apple-touch-icon-hung-jurors-v2.png'],
+ ['icon-192.png','hung-jurors-icon-192-v2.png'],
+ ['icon-512.png','hung-jurors-icon-512-v2.png']
 ])assert.deepEqual(buffers.get(alias),buffers.get(target),alias);
 console.log('PASS '+(publicURL?'Published':'Staged')+' Apple icon declaration and web app manifest');
