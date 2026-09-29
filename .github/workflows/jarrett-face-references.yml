@@ -1,0 +1,24 @@
+name: Jarrett face references
+on:
+  push:
+    branches: ["fix/jarrett-player-likenesses"]
+    paths: ["scripts/jarrett-face-references.mjs", ".github/workflows/jarrett-face-references.yml"]
+permissions:
+  contents: write
+jobs:
+  references:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false sharp@0.34.5
+      - run: node scripts/jarrett-face-references.mjs
+      - run: |
+          git config user.name "Roster photo assets"
+          git config user.email "preview@users.noreply.github.com"
+          git add face-preview
+          git commit -m "Prepare current player headshot references"
+          git push origin HEAD:refs/heads/fix/jarrett-player-likenesses
