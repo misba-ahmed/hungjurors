@@ -4,8 +4,8 @@ import assert from 'node:assert/strict';
 const js=await fs.readFile('scripts/recap-live.js','utf8');
 const pos={1:'QB',2:'RB',3:'WR',4:'TE',5:'K',16:'D/ST'};
 const ctx={
- hjPlayer:e=>e.player||e,
- hjRecapPlayer(e,w){const p=e.player||e,s=p.stats?.find(s=>s.scoringPeriodId===w&&s.statSourceId===0&&s.statSplitTypeId===1);return {entry:e,id:String(p.id),name:p.fullName,pos:pos[p.defaultPositionId],points:s?.appliedTotal??null,stat:s}},
+ hjPlayer:e=>e?.playerPoolEntry?.player||e?.player||{},
+ hjRecapPlayer(e,w){const p=e?.playerPoolEntry?.player||e?.player||{},s=p.stats?.find(s=>s.scoringPeriodId===w&&s.statSourceId===0&&s.statSplitTypeId===1);return {entry:e,id:String(p.id),name:p.fullName,pos:pos[p.defaultPositionId],points:s?.appliedTotal??null,stat:s}},
  esc:s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;'),
  hjChPlayerAttrs:p=>({attrs:'data-player-id="'+p.id+'"',photo:'https://a.espncdn.com/i/headshots/nfl/players/full/'+p.id+'.png'}),
  HJ_PRO_TEAM_BY_ID:{},console
@@ -43,7 +43,7 @@ for(const week of [1,2,3]){
  assert(p.players.length>0&&p.players.length<1500);
  const scores=h.schedule.filter(g=>Number(g.matchupPeriodId)===week).flatMap(g=>['home','away'].flatMap(side=>{const s=g[side];if(!s?.teamId)return [];const entries=(s.rosterForCurrentScoringPeriod||s.rosterForMatchupPeriod||s.roster)?.entries||[];return [{teamId:s.teamId,short:'Team '+s.teamId,lineupComplete:entries.length>0,entries,starters:entries.filter(e=>![20,21].includes(Number(e.lineupSlotId)))}]}));
  const ranks=ctx.hjRcTopFives({week,scores},{pool:p.players},h);
- assert.equal(ranks.overall.length,5);assert(ranks.wireReady,'Historical roster unavailable W'+week);assert.equal(ranks.wire.length,5);
+ assert(scores.flatMap(r=>r.entries).every(e=>ctx.hjPlayer(e).id),'Roster player IDs parsed');assert(ranks.overall.some(p=>p.owner),'Owned scorers recognized');assert.equal(ranks.overall.length,5);assert(ranks.wireReady,'Historical roster unavailable W'+week);assert.equal(ranks.wire.length,5);
  console.log('Week '+week,JSON.stringify({overall:ranks.overall.map(p=>[p.name,p.points]),wire:ranks.wire.map(p=>[p.name,p.points])}));
  live={topFives:ranks};
 }
