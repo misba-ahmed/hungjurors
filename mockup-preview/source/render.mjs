@@ -24,6 +24,8 @@ try{
  const png=await page.evaluate(()=>document.querySelector('canvas').toDataURL('image/png').split(',')[1]);
  const buffer=Buffer.from(png,'base64');
  await fs.writeFile(dir+'/misba-team-photo.png',buffer);
+ await fs.writeFile(dir+'/misba-team-photo.base64.txt',buffer.toString('base64'));
  await sharp(buffer).extract({left:395,top:218,width:1438,height:210}).resize({width:2157}).png().toFile(dir+'/faces-detail.png');
+ await fs.writeFile(dir+'/faces-detail.base64.txt',(await fs.readFile(dir+'/faces-detail.png')).toString('base64'));
  console.log(JSON.stringify({photos:manifest.length,image:await sharp(buffer).metadata()}));
 }finally{await browser.close();}
