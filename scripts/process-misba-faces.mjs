@@ -24,8 +24,16 @@ for(let g=0;g<groups.length;g++){
    data[i+3]=Math.round(255*alpha);
   }
  }
+ const cuts=[0,...[1,2,3].map(k=>{
+  const ideal=w*k/4;let best=Math.round(ideal),bestScore=Infinity;
+  for(let x=Math.round(ideal-w*.035);x<=Math.round(ideal+w*.035);x++){
+   let count=0;for(let y=0;y<h;y++)if(data[(y*w+x)*4+3]>100)count++;
+   const score=count*10000+Math.abs(x-ideal);if(score<bestScore){bestScore=score;best=x;}
+  }
+  return best;
+ }),w];
  for(let q=0;q<4;q++){
-  const id=groups[g][q],left=Math.round(w*q/4),right=Math.round(w*(q+1)/4);
+  const id=groups[g][q],left=cuts[q],right=cuts[q+1];
   let l=right,r=left,t=h,b=0,count=0;
   for(let y=0;y<h;y++)for(let x=left;x<right;x++)if(data[(y*w+x)*4+3]>100){l=Math.min(l,x);r=Math.max(r,x);t=Math.min(t,y);b=Math.max(b,y);count++;}
   if(count<20000||b-t<h*.8||l<=left||r>=right-1)throw Error('Incomplete figure '+id);
