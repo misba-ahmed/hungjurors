@@ -29,6 +29,7 @@ jobs:
           node scripts/test-vegas-feed.mjs
           node scripts/test-challenges.mjs
           node scripts/test-record-book.mjs
+          node scripts/test-sleeper-trends.mjs
       - uses: actions/configure-pages@v5
         id: pages
       - name: Stage site
@@ -40,6 +41,12 @@ jobs:
           node scripts/test-app-icons.mjs _site
           find _site -mindepth 1 -name ".*" -prune -exec rm -rf {} +
           touch _site/.nojekyll
+      - name: Refresh Sleeper trends
+        id: sleeper-refresh
+        continue-on-error: true
+        env:
+          PAGES_BASE_URL: ${{ steps.pages.outputs.base_url }}
+        run: node scripts/refresh-sleeper-trends.mjs _site
       - name: Refresh NFL schedule
         continue-on-error: true
         env:

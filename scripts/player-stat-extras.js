@@ -1,4 +1,51 @@
 
+  const HJ40_SLEEPER={data:null,byId:new Map(),byName:new Map(),byTeam:new Map(),pending:null,lastAttempt:0};
+  function hj40TrendCount(value){
+    if(!Number.isFinite(value))return '—';
+    const n=Math.abs(value),sign=value>0?'+':value<0?'-':'';
+    // Round compact values without displaying 1000K at the million boundary.
+    const unit=n>=999950?1e6:n>=999.5?1e3:1,suffix=unit===1e6?'M':unit===1e3?'K':'';
+    return sign+(unit===1?String(Math.round(n)):(n/unit).toFixed(1).replace(/\.0$/,''))+suffix;
+  }
+  function hj40SleeperNameKey(position,name){return hj40Pos(position)+'|'+hjNorm(pcBaseName(name||''))}
+  function hj40SleeperRow(player){
+    if(!HJ40_SLEEPER.data||Date.now()-HJ40_SLEEPER.data.generatedAt>2*3600000)return null;
+    if(hj40Pos(player.position)==='D/ST')return HJ40_SLEEPER.byTeam.get(pcTeam(player.team))||null;
+    return HJ40_SLEEPER.byId.get(String(player.id))||HJ40_SLEEPER.byName.get(hj40SleeperNameKey(player.position,player.name))||null;
+  }
+  function hj40SetSleeperFeed(feed){
+    if(feed?.schema!==1||feed.source!=='Sleeper'||feed.lookbackHours!==24||!Number.isFinite(feed.generatedAt)||feed.generatedAt>Date.now()+60000||Date.now()-feed.generatedAt>2*3600000||!Array.isArray(feed.players)||!feed.players.length)throw Error('Sleeper trend data is unavailable or stale');
+    const byId=new Map(),byName=new Map(),byTeam=new Map();
+    const put=(map,key,row)=>{if(!key)return;map.set(key,map.has(key)?null:row)};
+    const seen=new Set();
+    for(const row of feed.players){
+      if(!row.id||seen.has(row.id)||!Number.isSafeInteger(row.adds)||row.adds<0||!Number.isSafeInteger(row.drops)||row.drops<0||row.net!==row.adds-row.drops)throw Error('Invalid Sleeper trend count');
+      seen.add(row.id);
+      if(row.espnId&&Number(row.espnId)>0)put(byId,String(row.espnId),row);
+      put(byName,hj40SleeperNameKey(row.position,row.name),row);
+      if(row.position==='D/ST')put(byTeam,pcTeam(row.team),row);
+    }
+    HJ40_SLEEPER.data=feed;HJ40_SLEEPER.byId=byId;HJ40_SLEEPER.byName=byName;HJ40_SLEEPER.byTeam=byTeam;
+  }
+  async function hj40RefreshSleeper(){
+    if(HJ_HQ_STATE.activeTab!=='free-agents'||document.hidden||HJ40_SLEEPER.pending||Date.now()-HJ40_SLEEPER.lastAttempt<5*60000)return;
+    HJ40_SLEEPER.lastAttempt=Date.now();
+    HJ40_SLEEPER.pending=(async()=>{
+      try{
+        const response=await fetch('/data/sleeper-trends.json',{cache:'no-store',signal:AbortSignal.timeout(10000)});
+        if(!response.ok)throw Error('Sleeper trends HTTP '+response.status);
+        const feed=await response.json(),changed=feed.generatedAt!==HJ40_SLEEPER.data?.generatedAt;
+        hj40SetSleeperFeed(feed);
+        if(changed)hj40RefreshExtraMetrics();
+      }catch(error){
+        if(HJ40_SLEEPER.data&&Date.now()-HJ40_SLEEPER.data.generatedAt>2*3600000){HJ40_SLEEPER.data=null;hj40RefreshExtraMetrics()}
+        console.warn('Sleeper trends unavailable',error);
+      }finally{HJ40_SLEEPER.pending=null}
+    })();
+    return HJ40_SLEEPER.pending;
+  }
+  setInterval(hj40RefreshSleeper,60000);
+
   // Ownership is current ESPN data, independent of the selected scoring period.
   let hj40OwnershipPool=null,hj40OwnershipById=new Map();
   function hj40OwnershipValue(player,field){
@@ -24,8 +71,9 @@
     return rank!==null&&rank>=1&&rank<=32?rank:null;
   }
   function hj40ExtraValue(player,key){
+    if(key==='trend')return hj40SleeperRow(player)?.net??null;
     if(key==='oppRank')return hj40OpponentRank(player);
-    return hj40OwnershipValue(player,{rostPct:'percentOwned',startPct:'percentStarted',trend:'percentChange'}[key]);
+    return hj40OwnershipValue(player,{rostPct:'percentOwned',startPct:'percentStarted'}[key]);
   }
   function hj40CompareStat(a,b,key){
     const av=hj40Snapshot(a)?.[key]?.value,bv=hj40Snapshot(b)?.[key]?.value;
@@ -49,16 +97,16 @@
   }
   function hj40StatValueHTML(player,key,metric){
     if(key==='trend'&&Number.isFinite(metric?.value)){
-      const value=Number(metric.value.toFixed(1)),tone=value>0?'up':value<0?'down':'flat';
-      const arrow=value===0?'':'<svg class="hq40-trend-arrow" viewBox="0 0 12 13" aria-hidden="true"><path d="M6 0 12 7H8V13H4V7H0Z"/></svg>';
-      return '<strong class="hq40-trend is-'+tone+'" aria-label="'+(tone==='flat'?'No change':(tone==='up'?'Up ':'Down ')+Math.abs(value).toFixed(1)+' percentage points over the last week')+'"><span>'+(value>0?'+':'')+value.toFixed(1)+'</span>'+arrow+'</strong>';
+      const value=metric.value,tone=value>0?'up':value<0?'down':'flat',row=hj40SleeperRow(player);
+      const label='Sleeper, last 24 hours: '+(value>0?'+':'')+value+' net adds'+(row?' ('+row.adds+' adds, '+row.drops+' drops)':'');
+      return '<strong class="hq40-trend is-'+tone+'" aria-label="'+esc(label)+'">'+hj40TrendCount(value)+'</strong>';
     }
     if(key==='oppRank')return hjOpponentRankHTML(metric?.value,hj40Pos(player.position),Number(NFL_SEASON)).replace('>#','>');
     return '<strong>'+esc(metric?.display||'—')+'</strong>';
   }
   function hj40StatTitle(key,label){
     const next=HJ40.statSort===key&&HJ40.statSortDir!=='asc'&&(key==='trend'||key==='oppRank')?'lowest to highest':'highest to lowest';
-    const context=key==='trend'?'ESPN roster percentage change over the last week. ':key==='oppRank'?'Current week opponent rank vs this position; 1 allows fewest fantasy points. Ties use highest weekly projection. ':key==='startPct'?'Currently started in ESPN leagues. ':key==='rostPct'?'Currently rostered in ESPN leagues. ':'';
+    const context=key==='trend'?'Sleeper · Last 24 hours · Net adds (adds minus drops). ':key==='oppRank'?'Current week opponent rank vs this position; 1 allows fewest fantasy points. Ties use highest weekly projection. ':key==='startPct'?'Currently started in ESPN leagues. ':key==='rostPct'?'Currently rostered in ESPN leagues. ':'';
     return context+'Sort by '+label+': '+next;
   }
   function hj40RefreshExtraMetrics(){
@@ -84,13 +132,13 @@
     hj40OwnershipRefreshPending=true;hj40OwnershipRefreshAt=Date.now();
     try{
       const pool=await hjDataPool(Number(NFL_SEASON),hjCurrentWeek());
-      const signature=JSON.stringify(pool.map(entry=>{const p=hjPlayer(entry),o=p.ownership||entry.ownership||entry.playerPoolEntry?.ownership||{};return [p.id,o.percentOwned,o.percentStarted,o.percentChange]}));
+      const signature=JSON.stringify(pool.map(entry=>{const p=hjPlayer(entry),o=p.ownership||entry.ownership||entry.playerPoolEntry?.ownership||{};return [p.id,o.percentOwned,o.percentStarted]}));
       if(signature!==hj40OwnershipSignature){hj40OwnershipSignature=signature;hj40RefreshExtraMetrics()}
     }catch(error){console.warn('Player ownership refresh unavailable',error)}
     finally{hj40OwnershipRefreshPending=false}
   }
   document.addEventListener('hj:game-ranks-updated',hj40RefreshExtraMetrics);
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)hj40RefreshOwnership()});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){hj40RefreshOwnership();hj40RefreshSleeper()}});
   setInterval(hj40RefreshOwnership,60000);
 
   let hj40TopBubble=null,hj40TopFrame=0;

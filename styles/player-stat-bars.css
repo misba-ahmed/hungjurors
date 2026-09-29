@@ -14,8 +14,6 @@
 #hq-fa-results .hq40-stat-btn strong.hq40-trend{display:flex!important;align-items:center;gap:3px}
 #hq-fa-results .hq40-stat-btn .hq40-trend.is-up{color:#267552!important}
 #hq-fa-results .hq40-stat-btn .hq40-trend.is-down{color:#a33c42!important}
-.hq40-trend-arrow{width:8px;height:10px;fill:currentColor;flex:none}
-.hq40-trend.is-down .hq40-trend-arrow{transform:rotate(180deg)}
 #hq-fa-results .hq40-stat-btn strong.hj-opponent-hard{color:#a33c42!important}
 #hq-fa-results .hq40-stat-btn strong.hj-opponent-firm{color:#ad5a35!important}
 #hq-fa-results .hq40-stat-btn strong.hj-opponent-mid{color:#8a701c!important}
