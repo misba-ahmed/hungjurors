@@ -5,7 +5,7 @@ await fs.mkdir('face-preview',{recursive:true});
 const esc=s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;');
 for(let g=0;g<4;g++){
  const layers=[];
- for(let i=0;i<4;i++){
+ for(let i=0;i<4&&g*4+i<players.length;i++){
   const p=players[g*4+i],r=await fetch(p.url); if(!r.ok)throw Error(p.name+' '+r.status);
   const head=Buffer.from(await r.arrayBuffer()); await fs.writeFile('face-preview/'+p.id+'-head.png',head);
   const headM=await sharp(head).metadata(); console.log(p.name,headM.width,headM.height);
