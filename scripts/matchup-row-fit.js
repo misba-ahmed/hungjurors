@@ -11,9 +11,8 @@ function hjFitStarterSpace(){
   lineup.removeAttribute('data-density');
   lineup.dataset.columns='1';
   const before=grid.getBoundingClientRect().top-card.getBoundingClientRect().top;
-  // Scroll position and ticking scores must not change row density.
-  const expanded=[...card.querySelectorAll('details')].map(el=>el.open?'1':'0').join('');
-  const key=[lineup.clientWidth,viewport,grid.children.length,expanded].join('|');
+  // Scrolling, score updates and expanded panels must not resize the player rows.
+  const key=[lineup.clientWidth,viewport,grid.children.length].join('|');
   if(HJ_STARTER_FITS.get(lineup)===key&&lineup.style.getPropertyValue('--hj-row-room'))return;
   HJ_STARTER_FITS.set(lineup,key);
   const visibleTop=grid.getBoundingClientRect().top;
@@ -41,12 +40,6 @@ function hjFitStarterSpace(){
  window.addEventListener('resize',schedule);
  window.visualViewport?.addEventListener('resize',schedule);
  document.fonts?.ready.then(schedule);
- document.addEventListener('toggle',schedule,true);
- // Safari can defer toggle events for programmatic details changes. Observe
- // the actual state so the resize belongs to the expansion, not the next score.
- const root=document.querySelector('#league-hq');
- if(root)new MutationObserver(records=>{
-  if(records.some(record=>record.target.closest('#hq-panel-matchups')))schedule();
- }).observe(root,{attributes:true,subtree:true,attributeFilter:['open']});
+
  schedule();
 })();

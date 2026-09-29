@@ -13,6 +13,7 @@ for(const engine of [chromium,webkit]){
  const browser=await engine.launch();
  try{
   const page=await browser.newPage({viewport:{width:1100,height:900}});
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.setContent('<style>'+styles+'</style><nav></nav><div style="height:500px"></div><main id="league-hq"><div class="hj-folder-dock"></div><div id="league-sync-content">'+roster(12)+'</div><div id="league-hq-tools"><section id="hq-panel-matchups"><div class="hq-matchup-switcher-shell"></div><div id="hq-matchup-content">'+matchup(12)+'</div></section></div></main><div style="height:1600px"></div><div class="manager-modal-scroll" style="height:350px;overflow:auto"><div class="manager-hq-roster">'+roster(12)+'</div></div><style>body>nav{height:44px!important}.hj-folder-dock{height:80px!important}#league-hq{width:100%!important;margin:0!important;padding:0!important}.hq-matchup-switcher-shell{height:42px!important}.hq-matchup-summary{height:90px!important}.hq-match-win{height:25px!important}.manager-modal-scroll{max-height:350px!important}</style>');
   await page.addScriptTag({content:'window.HJ_HQ_STATE={activeTab:"matchups",matchupFocusKey:"1"};function hjRenderLeagueTools(){} function hjSetHQTab(){} function hjCenterMatchupJumpChipV32(){}'});
   await page.addScriptTag({content:read('./live-updates.js')});
@@ -56,6 +57,7 @@ for(const engine of [chromium,webkit]){
    await page.evaluate(()=>{window.scrollBy({top:120,behavior:'instant'});hjFitStarterSpace()});
    assert.equal(await page.evaluate(()=>refs.lineup.style.getPropertyValue('--hj-row-room')),before.room);
   }
+  assert.deepEqual(errors,[],'no browser errors');
   console.log('PASS '+engine.name()+': live scores update without replacing rows, resizing or moving page/carousel/profile');
  }finally{await browser.close()}
 }
