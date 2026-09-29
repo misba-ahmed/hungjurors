@@ -29,9 +29,18 @@
   }
   function hj40CompareStat(a,b,key){
     const av=hj40Snapshot(a)?.[key]?.value,bv=hj40Snapshot(b)?.[key]?.value;
-    if(!Number.isFinite(av))return Number.isFinite(bv)?1:a.name.localeCompare(b.name);
-    if(!Number.isFinite(bv))return -1;
-    return (HJ40.statSortDir==='asc'?av-bv:bv-av)||a.name.localeCompare(b.name);
+    const aKnown=Number.isFinite(av),bKnown=Number.isFinite(bv);
+    if(aKnown!==bKnown)return aKnown?-1:1;
+    const rankOrder=aKnown?(HJ40.statSortDir==='asc'?av-bv:bv-av):0;
+    if(rankOrder)return rankOrder;
+    // For tied opponent ranks, useful weekly scorers lead in either rank direction.
+    if(key==='oppRank'){
+      const ap=hj40ProjectionScore(a,'week'),bp=hj40ProjectionScore(b,'week');
+      const aProjected=Number.isFinite(ap),bProjected=Number.isFinite(bp);
+      if(aProjected!==bProjected)return aProjected?-1:1;
+      if(aProjected&&ap!==bp)return bp-ap;
+    }
+    return a.name.localeCompare(b.name);
   }
   function hj40SelectStat(key){
     const reversible=key==='trend'||key==='oppRank';
@@ -49,7 +58,7 @@
   }
   function hj40StatTitle(key,label){
     const next=HJ40.statSort===key&&HJ40.statSortDir!=='asc'&&(key==='trend'||key==='oppRank')?'lowest to highest':'highest to lowest';
-    const context=key==='trend'?'ESPN roster percentage change over the last week. ':key==='oppRank'?'Current week opponent rank vs this position; 1 allows fewest fantasy points. ':key==='startPct'?'Currently started in ESPN leagues. ':key==='rostPct'?'Currently rostered in ESPN leagues. ':'';
+    const context=key==='trend'?'ESPN roster percentage change over the last week. ':key==='oppRank'?'Current week opponent rank vs this position; 1 allows fewest fantasy points. Ties use highest weekly projection. ':key==='startPct'?'Currently started in ESPN leagues. ':key==='rostPct'?'Currently rostered in ESPN leagues. ':'';
     return context+'Sort by '+label+': '+next;
   }
   function hj40RefreshExtraMetrics(){
