@@ -10,10 +10,10 @@
     "jersey": "9"
   },
   "15847": {
-    "file": "15847-v1.webp",
-    "width": 137,
-    "height": 317,
-    "ratio": 0.43218,
+    "file": "15847-faces-v2.webp",
+    "width": 324,
+    "height": 850,
+    "ratio": 0.38118,
     "heightInches": 77,
     "name": "Travis Kelce",
     "teamId": 12,
@@ -30,10 +30,10 @@
     "jersey": "5"
   },
   "16800": {
-    "file": "16800-v1.webp",
-    "width": 128,
-    "height": 310,
-    "ratio": 0.4129,
+    "file": "16800-faces-v2.webp",
+    "width": 330,
+    "height": 850,
+    "ratio": 0.38824,
     "heightInches": 73,
     "name": "Davante Adams",
     "teamId": 14,
@@ -140,10 +140,10 @@
     "jersey": "16"
   },
   "3054850": {
-    "file": "3054850-v1.webp",
-    "width": 127,
-    "height": 296,
-    "ratio": 0.42905,
+    "file": "3054850-faces-v2.webp",
+    "width": 344,
+    "height": 850,
+    "ratio": 0.40471,
     "heightInches": 70,
     "name": "Alvin Kamara",
     "teamId": 18,
@@ -270,10 +270,10 @@
     "jersey": "9"
   },
   "3916148": {
-    "file": "3916148-v1.webp",
-    "width": 131,
-    "height": 312,
-    "ratio": 0.41987,
+    "file": "3916148-faces-v2.webp",
+    "width": 327,
+    "height": 850,
+    "ratio": 0.38471,
     "heightInches": 72,
     "name": "Tony Pollard",
     "teamId": 10,
@@ -370,10 +370,10 @@
     "jersey": "32"
   },
   "4035687": {
-    "file": "4035687-v1.webp",
-    "width": 126,
-    "height": 315,
-    "ratio": 0.4,
+    "file": "4035687-faces-v2.webp",
+    "width": 305,
+    "height": 850,
+    "ratio": 0.35882,
     "heightInches": 76,
     "name": "Michael Pittman Jr.",
     "teamId": 23,
@@ -620,10 +620,10 @@
     "jersey": "27"
   },
   "4360689": {
-    "file": "4360689-v1.webp",
-    "width": 128,
-    "height": 315,
-    "ratio": 0.40635,
+    "file": "4360689-faces-v2.webp",
+    "width": 310,
+    "height": 850,
+    "ratio": 0.36471,
     "heightInches": 77,
     "name": "Tyler Shough",
     "teamId": 18,
@@ -640,10 +640,10 @@
     "jersey": "14"
   },
   "4360939": {
-    "file": "4360939-v1.webp",
-    "width": 132,
-    "height": 310,
-    "ratio": 0.42581,
+    "file": "4360939-faces-v2.webp",
+    "width": 313,
+    "height": 850,
+    "ratio": 0.36824,
     "heightInches": 73,
     "name": "Rashod Bateman",
     "teamId": 33,
@@ -680,20 +680,20 @@
     "jersey": "12"
   },
   "4361411": {
-    "file": "4361411-v1.webp",
-    "width": 136,
-    "height": 315,
-    "ratio": 0.43175,
+    "file": "4361411-faces-v2.webp",
+    "width": 320,
+    "height": 850,
+    "ratio": 0.37647,
     "heightInches": 77,
     "name": "Pat Freiermuth",
     "teamId": 23,
     "jersey": "88"
   },
   "4361579": {
-    "file": "4361579-v1.webp",
-    "width": 132,
-    "height": 308,
-    "ratio": 0.42857,
+    "file": "4361579-faces-v2.webp",
+    "width": 329,
+    "height": 850,
+    "ratio": 0.38706,
     "heightInches": 70,
     "name": "Javonte Williams",
     "teamId": 6,
@@ -770,10 +770,10 @@
     "jersey": "10"
   },
   "4374302": {
-    "file": "4374302-v1.webp",
-    "width": 133,
-    "height": 309,
-    "ratio": 0.43042,
+    "file": "4374302-faces-v2.webp",
+    "width": 319,
+    "height": 850,
+    "ratio": 0.37529,
     "heightInches": 72,
     "name": "Amon-Ra St. Brown",
     "teamId": 8,
@@ -920,10 +920,10 @@
     "jersey": "24"
   },
   "4429160": {
-    "file": "4429160-v1.webp",
-    "width": 128,
-    "height": 305,
-    "ratio": 0.41967,
+    "file": "4429160-faces-v2.webp",
+    "width": 326,
+    "height": 850,
+    "ratio": 0.38353,
     "heightInches": 69,
     "name": "De'Von Achane",
     "teamId": 15,
@@ -1010,10 +1010,10 @@
     "jersey": "15"
   },
   "4431452": {
-    "file": "4431452-v1.webp",
-    "width": 129,
-    "height": 320,
-    "ratio": 0.40313,
+    "file": "4431452-faces-v2.webp",
+    "width": 321,
+    "height": 850,
+    "ratio": 0.37765,
     "heightInches": 76,
     "name": "Drake Maye",
     "teamId": 17,
@@ -1130,10 +1130,10 @@
     "jersey": "12"
   },
   "4569173": {
-    "file": "4569173-v1.webp",
-    "width": 134,
-    "height": 315,
-    "ratio": 0.4254,
+    "file": "4569173-faces-v2.webp",
+    "width": 335,
+    "height": 850,
+    "ratio": 0.39412,
     "heightInches": 72,
     "name": "Rhamondre Stevenson",
     "teamId": 17,
@@ -1170,10 +1170,10 @@
     "jersey": "30"
   },
   "4571557": {
-    "file": "4571557-v1.webp",
-    "width": 128,
-    "height": 296,
-    "ratio": 0.43243,
+    "file": "4571557-faces-v2.webp",
+    "width": 334,
+    "height": 850,
+    "ratio": 0.39294,
     "heightInches": 74,
     "name": "Spencer Shrader",
     "teamId": 11,
@@ -1440,10 +1440,10 @@
     "jersey": "12"
   },
   "4869461": {
-    "file": "4869461-v1.webp",
-    "width": 124,
-    "height": 295,
-    "ratio": 0.42034,
+    "file": "4869461-faces-v2.webp",
+    "width": 332,
+    "height": 850,
+    "ratio": 0.39059,
     "heightInches": 73,
     "name": "Trey Smack",
     "teamId": 9,
