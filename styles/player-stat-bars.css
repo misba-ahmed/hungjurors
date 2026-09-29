@@ -1,8 +1,7 @@
-/* Distinguish actual fantasy points across every position, including DST. */
-#hq-fa-results .hq40-stat-btn[data-hq40-sort-stat="fpts"]{
- background:#e2effb!important;color:#2169a3!important;
- box-shadow:inset 0 -2px 0 #2c78b6!important;
+/* Only FPTS text is blue; use the standard stat-button background. */
+#hq-fa-results .hq40-stat-btn[data-hq40-sort-stat="fpts"] :is(small,strong){
+ color:#2169a3!important;opacity:1;
 }
-#hq-fa-results .hq40-stat-btn[data-hq40-sort-stat="fpts"] :is(small,strong){color:inherit!important;opacity:1}
-#hq-fa-results .hq40-stat-btn[data-hq40-sort-stat="fpts"]:is(:hover,:focus-visible){background:#cfe5f8!important}
-#hq-fa-results .hq40-stat-btn[data-hq40-sort-stat="fpts"].is-sort{background:#2169a3!important;color:#fff!important}
+#hq-fa-results .hq40-stat-btn[data-hq40-sort-stat="fpts"].is-sort :is(small,strong){
+ color:#8dccff!important;
+}

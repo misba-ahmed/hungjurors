@@ -13,14 +13,21 @@ export function preparePlayerStatBars(html){
   if(!row.test(updated))throw Error('Missing stat position '+position);
   updated=updated.replace(row,'    '+position+':'+JSON.stringify(stats)+',');
  }
+ updated=updated.replace(/('D\/ST':\[)([^\n]+)(\]\n)/,(_,start,items,end)=>start+items+',["rostPct","ROST %"]'+end);
  replace(block,updated);
  replace("key!=='pffGrade'&&(key!=='snap'||HJ40.period!=='total')","key!=='pffGrade'");
  replace("['snap','catchPct','cmpPct','fgPct','airShare','targetShare']","['snap','catchPct','cmpPct','fgPct','airShare','targetShare','rostPct']");
  replace("const value=statKey==='pffGrade'?hj40PffGrade(player):hj40Finite(raw.values[statKey]);","const value=statKey==='rostPct'?hj40RosterPercent(player):statKey==='pffGrade'?hj40PffGrade(player):hj40Finite(raw.values[statKey]);");
  replace('function hj40Snapshot(player){',`function hj40RosterPercent(player){
-  const entry=HJ_ESPN_HQ_POOL.byId.get(String(player.id));
-  const value=hjEspnPoolEntryPlayer(entry)?.ownership?.percentOwned??player.pct;
-  return value===null||value===undefined||value===''?null:hj40Finite(value);
+  const id=String(player.id),pool=HJ_DATA.requests.get('players:'+NFL_SEASON+':'+hjCurrentWeek())?.value||[];
+  const candidates=[HJ_PLAYER_DIRECTORY.espnCache.get(id),player._leagueEntry,HJ_ESPN_HQ_POOL.byId.get(id),pool.find(e=>String(hjPlayer(e).id)===id)];
+  for(const entry of candidates){
+   const p=hjPlayer(entry);
+   for(const value of [entry?.ownership?.percentOwned,p?.ownership?.percentOwned,entry?.playerPoolEntry?.ownership?.percentOwned]){
+    if(value!==null&&value!==undefined&&value!==''&&Number.isFinite(Number(value)))return Number(value);
+   }
+  }
+  return player.pct===null||player.pct===undefined||player.pct===''?null:hj40Finite(player.pct);
  }
  function hj40Snapshot(player){`);
  return html;
