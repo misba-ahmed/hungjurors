@@ -1,0 +1,18 @@
+{
+  "finalOnly": true,
+  "zeroAndNegativeScores": true,
+  "hover": true,
+  "keyboard": true,
+  "tap": true,
+  "scrubPlayers": 12,
+  "verticalScroll": true,
+  "refreshPreservesSpotlight": true,
+  "edgeLabels": [
+    1600,
+    900,
+    390
+  ],
+  "reducedMotion": true,
+  "safariTap": true,
+  "errors": []
+}
