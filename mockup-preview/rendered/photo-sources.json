@@ -1,27 +1,23 @@
 [
   {
-    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4695883.png",
-    "bytes": 253149
-  },
-  {
-    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4432620.png",
-    "bytes": 266317
-  },
-  {
-    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4832800.png",
-    "bytes": 359808
-  },
-  {
-    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4360234.png",
-    "bytes": 220133
-  },
-  {
     "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4685278.png",
     "bytes": 330047
   },
   {
     "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4259545.png",
     "bytes": 290812
+  },
+  {
+    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4432620.png",
+    "bytes": 266317
+  },
+  {
+    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4431459.png",
+    "bytes": 250619
+  },
+  {
+    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4695883.png",
+    "bytes": 253149
   },
   {
     "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4372016.png",
@@ -32,35 +28,39 @@
     "bytes": 246498
   },
   {
-    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4426515.png",
-    "bytes": 236527
-  },
-  {
-    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/3117256.png",
-    "bytes": 262069
-  },
-  {
-    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4572680.png",
-    "bytes": 264979
-  },
-  {
     "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4047646.png",
     "bytes": 230177
   },
   {
-    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4362238.png",
-    "bytes": 265107
+    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4426515.png",
+    "bytes": 236527
+  },
+  {
+    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4360234.png",
+    "bytes": 220133
   },
   {
     "url": "https://a.espncdn.com/i/headshots/nfl/players/full/3917315.png",
     "bytes": 293648
   },
   {
-    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4431459.png",
-    "bytes": 250619
-  },
-  {
     "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4688813.png",
     "bytes": 261404
+  },
+  {
+    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/3117256.png",
+    "bytes": 262069
+  },
+  {
+    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4362238.png",
+    "bytes": 265107
+  },
+  {
+    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4572680.png",
+    "bytes": 264979
+  },
+  {
+    "url": "https://a.espncdn.com/i/headshots/nfl/players/full/4832800.png",
+    "bytes": 359808
   }
 ]
