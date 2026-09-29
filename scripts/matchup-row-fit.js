@@ -42,5 +42,11 @@ function hjFitStarterSpace(){
  window.visualViewport?.addEventListener('resize',schedule);
  document.fonts?.ready.then(schedule);
  document.addEventListener('toggle',schedule,true);
+ // Safari can defer toggle events for programmatic details changes. Observe
+ // the actual state so the resize belongs to the expansion, not the next score.
+ const root=document.querySelector('#league-hq');
+ if(root)new MutationObserver(records=>{
+  if(records.some(record=>record.target.closest('#hq-panel-matchups')))schedule();
+ }).observe(root,{attributes:true,subtree:true,attributeFilter:['open']});
  schedule();
 })();
