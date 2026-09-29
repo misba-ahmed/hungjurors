@@ -12,7 +12,8 @@ const meta=await sharp(original).metadata();
 assert(meta.hasAlpha,'The original logo must have a transparent background');
 // The shield ends above the lettering. Trace only that original artwork;
 // no screenshot, replacement illustration, or wordmark enters the icon.
-const crest=await sharp(original).extract({left:0,top:0,width:meta.width,height:Math.floor(meta.height*.62)}).trim().png().toBuffer();
+const top=await sharp(original).extract({left:0,top:0,width:meta.width,height:Math.floor(meta.height*.62)}).png().toBuffer();
+const crest=await sharp(top).trim().png().toBuffer();
 const mask=await sharp(crest).extractChannel('alpha').negate().png().toBuffer();
 const svg=await new Promise((resolve,reject)=>potrace.trace(mask,{color:'#D9A93F',background:'transparent',threshold:128,turdSize:0,optTolerance:.15},(error,value)=>error?reject(error):resolve(value)));
 const box=await sharp(crest).metadata(),height=512*.76,width=height*box.width/box.height;
