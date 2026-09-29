@@ -1,0 +1,31 @@
+name: Render isolated team-photo mockup
+on:
+  push:
+    branches: ["mockup/misba-original-photo-preview"]
+    paths:
+      - "mockup-preview/source/**"
+      - ".github/workflows/render-photo-preview.yml"
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Prepare image renderer
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1 sharp@0.34.5
+          npx playwright install chromium --with-deps
+      - name: Render photo composite
+        run: node mockup-preview/source/render.mjs
+      - name: Save preview images on this preview branch only
+        run: |
+          git config user.name "Team photo preview"
+          git config user.email "preview@users.noreply.github.com"
+          git add mockup-preview/rendered
+          git commit -m "Save original-photo composite preview"
+          git push origin HEAD:refs/heads/mockup/misba-original-photo-preview
