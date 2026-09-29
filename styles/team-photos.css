@@ -78,10 +78,19 @@
  #league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo)>.league-matchup-score{grid-column:1;grid-row:2;justify-self:end}
 }
 
-/* Details float above adjacent content without reserving a blank row or moving the page. */
+/* Reserve detail space only while the compact lineup has a selected player. */
 #league-hq #league-sync-content .league-roster-head>.hj-team-photo.has-spotlight{z-index:5}
 @media(max-width:1050px){
+ #league-hq #league-sync-content .league-roster-head>.hj-team-photo{
+  transition:padding-top 240ms ease,padding-bottom 240ms ease;
+ }
+ #league-hq #league-sync-content .league-roster-head>.hj-team-photo.has-spotlight{
+  padding-top:clamp(52px,12vw,76px);padding-bottom:60px;
+ }
  .hj-team-photo-caption{top:calc(100% + 6px)}
+}
+@media(prefers-reduced-motion:reduce){
+ #league-hq #league-sync-content .league-roster-head>.hj-team-photo{transition:none}
 }
 
 /* The hit targets stay still while the artwork moves in front of its neighbors. */
