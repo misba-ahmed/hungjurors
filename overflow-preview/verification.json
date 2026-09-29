@@ -1,0 +1,1128 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "browser": "chromium",
+      "label": "width 320 team 1 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "chromium",
+      "label": "width 320 team 2 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "chromium",
+      "label": "width 320 team 3 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "chromium",
+      "label": "width 320 team 4 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "chromium",
+      "label": "width 320 team 5 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "chromium",
+      "label": "width 320 team 7 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "chromium",
+      "label": "width 320 team 8 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "chromium",
+      "label": "width 320 team 9 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "chromium",
+      "label": "width 320 team 10 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "chromium",
+      "label": "width 320 team 11 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "chromium",
+      "label": "width 320 first selected",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "chromium",
+      "label": "width 320 first refreshed",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "chromium",
+      "label": "width 320 first deselected",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "chromium",
+      "label": "width 320 last selected",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "chromium",
+      "label": "width 320 last refreshed",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "chromium",
+      "label": "width 320 last deselected",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "chromium",
+      "label": "width 390 team 1 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "chromium",
+      "label": "width 390 team 2 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "chromium",
+      "label": "width 390 team 3 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "chromium",
+      "label": "width 390 team 4 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "chromium",
+      "label": "width 390 team 5 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "chromium",
+      "label": "width 390 team 7 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "chromium",
+      "label": "width 390 team 8 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "chromium",
+      "label": "width 390 team 9 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "chromium",
+      "label": "width 390 team 10 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "chromium",
+      "label": "width 390 team 11 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "chromium",
+      "label": "width 390 first selected",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "chromium",
+      "label": "width 390 first refreshed",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "chromium",
+      "label": "width 390 first deselected",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "chromium",
+      "label": "width 390 last selected",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "chromium",
+      "label": "width 390 last refreshed",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "chromium",
+      "label": "width 390 last deselected",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "chromium",
+      "label": "width 430 team 1 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "chromium",
+      "label": "width 430 team 2 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "chromium",
+      "label": "width 430 team 3 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "chromium",
+      "label": "width 430 team 4 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "chromium",
+      "label": "width 430 team 5 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "chromium",
+      "label": "width 430 team 7 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "chromium",
+      "label": "width 430 team 8 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "chromium",
+      "label": "width 430 team 9 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "chromium",
+      "label": "width 430 team 10 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "chromium",
+      "label": "width 430 team 11 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "chromium",
+      "label": "width 430 first selected",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "chromium",
+      "label": "width 430 first refreshed",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "chromium",
+      "label": "width 430 first deselected",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "chromium",
+      "label": "width 430 last selected",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "chromium",
+      "label": "width 430 last refreshed",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "chromium",
+      "label": "width 430 last deselected",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "chromium",
+      "label": "width 600 team 1 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "chromium",
+      "label": "width 600 team 2 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "chromium",
+      "label": "width 600 team 3 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "chromium",
+      "label": "width 600 team 4 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "chromium",
+      "label": "width 600 team 5 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "chromium",
+      "label": "width 600 team 7 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "chromium",
+      "label": "width 600 team 8 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "chromium",
+      "label": "width 600 team 9 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "chromium",
+      "label": "width 600 team 10 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "chromium",
+      "label": "width 600 team 11 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "chromium",
+      "label": "width 600 first selected",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "chromium",
+      "label": "width 600 first refreshed",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "chromium",
+      "label": "width 600 first deselected",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "chromium",
+      "label": "width 600 last selected",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "chromium",
+      "label": "width 600 last refreshed",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "chromium",
+      "label": "width 600 last deselected",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "chromium",
+      "label": "width 900 team 1 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "chromium",
+      "label": "width 900 team 2 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "chromium",
+      "label": "width 900 team 3 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "chromium",
+      "label": "width 900 team 4 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "chromium",
+      "label": "width 900 team 5 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "chromium",
+      "label": "width 900 team 7 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "chromium",
+      "label": "width 900 team 8 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "chromium",
+      "label": "width 900 team 9 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "chromium",
+      "label": "width 900 team 10 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "chromium",
+      "label": "width 900 team 11 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "chromium",
+      "label": "width 900 first selected",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "chromium",
+      "label": "width 900 first refreshed",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "chromium",
+      "label": "width 900 first deselected",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "chromium",
+      "label": "width 900 last selected",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "chromium",
+      "label": "width 900 last refreshed",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "chromium",
+      "label": "width 900 last deselected",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "webkit",
+      "label": "width 320 team 1 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "webkit",
+      "label": "width 320 team 2 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "webkit",
+      "label": "width 320 team 3 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "webkit",
+      "label": "width 320 team 4 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "webkit",
+      "label": "width 320 team 5 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "webkit",
+      "label": "width 320 team 7 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "webkit",
+      "label": "width 320 team 8 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "webkit",
+      "label": "width 320 team 9 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "webkit",
+      "label": "width 320 team 10 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "webkit",
+      "label": "width 320 team 11 idle",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "webkit",
+      "label": "width 320 first selected",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "webkit",
+      "label": "width 320 first refreshed",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "webkit",
+      "label": "width 320 first deselected",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "webkit",
+      "label": "width 320 last selected",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "webkit",
+      "label": "width 320 last refreshed",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "webkit",
+      "label": "width 320 last deselected",
+      "doc": 320,
+      "body": 320,
+      "client": 320
+    },
+    {
+      "browser": "webkit",
+      "label": "width 390 team 1 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "webkit",
+      "label": "width 390 team 2 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "webkit",
+      "label": "width 390 team 3 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "webkit",
+      "label": "width 390 team 4 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "webkit",
+      "label": "width 390 team 5 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "webkit",
+      "label": "width 390 team 7 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "webkit",
+      "label": "width 390 team 8 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "webkit",
+      "label": "width 390 team 9 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "webkit",
+      "label": "width 390 team 10 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "webkit",
+      "label": "width 390 team 11 idle",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "webkit",
+      "label": "width 390 first selected",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "webkit",
+      "label": "width 390 first refreshed",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "webkit",
+      "label": "width 390 first deselected",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "webkit",
+      "label": "width 390 last selected",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "webkit",
+      "label": "width 390 last refreshed",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "webkit",
+      "label": "width 390 last deselected",
+      "doc": 390,
+      "body": 390,
+      "client": 390
+    },
+    {
+      "browser": "webkit",
+      "label": "width 430 team 1 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "webkit",
+      "label": "width 430 team 2 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "webkit",
+      "label": "width 430 team 3 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "webkit",
+      "label": "width 430 team 4 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "webkit",
+      "label": "width 430 team 5 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "webkit",
+      "label": "width 430 team 7 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "webkit",
+      "label": "width 430 team 8 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "webkit",
+      "label": "width 430 team 9 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "webkit",
+      "label": "width 430 team 10 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "webkit",
+      "label": "width 430 team 11 idle",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "webkit",
+      "label": "width 430 first selected",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "webkit",
+      "label": "width 430 first refreshed",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "webkit",
+      "label": "width 430 first deselected",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "webkit",
+      "label": "width 430 last selected",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "webkit",
+      "label": "width 430 last refreshed",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "webkit",
+      "label": "width 430 last deselected",
+      "doc": 430,
+      "body": 430,
+      "client": 430
+    },
+    {
+      "browser": "webkit",
+      "label": "width 600 team 1 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "webkit",
+      "label": "width 600 team 2 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "webkit",
+      "label": "width 600 team 3 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "webkit",
+      "label": "width 600 team 4 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "webkit",
+      "label": "width 600 team 5 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "webkit",
+      "label": "width 600 team 7 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "webkit",
+      "label": "width 600 team 8 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "webkit",
+      "label": "width 600 team 9 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "webkit",
+      "label": "width 600 team 10 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "webkit",
+      "label": "width 600 team 11 idle",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "webkit",
+      "label": "width 600 first selected",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "webkit",
+      "label": "width 600 first refreshed",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "webkit",
+      "label": "width 600 first deselected",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "webkit",
+      "label": "width 600 last selected",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "webkit",
+      "label": "width 600 last refreshed",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "webkit",
+      "label": "width 600 last deselected",
+      "doc": 600,
+      "body": 600,
+      "client": 600
+    },
+    {
+      "browser": "webkit",
+      "label": "width 900 team 1 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "webkit",
+      "label": "width 900 team 2 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "webkit",
+      "label": "width 900 team 3 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "webkit",
+      "label": "width 900 team 4 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "webkit",
+      "label": "width 900 team 5 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "webkit",
+      "label": "width 900 team 7 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "webkit",
+      "label": "width 900 team 8 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "webkit",
+      "label": "width 900 team 9 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "webkit",
+      "label": "width 900 team 10 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "webkit",
+      "label": "width 900 team 11 idle",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "webkit",
+      "label": "width 900 first selected",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "webkit",
+      "label": "width 900 first refreshed",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "webkit",
+      "label": "width 900 first deselected",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "webkit",
+      "label": "width 900 last selected",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "webkit",
+      "label": "width 900 last refreshed",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    },
+    {
+      "browser": "webkit",
+      "label": "width 900 last deselected",
+      "doc": 900,
+      "body": 900,
+      "client": 900
+    }
+  ],
+  "zoomEnabled": true,
+  "navScroll": true,
+  "pageHorizontalScroll": 0
+}
