@@ -1,20 +1,27 @@
-/* Live redraw layout guard.
-   The ESPN sync redraws League HQ, Standings, the Wire, the schedule and the Season Challenges every 15–60 seconds.
-   Each redraw swaps a section's markup; for a frame or two the new markup can be shorter than the old (images decoding,
-   a two-step render), so everything below jumps up and then back down. This holds each live section at its current
-   height while it redraws and releases the hold once the new content has painted, so the page never twitches. */
+/* Hold live sections through their render frame without leaving stale height locks. */
 (function(){
  const LIVE=['#league-sync-content','#league-hq-tools','#standings-out','#challenge-out','#wire','#schedule-out'];
- let depth=0,release=0;
+ const held=new Map();let depth=0,release=0;
  function hold(run){
   if(depth++){try{return run()}finally{depth--}}
-  const held=[];
-  for(const sel of LIVE){const node=document.querySelector(sel);if(!node)continue;const h=node.getBoundingClientRect().height;if(h>0){node.style.minHeight=h+'px';held.push(node)}}
+  for(const sel of LIVE){
+   const node=document.querySelector(sel);if(!node)continue;
+   const height=node.getBoundingClientRect().height;
+   if(height>0&&!held.has(node)){
+    held.set(node,[node.style.getPropertyValue('min-height'),node.style.getPropertyPriority('min-height')]);
+    node.style.minHeight=height+'px';
+   }
+  }
   const ticket=++release;
-  try{return run()}
-  finally{
+  try{return run()}finally{
    depth--;
-   requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(()=>{if(ticket!==release)return;held.forEach(n=>{n.style.minHeight=''})},320)));
+   requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    if(ticket!==release)return;
+    for(const [node,[value,priority]] of held){
+     if(value)node.style.setProperty('min-height',value,priority);else node.style.removeProperty('min-height');
+    }
+    held.clear();
+   }));
   }
  }
  function guard(name){

@@ -1,4 +1,5 @@
 import {readFileSync} from 'node:fs';
+const liveUpdates=readFileSync(new URL('./live-updates.js',import.meta.url),'utf8');
 const news=readFileSync(new URL('./news-feed.js',import.meta.url),'utf8');
 const navigation=readFileSync(new URL('./matchup-navigation.js',import.meta.url),'utf8');
 const rowFit=readFileSync(new URL('./matchup-row-fit.js',import.meta.url),'utf8');
@@ -102,5 +103,19 @@ export function prepareLiveDisplay(html){
  html=html.replace(/^\.hj-player-v3(?:\.is-right)?\[data-narrow-info="true"\][^\n]*\n/gm,'');
  html=html.replace(/(?:#league-hq :is\(\.league-player,\.hq-player-card\)|\.league-player|\.hq-lineup-player|\.hq-player-card|\.hj-player-v2|\.hj-player-v3):hover\{[^}]*\}/g,'');
  html=once(html,/function hjFitStarterSpace\(\)\{\n const lineup=[^]*?\n\}/g,rowFit,'single-column starter fitting');
+ html=once(html,/<script id="hj-stable-live-updates">[^]*?<\/script>/g,'<script id="hj-stable-live-updates">'+liveUpdates+'</script>','persistent live layout');
+ html=once(html,/function hjCenterMatchupRailV33\(\)\{[^]*?\n  \}/g,`const hjMatchupRailSelectionsV33=new WeakMap();
+  function hjCenterMatchupRailV33(){
+   const rail=document.querySelector('#hq-matchup-content .hq-matchup-switcher');
+   if(!rail)return;
+   const selected=rail.querySelector('.hq-matchup-jump.active'),key=selected?.dataset.hqMatchupJump||'';
+   if(hjMatchupRailSelectionsV33.get(rail)===key)return;
+   hjMatchupRailSelectionsV33.set(rail,key);
+   hjCenterMatchupJumpChipV32(key);
+  }`,'preserve matchup selector while refreshing');
+ html=once(html,/previousRailLeft=previousRail\?\.scrollLeft\|\|0;/g,
+  "previousRailLeft=previousRail?.scrollLeft||0,previousSelection=previousRail?.querySelector('.league-team-tab.active')?.dataset.leagueTeam;",'remember roster selection');
+ html=once(html,/if\(!rail\)return;rail\.scrollLeft=previousRailLeft;/g,
+  "if(!rail)return;if(rail===previousRail&&previousSelection===String(HJ_LEAGUE_STATE.selectedTeamId))return;rail.scrollLeft=previousRailLeft;",'preserve roster selector while refreshing');
  return html;
 }
