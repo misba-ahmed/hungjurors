@@ -1,0 +1,22 @@
+import fs from 'node:fs/promises';
+import sharp from 'sharp';
+const players=[{"file":"4262921-v1.webp","width":124,"height":312,"ratio":0.39744,"heightInches":73,"name":"Justin Jefferson","teamId":16,"jersey":"18","id":4262921,"url":"https://a.espncdn.com/i/headshots/nfl/players/full/4262921.png"},{"file":"4379399-v1.webp","width":122,"height":316,"ratio":0.38608,"heightInches":71,"name":"James Cook III","teamId":2,"jersey":"4","id":4379399,"url":"https://a.espncdn.com/i/headshots/nfl/players/full/4379399.png"},{"file":"4427366-v1.webp","width":121,"height":312,"ratio":0.38782,"heightInches":71,"name":"Breece Hall","teamId":20,"jersey":"20","id":4427366,"url":"https://a.espncdn.com/i/headshots/nfl/players/full/4427366.png"},{"file":"4595348-v1.webp","width":126,"height":313,"ratio":0.40256,"heightInches":72,"name":"Malik Nabers","teamId":19,"jersey":"1","id":4595348,"url":"https://a.espncdn.com/i/headshots/nfl/players/full/4595348.png"},{"file":"3915511-v1.webp","width":125,"height":320,"ratio":0.39063,"heightInches":76,"name":"Joe Burrow","teamId":4,"jersey":"9","id":3915511,"url":"https://a.espncdn.com/i/headshots/nfl/players/full/3915511.png"},{"file":"3040151-v1.webp","width":132,"height":319,"ratio":0.41379,"heightInches":76,"name":"George Kittle","teamId":25,"jersey":"85","id":3040151,"url":"https://a.espncdn.com/i/headshots/nfl/players/full/3040151.png"},{"file":"4047650-v1.webp","width":129,"height":320,"ratio":0.40313,"heightInches":76,"name":"DK Metcalf","teamId":23,"jersey":"4","id":4047650,"url":"https://a.espncdn.com/i/headshots/nfl/players/full/4047650.png"},{"file":"16737-v1.webp","width":128,"height":320,"ratio":0.4,"heightInches":77,"name":"Mike Evans","teamId":25,"jersey":"5","id":16737,"url":"https://a.espncdn.com/i/headshots/nfl/players/full/16737.png"},{"file":"4361741-v1.webp","width":125,"height":318,"ratio":0.39308,"heightInches":73,"name":"Brock Purdy","teamId":25,"jersey":"13","id":4361741,"url":"https://a.espncdn.com/i/headshots/nfl/players/full/4361741.png"},{"file":"4241985-v1.webp","width":135,"height":317,"ratio":0.42587,"heightInches":70,"name":"J.K. Dobbins","teamId":7,"jersey":"27","id":4241985,"url":"https://a.espncdn.com/i/headshots/nfl/players/full/4241985.png"},{"file":"3116365-v1.webp","width":139,"height":319,"ratio":0.43574,"heightInches":77,"name":"Mark Andrews","teamId":33,"jersey":"89","id":3116365,"url":"https://a.espncdn.com/i/headshots/nfl/players/full/3116365.png"},{"file":"4574716-v1.webp","width":130,"height":319,"ratio":0.40752,"heightInches":72,"name":"Harrison Mevis","teamId":14,"jersey":"92","id":4574716,"url":"https://a.espncdn.com/i/headshots/nfl/players/full/4574716.png"},{"file":"17372-v1.webp","width":126,"height":290,"ratio":0.43448,"heightInches":74,"name":"Chris Boswell","teamId":23,"jersey":"9","id":17372,"url":"https://a.espncdn.com/i/headshots/nfl/players/full/17372.png"},{"file":"4426385-v1.webp","width":127,"height":290,"ratio":0.43793,"heightInches":73,"name":"Zach Charbonnet","teamId":26,"jersey":"26","id":4426385,"url":"https://a.espncdn.com/i/headshots/nfl/players/full/4426385.png"}];
+await fs.mkdir('face-preview',{recursive:true});
+const esc=s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;');
+for(let g=0;g<4;g++){
+ const layers=[];
+ for(let i=0;i<4&&g*4+i<players.length;i++){
+  const p=players[g*4+i],r=await fetch(p.url); if(!r.ok)throw Error(p.name+' '+r.status);
+  const head=Buffer.from(await r.arrayBuffer()); await fs.writeFile('face-preview/'+p.id+'-head.png',head);
+  const headM=await sharp(head).metadata(); console.log(p.name,headM.width,headM.height);
+  const h=await sharp(head).trim().resize({width:350,height:310,fit:'contain',background:'#eeeeee'}).png().toBuffer();
+  const old=await sharp('assets/team-photos/players/'+p.file).resize({width:280,height:690,fit:'contain',background:'#f7ecd4'}).png().toBuffer();
+  layers.push({input:h,left:i*400+25,top:50},{input:old,left:i*400+60,top:380});
+  const text='<svg width="400" height="50"><text x="200" y="30" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#14324f">'+esc(p.name)+'</text></svg>';
+  layers.push({input:Buffer.from(text),left:i*400,top:0});
+ }
+ const jpg=await sharp({create:{width:1600,height:1100,channels:3,background:'#f7ecd4'}}).composite(layers).jpeg({quality:95}).toBuffer();
+ await fs.writeFile('face-preview/group-'+g+'.jpg',jpg);
+ await fs.writeFile('face-preview/group-'+g+'.base64.txt',jpg.toString('base64'));
+}
+await fs.writeFile('face-preview/references.json',JSON.stringify(players,null,2));
