@@ -1,0 +1,38 @@
+name: Prepare and verify roster team photos
+on:
+  push:
+    branches: ["feat/live-roster-team-photos"]
+    paths:
+      - "assets/team-photos/sources/**"
+      - "scripts/build-team-photos.mjs"
+      - "scripts/team-photos.js"
+      - "scripts/check-team-photos.mjs"
+      - "styles/team-photos.css"
+      - "scripts/prepare-site.mjs"
+      - ".github/workflows/prepare-team-photos.yml"
+permissions:
+  contents: write
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Prepare artwork tools
+        run: npm install --no-save --package-lock=false sharp@0.34.5 playwright@1.56.1
+      - name: Build reusable cutouts
+        run: node scripts/build-team-photos.mjs
+      - name: Verify roster photo behavior and layout
+        run: |
+          npx playwright install chromium --with-deps
+          node scripts/check-team-photos.mjs
+      - name: Save processed artwork and preview
+        run: |
+          git config user.name "Team photo assets"
+          git config user.email "preview@users.noreply.github.com"
+          git add assets/team-photos/players assets/team-photos/catalog.json team-photo-preview
+          git diff --cached --quiet || git commit -m "Save roster photo assets and verified previews"
+          git push origin HEAD:refs/heads/feat/live-roster-team-photos
