@@ -35,10 +35,10 @@ await fs.mkdir('recap-preview',{recursive:true});
 let live;
 for(const week of [1,2,3]){
  const base='https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/2026/segments/0/leagues/1630558?scoringPeriodId='+week;
- const filter={players:{filterSlotIds:{value:[0,2,4,6,16,17]},filterStatsForSourceIds:{value:[0,1]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForScoringPeriodIds:{value:Array.from({length:week+1},(_,i)=>i)},limit:1500,offset:0}};
+ const filter={players:{filterSlotIds:{value:[0,2,4,6,16,17]},filterStatsForSourceIds:{value:[0,1]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForScoringPeriodIds:{value:Array.from({length:week+1},(_,i)=>i)},limit:1500,offset:0,sortPercOwned:{sortAsc:false,sortPriority:1}}};
  const [h,p]=await Promise.all([
- fetch(base+'&view=mMatchup&view=mMatchupScore&view=mTeam',{signal:AbortSignal.timeout(20000)}).then(r=>{assert(r.ok);return r.json()}),
- fetch(base+'&view=kona_player_info',{headers:{'x-fantasy-filter':JSON.stringify(filter)},signal:AbortSignal.timeout(20000)}).then(r=>{assert(r.ok);return r.json()})
+ fetch(base+'&view=mMatchup&view=mMatchupScore&view=mRoster&view=mSettings&view=mTeam',{signal:AbortSignal.timeout(20000)}).then(async r=>{if(!r.ok)throw Error('ESPN '+r.status+' '+await r.text());return r.json()}),
+ fetch(base+'&view=kona_player_info',{headers:{'x-fantasy-filter':JSON.stringify(filter)},signal:AbortSignal.timeout(20000)}).then(async r=>{if(!r.ok)throw Error('ESPN '+r.status+' '+await r.text());return r.json()})
  ]);
  assert(p.players.length>0&&p.players.length<1500);
  const scores=h.schedule.filter(g=>Number(g.matchupPeriodId)===week).flatMap(g=>['home','away'].flatMap(side=>{const s=g[side];if(!s?.teamId)return [];const entries=(s.rosterForCurrentScoringPeriod||s.rosterForMatchupPeriod||s.roster)?.entries||[];return [{teamId:s.teamId,short:'Team '+s.teamId,lineupComplete:entries.length>0,entries,starters:entries.filter(e=>![20,21].includes(Number(e.lineupSlotId)))}]}));
