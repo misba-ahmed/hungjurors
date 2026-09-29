@@ -2,6 +2,7 @@ import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {dirname,join} from 'node:path';
 import {extractSiteArtwork} from './site-artwork.mjs';
 import {readFileSync} from 'node:fs';
+import {prepareDefenseFantasyRanks} from './prepare-defense-fantasy-ranks.mjs';
 import {preparePlayerStatBars} from './prepare-player-stat-bars.mjs';
 import {prepareLiveDisplay} from './prepare-live-display.mjs';
 const playerSearch=readFileSync(new URL('./player-search.js',import.meta.url),'utf8');
@@ -30,6 +31,7 @@ function replaceOnce(html,pattern,replacement){
 }
 export function prepareSite(html){
  html=preparePlayerStatBars(html);
+ html=prepareDefenseFantasyRanks(html);
  html=extractSiteArtwork(html).html;
  // Use real PNG files, with fresh URLs so failed icon requests are not reused.
  html=replaceOnce(html,/<link rel="apple-touch-icon"[^>]*>/g,'<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-hung-jurors-v2.png">');
