@@ -100,7 +100,6 @@ export function prepareLiveDisplay(html){
  html=once(html,/async function ffnPlayersLatest\(players\)\{[^]*?(?=async function ffnInit\()/g,news+'\n','chronological news loader');
  html=once(html,/<script id="hj-native-nonsticky-swipe">[^]*?<\/script>/g,'<script id="hj-native-nonsticky-swipe">'+navigation+'</script>','matchup navigation');
  html=html.replace(/^\.hj-player-v3(?:\.is-right)?\[data-narrow-info="true"\][^\n]*\n/gm,'');
- html=html.replaceAll('"avatar identity score" "avatar game score"','"avatar identity score" "game game score"').replaceAll('"score identity avatar" "score game avatar"','"score identity avatar" "score game game"');
  html=html.replace(/(?:#league-hq :is\(\.league-player,\.hq-player-card\)|\.league-player|\.hq-lineup-player|\.hq-player-card|\.hj-player-v2|\.hj-player-v3):hover\{[^}]*\}/g,'');
  html=once(html,/function hjFitStarterSpace\(\)\{\n const lineup=[^]*?\n\}/g,rowFit,'single-column starter fitting');
  return html;

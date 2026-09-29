@@ -39,7 +39,11 @@ async function ffnFeedPage(session,shard){
  if(feed.length&&!dates.length)throw Error('ESPN news page has no dates');
  const next=shard.offset+feed.length;
  // Advance by rows actually received, never by a requested/server page size.
- const total=data.resultsCount==null?null:Number(data.resultsCount);
+ // resultsCount can describe this page, not the remaining archive.
+ // Only an empty page proves that this cursor has reached the end.
+ const signature=feed.map(raw=>String(raw.id||raw.playerId)+':'+String(raw.published||raw.categorized||'')).join('|');
+ if(feed.length&&signature===shard.lastPage)throw Error('ESPN returned the previous news page');
+ shard.lastPage=signature;
  for(const raw of feed){
   const player=byId.get(String(raw.playerId||''));
   const item=player?ffnFeedToItem(raw,player,ffnImmediateNextGame(player.team)):null;
@@ -47,7 +51,7 @@ async function ffnFeedPage(session,shard){
  }
  shard.offset=next;
  shard.through=Math.min(shard.through,...dates);
- shard.done=!feed.length||(Number.isFinite(total)&&next>=total);
+ shard.done=!feed.length;
 }
 async function ffnFeedFill(session,target){
  if(session.pending){await session.pending;if(session.visible.length>=target||session.retryAt>Date.now())return}
@@ -117,6 +121,7 @@ async function ffnLoadFilteredNews({refresh=false,returnToStart=false}={}){
   HJ_NEWS_FEED.active=session;
   ffnPublishFeed(session,false);
   if(saved)ffnRestoreRailState(rail,saved);
+  ffnEnsureBuffer();
   return session.visible;
  }catch(error){
   console.warn('Fantasy news feed',error);
@@ -142,12 +147,18 @@ function ffnHandleVisibilityChange(){
 function ffnEnsureBuffer(){
  clearTimeout(ffnBufferTimer);
  ffnBufferTimer=setTimeout(async()=>{
-  const rail=$('#ffn-scroll'),session=HJ_NEWS_FEED.active;if(!rail||!session||session.pending||session.retryAt>Date.now())return;
+  const rail=$('#ffn-scroll'),session=HJ_NEWS_FEED.active;if(!rail||!session)return;
+  if(session.pending)await session.pending;
+  if(HJ_NEWS_FEED.active!==session)return;
+  if(session.retryAt>Date.now()){
+   ffnBufferTimer=setTimeout(ffnEnsureBuffer,session.retryAt-Date.now()+100);return;
+  }
   if(rail.scrollWidth-rail.clientWidth-rail.scrollLeft>rail.clientWidth*2)return;
-  if(ffnRendered<session.visible.length){ffnAppendBatch();return}
+  if(ffnRendered<session.visible.length){ffnAppendBatch();ffnEnsureBuffer();return}
   const before=session.visible.length;
   await ffnFeedFill(session,before+FFN_BATCH);
   if(HJ_NEWS_FEED.active!==session)return;
-  if(session.visible.length>before){ffnPublishFeed(session);while(ffnRendered<Math.min(session.visible.length,before+FFN_BATCH))ffnAppendBatch()}
+  if(session.visible.length>before){ffnPublishFeed(session);while(ffnRendered<Math.min(session.visible.length,before+FFN_BATCH))ffnAppendBatch();ffnEnsureBuffer()}
+  else if(session.retryAt>Date.now())ffnBufferTimer=setTimeout(ffnEnsureBuffer,session.retryAt-Date.now()+100);
  },80);
 }

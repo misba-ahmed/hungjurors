@@ -32,7 +32,7 @@ const feedContext={
   const query=new URL(url).searchParams,id=query.get('playerId'),offset=Number(query.get('offset'));
   calls.push([id,offset]);
   if(id==='a'&&offset===2&&fail){fail=false;throw Error('temporary failure')}
-  return {resultsOffset:offset,resultsCount:pages[id].length,feed:pages[id].slice(offset,offset+2).map(day=>({playerId:id,day,published:'2026-09-'+String(day).padStart(2,'0')+'T12:00:00Z'}))};
+  return {resultsOffset:offset,resultsCount:pages[id].slice(offset,offset+2).length,feed:pages[id].slice(offset,offset+2).map(day=>({playerId:id,day,published:'2026-09-'+String(day).padStart(2,'0')+'T12:00:00Z'}))};
  }
 };
 vm.createContext(feedContext);
@@ -43,7 +43,7 @@ assert.deepEqual(Array.from(session.visible,p=>p.id),['a-28','b-28']);
 assert.equal(session.shards[0].offset,2,'failed page keeps its cursor');
 session.retryAt=0;
 await feedContext.ffnFeedFill(session,5);
-assert.deepEqual(Array.from(session.visible,p=>p.id),['a-28','b-28','a-27','a-26','a-25','a-24']);
+assert.deepEqual(Array.from(session.visible,p=>p.id),['a-28','b-28','a-27','a-26','a-25']);
 await feedContext.ffnFeedFill(session,10);
 assert.deepEqual(Array.from(session.visible,p=>p.id),['a-28','b-28','a-27','a-26','a-25','a-24','b-15','b-14']);
 assert.ok(!calls.some(([,offset])=>offset===50),'offset follows actual returned row count');
@@ -63,8 +63,9 @@ try{
  const styleBlock=chunk=>[...chunk.matchAll(/<style\b[^>]*>([^]*?)<\/style>/g)].map(m=>m[1]).join('\n');
  const styles=styleBlock(html.slice(0,headEnd))+'\n'+read('../styles/side-bets.css')+'\n'+read('../styles/live-display.css')+'\n'+styleBlock(html.slice(headEnd));
  const row=(right=false,live=false)=>'<button class="hj-player-v3'+(right?' is-right':'')+'" data-game-in-progress="'+live+'"><span class="hj-v3-avatar">A</span><span class="hj-v3-identity"><span class="hj-v3-name">Player</span></span><span class="hj-game-context">Q1 8:32<br>12 RY</span><span class="hj-v3-score">14.2</span></button>';
+ const profile='<section class="profile-schedule-compact"><div class="profile-schedule-strip">'+['TYLER','NATHAN T'].map(name=>'<div class="profile-schedule-node"><span class="profile-schedule-week">W2</span><span class="av">A</span><span class="profile-schedule-opp"><span class="profile-schedule-vs">VS</span><span class="profile-schedule-opp-name">'+name+'</span></span><span class="profile-schedule-result">W 147.40–145.56</span><span class="profile-schedule-h2h">H2H 3–5 · -86.38 PTS</span></div>').join('')+'</div><div id="profile-roster">'+row().replace('hj-player-v3','hj-player-v3 hj-roster-player')+'</div></section>';
  const markup='<main id="league-hq"><section id="hq-panel-matchups"><div class="schedule-weeknav"><button class="schedule-week-btn"><span class="schedule-week-n">3</span></button></div><div class="hq-matchup-switcher">'+[0,1,2].map(i=>'<button class="hq-matchup-jump" data-hq-matchup-jump="'+i+'">Match '+i+'</button>').join('')+'</div><div class="hq-matchup-list">'+[0,1,2].map(i=>'<article class="hq-matchup is-open" data-hq-matchup-key="'+i+'">'+row()+row(true,true)+'<div style="height:'+(i===1?900:200)+'px"></div></article>').join('')+'</div></section></main>';
- await page.setContent('<style>'+styles+'</style>'+markup+'<style>html,body{margin:0;padding:0}#league-hq{margin:0;padding:0;width:100%}</style>');
+ await page.setContent('<style>'+styles+'</style>'+markup+profile+'<style>html,body{margin:0;padding:0}#league-hq{margin:0;padding:0;width:100%}</style>');
  await page.addScriptTag({content:'window.HJ_HQ_STATE={matchupFocusKey:"0"};function hjCenterMatchupJumpChipV32(){}'});
  await page.addScriptTag({content:read('./matchup-navigation.js')});
  await page.waitForTimeout(250);
@@ -103,9 +104,21 @@ try{
    const rows=page.locator(selector);
    const placement=await rows.first().evaluate(el=>{
     const avatar=el.querySelector('.hj-v3-avatar').getBoundingClientRect(),game=el.querySelector('.hj-game-context').getBoundingClientRect();
-    return game.top>=avatar.bottom;
+    return {below:game.top>=avatar.bottom,beside:game.left>=avatar.right||game.right<=avatar.left};
    });
-   assert.ok(placement,'game context below avatar at '+width);
+   assert.ok(width<=760?placement.below:placement.beside,'game context placement at '+width);
+  }
+  const compact=await page.locator('#profile-roster .hj-player-v3').evaluate(el=>{
+   const avatar=el.querySelector('.hj-v3-avatar').getBoundingClientRect(),game=el.querySelector('.hj-game-context').getBoundingClientRect();
+   return game.left>=avatar.right;
+  });
+  assert.ok(compact,'roster details stay beside avatar at '+width);
+  for(const card of await page.locator('.profile-schedule-node').all()){
+   const fits=await card.evaluate(el=>{
+    const opponent=el.querySelector('.profile-schedule-opp').getBoundingClientRect(),result=el.querySelector('.profile-schedule-result').getBoundingClientRect(),h2h=el.querySelector('.profile-schedule-h2h').getBoundingClientRect();
+    return result.top>=opponent.bottom&&h2h.top>=result.bottom&&h2h.bottom<=el.getBoundingClientRect().bottom;
+   });
+   assert.ok(fits,'schedule name, result and history do not overlap');
   }
  }
  const normal=page.locator('.hq-matchup').nth(1).locator('.hj-player-v3').first();
@@ -115,3 +128,13 @@ try{
  assert.equal(await page.locator('[data-game-in-progress="true"]').first().evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(238, 237, 229)');
 }finally{await browser.close()}
 console.log('PASS ESPN probability, historical scores, chronological filtered news, Safari paging and player rows');
+
+// Exercise real pagination metadata without coupling fixtures to live headlines.
+for(const offset of [0,50]){
+ const url='https://site.api.espn.com/apis/fantasy/v2/games/ffl/news/players?limit=50&offset='+offset+'&playerId=4240657&playerId=4360078&playerId=4432728';
+ try{
+  const response=await fetch(url,{signal:AbortSignal.timeout(10000)});
+  const data=await response.json();
+  console.log('ESPN news page',JSON.stringify({offset,resultsOffset:data.resultsOffset,resultsCount:data.resultsCount,count:data.feed?.length,newest:data.feed?.[0]?.published,oldest:data.feed?.at(-1)?.published}));
+ }catch(error){console.log('Live news pagination unavailable:',error.message)}
+}

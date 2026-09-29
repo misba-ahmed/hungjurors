@@ -17,12 +17,13 @@ html #league-hq #hq-panel-matchups .hq-matchup-list>.hq-matchup{
  margin:0!important;scroll-margin:0!important;scroll-snap-align:start!important;scroll-snap-stop:always!important;
 }
 
-/* The game and stat lines always begin below the avatar and player identity. */
+/* Keep roster and desktop matchup details beside the avatar. */
 .hj-player-v3{
- grid-template-areas:"avatar identity score" "game game score"!important;row-gap:2px!important;
+ grid-template-areas:"avatar identity score" "avatar game score"!important;row-gap:1px!important;
 }
-.hj-player-v3.is-right{grid-template-areas:"score identity avatar" "score game game"!important}
-.hj-player-v3 .hj-v3-avatar,.hj-player-v3 .hj-v3-identity{align-self:center!important}
+.hj-player-v3.is-right{grid-template-areas:"score identity avatar" "score game avatar"!important}
+.hj-player-v3 .hj-v3-avatar{align-self:center!important}
+.hj-player-v3 .hj-v3-identity{align-self:end!important}
 .hj-player-v3>.hj-game-context{width:auto!important;margin:0!important}
 
 /* Darkness now identifies a live NFL game, never pointer hover. */
@@ -53,4 +54,43 @@ html #league-hq #hq-panel-matchups .hj-lineup-v2 .hj-player-v3{
 }
 @media(max-width:450px){
  html #league-hq #hq-panel-matchups .hj-lineup-v2{--hj-row-room:0}
+}
+
+/* Matchup cells share a phone's width; full-width roster rows do not. */
+@media(max-width:760px){
+ html #hq-panel-matchups .hj-player-v3{
+  grid-template-areas:"avatar identity score" "game game score"!important;
+ }
+ html #hq-panel-matchups .hj-player-v3.is-right{
+  grid-template-areas:"score identity avatar" "score game game"!important;
+ }
+ html #hq-panel-matchups .hj-v3-identity{align-self:center!important}
+}
+/* Let schedule content determine its height instead of squeezing grid tracks. */
+html .profile-schedule-compact .profile-schedule-node{
+ flex:0 0 148px!important;width:148px!important;min-width:148px!important;
+ height:auto!important;min-height:86px!important;
+ grid-template-columns:36px minmax(0,1fr)!important;
+ grid-template-rows:auto auto auto auto!important;
+ grid-template-areas:"avatar week" "avatar opp" "avatar result" "h2h h2h"!important;
+ align-content:start!important;align-items:start!important;
+ column-gap:7px!important;row-gap:3px!important;padding:7px!important;
+ overflow:visible!important;box-sizing:border-box!important;
+}
+html .profile-schedule-compact .profile-schedule-node .av{
+ width:36px!important;height:36px!important;flex-basis:36px!important;
+}
+html .profile-schedule-compact .profile-schedule-opp{
+ align-self:start!important;overflow:visible!important;
+}
+html .profile-schedule-compact .profile-schedule-opp-name{
+ white-space:normal!important;overflow:visible!important;text-overflow:clip!important;
+}
+html .profile-schedule-compact .profile-schedule-result{
+ position:static!important;margin:0!important;font-size:9px!important;line-height:1.2!important;
+ white-space:normal!important;overflow-wrap:normal!important;
+}
+html .profile-schedule-compact .profile-schedule-h2h{
+ font-size:9px!important;line-height:1.2!important;white-space:normal!important;
+ overflow:visible!important;text-overflow:clip!important;padding-top:4px!important;
 }
