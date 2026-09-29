@@ -51,16 +51,47 @@ async function open(page){
  await Promise.race([page.evaluate(()=>document.fonts.ready),page.waitForTimeout(4000)]);
  await page.waitForTimeout(600);
 }
+
+const checks=[];
 for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
  const browser=await engine.launch();
  try{
   const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
-  await open(page);await audit(page,name+' baseline');
-  await page.addStyleTag({content:'.hj-team-photo-player:not(.is-active) .hj-team-photo-caption,.hj-team-photo-player:not(.is-active) .hj-team-photo-score{display:none}'});
-  await audit(page,name+' hidden labels removed');
-  await page.addStyleTag({content:'html{overflow-x:clip}'});
-  await audit(page,name+' root clip');
+  await open(page);
+  async function fits(label){
+   const size=await page.evaluate(()=>({doc:document.documentElement.scrollWidth,body:document.body.scrollWidth,client:document.documentElement.clientWidth}));
+   assert(size.doc<=size.client+1&&size.body<=size.client+1,label+' '+JSON.stringify(size));
+   checks.push({browser:name,label,...size});
+  }
+  for(const width of [320,390,430,600,900]){
+   await page.setViewportSize({width,height:1000});
+   for(const team of league.teams){
+    await page.evaluate(id=>{HJ_LEAGUE_STATE.selectedTeamId=id;hjRenderLeague()},team.id);
+    await fits('width '+width+' team '+team.id+' idle');
+   }
+   for(const pick of ['first','last']){
+    const player=pick==='first'?page.locator('.hj-team-photo-player').first():page.locator('.hj-team-photo-player').last();
+    await player.scrollIntoViewIfNeeded();await player.tap();await page.waitForTimeout(280);
+    assert.equal(await player.getAttribute('aria-pressed'),'true','Edge player selected');
+    assert.equal(await player.locator('.hj-team-photo-caption').evaluate(e=>getComputedStyle(e).display),'block');
+    await fits('width '+width+' '+pick+' selected');
+    await page.evaluate(()=>hjRenderLeague());await fits('width '+width+' '+pick+' refreshed');
+    await page.waitForTimeout(750);await player.tap();await page.waitForTimeout(280);
+    await fits('width '+width+' '+pick+' deselected');
+   }
+  }
+  await page.setViewportSize({width:390,height:844});
+  await page.evaluate(()=>{window.scrollTo({left:100,top:0,behavior:'instant'})});
+  assert.equal(await page.evaluate(()=>scrollX),0,'Whole page must not scroll horizontally');
+  const nav=await page.locator('nav[aria-label="Sections"]').evaluate(e=>{const before=e.scrollLeft;e.scrollLeft=100;return {before,after:e.scrollLeft,width:e.clientWidth,total:e.scrollWidth};});
+  assert(nav.total>nav.width&&nav.after>nav.before,'Navigation rail remains horizontally scrollable');
+  const viewport=await page.locator('meta[name="viewport"]').getAttribute('content');
+  assert(!/user-scalable=no|maximum-scale/.test(viewport),'Pinch zoom remains enabled');
+  await page.evaluate(()=>window.scrollTo({left:0,top:0,behavior:'instant'}));
+  await page.screenshot({path:'overflow-preview/'+name+'-mobile.png'});
+  await fs.writeFile('overflow-preview/'+name+'-mobile.base64.txt',(await fs.readFile('overflow-preview/'+name+'-mobile.png')).toString('base64'));
  }finally{await browser.close();}
 }
-await fs.writeFile('overflow-preview/diagnosis.json',JSON.stringify(reports,null,2));
+await fs.writeFile('overflow-preview/verification.json',JSON.stringify({passed:true,checks,zoomEnabled:true,navScroll:true,pageHorizontalScroll:0},null,2));
+console.log('PASS: mobile document width stays inside viewport for every roster, edge selections, refresh, and deselection. Rails and zoom preserved.');
 server.close();

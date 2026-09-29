@@ -154,3 +154,6 @@
 @media(prefers-reduced-motion:reduce){
  .hj-team-photo-figure,.hj-team-photo-figure::after,.hj-team-photo-caption,.hj-team-photo-score{transition:none!important}
 }
+
+/* Invisible off-edge labels must not enlarge the document's scrollable width. */
+.hj-team-photo-player:not(.is-active) :is(.hj-team-photo-caption,.hj-team-photo-score){display:none}
