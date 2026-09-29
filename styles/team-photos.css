@@ -117,7 +117,9 @@
  opacity:0;transform:scale(.75);transition:opacity 200ms ease,transform 200ms ease;
 }
 .hj-team-photo-figure img{display:block;width:100%;height:100%;max-width:none;object-fit:contain;object-position:center bottom;pointer-events:none}
-.hj-team-photo-player.is-starter .hj-team-photo-figure img{filter:drop-shadow(0 0 2px #14324fe6) drop-shadow(0 0 6px #14324fa6)}
+/* Apply the glow to the non-replaced wrapper so Safari does not crop it to the image box. */
+.hj-team-photo-player.is-starter .hj-team-photo-figure{overflow:visible;filter:drop-shadow(0 0 2px #14324fe6) drop-shadow(0 0 6px #14324fa6)}
+.hj-team-photo-player.is-starter .hj-team-photo-figure img{filter:none;overflow:visible}
 .hj-team-photo-player.is-portrait .hj-team-photo-figure img{object-fit:contain;object-position:center top;height:42%;margin-top:8%;border-radius:0}
 .hj-team-photo.has-spotlight .hj-team-photo-player:not(.is-active) .hj-team-photo-figure{opacity:.82}
 .hj-team-photo-player.is-active .hj-team-photo-figure{transform:translate3d(var(--showcase-shift,0px),6px,0) scale(var(--showcase-scale))}
