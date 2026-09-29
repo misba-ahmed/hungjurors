@@ -47,13 +47,13 @@ function hjRcTopFiveBoards(model){
   const rows=players.map((p,i)=>{
    if(previous!==p.points)rank=i+1;previous=p.points;
    const {attrs,photo}=hjRcHeadshot(p),team=hjRcTeam(p.proTeamId);
-   const status=p.owner?p.owner+' · '+(p.rosterSlot===20?'Bench':p.rosterSlot===21?'IR':'Started'):p.ownershipKnown?'Free agent':'Roster syncing';
-   return `<li class="rc-five-row" data-rc-five-player="${esc(p.id)}"><span class="rc-five-rank" aria-label="Rank ${rank}">${rank}</span><button type="button" class="rc-five-player pc-player-trigger" ${attrs}><span class="rc-five-photo">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">`:''}</span><span class="rc-five-name"><strong>${esc(p.name)}</strong><small>${esc([p.pos,team].filter(Boolean).join(' · '))}</small></span></button><span class="rc-five-score"><strong>${p.points.toFixed(2)}</strong><small>PTS</small></span><span class="rc-five-status">${esc(status)}</span></li>`;
+   const owner=p.owner?`<span class="rc-five-owner manager-profile-trigger" data-manager="${esc(p.owner)}" role="button" tabindex="0">${av(p.owner,'rc-av')}<span>${esc(p.owner)}</span></span><span class="rc-five-slot">${p.rosterSlot===20?'Bench':p.rosterSlot===21?'IR':'Started'}</span>`:'';
+   return `<li class="rc-five-row" data-rc-five-player="${esc(p.id)}"><span class="rc-five-rank" aria-label="Rank ${rank}">${rank}</span><button type="button" class="rc-five-player pc-player-trigger" ${attrs}><span class="rc-five-photo">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">`:''}</span><span class="rc-five-name"><strong>${esc(p.name)}</strong><small>${esc([p.pos,team].filter(Boolean).join(' · '))}</small></span></button><span class="rc-five-score">${p.points.toFixed(2)}</span>${owner?`<span class="rc-five-status">${owner}</span>`:''}</li>`;
   }).join('');
   const empty=!ready?(rankings.ready?'Waiting for this week’s rosters…':'Loading this week’s scorers…'):'No qualifying scores for this week yet.';
-  return `<section class="rc-five-board is-${kind}" aria-labelledby="rc-five-${kind}"><header><span class="rc-five-mark" aria-hidden="true">${kind==='overall'?'05':'FA'}</span><div><h3 id="rc-five-${kind}">${title}</h3><p>${subtitle}</p></div></header>${ready&&players.length?`<ol class="rc-five-list" aria-label="${title}">${rows}</ol>`:`<p class="rc-five-empty" role="status">${empty}</p>`}</section>`;
+  return `<section class="rc-block rc-five-board is-${kind}" aria-labelledby="rc-five-${kind}"><h3 class="rc-h" id="rc-five-${kind}">${title} <small>${subtitle}</small></h3>${ready&&players.length?`<ol class="rc-five-list" aria-label="${title}">${rows}</ol>`:`<p class="rc-five-empty" role="status">${empty}</p>`}</section>`;
  }
- return '<div class="rc-top-fives">'+board('overall','The High Five','Top 5 scorers · every position, started or not',rankings.overall,rankings.ready)+board('wire','Free Agent Gold','Top 5 unrostered scorers · no quarterbacks',rankings.wire,rankings.wireReady)+'</div>';
+ return '<div class="rc-top-fives">'+board('overall','The High Five','top 5 scorers, started or not',rankings.overall,rankings.ready)+board('wire','Free Agent Gold','top 5 on the waiver wire · no QBs',rankings.wire,rankings.wireReady)+'</div>';
 }
 
 function hjRcModel(chosen,weeks,data){
