@@ -177,6 +177,6 @@
 /* Starters stand slightly ahead of the bench, without added labels or spacing. */
 #league-hq .hj-team-photo .hj-team-photo-player.is-starter{z-index:calc(var(--player-layer) + 30)}
 .hj-team-photo-player.is-starter:not(.is-active) .hj-team-photo-figure{
- transform:translate3d(0,3px,0) scale(1.08);
+ transform:translate3d(0,2px,0) scale(1.05);
 }
 #league-hq .hj-team-photo .hj-team-photo-player.is-active{z-index:250}
