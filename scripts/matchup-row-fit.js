@@ -12,10 +12,12 @@ function hjFitStarterSpace(){
   lineup.dataset.columns='1';
   const before=grid.getBoundingClientRect().top-card.getBoundingClientRect().top;
   // Scroll position and ticking scores must not change row density.
-  const available=Math.max(0,viewport-pinned-before-10);
-  const key=[lineup.clientWidth,Math.round(available),grid.children.length].join('|');
+  const key=[lineup.clientWidth,viewport,Math.round(pinned+before),grid.children.length].join('|');
   if(HJ_STARTER_FITS.get(lineup)===key&&lineup.style.getPropertyValue('--hj-row-room'))return;
   HJ_STARTER_FITS.set(lineup,key);
+  const visibleTop=grid.getBoundingClientRect().top;
+  const top=visibleTop>=0&&visibleTop<viewport?Math.max(pinned+before,visibleTop):pinned+before;
+  const available=Math.max(0,viewport-top-10);
   const set=room=>lineup.style.setProperty('--hj-row-room',String(room));
   // At phone widths, preserve the phone design. Larger screens may reduce
   // toward that same floor, but never below it or into a second column.

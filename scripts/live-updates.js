@@ -84,7 +84,7 @@
   const before=anchor?.getBoundingClientRect().top;
   const scrollers=Array.from(element.querySelectorAll('*')).filter(el=>el.scrollLeft||el.scrollTop).map(el=>[el,el.scrollLeft,el.scrollTop]);
   children(element,template.content);
-  scrollers.forEach(([el,x,y])=>{if(el.isConnected){if(el.scrollLeft!==x)el.scrollLeft=x;if(el.scrollTop!==y)el.scrollTop=y}});
+  scrollers.forEach(([el,x,y])=>{if(el.isConnected){if(el.scrollLeft!==x||el.scrollTop!==y)el.scrollTo({left:x,top:y,behavior:'instant'})}});
   if(anchor?.isConnected&&element.getClientRects().length){
    const delta=anchor.getBoundingClientRect().top-before;
    if(Math.abs(delta)>.5){if(scrollRoot)scrollRoot.scrollTop+=delta;else window.scrollBy({top:delta,behavior:'instant'})}

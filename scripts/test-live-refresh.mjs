@@ -25,7 +25,7 @@ for(const engine of [chromium,webkit]){
    await page.setViewportSize({width,height:900});await page.waitForTimeout(250);
    await page.evaluate(()=>{
     const deck=document.querySelector('.hq-matchup-list'),card=deck.children[1];
-    window.scrollTo(0,card.getBoundingClientRect().top+window.scrollY+140);
+    window.scrollTo({top:card.getBoundingClientRect().top+window.scrollY+140,behavior:'instant'});
     document.querySelector('.manager-modal-scroll').scrollTop=180;
     window.refs={deck,card,lineup:card.querySelector('.hj-lineup-v2'),row:card.querySelector('.hj-player-v3'),image:card.querySelector('img'),profile:document.querySelector('.manager-hq-roster .hj-player-v3')};
     refs.row.style.setProperty('font-family','var(--sans)','important');
@@ -53,7 +53,7 @@ for(const engine of [chromium,webkit]){
     assert.deepEqual(settled,before,'background refresh must not move the view');
    }
    // Ordinary scrolling must not refit typography when another score ticks.
-   await page.evaluate(()=>{window.scrollBy(0,120);hjFitStarterSpace()});
+   await page.evaluate(()=>{window.scrollBy({top:120,behavior:'instant'});hjFitStarterSpace()});
    assert.equal(await page.evaluate(()=>refs.lineup.style.getPropertyValue('--hj-row-room')),before.room);
   }
   console.log('PASS '+engine.name()+': live scores update without replacing rows, resizing or moving page/carousel/profile');
