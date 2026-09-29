@@ -2,12 +2,17 @@ import fs from 'node:fs/promises';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 const js=await fs.readFile('scripts/recap-live.js','utf8');
+const site=await fs.readFile('index.html','utf8');
+const siteStyles=[...site.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)].map(m=>m[1]).join('\n');
+const avatar=site.match(/const AV\s*=\s*(\{[\s\S]*?\});/)?.[1];
+const avatars=avatar?vm.runInNewContext('('+avatar+')'):{};
 const pos={1:'QB',2:'RB',3:'WR',4:'TE',5:'K',16:'D/ST'};
 const ctx={
  hjPlayer:e=>e?.playerPoolEntry?.player||e?.player||{},
  hjRecapPlayer(e,w){const p=e?.playerPoolEntry?.player||e?.player||{},s=p.stats?.find(s=>s.scoringPeriodId===w&&s.statSourceId===0&&s.statSplitTypeId===1);return {entry:e,id:String(p.id),name:p.fullName,pos:pos[p.defaultPositionId],points:s?.appliedTotal??null,stat:s}},
  esc:s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;'),
  hjChPlayerAttrs:p=>({attrs:'data-player-id="'+p.id+'"',photo:'https://a.espncdn.com/i/headshots/nfl/players/full/'+p.id+'.png'}),
+ av:(s,cls)=>'<img class="av '+cls+'" src="data:image/png;base64,'+(avatars[s]||Object.values(avatars)[0]||'')+'" alt="">',
  HJ_PRO_TEAM_BY_ID:{},console
 };
 vm.createContext(ctx);vm.runInContext(js,ctx);
@@ -41,7 +46,7 @@ for(const week of [1,2,3]){
  fetch(base+'&view=kona_player_info',{headers:{'x-fantasy-filter':JSON.stringify(filter)},signal:AbortSignal.timeout(20000)}).then(async r=>{if(!r.ok)throw Error('ESPN '+r.status+' '+await r.text());return r.json()})
  ]);
  assert(p.players.length>0&&p.players.length<1500);
- const scores=h.schedule.filter(g=>Number(g.matchupPeriodId)===week).flatMap(g=>['home','away'].flatMap(side=>{const s=g[side];if(!s?.teamId)return [];const entries=(s.rosterForCurrentScoringPeriod||s.rosterForMatchupPeriod||s.roster)?.entries||[];return [{teamId:s.teamId,short:'Team '+s.teamId,lineupComplete:entries.length>0,entries,starters:entries.filter(e=>![20,21].includes(Number(e.lineupSlotId)))}]}));
+ const scores=h.schedule.filter(g=>Number(g.matchupPeriodId)===week).flatMap(g=>['home','away'].flatMap(side=>{const s=g[side];if(!s?.teamId)return [];const entries=(s.rosterForCurrentScoringPeriod||s.rosterForMatchupPeriod||s.roster)?.entries||[];return [{teamId:s.teamId,short:({4:'NATHAN M',11:'KAT',8:'NATHAN T',9:'GARRETT'})[s.teamId]||'Team '+s.teamId,lineupComplete:entries.length>0,entries,starters:entries.filter(e=>![20,21].includes(Number(e.lineupSlotId)))}]}));
  const ranks=ctx.hjRcTopFives({week,scores},{pool:p.players},h);
  assert(scores.flatMap(r=>r.entries).every(e=>ctx.hjPlayer(e).id),'Roster player IDs parsed');assert(ranks.overall.some(p=>p.owner),'Owned scorers recognized');assert.equal(ranks.overall.length,5);assert(ranks.wireReady,'Historical roster unavailable W'+week);assert.equal(ranks.wire.length,5);
  console.log('Week '+week,JSON.stringify({overall:ranks.overall.map(p=>[p.name,p.points]),wire:ranks.wire.map(p=>[p.name,p.points])}));
@@ -52,9 +57,13 @@ const browser=await chromium.launch({headless:true});
 const css=await fs.readFile('styles/weekly-recap.css','utf8'),html=ctx.hjRcTopFiveBoards(live);
 for(const width of [320,390,1280]){
  const page=await browser.newPage({viewport:{width,height:1000},deviceScaleFactor:1});
- await page.setContent('<style>:root{--navy:#14324f;--brass:#b98a2e;--line:#d5d7cf;--sans:Arial,sans-serif;--mono:monospace}*{box-sizing:border-box}body{margin:0;padding:12px;background:#faefd7;font-family:Arial}'+css+'</style><main class="rc">'+html+'</main>');
+ await page.setContent('<style>'+siteStyles+'\n'+css+'\nbody{margin:0;padding:12px}</style><div class="rc"><h3 class="rc-h" id="reference-heading">Benchwarmers of the week <small>best scores left on a bench</small></h3>'+html+'</div>');
  await page.waitForTimeout(1200);
  assert.equal(await page.locator('.rc-five-row').count(),10);
+ assert.equal(await page.locator('.rc-five-board header').count(),0);
+ assert(await page.locator('.rc-five-owner img').count()>0);
+ assert(await page.evaluate(()=>[...document.querySelectorAll('.rc-five-row')].every(e=>e.getBoundingClientRect().height<85)),'Compact rows');
+ assert(await page.evaluate(()=>{const a=getComputedStyle(document.querySelector('#reference-heading')),b=getComputedStyle(document.querySelector('.rc-five-board .rc-h'));return a.font===b.font&&a.color===b.color}),'Existing heading style');
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'overflow '+width);
  if(width===390){const png=await page.screenshot({fullPage:true});await fs.writeFile('recap-preview/mobile.png',png);await fs.writeFile('recap-preview/mobile.base64.txt',png.toString('base64'));}
  await page.close();
