@@ -17,6 +17,45 @@ function hjRcPlayer(entry,week,owner,bench){
  const p=hjRecapPlayer(entry,week),player=hjPlayer(entry);
  return {...p,owner,bench,proTeamId:p.stat?.proTeamId??player.proTeamId,slot:Number(entry.lineupSlotId),gameId:p.stat?.externalId?String(p.stat.externalId):''};
 }
+function hjRcTopFives(chosen,extra,data){
+ const pool=extra?.pool,ready=Array.isArray(pool)&&pool.length>0,owners=new Map();
+ for(const row of chosen.scores)for(const entry of [...(row.entries||[]),...(row.starters||[])]){
+  const id=String(hjPlayer(entry).id||'');if(!id)continue;
+  owners.set(id,{owner:row.short,rosterSlot:Number(entry.lineupSlotId)});
+ }
+ const complete=chosen.scores.length===(data?.teams||[]).length&&chosen.scores.every(r=>r.lineupComplete);
+ if(!ready)return {overall:[],wire:[],ready:false,wireReady:false};
+ const unique=new Map();
+ for(const entry of pool){
+  const p=hjRecapPlayer(entry,chosen.week);
+  if(!p.id||!p.name||!Number.isFinite(p.points))continue;
+  const own=owners.get(String(p.id));
+  unique.set(String(p.id),{...p,...own,ownershipKnown:!!own||complete,proTeamId:p.stat?.proTeamId??hjPlayer(entry).proTeamId});
+ }
+ // Historical roster records take precedence over pool duplicates and include IR.
+ for(const row of chosen.scores)for(const entry of row.entries||[]){
+  const p=hjRecapPlayer(entry,chosen.week);
+  if(p.id&&p.name&&Number.isFinite(p.points))unique.set(String(p.id),{...p,...owners.get(String(p.id)),ownershipKnown:true,proTeamId:p.stat?.proTeamId??hjPlayer(entry).proTeamId});
+ }
+ const ranked=[...unique.values()].sort((a,b)=>b.points-a.points||a.name.localeCompare(b.name)||String(a.id).localeCompare(String(b.id)));
+ return {overall:ranked.slice(0,5),wire:complete?ranked.filter(p=>p.pos!=='QB'&&!owners.has(String(p.id))).slice(0,5):[],ready:true,wireReady:complete};
+}
+function hjRcTopFiveBoards(model){
+ const rankings=model.topFives;
+ function board(kind,title,subtitle,players,ready){
+  let previous=null,rank=0;
+  const rows=players.map((p,i)=>{
+   if(previous!==p.points)rank=i+1;previous=p.points;
+   const {attrs,photo}=hjRcHeadshot(p),team=hjRcTeam(p.proTeamId);
+   const status=p.owner?p.owner+' · '+(p.rosterSlot===20?'Bench':p.rosterSlot===21?'IR':'Started'):p.ownershipKnown?'Free agent':'Roster syncing';
+   return `<li class="rc-five-row" data-rc-five-player="${esc(p.id)}"><span class="rc-five-rank" aria-label="Rank ${rank}">${rank}</span><button type="button" class="rc-five-player pc-player-trigger" ${attrs}><span class="rc-five-photo">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">`:''}</span><span class="rc-five-name"><strong>${esc(p.name)}</strong><small>${esc([p.pos,team].filter(Boolean).join(' · '))}</small></span></button><span class="rc-five-score"><strong>${p.points.toFixed(2)}</strong><small>PTS</small></span><span class="rc-five-status">${esc(status)}</span></li>`;
+  }).join('');
+  const empty=!ready?(rankings.ready?'Waiting for this week’s rosters…':'Loading this week’s scorers…'):'No qualifying scores for this week yet.';
+  return `<section class="rc-five-board is-${kind}" aria-labelledby="rc-five-${kind}"><header><span class="rc-five-mark" aria-hidden="true">${kind==='overall'?'05':'FA'}</span><div><h3 id="rc-five-${kind}">${title}</h3><p>${subtitle}</p></div></header>${ready&&players.length?`<ol class="rc-five-list" aria-label="${title}">${rows}</ol>`:`<p class="rc-five-empty" role="status">${empty}</p>`}</section>`;
+ }
+ return '<div class="rc-top-fives">'+board('overall','The High Five','Top 5 scorers · every position, started or not',rankings.overall,rankings.ready)+board('wire','Free Agent Gold','Top 5 unrostered scorers · no quarterbacks',rankings.wire,rankings.wireReady)+'</div>';
+}
+
 function hjRcModel(chosen,weeks,data){
  const {week,scores}=chosen,extra=HJ_RECAP_EXTRA.weeks.get(week),teams=new Map((data?.teams||[]).map(t=>[String(t.id),t]));
  const opponents=extra?.schedule?hjChOpponents(extra.schedule):{};
@@ -59,7 +98,7 @@ function hjRcModel(chosen,weeks,data){
  if(hiLoss)push('hiloss','Highest points in a loss',hiLoss,pcFpts(hiLoss.pts),`lost to ${hiLoss.opp} ${pcFpts(hiLoss.oppPts)} by ${(hiLoss.oppPts-hiLoss.pts).toFixed(2)}`,'neg');
  if(loWin)push('lowin','Lowest points in a win',loWin,pcFpts(loWin.pts),`beat ${loWin.opp} ${pcFpts(loWin.oppPts)} by ${(loWin.pts-loWin.oppPts).toFixed(2)}`,'win');
  const swings=extra?.games?.size?hjRcSwings(games,week,extra,data):null;
- return {week,weeks,data,managers,games,ordered,avg,complete,leaders,benchers,falseStarters,changer,awards,swings,extra,opponents};
+ return {topFives:hjRcTopFives(chosen,extra,data),week,weeks,data,managers,games,ordered,avg,complete,leaders,benchers,falseStarters,changer,awards,swings,extra,opponents};
 }
 
 /* ---- play-by-play score timeline per matchup ---- */
@@ -401,5 +440,5 @@ function hjRecapHTML(data){
  const select=`<label class="rc-week"><span class="sr-only">Recap week</span><select data-hj-recap-week aria-label="Recap week">${[...weeks].reverse().map(w=>`<option value="${w.week}"${w.week===week?' selected':''}>Week ${w.week}</option>`).join('')}</select></label>`;
  const head=`<div class="rc-head"><div><span class="rc-eyebrow">The weekly edition</span><h2>Week ${week} Recap</h2><p class="rc-sub">${model.managers.length} teams · league average ${pcFpts(model.avg)}${model.complete?'':' · some lineups still syncing'}</p></div>${select}</div>`;
  // The .rc wrapper sits inside the patched body so live refreshes keep the recap's own styling.
- return `<div class="hq-module-body hj-recap"><div class="rc">${head}${hjRcPodium(model)}${hjRcCellar(model)}${hjRcAwards(model)}${hjRcRecordAnnouncements(model)}${hjRcMovers(model)}${hjRcPerformance(model)}${hjRcBattles(model)}${hjRcSlipped(model)}${hjRcSweat(model)}${hjRcCardRow('Players of the week','top scorer at each position',model.leaders)}${hjRcCardRow('Benchwarmers of the week','best scores left on a bench',model.benchers)}${hjRcPickups(model)}${hjRcFalseStarters(model)}${hjRcChanger(model)}${hjRcCharacter(model)}${hjRcStories(chosen,weeks,model)}</div></div>`;
+ return `<div class="hq-module-body hj-recap"><div class="rc">${head}${hjRcPodium(model)}${hjRcCellar(model)}${hjRcAwards(model)}${hjRcRecordAnnouncements(model)}${hjRcMovers(model)}${hjRcPerformance(model)}${hjRcBattles(model)}${hjRcSlipped(model)}${hjRcSweat(model)}${hjRcCardRow('Players of the week','top scorer at each position',model.leaders)}${hjRcCardRow('Benchwarmers of the week','best scores left on a bench',model.benchers)}${hjRcTopFiveBoards(model)}${hjRcPickups(model)}${hjRcFalseStarters(model)}${hjRcChanger(model)}${hjRcCharacter(model)}${hjRcStories(chosen,weeks,model)}</div></div>`;
 }
