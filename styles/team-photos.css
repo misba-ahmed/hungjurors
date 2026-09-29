@@ -85,7 +85,7 @@
   transition:padding-top 240ms ease,padding-bottom 240ms ease;
  }
  #league-hq #league-sync-content .league-roster-head>.hj-team-photo.has-spotlight{
-  padding-top:clamp(52px,12vw,76px);padding-bottom:60px;
+  padding-top:var(--showcase-headroom,76px);padding-bottom:66px;
  }
  .hj-team-photo-caption{top:calc(100% + 6px)}
 }
@@ -96,7 +96,7 @@
 /* The hit targets stay still while the artwork moves in front of its neighbors. */
 .hj-team-photo-stage{position:relative;width:100%;isolation:isolate;overflow:visible}
 #league-hq .hj-team-photo .hj-team-photo-player{
- --showcase-scale:1.18;
+ --showcase-scale:1.38;
  appearance:none;-webkit-appearance:none;
  position:absolute;bottom:1.5%;display:block;margin:0;padding:0;
  border:0;border-radius:0;background:none;box-shadow:none;
@@ -117,7 +117,7 @@
  opacity:0;transform:scale(.75);transition:opacity 200ms ease,transform 200ms ease;
 }
 .hj-team-photo-figure img{display:block;width:100%;height:100%;max-width:none;object-fit:contain;object-position:center bottom;pointer-events:none}
-.hj-team-photo-player.is-starter .hj-team-photo-figure img{filter:drop-shadow(0 0 2px #e1ad32e6) drop-shadow(0 0 3px #f0bd3c99)}
+.hj-team-photo-player.is-starter .hj-team-photo-figure img{filter:drop-shadow(0 0 1px #14324fcc) drop-shadow(0 0 4px #14324f80)}
 .hj-team-photo-player.is-portrait .hj-team-photo-figure img{object-fit:contain;object-position:center top;height:42%;margin-top:8%;border-radius:0}
 .hj-team-photo.has-spotlight .hj-team-photo-player:not(.is-active) .hj-team-photo-figure{opacity:.82}
 .hj-team-photo-player.is-active .hj-team-photo-figure{transform:translate3d(var(--showcase-shift,0px),6px,0) scale(var(--showcase-scale))}
@@ -132,7 +132,7 @@
  top:calc(100% + 12px);width:max-content;min-width:62px;max-width:124px;
  padding:4px 9px 5px;border-radius:6px;
  background:rgba(255,250,237,.97);box-shadow:0 2px 8px #1a34451a,inset 0 1px #c89e4980;
- color:#17384f;font-family:Arial,sans-serif;font-size:10.5px;font-weight:800;line-height:1.12;letter-spacing:.025em;text-transform:uppercase;text-align:center;
+ color:#17384f;font-family:Arial,sans-serif;font-size:10.5px;font-weight:800;line-height:1.12;letter-spacing:.01em;text-transform:none;text-align:center;
 }
 .hj-team-photo-caption>span{display:block}
 .hj-team-photo-caption .hj-team-photo-position{color:#99701d;font-size:8px;font-weight:800;letter-spacing:.11em;margin-bottom:2px}
@@ -147,7 +147,7 @@
 .hj-team-photo-player.is-active :is(.hj-team-photo-caption,.hj-team-photo-score){opacity:1;visibility:visible;transform:translate(calc(-50% + var(--showcase-shift,0px)),0)}
 .hj-team-photo-player:focus-visible .hj-team-photo-caption{outline:2px solid #bb9133;outline-offset:3px}
 @media(max-width:600px){
- #league-hq .hj-team-photo .hj-team-photo-player{--showcase-scale:1.4}
+ #league-hq .hj-team-photo .hj-team-photo-player{--showcase-scale:1.65}
  .hj-team-photo-caption{font-size:10px}
  .hj-team-photo-score{font-size:11px;min-width:40px;padding:4px 7px}
 }
@@ -157,3 +157,19 @@
 
 /* Invisible off-edge labels must not enlarge the document's scrollable width. */
 .hj-team-photo-player:not(.is-active) :is(.hj-team-photo-caption,.hj-team-photo-score){display:none}
+
+/* Only the name opens the profile; dragging the figures remains a showcase gesture. */
+.hj-team-photo-player.is-active .hj-team-photo-caption{pointer-events:auto}
+#league-hq .hj-team-photo .hj-team-photo-name{
+ appearance:none;display:block;margin:0;padding:2px 0;border:0;border-radius:2px;
+ background:transparent;box-shadow:none;color:inherit;font:inherit;letter-spacing:inherit;
+ text-transform:none;text-align:center;cursor:pointer;min-height:28px;width:100%;
+}
+.hj-team-photo-name>span{display:block}
+.hj-team-photo-name:hover{text-decoration:underline;text-underline-offset:2px}
+.hj-team-photo-name:focus-visible{outline:2px solid #14324f;outline-offset:2px}
+@media(min-width:1051px){
+ #league-hq #league-sync-content .league-roster-head>.hj-team-photo.has-spotlight{
+  padding-top:max(48px,var(--showcase-headroom,48px));padding-bottom:66px;
+ }
+}
