@@ -68,14 +68,20 @@
 }
 #league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo)>.league-matchup-score{min-width:0!important;width:100%!important;max-width:100%!important;box-sizing:border-box}
 @media(max-width:1050px){
- #league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo){grid-template-columns:minmax(0,1fr) minmax(160px,.72fr)!important}
- #league-hq #league-sync-content .league-roster-head>.hj-team-photo{grid-column:1/-1;grid-row:2;margin-top:8px;max-width:900px;justify-self:center}
+ #league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo){grid-template-columns:minmax(0,1fr) minmax(160px,.72fr)!important;row-gap:6px!important;padding-bottom:10px!important}
+ #league-hq #league-sync-content .league-roster-head>.hj-team-photo{grid-column:1/-1;grid-row:2;margin:0;padding:12px 0 18px;max-width:900px;justify-self:center}
  #league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo)>.league-matchup-score{grid-column:2;grid-row:1}
 }
 @media(max-width:600px){
  #league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo){grid-template-columns:minmax(0,1fr)!important}
- #league-hq #league-sync-content .league-roster-head>.hj-team-photo{grid-column:1;grid-row:2;margin:2px 0 8px}
- #league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo)>.league-matchup-score{grid-column:1;grid-row:3;justify-self:end}
+ #league-hq #league-sync-content .league-roster-head>.hj-team-photo{grid-column:1;grid-row:3;margin:0}
+ #league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo)>.league-matchup-score{grid-column:1;grid-row:2;justify-self:end}
+}
+
+/* Details float above adjacent content without reserving a blank row or moving the page. */
+#league-hq #league-sync-content .league-roster-head>.hj-team-photo.has-spotlight{z-index:5}
+@media(max-width:1050px){
+ .hj-team-photo-caption{top:calc(100% + 6px)}
 }
 
 /* The hit targets stay still while the artwork moves in front of its neighbors. */
