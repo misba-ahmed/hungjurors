@@ -1,6 +1,6 @@
 /* Game logs load independently of historical-lineup hydration and optional feeds. */
 function hjRecapExtraKey(chosen){
- return JSON.stringify(chosen.scores.map(r=>[r.teamId,r.lineupComplete,(r.starters||[]).map(e=>String(hjWeeklyStat(e,chosen.week)?.externalId||''))]));
+ return JSON.stringify(chosen.scores.map(r=>[r.teamId,r.lineupComplete,(r.entries||[]).map(e=>[String(hjPlayer(e).id),Number(e.lineupSlotId),String(hjWeeklyStat(e,chosen.week)?.externalId||'')])]));
 }
 function hjRecapNeedsExtra(chosen){
  const old=HJ_RECAP_EXTRA.weeks.get(chosen.week);
@@ -16,7 +16,7 @@ async function hjRecapLoadExtra(chosen){
   let failed=false;
   const run=async action=>{try{await action()}catch(error){failed=true;console.warn('Recap enrichment will retry',week,error)}};
   await Promise.all([
-   run(async()=>{extra.pool=await hjDataPool(Number(NFL_SEASON),Math.max(week,hjCurrentWeek()));refresh()}),
+   run(async()=>{extra.pool=await hjDataPool(Number(NFL_SEASON),week);refresh()}),
    run(async()=>{const p=await hjDataRequest(`recap-transactions:${NFL_SEASON}:${week}`,()=>hjDataJson(`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${NFL_SEASON}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?view=mTransactions2&scoringPeriodId=${week}`),300000);if(Array.isArray(p.transactions))extra.transactions=p.transactions;refresh()}),
    run(async()=>{
     // The NFL schedule is available even when fantasy lineups are still arriving.
