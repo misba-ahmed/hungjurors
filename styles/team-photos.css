@@ -1,7 +1,7 @@
 /* Only the League HQ roster banner is affected. */
 #league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo){
  display:grid!important;
- grid-template-columns:minmax(190px,24%) minmax(0,1fr) minmax(160px,19%)!important;
+ grid-template-columns:minmax(250px,24%) minmax(0,1fr) minmax(160px,19%)!important;
  align-items:center!important;
  column-gap:12px!important;
 }
@@ -18,7 +18,54 @@
  box-sizing:border-box;
  pointer-events:auto;
 }
-#league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo)>.hj-business-card{min-width:0!important;max-width:100%!important;width:100%!important;box-sizing:border-box}
+/* One proportional card canvas: every inner size is relative to its own width. */
+#league-hq #league-sync-content .league-roster-head>.league-roster-identity.hj-business-card{
+ container-type:inline-size;
+ display:block!important;position:relative!important;justify-self:start;
+ width:100%!important;max-width:380px!important;min-width:0!important;
+ height:auto!important;min-height:0!important;aspect-ratio:38/23!important;
+ padding:0!important;margin:0!important;box-sizing:border-box!important;
+}
+#league-hq #league-sync-content .league-roster-head>.hj-business-card>:is(.av,.league-team-initials){
+ position:absolute!important;left:9.75%!important;top:30.5%!important;
+ width:14.1cqw!important;height:17.8cqw!important;
+ min-width:0!important;max-width:none!important;margin:0!important;
+ border-width:.5cqw!important;box-sizing:border-box!important;
+}
+#league-hq #league-sync-content .league-roster-head>.hj-business-card>.hj-business-logo{
+ position:absolute!important;left:auto!important;right:10.2%!important;
+ top:17.7%!important;bottom:auto!important;
+ width:12.3cqw!important;height:12.3cqw!important;max-width:none!important;
+ margin:0!important;object-fit:contain;
+}
+#league-hq #league-sync-content .league-roster-head>.hj-business-card>.hj-business-copy{
+ position:absolute!important;left:27.2%!important;top:32.5%!important;
+ width:63.3%!important;min-width:0!important;
+ padding:0!important;margin:0!important;border:0!important;
+}
+#league-hq #league-sync-content .league-roster-head>.hj-business-card .league-roster-name{
+ font:800 8.05cqw/1.1 var(--sans)!important;letter-spacing:.015em!important;
+ margin:0!important;white-space:nowrap!important;
+}
+#league-hq #league-sync-content .league-roster-head>.hj-business-card .hj-business-team{
+ font:500 4.02cqw/1.2 var(--sans)!important;
+ margin:1.5cqw 0 0!important;overflow-wrap:anywhere;
+}
+#league-hq #league-sync-content .league-roster-head>.hj-business-card>.hj-business-stats{
+ position:absolute!important;left:9.75%!important;right:9%!important;top:63.4%!important;
+ display:grid!important;grid-template-columns:1fr 1.2fr 1fr!important;
+ gap:2.3cqw!important;padding:2cqw 0 0!important;margin:0!important;
+ border-top:.17cqw solid #c9c4b5!important;box-sizing:border-box!important;
+}
+#league-hq #league-sync-content .league-roster-head>.hj-business-card>.hj-business-stats>span{
+ display:flex;flex-direction:column;gap:.65cqw!important;min-width:0;
+}
+#league-hq #league-sync-content .league-roster-head>.hj-business-card .hj-business-stats small{
+ font:700 3.22cqw/1.2 var(--sans)!important;letter-spacing:.025em!important;white-space:nowrap;
+}
+#league-hq #league-sync-content .league-roster-head>.hj-business-card .hj-business-stats b{
+ font:750 5.04cqw/1.2 var(--sans)!important;white-space:nowrap;
+}
 #league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo)>.league-matchup-score{min-width:0!important;width:100%!important;max-width:100%!important;box-sizing:border-box}
 @media(max-width:1050px){
  #league-hq #league-sync-content .league-roster-head:has(>.hj-team-photo){grid-template-columns:minmax(0,1fr) minmax(160px,.72fr)!important}

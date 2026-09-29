@@ -1,0 +1,28 @@
+name: Verify responsive manager cards
+on:
+  push:
+    branches: ["fix/responsive-manager-business-card"]
+    paths: ["styles/team-photos.css", "scripts/prepare-site.mjs", "scripts/check-business-card.mjs", ".github/workflows/check-business-card.yml"]
+permissions:
+  contents: write
+jobs:
+  showcase:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright@1.56.1
+      - run: npx playwright install chromium webkit --with-deps
+      - run: node scripts/check-business-card.mjs
+      - name: Save card previews
+        if: always()
+        run: |
+          git config user.name "Showcase preview"
+          git config user.email "preview@users.noreply.github.com"
+          test -d card-preview || exit 0
+          git add card-preview
+          git diff --cached --quiet || git commit -m "Save responsive card previews"
+          git push origin HEAD:refs/heads/fix/responsive-manager-business-card
