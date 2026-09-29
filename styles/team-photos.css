@@ -85,7 +85,7 @@
   transition:padding-top 240ms ease,padding-bottom 240ms ease;
  }
  #league-hq #league-sync-content .league-roster-head>.hj-team-photo.has-spotlight{
-  padding-top:var(--showcase-headroom,76px);padding-bottom:66px;
+  padding-top:var(--showcase-headroom,62px);padding-bottom:58px;
  }
  .hj-team-photo-caption{top:calc(100% + 6px)}
 }
@@ -170,6 +170,6 @@
 .hj-team-photo-name:focus-visible{outline:2px solid #14324f;outline-offset:2px}
 @media(min-width:1051px){
  #league-hq #league-sync-content .league-roster-head>.hj-team-photo.has-spotlight{
-  padding-top:max(48px,var(--showcase-headroom,48px));padding-bottom:66px;
+  padding-top:max(48px,var(--showcase-headroom,48px));padding-bottom:58px;
  }
 }
