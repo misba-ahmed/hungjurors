@@ -50,10 +50,10 @@
     "jersey": "9"
   },
   "2473037": {
-    "file": "2473037-v1.webp",
-    "width": 123,
-    "height": 306,
-    "ratio": 0.40196,
+    "file": "2473037-faces-v2.webp",
+    "width": 318,
+    "height": 850,
+    "ratio": 0.37412,
     "heightInches": 70,
     "name": "Jason Myers",
     "teamId": 26,
@@ -80,10 +80,10 @@
     "jersey": "15"
   },
   "2976212": {
-    "file": "2976212-v1.webp",
-    "width": 125,
-    "height": 306,
-    "ratio": 0.4085,
+    "file": "2976212-faces-v2.webp",
+    "width": 325,
+    "height": 850,
+    "ratio": 0.38235,
     "heightInches": 72,
     "name": "Stefon Diggs",
     "teamId": 28,
@@ -130,10 +130,10 @@
     "jersey": "85"
   },
   "3046779": {
-    "file": "3046779-v1.webp",
-    "width": 122,
-    "height": 304,
-    "ratio": 0.40132,
+    "file": "3046779-faces-v2.webp",
+    "width": 331,
+    "height": 850,
+    "ratio": 0.38941,
     "heightInches": 76,
     "name": "Jared Goff",
     "teamId": 8,
@@ -280,10 +280,10 @@
     "jersey": "20"
   },
   "3916387": {
-    "file": "3916387-v1.webp",
-    "width": 131,
-    "height": 304,
-    "ratio": 0.43092,
+    "file": "3916387-faces-v2.webp",
+    "width": 325,
+    "height": 850,
+    "ratio": 0.38235,
     "heightInches": 74,
     "name": "Lamar Jackson",
     "teamId": 33,
@@ -320,10 +320,10 @@
     "jersey": "17"
   },
   "3929630": {
-    "file": "3929630-v1.webp",
-    "width": 125,
-    "height": 299,
-    "ratio": 0.41806,
+    "file": "3929630-faces-v2.webp",
+    "width": 332,
+    "height": 850,
+    "ratio": 0.39059,
     "heightInches": 72,
     "name": "Saquon Barkley",
     "teamId": 21,
@@ -380,10 +380,10 @@
     "jersey": "11"
   },
   "4036133": {
-    "file": "4036133-v1.webp",
-    "width": 124,
-    "height": 306,
-    "ratio": 0.40523,
+    "file": "4036133-faces-v2.webp",
+    "width": 338,
+    "height": 850,
+    "ratio": 0.39765,
     "heightInches": 77,
     "name": "T.J. Hockenson",
     "teamId": 16,
@@ -400,10 +400,10 @@
     "jersey": "10"
   },
   "4038815": {
-    "file": "4038815-v1.webp",
-    "width": 127,
-    "height": 303,
-    "ratio": 0.41914,
+    "file": "4038815-faces-v2.webp",
+    "width": 319,
+    "height": 850,
+    "ratio": 0.37529,
     "heightInches": 71,
     "name": "Rico Dowdle",
     "teamId": 23,
@@ -460,10 +460,10 @@
     "jersey": "4"
   },
   "4239993": {
-    "file": "4239993-v1.webp",
-    "width": 126,
-    "height": 305,
-    "ratio": 0.41311,
+    "file": "4239993-faces-v2.webp",
+    "width": 326,
+    "height": 850,
+    "ratio": 0.38353,
     "heightInches": 76,
     "name": "Tee Higgins",
     "teamId": 4,
@@ -490,10 +490,10 @@
     "jersey": "88"
   },
   "4241416": {
-    "file": "4241416-v1.webp",
-    "width": 129,
-    "height": 301,
-    "ratio": 0.42857,
+    "file": "4241416-faces-v2.webp",
+    "width": 338,
+    "height": 850,
+    "ratio": 0.39765,
     "heightInches": 73,
     "name": "Chuba Hubbard",
     "teamId": 29,
@@ -520,10 +520,10 @@
     "jersey": "27"
   },
   "4242335": {
-    "file": "4242335-v1.webp",
-    "width": 121,
-    "height": 299,
-    "ratio": 0.40468,
+    "file": "4242335-faces-v2.webp",
+    "width": 328,
+    "height": 850,
+    "ratio": 0.38588,
     "heightInches": 70,
     "name": "Jonathan Taylor",
     "teamId": 11,
@@ -810,10 +810,10 @@
     "jersey": "5"
   },
   "4426354": {
-    "file": "4426354-v1.webp",
-    "width": 118,
-    "height": 301,
-    "ratio": 0.39203,
+    "file": "4426354-faces-v2.webp",
+    "width": 321,
+    "height": 850,
+    "ratio": 0.37765,
     "heightInches": 75,
     "name": "George Pickens",
     "teamId": 6,
@@ -930,10 +930,10 @@
     "jersey": "28"
   },
   "4429205": {
-    "file": "4429205-v1.webp",
-    "width": 120,
-    "height": 309,
-    "ratio": 0.38835,
+    "file": "4429205-faces-v2.webp",
+    "width": 310,
+    "height": 850,
+    "ratio": 0.36471,
     "heightInches": 71,
     "name": "Jordan Addison",
     "teamId": 16,
@@ -1140,10 +1140,10 @@
     "jersey": "38"
   },
   "4569587": {
-    "file": "4569587-v1.webp",
-    "width": 117,
-    "height": 305,
-    "ratio": 0.38361,
+    "file": "4569587-faces-v2.webp",
+    "width": 327,
+    "height": 850,
+    "ratio": 0.38471,
     "heightInches": 68,
     "name": "Wan'Dale Robinson",
     "teamId": 10,
@@ -1310,10 +1310,10 @@
     "jersey": "4"
   },
   "4685512": {
-    "file": "4685512-v1.webp",
-    "width": 124,
-    "height": 299,
-    "ratio": 0.41472,
+    "file": "4685512-faces-v2.webp",
+    "width": 332,
+    "height": 850,
+    "ratio": 0.39059,
     "heightInches": 71,
     "name": "Jadarian Price",
     "teamId": 26,
@@ -1420,10 +1420,10 @@
     "jersey": "20"
   },
   "4723086": {
-    "file": "4723086-v1.webp",
-    "width": 124,
-    "height": 301,
-    "ratio": 0.41196,
+    "file": "4723086-faces-v2.webp",
+    "width": 330,
+    "height": 850,
+    "ratio": 0.38824,
     "heightInches": 78,
     "name": "Colston Loveland",
     "teamId": 3,
