@@ -1,0 +1,26 @@
+name: Correct Henry artwork and preview placeholder
+on:
+  push:
+    branches: ["fix/henry-photo-placeholder-preview"]
+    paths: ["photo-preview/henry-source.png", "scripts/preview-headshot-placeholder.mjs", ".github/workflows/preview-headshot-placeholder.yml"]
+permissions:
+  contents: write
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false sharp@0.34.5 playwright@1.56.1
+      - run: npx playwright install chromium --with-deps
+      - run: node scripts/preview-headshot-placeholder.mjs
+      - name: Save artwork and preview
+        run: |
+          git config user.name "Team photo assets"
+          git config user.email "preview@users.noreply.github.com"
+          git add assets/team-photos/catalog.json assets/team-photos/players/3043078-v2.webp photo-preview
+          git diff --cached --quiet || git commit -m "Correct Henry to Baltimore and show headshot placeholder"
+          git push origin HEAD:refs/heads/fix/henry-photo-placeholder-preview
