@@ -60,20 +60,20 @@
     "jersey": "5"
   },
   "2577417": {
-    "file": "2577417-v1.webp",
-    "width": 126,
-    "height": 300,
-    "ratio": 0.42,
+    "file": "2577417-faces-v2.webp",
+    "width": 324,
+    "height": 850,
+    "ratio": 0.38118,
     "heightInches": 74,
     "name": "Dak Prescott",
     "teamId": 6,
     "jersey": "4"
   },
   "2971573": {
-    "file": "2971573-v1.webp",
-    "width": 127,
-    "height": 298,
-    "ratio": 0.42617,
+    "file": "2971573-faces-v2.webp",
+    "width": 321,
+    "height": 850,
+    "ratio": 0.37765,
     "heightInches": 72,
     "name": "Ka'imi Fairbairn",
     "teamId": 34,
@@ -150,10 +150,10 @@
     "jersey": "41"
   },
   "3055899": {
-    "file": "3055899-v1.webp",
-    "width": 120,
-    "height": 300,
-    "ratio": 0.4,
+    "file": "3055899-faces-v2.webp",
+    "width": 316,
+    "height": 850,
+    "ratio": 0.37176,
     "heightInches": 76,
     "name": "Harrison Butker",
     "teamId": 12,
@@ -200,10 +200,10 @@
     "jersey": "86"
   },
   "3121023": {
-    "file": "3121023-v1.webp",
-    "width": 124,
-    "height": 314,
-    "ratio": 0.3949,
+    "file": "3121023-faces-v2.webp",
+    "width": 311,
+    "height": 850,
+    "ratio": 0.36588,
     "heightInches": 77,
     "name": "Dallas Goedert",
     "teamId": 21,
@@ -250,10 +250,10 @@
     "jersey": "15"
   },
   "3915416": {
-    "file": "3915416-v1.webp",
-    "width": 129,
-    "height": 308,
-    "ratio": 0.41883,
+    "file": "3915416-faces-v2.webp",
+    "width": 317,
+    "height": 850,
+    "ratio": 0.37294,
     "heightInches": 72,
     "name": "DJ Moore",
     "teamId": 2,
@@ -290,10 +290,10 @@
     "jersey": "8"
   },
   "3916433": {
-    "file": "3916433-v1.webp",
-    "width": 118,
-    "height": 299,
-    "ratio": 0.39465,
+    "file": "3916433-faces-v2.webp",
+    "width": 313,
+    "height": 850,
+    "ratio": 0.36824,
     "heightInches": 74,
     "name": "Jakobi Meyers",
     "teamId": 30,
@@ -590,10 +590,10 @@
     "jersey": "2"
   },
   "4360248": {
-    "file": "4360248-v1.webp",
-    "width": 127,
-    "height": 304,
-    "ratio": 0.41776,
+    "file": "4360248-faces-v2.webp",
+    "width": 310,
+    "height": 850,
+    "ratio": 0.36471,
     "heightInches": 78,
     "name": "Kyle Pitts Sr.",
     "teamId": 1,
@@ -720,10 +720,10 @@
     "jersey": "30"
   },
   "4362249": {
-    "file": "4362249-v1.webp",
-    "width": 116,
-    "height": 302,
-    "ratio": 0.38411,
+    "file": "4362249-faces-v2.webp",
+    "width": 306,
+    "height": 850,
+    "ratio": 0.36,
     "heightInches": 71,
     "name": "Jayden Reed",
     "teamId": 9,
@@ -800,10 +800,10 @@
     "jersey": "86"
   },
   "4426348": {
-    "file": "4426348-v1.webp",
-    "width": 126,
-    "height": 315,
-    "ratio": 0.4,
+    "file": "4426348-faces-v2.webp",
+    "width": 308,
+    "height": 850,
+    "ratio": 0.36235,
     "heightInches": 76,
     "name": "Jayden Daniels",
     "teamId": 28,
@@ -870,10 +870,10 @@
     "jersey": "20"
   },
   "4428331": {
-    "file": "4428331-v1.webp",
-    "width": 123,
-    "height": 314,
-    "ratio": 0.39172,
+    "file": "4428331-faces-v2.webp",
+    "width": 319,
+    "height": 850,
+    "ratio": 0.37529,
     "heightInches": 73,
     "name": "Rashee Rice",
     "teamId": 12,
@@ -990,10 +990,10 @@
     "jersey": "7"
   },
   "4430878": {
-    "file": "4430878-v1.webp",
-    "width": 125,
-    "height": 315,
-    "ratio": 0.39683,
+    "file": "4430878-faces-v2.webp",
+    "width": 314,
+    "height": 850,
+    "ratio": 0.36941,
     "heightInches": 72,
     "name": "Jaxon Smith-Njigba",
     "teamId": 26,
@@ -1160,10 +1160,10 @@
     "jersey": "5"
   },
   "4569987": {
-    "file": "4569987-v1.webp",
-    "width": 124,
-    "height": 306,
-    "ratio": 0.40523,
+    "file": "4569987-faces-v2.webp",
+    "width": 317,
+    "height": 850,
+    "ratio": 0.37294,
     "heightInches": 68,
     "name": "Jaylen Warren",
     "teamId": 23,
@@ -1220,10 +1220,10 @@
     "jersey": "1"
   },
   "4596448": {
-    "file": "4596448-v1.webp",
-    "width": 127,
-    "height": 315,
-    "ratio": 0.40317,
+    "file": "4596448-faces-v2.webp",
+    "width": 323,
+    "height": 850,
+    "ratio": 0.38,
     "heightInches": 70,
     "name": "Bucky Irving",
     "teamId": 27,
@@ -1450,10 +1450,10 @@
     "jersey": "28"
   },
   "4870808": {
-    "file": "4870808-v1.webp",
-    "width": 131,
-    "height": 314,
-    "ratio": 0.4172,
+    "file": "4870808-faces-v2.webp",
+    "width": 331,
+    "height": 850,
+    "ratio": 0.38941,
     "heightInches": 72,
     "name": "Jeremiyah Love",
     "teamId": 22,
