@@ -173,17 +173,3 @@
   padding-top:max(48px,var(--showcase-headroom,48px));padding-bottom:58px;
  }
 }
-
-/* An explicit bracket identifies the entire starting group at every screen size. */
-.hj-team-photo-starters{
- position:absolute;top:calc(100% + 2px);height:6px;border:solid #14324f;
- border-width:0 1.5px 1.5px;border-radius:0 0 3px 3px;pointer-events:none;
- color:#14324f;text-align:center;
-}
-.hj-team-photo-starters>span{
- position:absolute;left:50%;top:1px;transform:translateX(-50%);
- padding:0 6px;background:#faeed6;white-space:nowrap;
- font:800 8px/12px var(--sans);letter-spacing:.09em;
-}
-.hj-team-photo .hj-team-photo-caption{top:calc(100% + 22px)}
-#league-hq #league-sync-content .league-roster-head>.hj-team-photo.has-spotlight{padding-bottom:68px}
