@@ -95,6 +95,29 @@
     HJ40.statSortDir=reversible&&HJ40.statSort===key&&HJ40.statSortDir!=='asc'?'asc':'desc';
     HJ40.statSort=key;
   }
+  // Run after row rendering/scroll restoration and on viewport resize, never on
+  // horizontal touch scroll. Only scroll the individual rail, not the page.
+  function hj40RevealSortedStat(){
+    const key=HJ40.statSort;
+    if(!key||key==='pffGrade'||HJ_HQ_STATE.activeTab!=='free-agents')return;
+    const moves=[];
+    document.querySelectorAll('#hq-fa-results [data-hq40-stat-rail]').forEach(rail=>{
+      const button=[...rail.querySelectorAll('[data-hq40-sort-stat]')].find(node=>node.dataset.hq40SortStat===key);
+      if(!button||!rail.clientWidth)return;
+      const box=rail.getBoundingClientRect(),stat=button.getBoundingClientRect();
+      const left=box.left+rail.clientLeft,right=left+rail.clientWidth;
+      if(stat.left>=left&&stat.right<=right)return;
+      const target=rail.scrollLeft+stat.left-left-(rail.clientWidth-stat.width)/2;
+      moves.push([rail,Math.max(0,Math.min(rail.scrollWidth-rail.clientWidth,target))]);
+    });
+    moves.forEach(([rail,left])=>rail.scrollTo({left,behavior:'instant'}));
+  }
+  let hj40StatRailFrame=0;
+  function hj40QueueSortedStat(){
+    if(!hj40StatRailFrame)hj40StatRailFrame=requestAnimationFrame(()=>{hj40StatRailFrame=0;hj40RevealSortedStat()});
+  }
+  window.addEventListener('resize',hj40QueueSortedStat,{passive:true});
+  window.visualViewport?.addEventListener('resize',hj40QueueSortedStat,{passive:true});
   function hj40StatValueHTML(player,key,metric){
     if(key==='trend'&&Number.isFinite(metric?.value)){
       const value=metric.value,tone=value>0?'up':value<0?'down':'flat',row=hj40SleeperRow(player);

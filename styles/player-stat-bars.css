@@ -21,10 +21,9 @@
 #hq-fa-results .hq40-stat-btn strong.hj-opponent-easy{color:#267552!important}
 #hq-players-back-top{
  position:fixed;z-index:100;width:40px;height:40px;display:grid;place-items:center;
- padding:0;border:1px solid rgba(255,255,255,.72);border-radius:50%;
- background:rgba(255,255,255,.44);color:var(--navy,#14324f);cursor:pointer;touch-action:manipulation;
- -webkit-backdrop-filter:blur(10px) saturate(140%);backdrop-filter:blur(10px) saturate(140%);
- box-shadow:0 3px 12px rgba(12,34,56,.13),inset 0 1px 1px rgba(255,255,255,.68);
+ padding:0;border:1px solid var(--brass,#b98a2e);border-radius:50%;
+ background:var(--navy,#14324f);color:#fff;cursor:pointer;touch-action:manipulation;
+ box-shadow:0 3px 10px rgba(12,34,56,.2);
  transition:transform .15s ease;
 }
 #hq-players-back-top[hidden]{display:none!important}

@@ -30,6 +30,7 @@ jobs:
           node scripts/test-challenges.mjs
           node scripts/test-record-book.mjs
           node scripts/test-sleeper-trends.mjs
+          node scripts/test-player-stat-bars.mjs
       - uses: actions/configure-pages@v5
         id: pages
       - name: Stage site
