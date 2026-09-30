@@ -31,8 +31,10 @@
    const left=button.offsetLeft,scale=(r.width+215)/2048;
    const paintKey=[railWidth,r.width,left,ratio].join(':');
    const sourceURL=source.src;
-   if(button._hjFolderPaint?.key===paintKey&&button._hjFolderPaint.source===sourceURL)return;
-   const ticket=button._hjFolderPaint={key:paintKey,source:sourceURL};
+   if(button._hjFolderPaint?.key===paintKey&&button._hjFolderPaint.source===sourceURL&&
+    (button.querySelector('.hj-folder-layer')||button._hjFolderPaint.pending))return;
+   const ticket=button._hjFolderPaint={key:paintKey,source:sourceURL,pending:true};
+   if(!button.querySelector('.hj-folder-layer'))button.classList.remove('hj-layer-ready');
    // Paint off-document, then keep only an ordinary static image in the page.
    // A live full-rail canvas on every tab needlessly retains graphics surfaces.
    const canvas=document.createElement('canvas');
@@ -82,6 +84,7 @@
    image.style.left=-left+'px';image.style.width=nr.width+'px';
    image.onload=()=>{
     if(button._hjFolderPaint!==ticket||!button.isConnected)return;
+    ticket.pending=false;
     const previous=button.querySelector('.hj-folder-layer');
     if(previous)previous.replaceWith(image);else button.prepend(image);
     button.classList.add('hj-layer-ready');
