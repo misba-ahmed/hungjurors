@@ -15,7 +15,7 @@ console.log('FIXTURE '+JSON.stringify({teams:league.teams.length,players:pool.pl
 const server=createServer(async(req,res)=>{try{const path=new URL(req.url,'http://local').pathname;res.setHeader('Content-Type',path==='/'?'text/html':({'.css':'text/css','.js':'text/javascript','.png':'image/png','.mp4':'video/mp4','.webp':'image/webp','.jpg':'image/jpeg'}[extname(path)]||'application/json'));res.end(path==='/'?html:await readFile('.'+path));}catch{res.statusCode=404;res.end('{}');}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
 try{
- for(const [name,engine]of [['chromium',chromium],['webkit',webkit]]){
+ for(const [name,engine]of [['chromium',chromium],['webkit',webkit]].filter(([name])=>!process.env.ZOOM_ENGINE||name===process.env.ZOOM_ENGINE)){
   const browser=await engine.launch({headless:true});
   try{
    const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true});
