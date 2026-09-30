@@ -1,0 +1,19 @@
+name: Diagnose mobile zoom crash
+on:
+  push:
+    branches: [mobile-zoom-repair-20260930]
+permissions:
+  contents: read
+jobs:
+  zoom:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Exercise loaded mobile pages and pinch gestures
+        run: node scripts/diagnose-mobile-zoom.mjs
