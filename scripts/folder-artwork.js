@@ -40,8 +40,8 @@
    const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,-10,nr.width,190);
    // Flat wings are sampled at their native scale and mirrored, never
    // stretched. Their upper edges match the corresponding source shoulder.
-   tiles(ctx,source,100,40,0,Math.min(nr.width,Math.max(0,joinLeft+4)),scale);
-   tiles(ctx,source,1100,700,Math.max(0,joinRight-4),nr.width,scale);
+   // Adjacent tab caps overlap already. Do not paint rectangular wing tiles
+   // over their neighbours; those create seams at a local image boundary.
    // Keep the tab and all three original paper edges together in one image.
    drawStrip(ctx,source,140,960,joinLeft,960*scale);
    // Derive a clean shadow from the actual opaque paper contour. The

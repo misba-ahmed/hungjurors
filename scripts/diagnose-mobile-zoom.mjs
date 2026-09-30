@@ -32,7 +32,7 @@ try{
    const cdp=name==='chromium'?await context.newCDPSession(page):null;let layers=[];
    if(cdp){await cdp.send('LayerTree.enable');await cdp.send('Performance.enable');cdp.on('LayerTree.layerTreeDidChange',e=>layers=e.layers||[]);}
    await page.goto(base,{waitUntil:'load',timeout:60000});await page.waitForTimeout(3500);
-   for(const tab of ['home','rosters','free-agents','matchups']){
+   for(const tab of ['free-agents']){
     if(tab!=='home')await page.evaluate(tab=>{hjSetHQTab(tab);document.querySelector('#league-hq').scrollIntoView()},tab);
     await page.waitForTimeout(1800);await page.bringToFront();await page.screenshot({type:'jpeg',quality:30});
     const state=await page.evaluate(()=>{
@@ -73,6 +73,11 @@ try{
    const thumbs=await page.evaluate(()=>[...document.images].filter(e=>e.currentSrc.includes('/combiner/')&&e.naturalWidth).map(e=>e.naturalWidth));
    if(!thumbs.length||thumbs.some(w=>w>160))throw Error('Thumbnail source dimensions incorrect');
    console.log('CHECKS '+JSON.stringify({bounded,thumbnails:thumbs.length,players:await page.locator('.hq40-card').count()}));
+   await page.evaluate(()=>{const b=document.createElement('button');b.dataset.pcId='3918298';b.dataset.pcName='Josh Allen';b.dataset.pcTeam='BUF';b.dataset.pcPosition='QB';pcOpen(b)});
+   await page.waitForSelector('.pc-modal-overlay.is-open');
+   if(!await page.locator('.pc-headshot').getAttribute('src').then(s=>s.includes('/players/full/')))throw Error('Profile photo lost full resolution');
+   for(const pageScaleFactor of [3,1]){await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor});await page.screenshot({type:'jpeg',quality:20});}
+   await page.evaluate(()=>pcClose());await page.waitForTimeout(300);
    const shot=(await page.locator('#league-hq-tabs').screenshot({type:'jpeg',quality:75})).toString('base64');
    for(let i=0;i<shot.length;i+=6000)console.log('SCREEN '+shot.slice(i,i+6000));
    console.log('RESULT '+JSON.stringify({name,crashes,navigations,errors:errors.slice(0,15)}));
