@@ -1139,6 +1139,16 @@
     "teamId": 17,
     "jersey": "38"
   },
+  "4569559": {
+    "file": "4569559-faces-v2.webp",
+    "width": 288,
+    "height": 850,
+    "ratio": 0.33882,
+    "heightInches": 77,
+    "name": "Devaughn Vele",
+    "teamId": 18,
+    "jersey": "14"
+  },
   "4569587": {
     "file": "4569587-faces-v2.webp",
     "width": 327,
@@ -1269,6 +1279,16 @@
     "teamId": 29,
     "jersey": "25"
   },
+  "4682745": {
+    "file": "4682745-faces-v2.webp",
+    "width": 350,
+    "height": 850,
+    "ratio": 0.41176,
+    "heightInches": 70,
+    "name": "Jaylen Wright",
+    "teamId": 15,
+    "jersey": "5"
+  },
   "4683062": {
     "file": "4683062-faces-v2.webp",
     "width": 321,
@@ -1278,6 +1298,16 @@
     "name": "Xavier Worthy",
     "teamId": 12,
     "jersey": "1"
+  },
+  "4685247": {
+    "file": "4685247-faces-v2.webp",
+    "width": 350,
+    "height": 850,
+    "ratio": 0.41176,
+    "heightInches": 73,
+    "name": "Braelon Allen",
+    "teamId": 20,
+    "jersey": "0"
   },
   "4685278": {
     "file": "4685278-faces-v2.webp",
@@ -1418,6 +1448,16 @@
     "name": "Jonah Coleman",
     "teamId": 7,
     "jersey": "20"
+  },
+  "4711533": {
+    "file": "4711533-faces-v2.webp",
+    "width": 336,
+    "height": 850,
+    "ratio": 0.39529,
+    "heightInches": 74,
+    "name": "Ollie Gordon II",
+    "teamId": 15,
+    "jersey": "0"
   },
   "4723086": {
     "file": "4723086-faces-v2.webp",
