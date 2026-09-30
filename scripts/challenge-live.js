@@ -223,9 +223,10 @@ function hjChLmsFigure(manager,elimination,index){
  return `<div class="lms-figure${out?' is-eliminated':''}" role="group" aria-label="${esc(manager.short)}: ${out?`eliminated Week ${elimination.week}, seated`:'standing'}" data-lms-manager="${esc(manager.id)}" style="${hjChJacket(index)}">${hjChFigureArt(manager,`lms-head-${index}`)}<span class="lms-name manager-profile-trigger" data-manager="${esc(manager.short)}" role="button" tabindex="0" aria-label="Open ${esc(manager.short)} profile">${esc(manager.short)}</span></div>`;
 }
 function hjChFigureArt(manager,key,crown=false){
- // Keep the original avatar pixels; clip off its shoulders to join the illustrated body.
+ // A dedicated transparent head preserves Misba's full curls without the legacy oval crop.
+ const fullHead=manager.short==='MISBA';
  return `<svg class="lms-art" viewBox="0 0 120 240" aria-hidden="true" focusable="false">
- <defs><clipPath id="${key}"><ellipse cx="60" cy="40" rx="30" ry="37"/></clipPath></defs>
+ ${fullHead?'':`<defs><clipPath id="${key}"><ellipse cx="60" cy="40" rx="30" ry="37"/></clipPath></defs>`}
  <ellipse class="lms-shadow" cx="60" cy="223" rx="35" ry="5"/>
  <g class="lms-standing-legs"><path d="M43 136 40 214M77 136 80 214" fill="none" stroke="#142c42" stroke-width="19" stroke-linecap="round"/><path d="M28 214h21v9H25q-5-5 3-9M72 214h21q8 4 3 9H72Z" fill="#0a1c2d"/><path d="M27 222h22M73 222h22" stroke="#c7d0d4" stroke-width="2"/></g>
  <g class="lms-seated-legs"><path d="M43 194 26 211 56 218M77 194 94 211 65 218" fill="none" stroke="#142c42" stroke-width="18" stroke-linecap="round"/><path d="m43 213 18 2v8H40q-5-5 3-10M65 214l17-2q7 7 2 11H65Z" fill="#0a1c2d"/></g>
@@ -238,7 +239,7 @@ function hjChFigureArt(manager,key,crown=false){
  <path d="m48 72-7 16 10 7-6 8 15 24M72 72l7 16-10 7 6 8-15 24" fill="none" stroke="#ffffff" stroke-opacity=".2" stroke-width="2"/>
  <path d="M60 124v22M39 137h12M69 137h12" stroke="#11283c" stroke-width="2"/><circle cx="64" cy="131" r="1.5" fill="#cfb365"/>
  <path d="M70 91h9v2h-9Z" fill="#dfc778"/>
- <image href="data:image/png;base64,${AV[manager.short]||AV_DEFAULT}" x="12" y="-2" width="96" height="96" clip-path="url(#${key})"/>
+ ${fullHead?'<image class="lms-natural-head" href="/assets/avatars/misba-head-20260929-v2.png" x="15" y="-8" width="90" height="90" preserveAspectRatio="xMidYMid meet"/>':`<image href="data:image/png;base64,${AV[manager.short]||AV_DEFAULT}" x="12" y="-2" width="96" height="96" clip-path="url(#${key})"/>`}
  ${crown?'<g class="lms-crown"><path d="M37 15 43-9 52 5 60-17 68 5 77-9 83 15Z" fill="#e6bb3f" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><path d="M37 15h46v8H37Z" fill="#f3d266" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><circle cx="60" cy="9" r="3" fill="#b3352c"/><circle cx="47" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="73" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="43" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="60" cy="-16" r="2.4" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="77" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/></g>':''}
  </g></svg>`;
 }
