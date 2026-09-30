@@ -112,3 +112,6 @@ html .profile-schedule-compact .profile-schedule-h2h{
   aspect-ratio:1;max-width:100%;margin:0;
  }
 }
+
+/* Preview rails retain horizontal gestures at their boundaries. */
+#hq-panel-matchups :is(.hq-edge-grid,.hq-swing-rail){overscroll-behavior-x:contain}

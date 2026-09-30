@@ -2,6 +2,15 @@
 (function(){
  const root=document.querySelector('#league-hq');if(!root)return;
  const states=new WeakMap(),cards=deck=>Array.from(deck.children).filter(el=>el.matches('.hq-matchup'));
+ // A nested rail owns the entire gesture, including swipes at either end.
+ // Do not turn its touchend into a request to change the matchup.
+ function nestedRail(target,deck){
+  for(let node=target?.nodeType===1?target:target?.parentElement;node&&node!==deck;node=node.parentElement){
+   if(node.matches('.hq-edge-grid,.hq-swing-rail'))return node;
+   if(node.scrollWidth>node.clientWidth+1&&/^(auto|scroll)$/.test(getComputedStyle(node).overflowX))return node;
+  }
+  return null;
+ }
  const offset=(deck,card)=>card.getBoundingClientRect().left-deck.getBoundingClientRect().left-deck.clientLeft+deck.scrollLeft;
  const clamp=(deck,index)=>Math.max(0,Math.min(cards(deck).length-1,index));
  const nearest=deck=>cards(deck).reduce((best,card,index)=>{
@@ -52,7 +61,11 @@
    deck.addEventListener('scroll',()=>{s.moving=true;later(deck)},{passive:true});
    deck.addEventListener('scrollend',()=>settle(deck));
    deck.addEventListener('touchstart',event=>{
-    if(event.touches.length!==1){s.touch=null;s.target=null;return}
+    const nested=nestedRail(event.target,deck);
+    if(event.touches.length!==1||nested){
+     if(nested)nested.style.overscrollBehaviorX='contain';
+     s.touch=null;s.target=null;return;
+    }
     const t=event.touches[0];s.touch={x:t.clientX,y:t.clientY,index:nearest(deck)};s.target=null;
    },{passive:true});
    deck.addEventListener('touchend',event=>{
