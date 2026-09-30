@@ -1,5 +1,5 @@
 import {chromium} from 'playwright';
-const browser=await chromium.launch({headless:false});
+const browser=await chromium.launch({headless:false,executablePath:'/usr/bin/google-chrome'});
 try{
  const context=await browser.newContext({viewport:{width:430,height:932},deviceScaleFactor:3,isMobile:true,hasTouch:true});
  const page=await context.newPage(),session=await context.newCDPSession(page);

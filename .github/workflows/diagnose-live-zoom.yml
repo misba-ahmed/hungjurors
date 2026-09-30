@@ -14,5 +14,4 @@ jobs:
         with:
           node-version: '24'
       - run: npm install --no-save --package-lock=false playwright
-      - run: npx playwright install chromium --with-deps
       - run: xvfb-run -a node scripts/diagnose-live-zoom.mjs
