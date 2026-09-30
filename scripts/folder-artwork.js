@@ -27,18 +27,21 @@
    Math.sqrt((4*1024*1024)/(railWidth*180*Math.max(1,buttons.length))));
   nav.querySelectorAll('.hq-tab').forEach((button,index)=>{
    const source=button.querySelector('.hq-folder-art');if(!source?.complete||!source.naturalWidth)return;
-   let canvas=button.querySelector('.hj-folder-layer');
-   if(!canvas){canvas=document.createElement('canvas');canvas.className='hj-folder-layer';canvas.setAttribute('aria-hidden','true');button.prepend(canvas)}
    const r=button.getBoundingClientRect();
    const left=button.offsetLeft,scale=(r.width+215)/2048;
    const paintKey=[railWidth,r.width,left,ratio].join(':');
-   if(canvas._paintKey===paintKey&&canvas._paintSource===source.src)return;
+   const sourceURL=source.src;
+   if(button._hjFolderPaint?.key===paintKey&&button._hjFolderPaint.source===sourceURL&&
+    (button.querySelector('.hj-folder-layer')||button._hjFolderPaint.pending))return;
+   const ticket=button._hjFolderPaint={key:paintKey,source:sourceURL,pending:true};
+   if(!button.querySelector('.hj-folder-layer'))button.classList.remove('hj-layer-ready');
+   // Paint off-document, then keep only an ordinary static image in the page.
+   // A live full-rail canvas on every tab needlessly retains graphics surfaces.
+   const canvas=document.createElement('canvas');
    const artX=left-15,joinLeft=artX+140*scale,joinRight=artX+1100*scale;
    const width=Math.max(1,Math.floor(nr.width*ratio)),height=Math.max(1,Math.floor(180*ratio));
    if(canvas.width!==width)canvas.width=width;if(canvas.height!==height)canvas.height=height;
-   const xOffset=-left+'px';if(canvas.style.left!==xOffset)canvas.style.left=xOffset;
-   const cssWidth=nr.width+'px';if(canvas.style.width!==cssWidth)canvas.style.width=cssWidth;
-   const ctx=canvas.getContext('2d');ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,-10,nr.width,190);
+   const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,-10,nr.width,190);
    // Flat wings are sampled at their native scale and mirrored, never
    // stretched. Their upper edges match the corresponding source shoulder.
    tiles(ctx,source,100,40,0,Math.min(nr.width,Math.max(0,joinLeft+4)),scale);
@@ -58,7 +61,7 @@
     }
     m.putImageData(pixels,0,0);
     const shadow=document.createElement('canvas');shadow.width=width;shadow.height=height;
-    const sh=shadow.getContext('2d');sh.shadowColor='rgba(65,45,23,.48)';
+    const sh=shadow.getContext('2d',{willReadFrequently:true});sh.shadowColor='rgba(65,45,23,.48)';
     sh.shadowBlur=5*ratio;sh.shadowOffsetY=-1.5*ratio;sh.shadowOffsetX=1*ratio;
     sh.drawImage(mask,0,0);sh.shadowColor='transparent';
     sh.globalCompositeOperation='destination-out';sh.drawImage(mask,0,0);
@@ -75,7 +78,21 @@
    fade.addColorStop(0,'rgba(249,237,215,0)');fade.addColorStop(1,'#f9edd7');
    ctx.fillStyle=fade;ctx.fillRect(0,localBottom-4,nr.width,5);
    ctx.fillStyle='#f9edd7';ctx.fillRect(0,localBottom,nr.width,180-localBottom);
-   button.classList.add('hj-layer-ready');canvas._paintKey=paintKey;canvas._paintSource=source.src;
+   const image=new Image();
+   image.className='hj-folder-layer';image.alt='';image.setAttribute('aria-hidden','true');
+   image.draggable=false;image.width=width;image.height=height;
+   image.style.left=-left+'px';image.style.width=nr.width+'px';
+   image.onload=()=>{
+    if(button._hjFolderPaint!==ticket||!button.isConnected)return;
+    ticket.pending=false;
+    const previous=button.querySelector('.hj-folder-layer');
+    if(previous)previous.replaceWith(image);else button.prepend(image);
+    button.classList.add('hj-layer-ready');
+   };
+   image.onerror=()=>{if(button._hjFolderPaint===ticket)button._hjFolderPaint=null};
+   try{image.src=canvas.toDataURL('image/png')}
+   finally{canvas.width=canvas.height=0}
+
   });
 
  }

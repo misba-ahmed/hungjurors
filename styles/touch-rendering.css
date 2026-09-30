@@ -1,4 +1,4 @@
-/* iPhone/WebKit must not keep the full history and award collection in
+/* Touch browsers must not keep the full history and award collection in
    offscreen 3D textures. These are stable touch layouts, never zoom toggles. */
 @media (any-pointer:coarse) {
  .champ-scroll,.award-bookcase,.award-shelf-grid,.nfl-game,
@@ -37,4 +37,16 @@
  .manager-modal-face,.season-modal-face,.award-modal-face{
   backface-visibility:visible!important;-webkit-backface-visibility:visible!important;
  }
+}
+
+/* Folder shadows are already painted into the artwork. Filtering each entire
+   rail again creates oversized offscreen surfaces when the page is magnified.
+   Keep this static on every browser; never swap effects during a pinch. */
+#league-hq #league-hq-tabs .hq-tab,
+#league-hq #league-hq-tabs .hq-tab:hover,
+#league-hq #league-hq-tabs .hq-tab[aria-selected="true"],
+#league-hq #league-hq-tabs .hq-folder-art,
+#league-hq #league-hq-tabs .hj-folder-layer {
+ filter:none!important;
+ will-change:auto!important;
 }

@@ -1,15 +1,18 @@
-name: Prepare roster photos
+name: Inspect mobile rendering
 on:
   push:
     branches: [zoom-live-diagnostic]
+permissions:
+  contents: read
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 4
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - run: npm install --no-save --package-lock=false sharp
+      - run: npm install --no-save --package-lock=false playwright
+      - run: npx playwright install chromium --with-deps
       - run: node scripts/diagnose-live-zoom.mjs

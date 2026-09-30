@@ -79,6 +79,16 @@
     "teamId": 34,
     "jersey": "15"
   },
+  "2973405": {
+    "file": "2973405-faces-v2.webp",
+    "width": 306,
+    "height": 850,
+    "ratio": 0.36,
+    "heightInches": 69,
+    "name": "Kalif Raymond",
+    "teamId": 3,
+    "jersey": "14"
+  },
   "2976212": {
     "file": "2976212-faces-v2.webp",
     "width": 325,
@@ -528,6 +538,16 @@
     "name": "Jonathan Taylor",
     "teamId": 11,
     "jersey": "28"
+  },
+  "4243331": {
+    "file": "4243331-faces-v2.webp",
+    "width": 317,
+    "height": 850,
+    "ratio": 0.37294,
+    "heightInches": 77,
+    "name": "Cade Otton",
+    "teamId": 27,
+    "jersey": "88"
   },
   "4248528": {
     "file": "4248528-faces-v2.webp",
