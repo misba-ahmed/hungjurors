@@ -17,7 +17,7 @@ const start=prepared.indexOf('function hjManagerBusinessCard('),end=prepared.ind
 const card=new Function('av','esc','pcFpts','hjCurrentStandingRank','hjTeamName','hjTeamRecord',prepared.slice(start,end)+'\nreturn hjManagerBusinessCard;')(av,esc,n=>n.toFixed(2),t=>t.rank,t=>t.name,t=>t.recordText);
 const misba={name:'Chase Brown People',recordText:'0-3',rank:10,record:{pointsFor:276.96}};
 const cesar={name:'Je Ne Saquon',recordText:'1-2',rank:9,record:{pointsFor:325.2}};
-const head=prepared.slice(0,prepared.indexOf('</head>')).replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'');
+const head='<!doctype html><html><head>'+[...prepared.matchAll(/<style\b[^>]*>[\s\S]*?<\/style>|<link\b[^>]*>/gi)].map(m=>m[0]).join('\n');
 const server=createServer(async(req,res)=>{try{const name=new URL(req.url,'http://local').pathname.slice(1);res.setHeader('Content-Type',name.endsWith('.png')?'image/png':name.endsWith('.css')?'text/css':'text/plain');res.end(await readFile(name));}catch{res.statusCode=404;res.end();}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
 function emit(name,buffer){const b64=buffer.toString('base64');for(let i=0;i<b64.length;i+=6000)console.log('AVATAR_ASSET '+name+' '+Math.floor(i/6000)+' '+b64.slice(i,i+6000));}
