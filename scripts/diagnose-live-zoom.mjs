@@ -3,53 +3,22 @@ const browser=await chromium.launch({headless:false,executablePath:'/usr/bin/goo
 try{
  const context=await browser.newContext({viewport:{width:430,height:932},deviceScaleFactor:3,isMobile:true,hasTouch:true});
  const page=await context.newPage(),session=await context.newCDPSession(page);
- let layers=[];session.on('LayerTree.layerTreeDidChange',e=>layers=e.layers||[]);
- await session.send('LayerTree.enable');await session.send('Performance.enable');
- page.on('pageerror',e=>console.log('ERROR '+e.stack));
- page.on('crash',()=>console.log('CRASH'));
- await page.goto('https://hungjurors.com/?render-check=20260930c',{waitUntil:'domcontentloaded',timeout:60000});
+ let layers=[];session.on('LayerTree.layerTreeDidChange',e=>layers=e.layers||[]);await session.send('LayerTree.enable');
+ page.on('pageerror',e=>console.log('ERROR '+e.message));page.on('crash',()=>console.log('CRASH'));
+ await page.goto('https://hungjurors.com/?layers=20260930',{waitUntil:'domcontentloaded',timeout:60000});
  await page.waitForFunction(()=>typeof HJ_LEAGUE_STATE!=='undefined'&&HJ_LEAGUE_STATE.data?.teams?.length>0,{},{timeout:25000}).catch(()=>{});
- await page.waitForTimeout(1500);
- async function report(label){
-  await session.send('LayerTree.enable');await page.screenshot({type:'jpeg',quality:10});await page.waitForTimeout(200);
-  const dom=await page.evaluate(()=>{
-   const rect=e=>{const r=e.getBoundingClientRect();return {width:Math.round(r.width),height:Math.round(r.height)}};
-   const tag=e=>e.tagName+'#'+e.id+'.'+String(e.className).slice(0,160);
-   const styles=[...document.querySelectorAll('body *')].map(e=>{const s=getComputedStyle(e),r=rect(e);return {node:tag(e),...r,area:r.width*r.height,filter:s.filter,backdrop:s.backdropFilter,will:s.willChange,transform:s.transform,opacity:s.opacity,display:s.display,visibility:s.visibility,overflow:s.overflow}}).filter(x=>x.area>0&&x.display!=='none'&&x.visibility!=='hidden');
-   const images=new Map();for(const e of document.images)if(e.complete&&e.naturalWidth)images.set(e.currentSrc||e.src,{src:(e.currentSrc||e.src).slice(0,150),w:e.naturalWidth,h:e.naturalHeight,pixels:e.naturalWidth*e.naturalHeight});
-   const allImages=[...images.values()].sort((a,b)=>b.pixels-a.pixels);
-   return {nodes:document.querySelectorAll('*').length,pageHeight:document.documentElement.scrollHeight,view:visualViewport?.scale,rows:document.querySelectorAll('.hj-v3-player').length,players:typeof HJ_PLAYER_DIRECTORY!=='undefined'?HJ_PLAYER_DIRECTORY.rows?.length:0,
-    imageCount:allImages.length,imageMiB:allImages.reduce((n,x)=>n+x.pixels*4,0)/1048576,largeImages:allImages.slice(0,12),
-    effects:styles.filter(x=>x.filter!=='none'||(x.backdrop&&x.backdrop!=='none')||x.will!=='auto').sort((a,b)=>b.area-a.area).slice(0,18),
-    large:styles.sort((a,b)=>b.area-a.area).slice(0,6),
-    folders:[...document.querySelectorAll('.hq-tab')].map(b=>({tab:b.dataset.hqTab,ready:b.classList.contains('hj-layer-ready'),art:!!b.querySelector('.hj-folder-layer'),width:b.querySelector('.hj-folder-layer')?.naturalWidth}))};
-  });
-  const sorted=layers.filter(l=>l.drawsContent).sort((a,b)=>b.width*b.height-a.width*a.height);
-  const tree=(await session.send('DOM.getDocument',{depth:-1,pierce:true})).root;const parents=new Map();function walk(n,p){if(p)parents.set(n.backendNodeId,{name:p.nodeName,attributes:p.attributes?.slice(0,10)});for(const c of [...(n.children||[]),...(n.pseudoElements||[]),...(n.shadowRoots||[])])walk(c,n)}walk(tree,null);const layerInfo=[];
-  for(const l of sorted){
-   let node=null,reasons=null;
-   if(l.backendNodeId)try{const n=(await session.send('DOM.describeNode',{backendNodeId:l.backendNodeId})).node;node={name:n.nodeName,attributes:n.attributes?.slice(0,12).map(x=>x.slice(0,120))}}catch{}
-   try{reasons=(await session.send('LayerTree.compositingReasons',{layerId:l.layerId})).compositingReasons}catch{}
-   layerInfo.push({parent:parents.get(l.backendNodeId),w:l.width,h:l.height,area:l.width*l.height,node,reasons});
-  }
-  const metrics=await session.send('Performance.getMetrics');
-  console.log('REPORT '+label+' '+JSON.stringify({dom:{targets:await page.evaluate(()=>[...document.querySelectorAll('#record-book-fold,#record-book-out,#league-hq,.hjmv-col,.hj-pff-sort-hit')].slice(0,12).map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {tag:e.tagName,id:e.id,cls:e.className,w:r.width,h:r.height,position:s.position,transform:s.transform,contain:s.contain}})),nodes:dom.nodes,pageHeight:dom.pageHeight,effects:dom.effects.slice(0,3),folders:dom.folders,imageMiB:dom.imageMiB},layers:layers.length,paintLayers:sorted.length,layerPixels:sorted.reduce((n,l)=>n+l.width*l.height,0),topLayers:layerInfo.slice(0,4),seeds:layerInfo.filter(l=>l.reasons?.some(r=>!/overlap|scrolling/i.test(r))),metrics:metrics.metrics.filter(x=>['JSHeapUsedSize','LayoutCount','RecalcStyleCount','Nodes','Documents'].includes(x.name))}));
- }
- await page.screenshot({type:'jpeg',quality:10});
- await page.evaluate(()=>{hjSetHQTab('rosters');document.querySelector('#league-hq').scrollIntoView()});await page.waitForTimeout(800);
  await page.evaluate(()=>{hjSetHQTab('free-agents');document.querySelector('#league-hq').scrollIntoView()});
- await page.waitForTimeout(7000);await report('players');
- await page.evaluate(()=>{for(let i=0;i<6;i++)hjRenderHQTabs()});await page.waitForTimeout(300);
- for(const scale of [4,1]){await session.send('Emulation.setPageScaleFactor',{pageScaleFactor:scale});await page.waitForTimeout(800);if(scale===4)await report('scale-'+scale)}
-
-
-
- const diagnosticStyle=await page.addStyleTag({content:'*,*::before,*::after{backface-visibility:visible!important;-webkit-backface-visibility:visible!important}'});
- await report('visible-backfaces');
- await diagnosticStyle.evaluate(e=>e.remove());
- const containedStyle=await page.addStyleTag({content:'main>section,main>details,#record-book-fold,#trophy{contain:paint;isolation:isolate}'});
- await report('contained-sections');
- await containedStyle.evaluate(e=>e.remove());
- await page.addStyleTag({content:'main>section,main>details,#record-book-fold,#trophy{content-visibility:auto;contain-intrinsic-size:auto 700px}'});
- await report('offscreen-sections');
+ await page.waitForTimeout(3000);
+ async function report(label){
+  await page.screenshot({type:'jpeg',quality:10});await page.waitForTimeout(300);
+  const sorted=layers.filter(l=>l.drawsContent).sort((a,b)=>b.width*b.height-a.width*a.height);
+  const top=await Promise.all(sorted.slice(0,10).map(async l=>{let node=null;try{node=(await session.send('DOM.describeNode',{backendNodeId:l.backendNodeId})).node}catch{};return {w:l.width,h:l.height,node:node?{tag:node.nodeName,attrs:node.attributes?.slice(0,6)}:null}}));
+  console.log('REPORT '+label+' '+JSON.stringify({layers:layers.length,pixels:sorted.reduce((n,l)=>n+l.width*l.height,0),top,dom:await page.evaluate(()=>({scrollHeight:document.documentElement.scrollHeight,viewport:innerWidth,sections:[...document.querySelectorAll('main>section')].map(e=>({id:e.id,h:e.offsetHeight})),player:[...document.querySelectorAll('.hq40-card')].slice(0,2).map(e=>({h:e.offsetHeight,w:e.offsetWidth})),folders:[...document.querySelectorAll('.hq-tab')].map(b=>!!b.querySelector('.hj-folder-layer'))}))}));
+ }
+ await report('before');
+ await page.addStyleTag({content:"\n/* Keep sorting controls inside their own player card's paint order. */\n.hq-player-directory .hq40-card { isolation:isolate; contain:layout paint; }\n/* Keep independent sections from sharing page-sized overlap surfaces. */\nmain>section,main>details { isolation:isolate; }\n#record-book-out.rb-book { perspective:none!important }\n#record-book-fold .rb-page,#record-book-fold .rb-page::before,#record-book-fold .rb-page::after { backface-visibility:visible!important;-webkit-backface-visibility:visible!important }\n/* Idle decorative figures need no separately rasterized shadow surface. */\n.lineup-figure {filter:none!important}\n"});
+ await report('bounded');
+ await session.send('Emulation.setPageScaleFactor',{pageScaleFactor:4});await report('bounded4');await session.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});
+ await page.addStyleTag({content:'.hq40-card{content-visibility:auto;contain-intrinsic-size:auto 184px}'});
+ await report('deferred-cards');
 }finally{await browser.close()}
