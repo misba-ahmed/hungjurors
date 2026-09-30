@@ -23,7 +23,8 @@ let minX=info.width,minY=info.height,maxX=0,maxY=0;
 for(let y=0;y<info.height;y++)for(let x=0;x<info.width;x++)if(data[(y*info.width+x)*4+3]>20){minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);}
 const width=maxX-minX+1,height=maxY-minY+1,pad=Math.ceil(Math.max(width,height)*.09),side=Math.max(width,height)+2*pad;
 const cutout=await sharp(data,{raw:info}).extract({left:minX,top:minY,width,height}).png().toBuffer();
-const head=await sharp({create:{width:side,height:side,channels:4,background:{r:0,g:0,b:0,alpha:0}}}).composite([{input:cutout,left:Math.floor((side-width)/2),top:Math.floor((side-height)/2)}]).resize(512,512).png().toBuffer();
+const padded=await sharp({create:{width:side,height:side,channels:4,background:{r:0,g:0,b:0,alpha:0}}}).composite([{input:cutout,left:Math.floor((side-width)/2),top:Math.floor((side-height)/2)}]).png().toBuffer();
+const head=await sharp(padded).resize(512,512).png().toBuffer();
 await writeFile(dir+'misba-head-20260929-v2.png',head);
 // The blazer encloses the white shirt; it never connects to these background seeds.
 const bustImage=await sharp(dir+'misba-20260929.png').ensureAlpha().raw().toBuffer({resolveWithObject:true});
