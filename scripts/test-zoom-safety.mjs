@@ -28,7 +28,7 @@ try{
    let navigations=0;page.on('framenavigated',frame=>{if(frame===page.mainFrame())navigations++});
    const errors=[];page.on('pageerror',error=>{errors.push(error.message);console.log(name+' PAGE_ERROR '+error.message)});
    await page.goto(base,{waitUntil:'load'});await page.screenshot({type:'jpeg',quality:20});
-   await page.evaluate(()=>{hjRenderHQTabs();document.querySelector('#league-hq').scrollIntoView();});
+   await page.evaluate(()=>{HJ_LEAGUE_STATE.data={teams:[],schedule:[],scoringPeriodId:4};hjRenderHQTabs();document.querySelector('#league-hq').scrollIntoView();});
    await page.waitForFunction(()=>document.querySelectorAll('.hj-folder-layer').length===6,{},{timeout:8000}).catch(async error=>{
     console.log('FOLDER_DIAGNOSTIC '+JSON.stringify(await page.evaluate(()=>({
      tabs:document.querySelector('#league-hq-tabs')?.outerHTML.slice(0,1800),
