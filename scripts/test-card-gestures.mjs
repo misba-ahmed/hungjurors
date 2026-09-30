@@ -5,7 +5,7 @@ import {createServer} from 'node:http';
 import {chromium,webkit} from 'playwright';
 import {prepareSite} from './prepare-site.mjs';
 import {extractSiteArtwork} from './site-artwork.mjs';
-const source=await readFile('index.html','utf8'),html=prepareSite(source);
+const source=await readFile('index.html','utf8'),html=prepareSite(source).replace("window.hjCardGestureClosing=node=>", "window.hjGestureDebug=()=>({active:active?{kind:active.kind,locked:active.locked,dy:active.dy}:null,settling:[...settling.values()].map(s=>({closing:s.closing,dy:s.g.dy,state:s.animation?.playState,time:s.animation?.currentTime,start:s.animation?.startTime}))});window.hjCardGestureClosing=node=>");
 assert(!html.includes('g.peak-dy>25'));
 assert(!html.includes('Header-only touch dismissal'));
 assert.equal((html.match(/id="hj-card-pull-close"/g)||[]).length,1);
@@ -23,7 +23,7 @@ try{
   try{
    const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
    await context.route('**/*',route=>route.request().url().startsWith(base)?route.continue():route.abort());
-   const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+   const page=await context.newPage();const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.log(engineName+' PAGE_ERROR '+e.message)});
    await page.goto(base,{waitUntil:'domcontentloaded'});
    await page.waitForFunction(()=>typeof window.hjCardGestureClosing==='function');
    const touch=async(type,dy=0,dx=0,count=1)=>page.evaluate(({type,dy,dx,count})=>{
@@ -53,7 +53,7 @@ try{
    await touch('touchmove',30);assert.equal(await position(card),30,'Reversing keeps the gesture');
    await touch('touchmove',110);assert.equal(await position(card),110);
    await touch('touchmove',20);await sleep(100);await touch('touchend',20);
-   await sleep(260);assert.equal(await position(card),0);assert.equal(await page.locator(card).count(),1);
+   await sleep(260);if(engineName==='webkit')console.log('WEBKIT_SETTLE '+JSON.stringify(await page.evaluate(()=>({debug:window.hjGestureDebug(),visible:document.visibilityState,styles:document.querySelector('.manager-modal-stage')?.style.cssText,animations:document.querySelector('.manager-modal-stage')?.getAnimations().map(a=>({state:a.playState,time:a.currentTime,frames:a.effect.getKeyframes()}))}))));assert.equal(await position(card),0);assert.equal(await page.locator(card).count(),1);
    // Grab a settling card before it returns; there must be no jump to rest.
    await begin(heading);await touch('touchmove',60);await sleep(130);await touch('touchend',60);
    await sleep(35);const settling=await position(card);assert(settling>0&&settling<60,'Snap animation position: '+settling+'; '+JSON.stringify(await page.locator(card).evaluate(el=>({animations:el.getAnimations().map(a=>({time:a.currentTime,state:a.playState,frames:a.effect.getKeyframes()})),style:el.style.cssText}))));
