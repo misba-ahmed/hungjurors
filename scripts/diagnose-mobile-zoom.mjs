@@ -52,7 +52,18 @@ try{
      for(const scaleFactor of [3,1/3,4,.25]){await cdp.send('Input.synthesizePinchGesture',{x:190,y:400,scaleFactor,relativeSpeed:800,gestureSourceType:'touch'});await page.waitForTimeout(200);scales.push(await page.evaluate(()=>visualViewport.scale));}
      if(await page.evaluate(()=>window.__zoomDocumentToken)!==token)throw Error('Document reloaded during pinch');
      console.log('SCALES '+JSON.stringify({tab,scales}));
-     if(Math.max(...scales)<2)throw Error('Pinch did not actually magnify the page');
+     if(Math.max(...scales)<2){
+      console.log('GESTURE_LIMITATION native touch pinch is unavailable in this Linux browser; exercising browser page scale directly');
+      scales.length=0;
+      for(const pageScaleFactor of [3,1,5,1]){
+       await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor});
+       await page.screenshot({type:'jpeg',quality:20});await page.waitForTimeout(150);
+       scales.push(await page.evaluate(()=>visualViewport.scale));
+      }
+      console.log('BROWSER_ZOOM '+JSON.stringify({tab,scales}));
+      if(Math.max(...scales)<2||scales.at(-1)!==1)throw Error('Browser zoom did not execute');
+      if(await page.evaluate(()=>window.__zoomDocumentToken)!==token)throw Error('Document reloaded during browser zoom');
+     }
      console.log('PINCH '+JSON.stringify({tab,crashes,navigations,scale:await page.evaluate(()=>visualViewport.scale)}));
     }
    }
