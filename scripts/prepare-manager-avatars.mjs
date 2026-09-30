@@ -5,7 +5,7 @@ export function prepareManagerAvatars(html){
  html=html.replace(mapPattern,(_,json)=>{
   const avatars=JSON.parse(json);
   if(!avatars.MISBA)throw Error('Misba avatar missing');
-  avatars.MISBA='/assets/avatars/misba-20260929.png';
+  avatars.MISBA='/assets/avatars/misba-20260929-v2.png';
   return 'const AV = '+JSON.stringify(avatars)+';';
  });
  let count=0;
@@ -20,5 +20,5 @@ export function prepareManagerAvatars(html){
  const portrait=AV[manager]||AV_DEFAULT;
  return portrait.startsWith('/')?portrait:'data:image/png;base64,'+portrait;
 };
-const av = `);
+const av = `).replace('</head>','<style id="manager-avatar-framing">.av[data-manager="MISBA"],img.av[src*="/assets/avatars/misba-"]{object-fit:contain;object-position:center}</style>\n</head>');
 }
