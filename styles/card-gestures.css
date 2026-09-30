@@ -5,3 +5,5 @@
 .hj-pull-moving{will-change:translate!important;user-select:none!important;-webkit-user-select:none!important;transition:none!important}
 .hj-pull-moving img{-webkit-user-drag:none}
 .hj-card-dismissed{pointer-events:none}
+
+.nfl-game.hj-card-dismissed .nfl-card-inner{transition:none!important}

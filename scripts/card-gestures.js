@@ -53,7 +53,7 @@
    original:prior?.original??card.style.getPropertyValue('translate'),
    priority:prior?.priority??card.style.getPropertyPriority('translate'),
    samples:[{y:offset,t:performance.now()}]};
-  if(prior)card.style.setProperty('translate','0px '+offset+'px','important');
+  if(prior)card.style.setProperty('translate','0px '+offset+'px');
  }
  function move(x,y,e){
   const g=active;if(!g)return;
@@ -66,13 +66,14 @@
    if(!g.onHeader&&g.scrolls.some(n=>n.scrollTop>1)){active=null;return}
    if(!e.cancelable){active=null;return}
    g.locked=true;g.card.classList.add('hj-pull-moving');
+   if(g.kind==='pointer')g.card.setPointerCapture?.(g.id);
   }
   if(!e.cancelable){cancel();return}
   e.preventDefault();e.stopPropagation();
   const raw=(g.offset<0?g.offset/.22:g.offset)+dy;
   // Downward travel is 1:1; a gentle boundary above rest still follows reversals.
   g.dy=raw>=0?raw:raw*.22;
-  g.card.style.setProperty('translate','0px '+g.dy+'px','important');
+  g.card.style.setProperty('translate','0px '+g.dy+'px');
   const t=performance.now(),previous=g.samples.at(-1),direction=Math.sign(g.dy-previous.y);
   if(direction&&g.direction&&direction!==g.direction)g.samples=[previous];
   if(direction)g.direction=direction;
@@ -92,6 +93,7 @@
    // The flagged native close path removes listeners, scroll locks and restores focus,
    // without restarting the old flip/shrink animation after the swipe.
    if(g.card.isConnected&&g.close.isConnected)g.close.click();
+   if(g.card.matches('.nfl-game'))getComputedStyle(g.card.querySelector('.nfl-card-inner')).transform;
    state.animation?.cancel();state.fade?.cancel();
    restore(g);
   };

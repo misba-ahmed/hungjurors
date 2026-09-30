@@ -53,7 +53,7 @@ try{
    await sleep(260);assert.equal(await position(card),0);assert.equal(await page.locator(card).count(),1);
    // Grab a settling card before it returns; there must be no jump to rest.
    await begin(heading);await touch('touchmove',60);await sleep(130);await touch('touchend',60);
-   await sleep(35);const settling=await position(card);assert(settling>0&&settling<60);
+   await sleep(35);const settling=await position(card);assert(settling>0&&settling<60,'Snap animation position: '+settling);
    await begin(heading);const caught=await position(card);assert(caught>=0&&caught<=settling+3);
    await touch('touchmove',35);assert(Math.abs((await position(card))-caught-35)<2);
    await touch('touchcancel');await sleep(230);
@@ -95,6 +95,12 @@ try{
     await begin('.award-modal-title');await touch('touchmove',160);await sleep(140);await touch('touchend',160);
     await page.waitForSelector('.award-modal-stage',{state:'detached',timeout:500});
    }else throw Error('Actual award card missing');
+   // Expanded schedule cards keep the original card, returning it to its front.
+   await page.evaluate(()=>openGameCard(document.querySelector('.nfl-game')));
+   await page.waitForSelector('.nfl-game.is-open');await sleep(650);
+   await begin('.nfl-game.is-open .nfl-depth-meta');await touch('touchmove',170);await sleep(140);await touch('touchend',170);
+   await page.waitForSelector('.nfl-game.is-open',{state:'detached',timeout:500});
+   assert(await page.locator('.nfl-game').count()>0);
    // Wire uses its real close callback too.
    await page.evaluate(()=>{const c=document.createElement('article');c.className='wc';c.innerHTML='<h2 class="wc-title">Gesture check</h2><p>Expanded feed card</p>';wireOpenExpanded(c);});
    await page.waitForSelector('.wire-expanded-overlay.is-open');
