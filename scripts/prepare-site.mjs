@@ -1,3 +1,4 @@
+import {prepareCardGestures} from './prepare-card-gestures.mjs';
 import {prepareManagerAvatars} from './prepare-manager-avatars.mjs';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {dirname,join} from 'node:path';
@@ -31,6 +32,7 @@ function replaceOnce(html,pattern,replacement){
  return html.replace(pattern,()=>replacement);
 }
 export function prepareSite(html){
+ html=prepareCardGestures(html);
  html=preparePlayerStatBars(html);
  html=prepareDefenseFantasyRanks(html);
  html=extractSiteArtwork(html).html;
