@@ -1,6 +1,6 @@
 (function(){
  const nav=document.getElementById('league-hq-tabs');if(!nav)return;
- let queued=0;const artworkURLs=new Map();
+ let queued=0;
  // Preserve the source's paper surfaces. A vertical slice through the
  // undecorated tab neck gives the labels clearance above all paper edges.
  const bands=[[0,107,-6,26],[107,190,26,70],[190,683,70,168.6]];
@@ -16,9 +16,7 @@
   }ctx.restore();
  }
  function render(){
-  queued=0;
-  for(const [image,url] of artworkURLs)if(!image.isConnected){URL.revokeObjectURL(url);artworkURLs.delete(image)}
-  const dock=nav.closest('.hj-folder-dock');if(!dock)return;
+  queued=0;const dock=nav.closest('.hj-folder-dock');if(!dock)return;
   const bounds=nav.getBoundingClientRect();if(!bounds.width)return;
   const buttons=[...nav.querySelectorAll('.hq-tab')],last=buttons[buttons.length-1];
   const railWidth=Math.max(nav.clientWidth,last?last.offsetLeft+last.offsetWidth+200:nav.clientWidth);
@@ -78,21 +76,20 @@
    fade.addColorStop(0,'rgba(249,237,215,0)');fade.addColorStop(1,'#f9edd7');
    ctx.fillStyle=fade;ctx.fillRect(0,localBottom-4,nr.width,5);
    ctx.fillStyle='#f9edd7';ctx.fillRect(0,localBottom,nr.width,180-localBottom);
-   canvas.toBlob(async blob=>{
-    canvas.width=canvas.height=0;
+   const image=new Image();
+   image.className='hj-folder-layer';image.alt='';image.setAttribute('aria-hidden','true');
+   image.draggable=false;image.width=width;image.height=height;
+   image.style.left=-left+'px';image.style.width=nr.width+'px';
+   image.onload=()=>{
     if(button._hjFolderPaint!==ticket||!button.isConnected)return;
-    if(!blob){button._hjFolderPaint=null;return}
-    const url=URL.createObjectURL(blob),image=new Image();
-    image.className='hj-folder-layer';image.alt='';image.setAttribute('aria-hidden','true');
-    image.draggable=false;image.decoding='async';image.width=width;image.height=height;
-    image.style.left=-left+'px';image.style.width=nr.width+'px';image.src=url;
-    try{await image.decode()}catch{URL.revokeObjectURL(url);if(button._hjFolderPaint===ticket)button._hjFolderPaint=null;return}
-    if(button._hjFolderPaint!==ticket||!button.isConnected){URL.revokeObjectURL(url);return}
     const previous=button.querySelector('.hj-folder-layer');
     if(previous)previous.replaceWith(image);else button.prepend(image);
-    if(artworkURLs.has(previous)){URL.revokeObjectURL(artworkURLs.get(previous));artworkURLs.delete(previous)}
-    artworkURLs.set(image,url);button.classList.add('hj-layer-ready');
-   },'image/png');
+    button.classList.add('hj-layer-ready');
+   };
+   image.onerror=()=>{if(button._hjFolderPaint===ticket)button._hjFolderPaint=null};
+   try{image.src=canvas.toDataURL('image/png')}
+   finally{canvas.width=canvas.height=0}
+
   });
 
  }
