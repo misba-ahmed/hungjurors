@@ -10,23 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - uses: actions/checkout@v6
-      - name: Read current roster photo coverage
+      - name: Fetch missing player references
         run: |
           node <<'ROSTER'
-          const fs=require('fs');
           (async()=>{
-           const html=fs.readFileSync('index.html','utf8'),season=Number(html.match(/const NFL_SEASON\s*=\s*(\d{4})/)[1]),catalog=JSON.parse(fs.readFileSync('assets/team-photos/catalog.json','utf8'));
-           const url='https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/'+season+'/segments/0/leagues/1630558?view=mRoster&view=mTeam&view=mSettings';
-           const response=await fetch(url);if(!response.ok)throw Error('Roster HTTP '+response.status);
-           const data=await response.json();if(!Array.isArray(data.teams)||data.teams.length!==10)throw Error('Incomplete rosters');
-           const missing=new Map(),teams=data.teams.map(t=>({id:t.id,name:t.name,owners:t.owners,players:(t.roster?.entries||[]).map(e=>{const p=e.playerPoolEntry?.player||e.player; if(!p)throw Error('Player missing');const item={id:p.id,name:p.fullName,position:p.defaultPositionId,team:p.proTeamId,slot:e.lineupSlotId,hasImage:!!catalog[p.id]};if(p.defaultPositionId!==16&&!item.hasImage)missing.set(String(p.id),item);return item;})}));
-           console.log('ROSTER_REPORT '+JSON.stringify({season,week:data.scoringPeriodId,teams,members:(data.members||[]).map(m=>({id:m.id,name:m.displayName,first:m.firstName,last:m.lastName})),missing:[...missing.values()]}));
-           for(const p of missing.values()){
-            const r=await fetch('https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/'+p.id);
-            if(!r.ok){console.log('PLAYER_DETAIL '+JSON.stringify({...p,error:'HTTP '+r.status}));continue;}
-            const j=await r.json(),a=j.athlete||j;
-            console.log('PLAYER_DETAIL '+JSON.stringify({...p,displayHeight:a.displayHeight,height:a.height,weight:a.displayWeight,jersey:a.jersey,headshot:a.headshot,teamInfo:a.team,links:a.links}));
+           for(const id of [2576925,4887558]){
+            const r=await fetch('https://a.espncdn.com/i/headshots/nfl/players/full/'+id+'.png');if(!r.ok)throw Error('Headshot HTTP '+r.status);
+            console.log('HEADSHOT '+id+' '+Buffer.from(await r.arrayBuffer()).toString('base64'));
            }
           })().catch(e=>{console.error(e);process.exitCode=1;});
           ROSTER
