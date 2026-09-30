@@ -8,6 +8,14 @@ function replace(html,from,to){
  return html.replace(from,()=>to);
 }
 export function prepareZoomSafety(html){
+
+ // Apply at render time, before image fetches start. Do not load full portraits
+ // and resize afterward: Safari may retain both decoded images during a pinch.
+ html=html.replace(/<img\b[^>]*?\bsrc="\$\{esc\(([^\n]*?)\)\}"/g,(tag,expression)=>{
+  if(tag.includes('pc-headshot')||! /^(?:photo|p\.headshot|player\.photo|p\.photo)$/.test(expression))return tag;
+  return tag.replace('esc('+expression+')','esc(hjHeadshotSrc('+expression+'))');
+ });
+
  // Preserve native browser zoom: media visibility has no viewport listeners.
  html=replace(html,/<video id="trophy-video"[^>]*>/g,
   '<video id="trophy-video" class="t-trophy-video" muted loop playsinline webkit-playsinline preload="none" aria-hidden="true">');

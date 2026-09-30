@@ -7,29 +7,17 @@
  function drawStrip(ctx,img,srcX,srcW,x,width){
   for(const [sy,ey,dy,de] of bands)ctx.drawImage(img,srcX,sy,srcW,ey-sy,x,dy,width,de-dy);
  }
- function tiles(ctx,img,srcX,srcW,left,right,scale){
-  if(right<=left)return;
-  const tw=srcW*scale;ctx.save();ctx.beginPath();ctx.rect(left,-10,right-left,180);ctx.clip();
-  for(let x=left,i=0;x<right;x+=tw,i++){
-   ctx.save();ctx.translate(x,0);if(i%2){ctx.translate(tw,0);ctx.scale(-1,1)}
-   drawStrip(ctx,img,srcX,srcW,0,tw);ctx.restore();
-  }ctx.restore();
- }
  function render(){
   queued=0;const dock=nav.closest('.hj-folder-dock');if(!dock)return;
   const bounds=nav.getBoundingClientRect();if(!bounds.width)return;
-  const buttons=[...nav.querySelectorAll('.hq-tab')],last=buttons[buttons.length-1];
-  const railWidth=Math.max(nav.clientWidth,last?last.offsetLeft+last.offsetWidth+200:nav.clientWidth);
-  const nr={width:railWidth};
-  // Texture detail is bounded independently of browser zoom. Six full-rail
-  // textures plus retained shadow copies used to grow with DPR squared.
-  const ratio=Math.min(window.devicePixelRatio||1,2,4096/railWidth,
-   Math.sqrt((4*1024*1024)/(railWidth*180*Math.max(1,buttons.length))));
+  // Keep each moving tab local. A full-rail image on every button multiplies
+  // painted surface area during native pinch zoom, even with small PNG files.
   nav.querySelectorAll('.hq-tab').forEach((button,index)=>{
    const source=button.querySelector('.hq-folder-art');if(!source?.complete||!source.naturalWidth)return;
    const r=button.getBoundingClientRect();
-   const left=button.offsetLeft,scale=(r.width+215)/2048;
-   const paintKey=[railWidth,r.width,left,ratio].join(':');
+   const left=24,nr={width:Math.ceil(r.width)+80},scale=(r.width+215)/2048;
+   const ratio=Math.min(window.devicePixelRatio||1,2);
+   const paintKey=[r.width,ratio].join(':');
    const sourceURL=source.src;
    if(button._hjFolderPaint?.key===paintKey&&button._hjFolderPaint.source===sourceURL&&
     (button.querySelector('.hj-folder-layer')||button._hjFolderPaint.pending))return;
@@ -38,14 +26,12 @@
    // Paint off-document, then keep only an ordinary static image in the page.
    // A live full-rail canvas on every tab needlessly retains graphics surfaces.
    const canvas=document.createElement('canvas');
-   const artX=left-15,joinLeft=artX+140*scale,joinRight=artX+1100*scale;
+   const artX=left-15,joinLeft=artX+140*scale;
    const width=Math.max(1,Math.floor(nr.width*ratio)),height=Math.max(1,Math.floor(180*ratio));
    if(canvas.width!==width)canvas.width=width;if(canvas.height!==height)canvas.height=height;
    const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,-10,nr.width,190);
-   // Flat wings are sampled at their native scale and mirrored, never
-   // stretched. Their upper edges match the corresponding source shoulder.
-   tiles(ctx,source,100,40,0,Math.min(nr.width,Math.max(0,joinLeft+4)),scale);
-   tiles(ctx,source,1100,700,Math.max(0,joinRight-4),nr.width,scale);
+   // Adjacent tab caps overlap already. Do not paint rectangular wing tiles
+   // over their neighbours; those create seams at a local image boundary.
    // Keep the tab and all three original paper edges together in one image.
    drawStrip(ctx,source,140,960,joinLeft,960*scale);
    // Derive a clean shadow from the actual opaque paper contour. The
