@@ -1,0 +1,16 @@
+name: Diagnose live zoom
+on:
+  push:
+    branches: [zoom-live-diagnostic]
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright
+      - run: npx playwright install chromium
+      - run: node scripts/diagnose-live-zoom.mjs
