@@ -16,7 +16,7 @@ const server=createServer(async(req,res)=>{try{const path=new URL(req.url,'http:
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
 try{
  for(const [name,engine]of [['chromium',chromium],['webkit',webkit]].filter(([name])=>!process.env.ZOOM_ENGINE||name===process.env.ZOOM_ENGINE)){
-  const browser=await engine.launch({headless:true});
+  const browser=await engine.launch({headless:false});
   try{
    const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true});
    await context.route('**/*',async route=>{

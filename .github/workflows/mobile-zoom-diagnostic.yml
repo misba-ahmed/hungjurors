@@ -16,6 +16,6 @@ jobs:
       - run: npm install --no-save --package-lock=false playwright
       - run: npx playwright install chromium
       - name: Exercise loaded mobile pages and pinch gestures
-        run: node scripts/diagnose-mobile-zoom.mjs
+        run: xvfb-run -a node scripts/diagnose-mobile-zoom.mjs
         env:
           ZOOM_ENGINE: chromium
