@@ -27,9 +27,12 @@ try{
    await page.goto(base,{waitUntil:'domcontentloaded'});
    await page.waitForFunction(()=>typeof window.hjCardGestureClosing==='function');
    const touch=async(type,dy=0,dx=0,count=1)=>page.evaluate(({type,dy,dx,count})=>{
-    const p=window.testTouch;const point=new Touch({identifier:1,target:p.target,clientX:p.x+dx,clientY:p.y+dy});
-    const points=count===2?[point,new Touch({identifier:2,target:p.target,clientX:p.x+40,clientY:p.y})]:[point];
-    const e=new TouchEvent(type,{bubbles:true,cancelable:true,touches:type==='touchend'||type==='touchcancel'?[]:points,targetTouches:type==='touchend'||type==='touchcancel'?[]:points,changedTouches:[point]});
+    const p=window.testTouch;const point={identifier:1,target:p.target,clientX:p.x+dx,clientY:p.y+dy};
+    const points=count===2?[point,{identifier:2,target:p.target,clientX:p.x+40,clientY:p.y}]:[point];
+    // WebKit does not expose a constructible Touch. Deterministic event payloads
+    // exercise the same handlers there; Chromium also gets real CDP touch input below.
+    const e=new Event(type,{bubbles:true,cancelable:true}),ended=type==='touchend'||type==='touchcancel';
+    Object.defineProperties(e,{touches:{value:ended?[]:points},targetTouches:{value:ended?[]:points},changedTouches:{value:[point]}});
     p.target.dispatchEvent(e);return e.defaultPrevented;
    },{type,dy,dx,count});
    const begin=async(selector)=>{await page.evaluate(selector=>{
