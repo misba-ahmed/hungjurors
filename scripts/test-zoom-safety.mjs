@@ -38,11 +38,11 @@ try{
     }))));throw error;
    });
    const memory=()=>page.evaluate(()=>{
-    const canvases=[...document.querySelectorAll('.hj-folder-layer')];
-    return {count:canvases.length,pixels:canvases.reduce((n,c)=>n+c.width*c.height,0),maxWidth:Math.max(...canvases.map(c=>c.width)),shadows:canvases.filter(c=>c._paperShadow).length,ready:document.querySelectorAll('.hj-layer-ready').length};
+    const images=[...document.querySelectorAll('img.hj-folder-layer')];
+    return {count:images.length,pixels:images.reduce((n,c)=>n+c.naturalWidth*c.naturalHeight,0),maxWidth:Math.max(...images.map(c=>c.naturalWidth)),shadows:images.filter(c=>c._paperShadow).length,ready:document.querySelectorAll('.hj-layer-ready').length,canvases:document.querySelectorAll('canvas.hj-folder-layer').length,filtered:[...document.querySelectorAll('#league-hq-tabs .hq-tab')].filter(c=>getComputedStyle(c).filter!=='none'||getComputedStyle(c).willChange!=='auto').length};
    });
    async function checkMemory(){
-    const m=await memory();assert.equal(m.count,6);assert.equal(m.ready,6);assert(m.pixels<=4*1024*1024,JSON.stringify(m));assert(m.maxWidth<=4096);assert.equal(m.shadows,0);return m;
+    const m=await memory();assert.equal(m.count,6);assert.equal(m.ready,6);assert(m.pixels<=4*1024*1024,JSON.stringify(m));assert(m.maxWidth<=4096);assert.equal(m.shadows,0);assert.equal(m.canvases,0);assert.equal(m.filtered,0);return m;
    }
    console.log(name+' GRAPHICS '+JSON.stringify(await checkMemory()));
    await page.evaluate(()=>{
