@@ -24,4 +24,4 @@ jobs:
           node-version: '24'
       - run: npm install --no-save --package-lock=false playwright
       - run: npx playwright install chromium webkit --with-deps
-      - run: node scripts/test-card-gestures.mjs
+      - run: xvfb-run -a node scripts/test-card-gestures.mjs

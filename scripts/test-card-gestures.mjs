@@ -19,11 +19,11 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.
 function emit(name,buffer){const b64=buffer.toString('base64');for(let i=0;i<b64.length;i+=6000)console.log('SWIPE_IMAGE '+name+' '+Math.floor(i/6000)+' '+b64.slice(i,i+6000));}
 try{
  for(const [engineName,engine]of [['chromium',chromium],['webkit',webkit]]){
-  const browser=await engine.launch();
+  const browser=await engine.launch({headless:engineName!=='webkit'});
   try{
    const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
    await context.route('**/*',route=>route.request().url().startsWith(base)?route.continue():route.abort());
-   const page=await context.newPage();const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.log(engineName+' PAGE_ERROR '+e.message)});
+   const page=await context.newPage();await page.bringToFront();const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.log(engineName+' PAGE_ERROR '+e.message)});
    await page.goto(base,{waitUntil:'load'});
    await page.screenshot({type:'jpeg',quality:20}); // Ensure WebKit has presented the initial page before timing gestures.
    await page.waitForFunction(()=>typeof window.hjCardGestureClosing==='function');
