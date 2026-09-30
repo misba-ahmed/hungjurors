@@ -39,7 +39,7 @@ try{
     const target=document.querySelector(selector);if(!target)throw Error('Missing '+selector);
     const r=target.getBoundingClientRect();window.testTouch={target,x:r.left+Math.min(r.width/2,100),y:r.top+Math.min(r.height/2,32)};
    },selector);await touch('touchstart');};
-   const position=selector=>page.locator(selector).evaluate(el=>{const t=getComputedStyle(el).translate.split(/\s+/);return t.length>1?parseFloat(t[1])||0:0;});
+   const position=selector=>page.locator(selector).evaluate(el=>{return new DOMMatrixReadOnly(getComputedStyle(el).transform).m42;});
    const sleep=ms=>page.waitForTimeout(ms);
    const openManager=async()=>{
     await page.evaluate(()=>document.querySelector('.av[data-manager="MISBA"]').click());
@@ -56,7 +56,7 @@ try{
    await sleep(260);assert.equal(await position(card),0);assert.equal(await page.locator(card).count(),1);
    // Grab a settling card before it returns; there must be no jump to rest.
    await begin(heading);await touch('touchmove',60);await sleep(130);await touch('touchend',60);
-   await sleep(35);const settling=await position(card);assert(settling>0&&settling<60,'Snap animation position: '+settling);
+   await sleep(35);const settling=await position(card);assert(settling>0&&settling<60,'Snap animation position: '+settling+'; '+JSON.stringify(await page.locator(card).evaluate(el=>({animations:el.getAnimations().map(a=>({time:a.currentTime,state:a.playState,frames:a.effect.getKeyframes()})),style:el.style.cssText}))));
    await begin(heading);const caught=await position(card);assert(caught>=0&&caught<=settling+3);
    await touch('touchmove',35);assert(Math.abs((await position(card))-caught-35)<2);
    await touch('touchcancel');await sleep(230);

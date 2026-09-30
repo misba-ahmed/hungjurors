@@ -16,19 +16,20 @@
  const settling=new Map();let active=null,suppressed=null;
  window.hjCardGestureClosing=node=>!!node?.classList.contains('hj-card-dismissed');
  function restore(g){
-  g.card.style.removeProperty('translate');
-  if(g.original)g.card.style.setProperty('translate',g.original,g.priority);
+  g.card.style.removeProperty('transform');
+  if(g.original)g.card.style.setProperty('transform',g.original,g.priority);
   g.card.classList.remove('hj-pull-moving','hj-card-dismissed');
  }
- function yValue(card){const v=getComputedStyle(card).translate.split(/\s+/);return v.length>1?parseFloat(v[1])||0:0;}
+ function yValue(g){return new DOMMatrixReadOnly(getComputedStyle(g.card).transform).m42-g.baseY;}
+ function transform(g,y){return 'translate3d(0,'+y+'px,0)'+(g.base?' '+g.base:'');}
  function stopSettling(card){
   const s=settling.get(card);if(!s||s.closing)return null;
-  const y=yValue(card);settling.delete(card);s.animation?.cancel();return {...s.g,offset:y};
+  const y=yValue(s.g);settling.delete(card);s.animation?.cancel();return {...s.g,offset:y};
  }
  function snap(g,immediate=false){
   if(!g.locked){restore(g);return}
   if(immediate||motion.matches||!g.card.isConnected||Math.abs(g.dy)<.5){restore(g);return}
-  const animation=g.card.animate([{translate:'0px '+g.dy+'px'},{translate:g.original||'0px 0px'}],{duration:200,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'});
+  const animation=g.card.animate([{transform:transform(g,g.dy)},{transform:transform(g,0)}],{duration:200,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'});
   const state={g,animation,closing:false};settling.set(g.card,state);
   animation.finished.then(()=>{if(settling.get(g.card)!==state)return;settling.delete(g.card);restore(g);animation.cancel();},()=>{});
  }
@@ -48,12 +49,13 @@
    if(node===card)break;
   }
   if(!onHeader&&scrolls.some(n=>n.scrollTop>1))return;
-  const prior=stopSettling(card),offset=prior?.offset||0;
-  active={card,close,type,id,kind,x,y,offset,dy:offset,locked:!!prior,onHeader,scrolls,
-   original:prior?.original??card.style.getPropertyValue('translate'),
-   priority:prior?.priority??card.style.getPropertyPriority('translate'),
+  const prior=stopSettling(card),offset=prior?.offset||0,computed=getComputedStyle(card).transform;
+  const base=prior?.base??(computed==='none'?'':computed),baseY=prior?.baseY??new DOMMatrixReadOnly(computed).m42;
+  active={card,close,type,id,kind,x,y,offset,dy:offset,locked:!!prior,onHeader,scrolls,base,baseY,
+   original:prior?.original??card.style.getPropertyValue('transform'),
+   priority:prior?.priority??card.style.getPropertyPriority('transform'),
    samples:[{y:offset,t:performance.now()}]};
-  if(prior)card.style.setProperty('translate','0px '+offset+'px');
+  if(prior)card.style.setProperty('transform',transform(active,offset));
  }
  function move(x,y,e){
   const g=active;if(!g)return;
@@ -73,7 +75,7 @@
   const raw=(g.offset<0?g.offset/.22:g.offset)+dy;
   // Downward travel is 1:1; a gentle boundary above rest still follows reversals.
   g.dy=raw>=0?raw:raw*.22;
-  g.card.style.setProperty('translate','0px '+g.dy+'px');
+  g.card.style.setProperty('transform',transform(g,g.dy));
   const t=performance.now(),previous=g.samples.at(-1),direction=Math.sign(g.dy-previous.y);
   if(direction&&g.direction&&direction!==g.direction)g.samples=[previous];
   if(direction)g.direction=direction;
@@ -98,7 +100,7 @@
    restore(g);
   };
   if(!duration){finish();return}
-  state.animation=g.card.animate([{translate:'0px '+g.dy+'px'},{translate:'0px '+to+'px'}],{duration,easing:'cubic-bezier(.18,.65,.3,1)',fill:'forwards'});
+  state.animation=g.card.animate([{transform:transform(g,g.dy)},{transform:transform(g,to)}],{duration,easing:'cubic-bezier(.18,.65,.3,1)',fill:'forwards'});
   if(overlay&&g.card.matches('.manager-draft-detail')===false)state.fade=overlay.animate([{opacity:getComputedStyle(overlay).opacity},{opacity:0}],{duration,fill:'forwards'});
   state.animation.finished.then(finish,()=>{});
  }
