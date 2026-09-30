@@ -11,7 +11,7 @@ for(const [path,bytes] of art.assets){
  assert.ok(source.includes(bytes.toString('base64')),'Extracted media bytes match the original: '+path);
  assert.ok(art.html.includes('/'+path),'Extracted media URL is used: '+path);
 }
-assert.equal((art.html.match(/data:(?:image\\/(?:png|jpeg|webp)|video\\/mp4);base64,[A-Za-z0-9+/=]{131072,}/g)||[]).length,0,'No large media URLs retained');
+assert.equal((art.html.match(new RegExp('data:(?:image/(?:png|jpeg|webp)|video/mp4);base64,[A-Za-z0-9+/=]{131072,}','g'))||[]).length,0,'No large media URLs retained');
 const css=text=>[...text.matchAll(/<style\b[^>]*>([^]*?)<\/style>/g)].map(m=>m[1]).join('\n');
 const boundary=html.indexOf('</head>');
 const styles=css(html.slice(0,boundary))+'\n'+read('../styles/live-display.css')+'\n'+css(html.slice(boundary));
