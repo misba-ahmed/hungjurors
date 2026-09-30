@@ -96,8 +96,8 @@ try{
     await page.waitForSelector('.award-modal-stage',{state:'detached',timeout:500});
    }else throw Error('Actual award card missing');
    // Expanded schedule cards keep the original card, returning it to its front.
-   await page.evaluate(()=>openGameCard(document.querySelector('.nfl-game')));
-   await page.waitForSelector('.nfl-game.is-open');await sleep(650);
+   await page.evaluate(()=>{clearTimeout(nflScheduleTimer);NFL_WEEK1=NFL_WEEK1_EMBEDDED.map(g=>({...g}));renderNFLWeekSchedule();openGameCard(document.querySelector('.nfl-game'));});
+   await page.waitForSelector('.nfl-game.is-open',{timeout:1500});await sleep(650);
    await begin('.nfl-game.is-open .nfl-depth-meta');await touch('touchmove',170);await sleep(140);await touch('touchend',170);
    await page.waitForSelector('.nfl-game.is-open',{state:'detached',timeout:500});
    assert(await page.locator('.nfl-game').count()>0);
