@@ -9,6 +9,6 @@ export function prepareZoomSafety(html){
  html=replace(html,/<script id="hj-folder-stack-script">[\s\S]*?<\/script>/g,'<script id="hj-folder-stack-script">'+folder+'</script>');
  html=replace(html,"ctx.putImageData(pixels,0,0);folderURL=canvas.toDataURL('image/png');",
   "ctx.putImageData(pixels,0,0);folderURL=canvas.toDataURL('image/png');canvas.width=canvas.height=0;");
- html=replace(html,'</head>','<link rel="stylesheet" href="/styles/zoom-safety.css?v=20260929a">\n<script id="hj-zoom-safety">'+zoom+'</script>\n</head>');
+ html=replace(html,'</head>','<link rel="stylesheet" href="/styles/zoom-safety.css?v=20260930b">\n<script id="hj-zoom-safety">'+zoom+'</script>\n</head>');
  return html;
 }

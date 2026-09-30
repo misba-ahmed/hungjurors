@@ -8,9 +8,10 @@
  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
 }
 
-/* Preserve card contents, position, shade and native pinch/pan. Avoid full-screen
-   blur surfaces growing with pinch scale, especially with nested open cards. */
-html.hj-page-zoomed :is(.manager-modal-overlay,.season-modal-overlay,.award-modal-overlay,.pc-modal-overlay,.wire-expanded-overlay){
+/* Keep full-viewport surfaces stable before, during and after zoom.
+   Re-enabling backdrop blur at scale 1 forces a costly compositor rebuild.
+   The existing dimmed overlay still separates the card from the page. */
+html :is(.manager-modal-overlay,.season-modal-overlay,.award-modal-overlay,.pc-modal-overlay,.wire-expanded-overlay){
  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
  transition-property:background-color,opacity!important;
 }
@@ -20,3 +21,8 @@ html.hj-page-zoomed :is(.manager-modal-overlay,.season-modal-overlay,.award-moda
 .hj-team-photo-figure{transform:translate(0,0) scale(1)}
 .hj-team-photo-player.is-starter:not(.is-active) .hj-team-photo-figure{transform:translate(0,2px) scale(1.05)}
 .hj-team-photo-player.is-active .hj-team-photo-figure{transform:translate(var(--showcase-shift,0px),6px) scale(var(--showcase-scale))}
+
+/* Avoid reserving full-card compositor surfaces while cards are idle.
+   Opening, flipping and dragging retain their existing transforms. */
+.manager-modal-stage,.season-modal-stage,.award-modal-stage,
+.manager-modal-flip,.season-modal-flip,.award-modal-flip{will-change:auto!important}

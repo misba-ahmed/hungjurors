@@ -78,11 +78,11 @@ try{
     }));
     assert(state.sentinel&&state.card&&state.open,JSON.stringify(state));assert.equal(state.scroll,state.expected);
     assert.equal(state.pageScroll,state.expectedPage);
-    assert.equal(state.guarded,scale>1,JSON.stringify(state));
-    if(scale>1)assert.equal(state.blur,'none');
+    assert.equal(state.guarded,false,JSON.stringify(state));
+    assert.equal(state.blur,'none','Full-screen blur stays off when zooming back out');
     assert.equal(navigations,initialNav);await checkMemory();
    }
-   // The first second finger disables blur immediately, before viewport resize;
+   // Pinch must not toggle graphics effects at either start or end;
    // it also cancels a partially pulled card without any delayed snap animation.
    const multi=await page.evaluate(()=>{
     const target=document.querySelector('.manager-modal-title'),r=target.getBoundingClientRect();
@@ -97,7 +97,7 @@ try{
     const result={blocked,guarded:document.documentElement.classList.contains('hj-page-zoomed'),y:new DOMMatrixReadOnly(getComputedStyle(zoomCard).transform).m42};
     touch('touchend',0,40);return result;
    });
-   assert.equal(multi.blocked,false);assert(multi.guarded);assert.equal(multi.y,0);
+   assert.equal(multi.blocked,false);assert.equal(multi.guarded,false);assert.equal(multi.y,0);
    // Page zoom changes pixel density. Exercise extreme density and orientation.
    if(cdp){
     for(const [width,height,dpr]of [[390,844,12],[844,390,8],[1440,900,6],[390,844,3]]){
