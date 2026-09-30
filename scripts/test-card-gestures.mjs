@@ -5,7 +5,7 @@ import {createServer} from 'node:http';
 import {chromium,webkit} from 'playwright';
 import {prepareSite} from './prepare-site.mjs';
 import {extractSiteArtwork} from './site-artwork.mjs';
-const source=await readFile('index.html','utf8'),html=prepareSite(source).replace("window.hjCardGestureClosing=node=>", "window.hjGestureDebug=()=>({active:active?{kind:active.kind,locked:active.locked,dy:active.dy}:null,settling:[...settling.values()].map(s=>({closing:s.closing,dy:s.g.dy,state:s.animation?.playState,time:s.animation?.currentTime,start:s.animation?.startTime}))});window.hjCardGestureClosing=node=>");
+const source=await readFile('index.html','utf8'),html=prepareSite(source).replace("window.hjCardGestureClosing=node=>", "window.hjGestureDebug=()=>({active:active?{kind:active.kind,locked:active.locked,dy:active.dy}:null,settling:[...settling.values()].map(s=>({closing:s.closing,dy:s.g.dy,y:s.y,frame:s.frame}))});window.hjCardGestureClosing=node=>");
 assert(!html.includes('g.peak-dy>25'));
 assert(!html.includes('Header-only touch dismissal'));
 assert.equal((html.match(/id="hj-card-pull-close"/g)||[]).length,1);

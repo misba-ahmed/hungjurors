@@ -20,18 +20,35 @@
   if(g.original)g.card.style.setProperty('transform',g.original,g.priority);
   g.card.classList.remove('hj-pull-moving','hj-card-dismissed');
  }
- function yValue(g){return new DOMMatrixReadOnly(getComputedStyle(g.card).transform).m42-g.baseY;}
  function transform(g,y){return 'translate3d(0,'+y+'px,0)'+(g.base?' '+g.base:'');}
+ function stopMotion(s){
+  cancelAnimationFrame(s.frame);
+  if(s.fade){const {node,value,priority}=s.fade;node.style.removeProperty('opacity');if(value)node.style.setProperty('opacity',value,priority);}
+ }
+ function animate(g,to,duration,closing,finish,overlay=null){
+  const state={g,closing,y:g.dy,frame:0},from=g.dy,start=performance.now();
+  if(overlay)state.fade={node:overlay,value:overlay.style.getPropertyValue('opacity'),priority:overlay.style.getPropertyPriority('opacity'),initial:Number(getComputedStyle(overlay).opacity)};
+  settling.set(g.card,state);
+  function frame(now){
+   if(settling.get(g.card)!==state)return;
+   const progress=Math.min(1,Math.max(0,(now-start)/duration)),eased=1-Math.pow(1-progress,3);
+   state.y=from+(to-from)*eased;
+   g.card.style.setProperty('transform',transform(g,state.y));
+   if(state.fade)state.fade.node.style.opacity=String(state.fade.initial*(1-progress));
+   if(progress===1){settling.delete(g.card);finish();stopMotion(state);}
+   else state.frame=requestAnimationFrame(frame);
+  }
+  state.frame=requestAnimationFrame(frame);
+  return state;
+ }
  function stopSettling(card){
   const s=settling.get(card);if(!s||s.closing)return null;
-  const y=yValue(s.g);settling.delete(card);s.animation?.cancel();return {...s.g,offset:y};
+  settling.delete(card);stopMotion(s);return {...s.g,offset:s.y};
  }
  function snap(g,immediate=false){
   if(!g.locked){restore(g);return}
   if(immediate||motion.matches||!g.card.isConnected||Math.abs(g.dy)<.5){restore(g);return}
-  const animation=g.card.animate([{transform:transform(g,g.dy)},{transform:transform(g,0)}],{duration:200,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'});
-  const state={g,animation,closing:false};settling.set(g.card,state);
-  animation.finished.then(()=>{if(settling.get(g.card)!==state)return;settling.delete(g.card);restore(g);animation.cancel();},()=>{});
+  animate(g,0,200,false,()=>restore(g));
  }
  function cancel(immediate=false){const g=active;active=null;if(g)snap(g,immediate);}
  function start(target,x,y,id,kind){
@@ -87,22 +104,15 @@
   const bottom=(window.visualViewport?.offsetTop||0)+(window.visualViewport?.height||innerHeight);
   const to=g.dy+Math.max(0,bottom-rect.top)+32;
   const duration=motion.matches?0:Math.max(160,Math.min(240,(to-g.dy)/Math.max(2.8,velocity)));
-  const state={g,closing:true};settling.set(g.card,state);
   g.card.classList.add('hj-card-dismissed');
   const finish=()=>{
-   if(settling.get(g.card)!==state)return;
-   settling.delete(g.card);
-   // The flagged native close path removes listeners, scroll locks and restores focus,
-   // without restarting the old flip/shrink animation after the swipe.
+   // Native cleanup runs once, after the card has left the screen.
    if(g.card.isConnected&&g.close.isConnected)g.close.click();
    if(g.card.matches('.nfl-game'))getComputedStyle(g.card.querySelector('.nfl-card-inner')).transform;
-   state.animation?.cancel();state.fade?.cancel();
    restore(g);
   };
   if(!duration){finish();return}
-  state.animation=g.card.animate([{transform:transform(g,g.dy)},{transform:transform(g,to)}],{duration,easing:'cubic-bezier(.18,.65,.3,1)',fill:'forwards'});
-  if(overlay&&g.card.matches('.manager-draft-detail')===false)state.fade=overlay.animate([{opacity:getComputedStyle(overlay).opacity},{opacity:0}],{duration,fill:'forwards'});
-  state.animation.finished.then(finish,()=>{});
+  animate(g,to,duration,true,finish,g.card.matches('.manager-draft-detail')?null:overlay);
  }
  function end(e,canceled=false){
   const g=active;active=null;if(!g)return;
@@ -140,13 +150,13 @@
  document.addEventListener('dragstart',e=>{if(active)e.preventDefault()},true);
  function resetAll(){
   cancel(true);
-  for(const [card,s] of settling){s.animation?.cancel();s.fade?.cancel();restore(s.g);settling.delete(card);}
+  for(const [card,s] of settling){stopMotion(s);restore(s.g);settling.delete(card);}
  }
  window.addEventListener('blur',resetAll);
  window.addEventListener('resize',resetAll);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)resetAll()});
  new MutationObserver(()=>{
   if(active&&!active.card.isConnected)cancel(true);
-  for(const [card,s]of settling)if(!card.isConnected){s.animation?.cancel();s.fade?.cancel();settling.delete(card);}
+  for(const [card,s]of settling)if(!card.isConnected){stopMotion(s);settling.delete(card);}
  }).observe(document.body,{childList:true,subtree:true});
 })();
