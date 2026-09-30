@@ -25,15 +25,15 @@ try{
     folders:[...document.querySelectorAll('.hq-tab')].map(b=>({tab:b.dataset.hqTab,ready:b.classList.contains('hj-layer-ready'),art:!!b.querySelector('.hj-folder-layer'),width:b.querySelector('.hj-folder-layer')?.naturalWidth}))};
   });
   const sorted=layers.filter(l=>l.drawsContent).sort((a,b)=>b.width*b.height-a.width*a.height);
-  const layerInfo=[];
+  const tree=(await session.send('DOM.getDocument',{depth:-1,pierce:true})).root;const parents=new Map();function walk(n,p){if(p)parents.set(n.backendNodeId,{name:p.nodeName,attributes:p.attributes?.slice(0,10)});for(const c of [...(n.children||[]),...(n.pseudoElements||[]),...(n.shadowRoots||[])])walk(c,n)}walk(tree,null);const layerInfo=[];
   for(const l of sorted){
    let node=null,reasons=null;
    if(l.backendNodeId)try{const n=(await session.send('DOM.describeNode',{backendNodeId:l.backendNodeId})).node;node={name:n.nodeName,attributes:n.attributes?.slice(0,12).map(x=>x.slice(0,120))}}catch{}
    try{reasons=(await session.send('LayerTree.compositingReasons',{layerId:l.layerId})).compositingReasons}catch{}
-   layerInfo.push({w:l.width,h:l.height,area:l.width*l.height,node,reasons});
+   layerInfo.push({parent:parents.get(l.backendNodeId),w:l.width,h:l.height,area:l.width*l.height,node,reasons});
   }
   const metrics=await session.send('Performance.getMetrics');
-  console.log('REPORT '+label+' '+JSON.stringify({dom:{nodes:dom.nodes,pageHeight:dom.pageHeight,effects:dom.effects.slice(0,3),folders:dom.folders,imageMiB:dom.imageMiB},layers:layers.length,paintLayers:sorted.length,layerPixels:sorted.reduce((n,l)=>n+l.width*l.height,0),topLayers:layerInfo.slice(0,4),seeds:layerInfo.filter(l=>l.reasons?.some(r=>!/overlap|scrolling/i.test(r))),metrics:metrics.metrics.filter(x=>['JSHeapUsedSize','LayoutCount','RecalcStyleCount','Nodes','Documents'].includes(x.name))}));
+  console.log('REPORT '+label+' '+JSON.stringify({dom:{targets:await page.evaluate(()=>[...document.querySelectorAll('#record-book-fold,#record-book-out,#league-hq,.hjmv-col,.hj-pff-sort-hit')].slice(0,12).map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {tag:e.tagName,id:e.id,cls:e.className,w:r.width,h:r.height,position:s.position,transform:s.transform,contain:s.contain}})),nodes:dom.nodes,pageHeight:dom.pageHeight,effects:dom.effects.slice(0,3),folders:dom.folders,imageMiB:dom.imageMiB},layers:layers.length,paintLayers:sorted.length,layerPixels:sorted.reduce((n,l)=>n+l.width*l.height,0),topLayers:layerInfo.slice(0,4),seeds:layerInfo.filter(l=>l.reasons?.some(r=>!/overlap|scrolling/i.test(r))),metrics:metrics.metrics.filter(x=>['JSHeapUsedSize','LayoutCount','RecalcStyleCount','Nodes','Documents'].includes(x.name))}));
  }
  await page.screenshot({type:'jpeg',quality:10});
  await page.evaluate(()=>{hjSetHQTab('rosters');document.querySelector('#league-hq').scrollIntoView()});await page.waitForTimeout(800);
@@ -43,10 +43,13 @@ try{
  for(const scale of [4,1]){await session.send('Emulation.setPageScaleFactor',{pageScaleFactor:scale});await page.waitForTimeout(800);if(scale===4)await report('scale-'+scale)}
 
 
- await page.evaluate(()=>{document.querySelectorAll('video').forEach(v=>{v.pause();v.style.display='none'})});
- await report('without-video');
- await page.addStyleTag({content:'*,*::before,*::after{animation:none!important;will-change:auto!important}'});
- await report('without-animations');
- await page.addStyleTag({content:'*,*::before,*::after{filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}'});
- await report('without-filters');
+
+ const diagnosticStyle=await page.addStyleTag({content:'*,*::before,*::after{backface-visibility:visible!important;-webkit-backface-visibility:visible!important}'});
+ await report('visible-backfaces');
+ await diagnosticStyle.evaluate(e=>e.remove());
+ const containedStyle=await page.addStyleTag({content:'main>section,main>details,#record-book-fold,#trophy{contain:paint;isolation:isolate}'});
+ await report('contained-sections');
+ await containedStyle.evaluate(e=>e.remove());
+ await page.addStyleTag({content:'main>section,main>details,#record-book-fold,#trophy{content-visibility:auto;contain-intrinsic-size:auto 700px}'});
+ await report('offscreen-sections');
 }finally{await browser.close()}
