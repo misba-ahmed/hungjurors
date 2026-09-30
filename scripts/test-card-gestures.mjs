@@ -24,7 +24,8 @@ try{
    const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
    await context.route('**/*',route=>route.request().url().startsWith(base)?route.continue():route.abort());
    const page=await context.newPage();const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.log(engineName+' PAGE_ERROR '+e.message)});
-   await page.goto(base,{waitUntil:'domcontentloaded'});
+   await page.goto(base,{waitUntil:'load'});
+   await page.screenshot({type:'jpeg',quality:20}); // Ensure WebKit has presented the initial page before timing gestures.
    await page.waitForFunction(()=>typeof window.hjCardGestureClosing==='function');
    const touch=async(type,dy=0,dx=0,count=1)=>page.evaluate(({type,dy,dx,count})=>{
     const p=window.testTouch;const point={identifier:1,target:p.target,clientX:p.x+dx,clientY:p.y+dy};
@@ -53,7 +54,7 @@ try{
    await touch('touchmove',30);assert.equal(await position(card),30,'Reversing keeps the gesture');
    await touch('touchmove',110);assert.equal(await position(card),110);
    await touch('touchmove',20);await sleep(100);await touch('touchend',20);
-   await sleep(260);if(engineName==='webkit')console.log('WEBKIT_SETTLE '+JSON.stringify(await page.evaluate(()=>({debug:window.hjGestureDebug(),visible:document.visibilityState,styles:document.querySelector('.manager-modal-stage')?.style.cssText,animations:document.querySelector('.manager-modal-stage')?.getAnimations().map(a=>({state:a.playState,time:a.currentTime,frames:a.effect.getKeyframes()}))}))));assert.equal(await position(card),0);assert.equal(await page.locator(card).count(),1);
+   await sleep(260);if(engineName==='webkit')console.log('WEBKIT_SETTLE '+JSON.stringify(await page.evaluate(()=>({debug:window.hjGestureDebug(),visible:document.visibilityState,ready:document.readyState,timeline:document.timeline.currentTime,styles:document.querySelector('.manager-modal-stage')?.style.cssText,animations:document.querySelector('.manager-modal-stage')?.getAnimations().map(a=>({state:a.playState,time:a.currentTime,frames:a.effect.getKeyframes()}))}))));assert.equal(await position(card),0);assert.equal(await page.locator(card).count(),1);
    // Grab a settling card before it returns; there must be no jump to rest.
    await begin(heading);await touch('touchmove',60);await sleep(130);await touch('touchend',60);
    await sleep(35);const settling=await position(card);assert(settling>0&&settling<60,'Snap animation position: '+settling+'; '+JSON.stringify(await page.locator(card).evaluate(el=>({animations:el.getAnimations().map(a=>({time:a.currentTime,state:a.playState,frames:a.effect.getKeyframes()})),style:el.style.cssText}))));
