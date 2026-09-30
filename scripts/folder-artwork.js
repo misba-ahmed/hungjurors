@@ -18,18 +18,14 @@
  function render(){
   queued=0;const dock=nav.closest('.hj-folder-dock');if(!dock)return;
   const bounds=nav.getBoundingClientRect();if(!bounds.width)return;
-  const buttons=[...nav.querySelectorAll('.hq-tab')],last=buttons[buttons.length-1];
-  const railWidth=Math.max(nav.clientWidth,last?last.offsetLeft+last.offsetWidth+200:nav.clientWidth);
-  const nr={width:railWidth};
-  // Texture detail is bounded independently of browser zoom. Six full-rail
-  // textures plus retained shadow copies used to grow with DPR squared.
-  const ratio=Math.min(window.devicePixelRatio||1,2,4096/railWidth,
-   Math.sqrt((4*1024*1024)/(railWidth*180*Math.max(1,buttons.length))));
+  // Keep each moving tab local. A full-rail image on every button multiplies
+  // painted surface area during native pinch zoom, even with small PNG files.
   nav.querySelectorAll('.hq-tab').forEach((button,index)=>{
    const source=button.querySelector('.hq-folder-art');if(!source?.complete||!source.naturalWidth)return;
    const r=button.getBoundingClientRect();
-   const left=button.offsetLeft,scale=(r.width+215)/2048;
-   const paintKey=[railWidth,r.width,left,ratio].join(':');
+   const left=24,nr={width:Math.ceil(r.width)+80},scale=(r.width+215)/2048;
+   const ratio=Math.min(window.devicePixelRatio||1,2);
+   const paintKey=[r.width,ratio].join(':');
    const sourceURL=source.src;
    if(button._hjFolderPaint?.key===paintKey&&button._hjFolderPaint.source===sourceURL&&
     (button.querySelector('.hj-folder-layer')||button._hjFolderPaint.pending))return;

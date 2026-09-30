@@ -23,10 +23,10 @@ try{
     const req=route.request(),u=req.url();
     if(u.startsWith(base))return route.continue();
     if(u.includes('lm-api-reads.fantasy.espn.com'))return route.fulfill({json:u.includes('kona_player_info')?pool:league,headers:{'access-control-allow-origin':'*'}});
-    if(/\.(png|webp|jpg|svg)(\?|$)/.test(u)||u.includes('fonts.'))return route.continue();
+    if(/\.(png|webp|jpg|svg)(\?|$)/.test(u)||u.includes('/combiner/')||u.includes('fonts.'))return route.continue();
     return route.abort();
    });
-   const page=await context.newPage();let crashes=0,navigations=0;const errors=[];
+   const page=await context.newPage();await page.addInitScript(()=>window.__zoomDocumentToken=Math.random());let crashes=0,navigations=0;const errors=[];
    page.on('crash',()=>{crashes++;console.log('CRASH '+name)});page.on('pageerror',e=>errors.push(e.message));
    page.on('framenavigated',f=>{if(f===page.mainFrame())navigations++});
    const cdp=name==='chromium'?await context.newCDPSession(page):null;let layers=[];
@@ -34,7 +34,7 @@ try{
    await page.goto(base,{waitUntil:'load',timeout:60000});await page.waitForTimeout(3500);
    for(const tab of ['home','rosters','free-agents','matchups']){
     if(tab!=='home')await page.evaluate(tab=>{hjSetHQTab(tab);document.querySelector('#league-hq').scrollIntoView()},tab);
-    await page.waitForTimeout(1800);
+    await page.waitForTimeout(1800);await page.bringToFront();await page.screenshot({type:'jpeg',quality:30});
     const state=await page.evaluate(()=>{
      const named=e=>e.tagName.toLowerCase()+(e.id?'#'+e.id:'')+(typeof e.className==='string'?'.'+e.className.trim().replace(/\s+/g,'.'):'');
      const all=[...document.querySelectorAll('*')],visible=all.filter(e=>e.getClientRects().length);
@@ -48,10 +48,22 @@ try{
      const largest=layers.filter(l=>l.drawsContent).sort((a,b)=>b.width*b.height-a.width*a.height).slice(0,12);const result=[];
      for(const l of largest){let node;try{node=(await cdp.send('DOM.describeNode',{backendNodeId:l.backendNodeId})).node}catch{}result.push({w:l.width,h:l.height,id:l.layerId,node:node?{name:node.nodeName,attributes:node.attributes}:null,reasons:(await cdp.send('LayerTree.compositingReasons',{layerId:l.layerId}).catch(()=>({}))).compositingReasons});}
      console.log('LAYERS '+JSON.stringify({tab,count:layers.length,largest:result,metrics:(await cdp.send('Performance.getMetrics')).metrics.filter(m=>/JSHeapUsedSize|Nodes|LayoutCount|RecalcStyleCount|LayoutDuration|RecalcStyleDuration/.test(m.name))}));
-     for(const scaleFactor of [3,.333333,4,.25]){await cdp.send('Input.synthesizePinchGesture',{x:190,y:400,scaleFactor,relativeSpeed:800,gestureSourceType:'touch'});await page.waitForTimeout(100);}
+     const token=await page.evaluate(()=>window.__zoomDocumentToken),scales=[];
+     for(const scaleFactor of [3,1/3,4,.25]){await cdp.send('Input.synthesizePinchGesture',{x:190,y:400,scaleFactor,relativeSpeed:800,gestureSourceType:'touch'});await page.waitForTimeout(200);scales.push(await page.evaluate(()=>visualViewport.scale));}
+     if(await page.evaluate(()=>window.__zoomDocumentToken)!==token)throw Error('Document reloaded during pinch');
+     console.log('SCALES '+JSON.stringify({tab,scales}));
+     if(Math.max(...scales)<2)throw Error('Pinch did not actually magnify the page');
      console.log('PINCH '+JSON.stringify({tab,crashes,navigations,scale:await page.evaluate(()=>visualViewport.scale)}));
     }
    }
+   await page.evaluate(()=>{hjSetHQTab('free-agents');document.querySelector('#league-hq-tabs').scrollIntoView()});await page.waitForTimeout(500);
+   const bounded=await page.evaluate(()=>[...document.querySelectorAll('.hj-folder-layer')].map(e=>({w:e.getBoundingClientRect().width,tab:e.parentElement.getBoundingClientRect().width})));
+   if(bounded.length!==6||bounded.some(x=>x.w>x.tab+82))throw Error('Folder surface exceeds its tab');
+   const thumbs=await page.evaluate(()=>[...document.images].filter(e=>e.currentSrc.includes('/combiner/')&&e.naturalWidth).map(e=>e.naturalWidth));
+   if(!thumbs.length||thumbs.some(w=>w>160))throw Error('Thumbnail source dimensions incorrect');
+   console.log('CHECKS '+JSON.stringify({bounded,thumbnails:thumbs.length,players:await page.locator('.hq40-card').count()}));
+   const shot=(await page.locator('#league-hq-tabs').screenshot({type:'jpeg',quality:75})).toString('base64');
+   for(let i=0;i<shot.length;i+=6000)console.log('SCREEN '+shot.slice(i,i+6000));
    console.log('RESULT '+JSON.stringify({name,crashes,navigations,errors:errors.slice(0,15)}));
   }finally{await browser.close();}
  }
