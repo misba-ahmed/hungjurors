@@ -127,12 +127,12 @@
   if(close)dismiss(g,velocity);else snap(g);
  }
  document.addEventListener('touchstart',e=>{
-  if(e.touches.length!==1){cancel(true);return}
+  if(e.touches.length!==1){cancel();return}
   const t=e.touches[0];start(e.target,t.clientX,t.clientY,t.identifier,'touch');
  },{capture:true,passive:true});
  document.addEventListener('touchmove',e=>{
   if(active?.kind!=='touch')return;
-  if(e.touches.length!==1){cancel(true);return}
+  if(e.touches.length!==1){cancel();return}
   const t=[...e.touches].find(t=>t.identifier===active.id);
   if(t)move(t.clientX,t.clientY,e);else cancel();
  },{capture:true,passive:false});

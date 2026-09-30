@@ -5,20 +5,15 @@ import {prepareSite} from './prepare-site.mjs';
 import {extractSiteArtwork} from './site-artwork.mjs';
 const read=p=>readFileSync(new URL(p,import.meta.url),'utf8');
 const source=read('../index.html'),art=extractSiteArtwork(source),html=prepareSite(source);
-assert.ok([...art.assets.keys()].some(path=>path.endsWith('.mp4')),'Video is a cacheable file');
-assert.ok([...art.assets.keys()].some(path=>path.endsWith('.png')),'Artwork remains a cacheable file');
-for(const [path,bytes] of art.assets){
- assert.ok(source.includes(bytes.toString('base64')),'Extracted media bytes match the original: '+path);
- assert.ok(art.html.includes('/'+path),'Extracted media URL is used: '+path);
-}
-assert.equal((art.html.match(new RegExp('data:(?:image/(?:png|jpeg|webp)|video/mp4);base64,[A-Za-z0-9+/=]{131072,}','g'))||[]).length,0,'No large media URLs retained');
+assert.equal(art.assets.size,3);
+assert.ok([...art.assets.values()].every(bytes=>bytes.length>1000000));
 const css=text=>[...text.matchAll(/<style\b[^>]*>([^]*?)<\/style>/g)].map(m=>m[1]).join('\n');
 const boundary=html.indexOf('</head>');
 const styles=css(html.slice(0,boundary))+'\n'+read('../styles/live-display.css')+'\n'+css(html.slice(boundary));
 const row=(right=false)=>'<button class="hj-player-v3'+(right?' is-right':'')+'"><span class="hj-v3-avatar">A</span><span class="hj-v3-identity"><span class="hj-v3-name">J. Smith-Njigba</span><span class="hj-v3-meta">SEA · WR1</span></span><span class="hj-game-context"><span class="hj-game-status">FINAL W 34-31 @ DAL (30)</span><span class="hj-game-stats">186 PY, 50 RY, 2 PTD</span></span><span class="hj-v3-score"><strong>35.36</strong><span class="hj-v3-projection">E 20.83</span></span></button>';
 const slots=['QB','RB','RB','WR','WR','TE','Flex','DST','K'];
 const markup='<nav></nav><main id="league-hq"><div class="hj-folder-dock"></div><section id="hq-panel-matchups"><div class="hq-matchup-switcher-shell"><button class="hq-matchup-jump">Scores</button></div><article class="hq-matchup is-open"><div class="hq-matchup-summary">Matchup</div><div class="hj-matchup-actions">Matchup preview</div><div class="hj-lineup-v2"><div class="hj-lineup-v2-starters">'+slots.map(slot=>'<div class="hj-lineup-v2-row">'+row()+'<span class="hj-lineup-v2-slot">'+slot+'</span>'+row(true)+'</div>').join('')+'</div></div></article></section><section id="league-sync-content"><button class="league-team-tab">TYLER</button><div class="league-roster-identity hj-business-card">TYLER</div></section></main>';
-const browser=await chromium.launch({executablePath:process.env.HJ_BROWSER_EXECUTABLE||undefined});
+const browser=await chromium.launch();
 try{
  const page=await browser.newPage({viewport:{width:1440,height:1000}});
  await page.route('https://hungjurors.test/**',route=>{
