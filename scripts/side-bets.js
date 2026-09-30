@@ -144,12 +144,18 @@
  };
  const baseBuild=wireBuild;
  WIRE_SECTION_LABELS.sidebet='Side Bet';
- if(!HJ_WIRE_ORDER.includes('sidebet'))HJ_WIRE_ORDER.unshift('sidebet');
+ const sideBetIndex=HJ_WIRE_ORDER.indexOf('sidebet');
+ if(sideBetIndex>=0)HJ_WIRE_ORDER.splice(sideBetIndex,1);
+ HJ_WIRE_ORDER.splice(HJ_WIRE_ORDER.indexOf('recap')+1,0,'sidebet');
  wireBuild=function(data){
   const built=baseBuild.apply(this,arguments);
-  if(hjCurrentWeek(data)<BET.week||hjCurrentWeek(data)>BET.week+1)return built;
+  // This promotion belongs to the Week 3 recap and leaves the carousel with it.
+  if(Number(WIRE.recapWeek)!==BET.week||!built.cards.some(card=>card.section==='recap'))return built;
   const view=currentSnapshot(data);
-  if(view)built.cards.unshift({section:'sidebet',html:wireHTML(view)});
+  if(view){
+   const afterRecap=built.cards.reduce((last,card,index)=>card.section==='recap'?index+1:last,0);
+   built.cards.splice(afterRecap,0,{section:'sidebet',html:wireHTML(view)});
+  }
   return built;
  };
  const baseStories=hjRcStories;

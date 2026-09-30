@@ -59,6 +59,16 @@
     "teamId": 26,
     "jersey": "5"
   },
+  "2576925": {
+    "file": "2576925-faces-v2.webp",
+    "width": 318,
+    "height": 850,
+    "ratio": 0.37412,
+    "heightInches": 78,
+    "name": "Darren Waller",
+    "teamId": 29,
+    "jersey": "88"
+  },
   "2577417": {
     "file": "2577417-faces-v2.webp",
     "width": 324,
@@ -1538,6 +1548,16 @@
     "name": "Bhayshul Tuten",
     "teamId": 30,
     "jersey": "33"
+  },
+  "4887558": {
+    "file": "4887558-faces-v2.webp",
+    "width": 353,
+    "height": 850,
+    "ratio": 0.41529,
+    "heightInches": 70,
+    "name": "Emanuel Wilson",
+    "teamId": 26,
+    "jersey": "23"
   },
   "4890973": {
     "file": "4890973-faces-v2.webp",
