@@ -26,9 +26,17 @@ try{
    await context.route('**/*',r=>r.request().url().startsWith(base)?r.continue():r.abort());
    const page=await context.newPage();await page.bringToFront();
    let navigations=0;page.on('framenavigated',frame=>{if(frame===page.mainFrame())navigations++});
-   const errors=[];page.on('pageerror',error=>errors.push(error.message));
+   const errors=[];page.on('pageerror',error=>{errors.push(error.message);console.log(name+' PAGE_ERROR '+error.message)});
    await page.goto(base,{waitUntil:'load'});await page.screenshot({type:'jpeg',quality:20});
-   await page.waitForFunction(()=>document.querySelectorAll('.hj-folder-layer').length===6);
+   await page.evaluate(()=>{hjRenderHQTabs();document.querySelector('#league-hq').scrollIntoView();});
+   await page.waitForFunction(()=>document.querySelectorAll('.hj-folder-layer').length===6,{},{timeout:8000}).catch(async error=>{
+    console.log('FOLDER_DIAGNOSTIC '+JSON.stringify(await page.evaluate(()=>({
+     tabs:document.querySelector('#league-hq-tabs')?.outerHTML.slice(0,1800),
+     rect:document.querySelector('#league-hq-tabs')?.getBoundingClientRect().toJSON(),
+     images:[...document.querySelectorAll('.hq-folder-art')].map(i=>({src:i.src.slice(0,100),width:i.naturalWidth,complete:i.complete})),
+     dock:!!document.querySelector('.hj-folder-dock')
+    }))));throw error;
+   });
    const memory=()=>page.evaluate(()=>{
     const canvases=[...document.querySelectorAll('.hj-folder-layer')];
     return {count:canvases.length,pixels:canvases.reduce((n,c)=>n+c.width*c.height,0),maxWidth:Math.max(...canvases.map(c=>c.width)),shadows:canvases.filter(c=>c._paperShadow).length,ready:document.querySelectorAll('.hj-layer-ready').length};
