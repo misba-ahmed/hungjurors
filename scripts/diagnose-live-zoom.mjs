@@ -10,6 +10,7 @@ try{
  await page.evaluate(()=>{hjSetHQTab('free-agents');document.querySelector('#league-hq').scrollIntoView()});
  await page.waitForTimeout(3000);
  async function report(label){
+  await session.send('LayerTree.enable');
   await page.screenshot({type:'jpeg',quality:10});await page.waitForTimeout(300);
   const sorted=layers.filter(l=>l.drawsContent).sort((a,b)=>b.width*b.height-a.width*a.height);
   const top=await Promise.all(sorted.slice(0,10).map(async l=>{let node=null;try{node=(await session.send('DOM.describeNode',{backendNodeId:l.backendNodeId})).node}catch{};return {w:l.width,h:l.height,node:node?{tag:node.nodeName,attrs:node.attributes?.slice(0,6)}:null}}));
