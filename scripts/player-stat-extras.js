@@ -123,7 +123,7 @@
     if(!hj40StatRailFrame)hj40StatRailFrame=requestAnimationFrame(()=>{hj40StatRailFrame=0;hj40RevealSortedStat()});
   }
   window.addEventListener('resize',hj40QueueSortedStat,{passive:true});
-  window.visualViewport?.addEventListener('resize',hj40QueueSortedStat,{passive:true});
+  // Keep horizontal stat rails still during native pinch zoom; window resize handles reflow.
   function hj40StatValueHTML(player,key,metric){
     if(key==='trend'&&Number.isFinite(metric?.value)){
       const value=metric.value,tone=value>0?'up':value<0?'down':'flat',row=hj40SleeperRow(player);

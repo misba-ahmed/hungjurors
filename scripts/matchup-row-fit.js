@@ -38,7 +38,7 @@ function hjFitStarterSpace(){
  let frame=0;
  const schedule=()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=0;hjFitStarterSpace()})};
  window.addEventListener('resize',schedule);
- window.visualViewport?.addEventListener('resize',schedule);
+ // Pinch zoom changes the visual viewport, not row layout. Window resize covers layout changes.
  document.fonts?.ready.then(schedule);
 
  schedule();
