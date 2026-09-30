@@ -1,0 +1,9 @@
+/* Give headers to the drag controller without disabling page zoom or content scroll. */
+.pc-modal-head,.manager-modal-head,.season-modal-head,.award-modal-head,.manager-draft-detail-head,.nfl-depth-top{
+ touch-action:pan-x pinch-zoom;
+}
+.hj-pull-moving{will-change:transform!important;user-select:none!important;-webkit-user-select:none!important;transition:none!important}
+.hj-pull-moving img{-webkit-user-drag:none}
+.hj-card-dismissed{pointer-events:none}
+
+.nfl-game.hj-card-dismissed .nfl-card-inner{transition:none!important}

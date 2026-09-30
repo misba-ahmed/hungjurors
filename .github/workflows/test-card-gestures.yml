@@ -1,0 +1,27 @@
+name: Verify card gestures
+on:
+  push:
+    branches: [main, card-gestures-preview]
+    paths:
+      - index.html
+      - scripts/card-gestures.js
+      - scripts/prepare-card-gestures.mjs
+      - scripts/prepare-site.mjs
+      - scripts/test-card-gestures.mjs
+      - styles/card-gestures.css
+      - .github/workflows/test-card-gestures.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gesture-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright
+      - run: npx playwright install chromium webkit --with-deps
+      - run: xvfb-run -a node scripts/test-card-gestures.mjs
