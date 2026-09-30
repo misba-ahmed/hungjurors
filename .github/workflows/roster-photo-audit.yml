@@ -10,13 +10,28 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Fetch missing player references
+      - uses: actions/checkout@v6
+      - name: Export transparent lineup assets
         run: |
-          node <<'ROSTER'
+          npm install --no-save --package-lock=false sharp
+          node <<'EXPORT'
+          const sharp=require('sharp');
           (async()=>{
-           for(const id of [2576925,4887558]){
-            const r=await fetch('https://a.espncdn.com/i/headshots/nfl/players/full/'+id+'.png');if(!r.ok)throw Error('Headshot HTTP '+r.status);
-            console.log('HEADSHOT '+id+' '+Buffer.from(await r.arrayBuffer()).toString('base64'));
+           for(const [id,name,heightInches,teamId,jersey] of [[2576925,'Darren Waller',78,29,'88'],[4887558,'Emanuel Wilson',70,26,'23']]){
+            const {data,info}=await sharp('photo-staging/'+id+'.png').ensureAlpha().raw().toBuffer({resolveWithObject:true});
+            let left=info.width,top=info.height,right=0,bottom=0,cleared=0;
+            for(let y=0;y<info.height;y++)for(let x=0;x<info.width;x++){
+             const i=(y*info.width+x)*4,r=data[i],g=data[i+1],b=data[i+2],spill=Math.min(r,b)-g;
+             const alpha=1-Math.max(0,Math.min(1,(spill-12)/80));
+             data[i+3]=Math.round(255*alpha);
+             if(alpha<.01){data[i]=data[i+1]=data[i+2]=0;cleared++;}
+             else if(alpha<1){data[i]=Math.max(0,Math.min(255,(r-255*(1-alpha))/alpha));data[i+1]=Math.min(255,g/alpha);data[i+2]=Math.max(0,Math.min(255,(b-255*(1-alpha))/alpha));}
+             if(data[i+3]>16){left=Math.min(left,x);top=Math.min(top,y);right=Math.max(right,x);bottom=Math.max(bottom,y);}
+            }
+            if(cleared<info.width*info.height*.1)throw Error('Missing alpha for '+name);
+            const {data:output,info:size}=await sharp(data,{raw:info}).extract({left,top,width:right-left+1,height:bottom-top+1}).resize({height:846}).extend({top:2,bottom:2,left:2,right:2,background:{r:0,g:0,b:0,alpha:0}}).webp({quality:92,alphaQuality:100}).toBuffer({resolveWithObject:true});
+            console.log('CUTOUT_META '+JSON.stringify({id,file:id+'-faces-v2.webp',width:size.width,height:size.height,ratio:Number((size.width/size.height).toFixed(5)),heightInches,name,teamId,jersey}));
+            console.log('CUTOUT_DATA '+id+' '+output.toString('base64'));
            }
           })().catch(e=>{console.error(e);process.exitCode=1;});
-          ROSTER
+          EXPORT
