@@ -72,6 +72,14 @@ try{
    await begin(heading);await sleep(18);await touch('touchmove',34);await sleep(15);await touch('touchmove',70);await touch('touchend',70);
    await page.waitForSelector(card,{state:'detached',timeout:500});assert.equal(await page.evaluate(()=>document.body.classList.contains('manager-modal-open')),false);
    console.log(engineName+': manager 1:1 movement, reversals, regrab, scroll arbitration, multitouch and flick passed');
+   // Mouse dragging an avatar is a drag, not a profile click.
+   await openManager();
+   const avatarBox=await page.locator('.manager-modal-head .av').boundingBox();
+   await page.mouse.move(avatarBox.x+20,avatarBox.y+20);await page.mouse.down();
+   await page.mouse.move(avatarBox.x+20,avatarBox.y+80,{steps:4});
+   assert((await position(card))>=59);await sleep(140);await page.mouse.up();await sleep(250);
+   assert.equal(await page.locator(card).count(),1);
+   await page.locator('.manager-modal-close').click();await page.waitForSelector(card,{state:'detached',timeout:1200});
    // Actual season and award cards, and an actual player nested over the season.
    await page.evaluate(()=>document.querySelector('.history-jump').click());
    await page.waitForSelector('.season-modal-overlay.is-open');await sleep(800);
@@ -117,6 +125,19 @@ try{
    if(engineName==='chromium'){
     await page.emulateMedia({reducedMotion:'no-preference'});await openManager();
     const client=await context.newCDPSession(page);
+    const content=await page.locator('.manager-modal-scroll').boundingBox();
+    const cx=content.x+content.width/2,cy=content.y+150;
+    await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:cx,y:cy}]});
+    for(let i=1;i<=6;i++){await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:cx,y:cy-i*18}]});await sleep(16);}
+    await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    assert.equal(await position(card),0);
+    assert(await page.locator('.manager-modal-scroll').evaluate(el=>el.scrollTop>30));
+    await sleep(450);await page.locator('.manager-modal-scroll').evaluate(el=>el.scrollTop=0);
+    await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:cx,y:cy}]});
+    for(let i=1;i<=4;i++){await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:cx,y:cy+i*18}]});await sleep(16);}
+    assert((await position(card))>=60);
+    await client.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});await sleep(250);
+    assert.equal(await position(card),0);
     const r=await page.locator(heading).boundingBox(),x=r.x+r.width/2,y=r.y+r.height/2;
     await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
     for(let i=1;i<=6;i++){await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:y+i*25}]});await sleep(16);}

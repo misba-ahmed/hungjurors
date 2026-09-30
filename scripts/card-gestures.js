@@ -132,7 +132,7 @@
  document.addEventListener('pointermove',e=>{if(active?.kind==='pointer'&&active.id===e.pointerId)move(e.clientX,e.clientY,e)},{capture:true});
  document.addEventListener('pointerup',e=>{if(active?.kind==='pointer'&&active.id===e.pointerId)end(e)},{capture:true});
  document.addEventListener('pointercancel',e=>{if(active?.kind==='pointer'&&active.id===e.pointerId)cancel()},{capture:true});
- document.addEventListener('click',e=>{
+ window.addEventListener('click',e=>{
   if(e.isTrusted&&suppressed&&performance.now()<suppressed.until&&(suppressed.card.contains(e.target)||suppressed.overlay?.contains(e.target))){e.preventDefault();e.stopImmediatePropagation();suppressed=null;}
  },true);
  document.addEventListener('dragstart',e=>{if(active)e.preventDefault()},true);
