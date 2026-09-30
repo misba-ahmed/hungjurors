@@ -5,6 +5,10 @@ on:
     paths:
       - index.html
       - scripts/folder-artwork.js
+      - scripts/site-artwork.mjs
+      - scripts/trophy-media.js
+      - scripts/player-search.js
+      - scripts/test-player-search.mjs
       - scripts/zoom-safety.js
       - scripts/prepare-zoom-safety.mjs
       - scripts/prepare-site.mjs
@@ -30,3 +34,5 @@ jobs:
       - run: npx playwright install chromium webkit --with-deps
       - run: xvfb-run -a node scripts/test-zoom-safety.mjs
       - run: xvfb-run -a node scripts/test-card-gestures.mjs
+
+      - run: xvfb-run -a node scripts/test-player-search.mjs

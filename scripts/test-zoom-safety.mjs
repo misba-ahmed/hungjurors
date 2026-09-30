@@ -9,11 +9,14 @@ import {extractSiteArtwork} from './site-artwork.mjs';
 const source=await readFile('index.html','utf8'),html=prepareSite(source);
 assert.equal((html.match(/id="hj-zoom-safety"/g)||[]).length,1);
 assert(!html.includes('canvas._paperShadow'));
+assert(!html.includes('data:video/mp4;base64,'),'Video must be a shared file');
+assert(!/<video[^>]*\bautoplay\b/.test(html),'Do not decode the trophy while it is offscreen');
+assert(!/maximum-scale|minimum-scale|setAttribute\(['"]content/.test(await readFile('scripts/player-search.js','utf8')),'Search must not rewrite viewport zoom');
 assert(!/maximum-scale\s*=\s*1\b|user-scalable\s*=\s*no/i.test(html.match(/<meta[^>]+name="viewport"[^>]*>/i)?.[0]||''));
 for(const [name,bytes]of extractSiteArtwork(source).assets){await mkdir(dirname(name),{recursive:true});await writeFile(name,bytes);}
 const server=createServer(async(req,res)=>{try{
  const path=new URL(req.url,'http://local').pathname;
- res.setHeader('Content-Type',path==='/'?'text/html':extname(path)==='.css'?'text/css':extname(path)==='.js'?'text/javascript':extname(path)==='.png'?'image/png':'application/json');
+ res.setHeader('Content-Type',path==='/'?'text/html':extname(path)==='.css'?'text/css':extname(path)==='.js'?'text/javascript':extname(path)==='.png'?'image/png':extname(path)==='.mp4'?'video/mp4':extname(path)==='.jpg'?'image/jpeg':'application/json');
  res.end(path==='/'?html:await readFile('.'+path));
 }catch{res.statusCode=404;res.end('{}');}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
@@ -45,6 +48,10 @@ try{
     const m=await memory();assert.equal(m.count,6);assert.equal(m.ready,6);assert(m.pixels<=4*1024*1024,JSON.stringify(m));assert(m.maxWidth<=4096);assert.equal(m.shadows,0);assert.equal(m.canvases,0);assert.equal(m.filtered,0);return m;
    }
    console.log(name+' GRAPHICS '+JSON.stringify(await checkMemory()));
+   await page.evaluate(()=>{for(let i=0;i<6;i++)hjRenderHQTabs()});
+   await page.waitForTimeout(120);await checkMemory();
+   assert(await page.evaluate(()=>document.querySelector('[data-hq-tab="free-agents"] .hj-folder-layer')?.naturalWidth>0),'Players artwork survives live refresh');
+   assert(await page.evaluate(()=>document.querySelector('#trophy-video').paused),'Offscreen trophy is paused');
    await page.evaluate(()=>{
     document.querySelector('#league-hq').scrollIntoView();
     window.zoomSentinel={};window.zoomExpectedSentinel=window.zoomSentinel;

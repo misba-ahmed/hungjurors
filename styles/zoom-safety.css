@@ -26,3 +26,20 @@ html :is(.manager-modal-overlay,.season-modal-overlay,.award-modal-overlay,.pc-m
    Opening, flipping and dragging retain their existing transforms. */
 .manager-modal-stage,.season-modal-stage,.award-modal-stage,
 .manager-modal-flip,.season-modal-flip,.award-modal-flip{will-change:auto!important}
+
+/* Bound each directory card's sorting overlays to that card. Without a paint
+   boundary, controls across the list can share a thousands-of-pixels surface. */
+.hq-player-directory .hq40-card{isolation:isolate;contain:layout paint}
+.t-trophy-video{aspect-ratio:1}
+.t-case:not(.hj-trophy-visible)::before{animation:none;visibility:hidden}
+@media(any-pointer:coarse){
+ #record-book-out.rb-book{perspective:none!important}
+ #record-book-fold .rb-page,
+ #record-book-fold .rb-page::before,
+ #record-book-fold .rb-page::after{
+  backface-visibility:visible!important;-webkit-backface-visibility:visible!important;
+ }
+ .lineup-figure{filter:none!important}
+ /* Prevent automatic input focus zoom without changing user pinch limits. */
+ #league-hq #hq-fa-search{font-size:16px!important}
+}

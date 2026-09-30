@@ -7,11 +7,11 @@ permissions:
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 2
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
       - run: npm install --no-save --package-lock=false playwright
-      - run: xvfb-run -a node scripts/diagnose-live-zoom.mjs
+      - run: HJ_BROWSER_EXECUTABLE=/usr/bin/google-chrome node scripts/test-matchup-layout.mjs
