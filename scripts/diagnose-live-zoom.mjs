@@ -11,7 +11,8 @@ for(let i=0;i<data.length;i+=4){
 const regions=[{id:4685247,left:0,right:400},{id:4569559,left:400,right:755},{id:4711533,left:755,right:1141},{id:4682745,left:1141,right:1536}];
 const previews=[];
 for(const p of regions){
- const cut=await sharp(data,{raw:info}).extract({left:p.left,top:0,width:p.right-p.left,height:info.height}).trim({background:'#00000000',threshold:5}).resize({height:850}).webp({quality:91,alphaQuality:100}).toBuffer();
+ const region=await sharp(data,{raw:info}).extract({left:p.left,top:0,width:p.right-p.left,height:info.height}).png().toBuffer();
+ const cut=await sharp(region).trim({background:'#00000000',threshold:5}).resize({height:850}).webp({quality:91,alphaQuality:100}).toBuffer();
  const m=await sharp(cut).metadata();
  console.log('ASSET '+JSON.stringify({id:p.id,width:m.width,height:m.height,ratio:Number((m.width/m.height).toFixed(5)),hasAlpha:m.hasAlpha,bytes:cut.length}));
  console.log('WEBP '+p.id+' '+cut.toString('base64'));
