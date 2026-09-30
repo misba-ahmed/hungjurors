@@ -1,19 +1,21 @@
-import {readFileSync} from 'node:fs';
-const catalog=JSON.parse(readFileSync('assets/team-photos/catalog.json','utf8'));
-const r=await fetch('https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/2026/segments/0/leagues/1630558?view=mRoster&view=mTeam');
-if(!r.ok)throw Error('ESPN '+r.status);const data=await r.json();const missing=[],mismatches=[],teams=[];
-for(const t of data.teams||[]){
- const roster=[];
- for(const e of t.roster?.entries||[]){
-  const p=e.playerPoolEntry?.player||e.player;if(!p||p.defaultPositionId===16)continue;
-  const a=catalog[p.id],item={id:p.id,name:p.fullName,teamId:p.proTeamId,position:p.defaultPositionId,slot:e.lineupSlotId};
-  roster.push(item);if(!a)missing.push({...item,fantasyTeam:t.id});else if(a.teamId!==p.proTeamId)mismatches.push({...item,photoTeamId:a.teamId,fantasyTeam:t.id});
- }
- teams.push({id:t.id,name:t.name,roster});
+import sharp from 'sharp';
+const source='assets/team-photos/new-roster-sheet.png';
+const {data,info}=await sharp(source).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+for(let i=0;i<data.length;i+=4){
+ const r=data[i],g=data[i+1],b=data[i+2],spill=b>r*.45&&b>g+15?Math.max(0,Math.min(r,b)-g):0;
+ let a=spill>230?0:Math.max(0,1-spill/245);
+ if(a<.06)a=0;
+ if(a>0&&a<1){data[i]=Math.max(0,Math.min(255,(r-255*(1-a))/a));data[i+1]=Math.min(255,g/a);data[i+2]=Math.max(0,Math.min(255,(b-255*(1-a))/a));}
+ data[i+3]=Math.round(a*255);
 }
-if(!teams.length)throw Error('No rosters');console.log('ROSTER_AUDIT '+JSON.stringify({at:new Date().toISOString(),week:data.scoringPeriodId,missing,mismatches,teams}));
-for(const p of [...missing,...mismatches]){
- const r=await fetch('https://site.api.espn.com/apis/common/v3/sports/football/nfl/athletes/'+p.id);if(!r.ok)throw Error('Player '+r.status);
- const {athlete:a}=await r.json();console.log('PLAYER '+JSON.stringify({id:p.id,name:a.displayName,height:a.displayHeight,weight:a.displayWeight,jersey:a.jersey,teamId:Number(a.team.id),team:a.team.displayName,abbreviation:a.team.abbreviation,headshot:a.headshot.href}));
- const image=await fetch(a.headshot.href);if(!image.ok)throw Error('Headshot missing '+p.id);console.log('HEADSHOT '+p.id+' '+Buffer.from(await image.arrayBuffer()).toString('base64'));
+const regions=[{id:2973405,left:0,right:768},{id:4243331,left:768,right:1536}];
+const previews=[];
+for(const p of regions){
+ const region=await sharp(data,{raw:info}).extract({left:p.left,top:0,width:p.right-p.left,height:info.height}).png().toBuffer();
+ const cut=await sharp(region).trim({background:'#00000000',threshold:5}).resize({height:850}).webp({quality:91,alphaQuality:100}).toBuffer();
+ const m=await sharp(cut).metadata();
+ console.log('ASSET '+JSON.stringify({id:p.id,width:m.width,height:m.height,ratio:Number((m.width/m.height).toFixed(5)),hasAlpha:m.hasAlpha,bytes:cut.length}));
+ console.log('WEBP '+p.id+' '+cut.toString('base64'));
+ previews.push({input:await sharp(cut).resize({height:510}).toBuffer(),left:20+regions.indexOf(p)*220,top:40});
 }
+console.log('PREVIEW '+(await sharp({create:{width:470,height:570,channels:3,background:'#f7ecd4'}}).composite(previews).png().toBuffer()).toString('base64'));
