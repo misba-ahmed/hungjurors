@@ -26,6 +26,6 @@ jobs:
         run: |
           git config user.name "misba-ahmed"
           git config user.email "misbauddin.ahmed@gmail.com"
-          git add assets/managers-v3 .manager-art/site-proof.png
-          git commit -m "Prepare complete approved manager illustrations"
+          git add assets/managers-v4 .manager-art/site-proof.png
+          git commit -m "Restore original manager proportions"
           git push origin HEAD:manager-suit-artwork

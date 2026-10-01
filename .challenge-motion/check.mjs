@@ -26,7 +26,8 @@ for(const id of ['raffle','lms','titty','mvp','optimizer']){
 await page.evaluate(()=>{HJ_CHALLENGE_STATE.active='overachiever';hjRenderChallenge();});
 await page.waitForTimeout(120);
 const early=await page.locator('.over-figure.is-neg .lms-art').evaluate(e=>new DOMMatrix(getComputedStyle(e).transform).m42);
-assert(early<45,'Sinking figure should be between the surface and final depth');
+assert(Math.abs(early-45)<.1,'Manager must immediately occupy its final depth without animation');
+assert.equal(await page.locator('.lms-art').evaluateAll(nodes=>nodes.reduce((n,e)=>n+e.getAnimations({subtree:true}).length,0)),0,'Managers and crowns must remain still');
 await page.waitForTimeout(1100);
 const final=await page.locator('.over-figure.is-neg .lms-art').evaluate(e=>new DOMMatrix(getComputedStyle(e).transform).m42);
 assert(Math.abs(final-45)<.1,'Sinking figure must finish at its score-driven depth');
@@ -41,5 +42,5 @@ await page.evaluate(()=>{HJ_CHALLENGE_STATE.active='overachiever';hjRenderChalle
 assert.equal(await page.locator('#challenge-out').evaluate(e=>e.classList.contains('ch-enter')),false);
 assert.equal(await page.locator('.over-figure.is-neg .lms-art').evaluate(e=>new DOMMatrix(getComputedStyle(e).transform).m42),45);
 assert.equal(await page.evaluate(()=>document.getAnimations().length),0);
-console.log('PASS: six challenge intros, score-driven sinking, live refresh, rapid switching, reduced motion');
+console.log('PASS: six challenge intros, static manager positions, live refresh, rapid switching, reduced motion');
 await browser.close();

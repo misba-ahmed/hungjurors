@@ -226,8 +226,8 @@ function hjChFigureArt(manager,key,crown=false,pose='standing'){
  const slug=String(manager.short).toLowerCase().replaceAll(' ','-');
  const seated=pose==='seated';
  return `<svg class="lms-art manager-real-art" viewBox="0 0 120 240" aria-hidden="true" focusable="false">
- <image href="/assets/managers-v3/${esc(slug)}-${pose}.webp" x="0" y="0" width="120" height="240"/>
- ${crown?`<g transform="translate(24 ${seated?24:-6}) scale(.6)"><g class="lms-crown"><path d="M37 15 43-9 52 5 60-17 68 5 77-9 83 15Z" fill="#e6bb3f" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><path d="M37 15h46v8H37Z" fill="#f3d266" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><circle cx="60" cy="9" r="3" fill="#b3352c"/><circle cx="47" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="73" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="43" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="60" cy="-16" r="2.4" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="77" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/></g></g>`:''}
+ <image href="/assets/managers-v4/${esc(slug)}-${pose}.webp" x="0" y="${seated&&key.startsWith('lms-')?-16:0}" width="120" height="240"/>
+ ${crown?`<g transform="translate(0 ${seated?23:-7})"><g class="lms-crown"><path d="M37 15 43-9 52 5 60-17 68 5 77-9 83 15Z" fill="#e6bb3f" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><path d="M37 15h46v8H37Z" fill="#f3d266" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><circle cx="60" cy="9" r="3" fill="#b3352c"/><circle cx="47" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="73" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="43" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="60" cy="-16" r="2.4" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="77" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/></g></g>`:''}
  </svg>`;
 }
 function hjChLms(model){
@@ -292,19 +292,12 @@ function hjChIntro(out,id){
  out.querySelectorAll('.lineup-figure,.lms-figure').forEach((figure,i)=>{
   const delay=Math.min(i*35,280);
   figure.style.setProperty('--ch-enter-delay',delay+'ms');
-  // Overachiever uses its actual score-driven platform/sinking transition below.
-  if(id!=='overachiever'){
-   const seated=figure.classList.contains('is-seated')||figure.classList.contains('is-eliminated');
-   play(figure.querySelector('.lms-art'),[
-    {opacity:0,transform:seated?'translateY(-12px)':'translateY(16px)'},
-    {opacity:1,transform:'translateY(0)'}
-   ],delay);
-  }
   play(figure.querySelector('.raffle-stack'),[
    {opacity:0,transform:'translateY(-20px) scale(.92)'},
    {opacity:1,transform:'translateY(0) scale(1)'}
   ],delay+120,950);
-  play(figure.querySelector('.lms-crown'),[{opacity:0},{opacity:1}],delay+350,500);
+  const platform=figure.querySelector('.over-pedestal');
+  if(platform){platform.style.transformOrigin='50% 100%';play(platform,[{transform:'scaleY(0)'},{transform:'scaleY(1)'}],0,900);}
  });
 }
 function hjRenderChallenge(){
@@ -331,13 +324,6 @@ function hjRenderChallenge(){
  // Grow bars from their previous height so a live titty visibly moves the graph.
  const motion=!matchMedia('(prefers-reduced-motion: reduce)').matches;
  const movements=[];
- out.querySelectorAll('.over-figure').forEach(f=>{
-  const target=f.style.getPropertyValue('--over-shift'),old=shifts.get(f.dataset.overId);
-  const prev=enter?'0':old&&old.neg===f.classList.contains('is-neg')?old.shift:null;
-  if(!motion||prev==null||prev===target)return;
-  f.classList.add('no-motion');f.style.setProperty('--over-shift',prev);
-  movements.push(()=>{f.classList.remove('no-motion');f.style.setProperty('--over-shift',target);});
- });
  out.querySelectorAll('.lineup-bar').forEach(b=>{
   const old=bars.get(b.dataset.barId),target=b.style.getPropertyValue('--titty-pct'),prev=old?.pct??(enter?'0':null);
   if(!motion||prev==null||prev===target)return;

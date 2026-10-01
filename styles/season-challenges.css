@@ -305,3 +305,6 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @media(prefers-reduced-motion:reduce){
  .ch-enter .lms-stage,.ch-enter .over-pedestal,.ch-enter .over-pit{animation:none}
 }
+
+/* Manager positions are static; only the surrounding score graphics animate. */
+.over-body,.over-body .lms-art,.over-figure>.lineup-bar-value{transition:none}
