@@ -16,7 +16,7 @@ for(const name of names){
    // Keep original hair, face and exposed neck; remove only the old shoulders/shirt.
    const skin=data[i]>data[i+1]*1.10&&data[i]>data[i+2]*1.18;
    const half=yy<=64?48:yy<=74?Math.max(14,23-(yy-64)*.8):11;
-   if(yy>85||(yy>64&&Math.abs(xx-48)>half)|| (yy>74&&!skin))data[i+3]=0;
+   if(yy>85||(yy>64&&Math.abs(xx-48)>half)|| (yy>79&&!skin))data[i+3]=0;
   }
   input=await sharp(data,{raw:info}).png().toBuffer();
  }else input=await sharp(input).modulate({saturation:.8}).png().toBuffer();
@@ -35,9 +35,15 @@ for(const pose of ['standing','seated']){
   }
  }
  const atlas=await sharp(data,{raw:info}).png().toBuffer();
+ async function alphaTrim(input){
+  const {data:d,info:m}=await sharp(input).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+  let l=m.width,t=m.height,r=0,b=0;
+  for(let y=0;y<m.height;y++)for(let x=0;x<m.width;x++){const i=(y*m.width+x)*4;if(d[i+3]<60)d[i+3]=0;if(d[i+3]>128){l=Math.min(l,x);r=Math.max(r,x);t=Math.min(t,y);b=Math.max(b,y);}}
+  return sharp(d,{raw:m}).extract({left:l,top:t,width:r-l+1,height:b-t+1}).png().toBuffer();
+ }
  for(let n=0;n<10;n++){
   const c=n%5,row=Math.floor(n/5);
-  const raw=await sharp(atlas).extract({left:cuts[c],top:row?506:0,width:cuts[c+1]-cuts[c],height:row?518:506}).trim({threshold:5}).png().toBuffer();
+  const raw=await alphaTrim(await sharp(atlas).extract({left:cuts[c],top:row?506:0,width:cuts[c+1]-cuts[c],height:row?518:506}).png().toBuffer());
   const bodyHeight=pose==='standing'?540:426;
   const body=await sharp(raw).resize({height:bodyHeight}).png().toBuffer();
   const bm=await sharp(body).metadata();
