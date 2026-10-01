@@ -296,8 +296,7 @@ function hjChIntro(out,id){
    {opacity:0,transform:'translateY(-20px) scale(.92)'},
    {opacity:1,transform:'translateY(0) scale(1)'}
   ],delay+120,950);
-  const platform=figure.querySelector('.over-pedestal');
-  if(platform){platform.style.transformOrigin='50% 100%';play(platform,[{transform:'scaleY(0)'},{transform:'scaleY(1)'}],0,900);}
+
  });
 }
 function hjRenderChallenge(){
@@ -331,6 +330,18 @@ function hjRenderChallenge(){
   movements.push(()=>{
    b.style.transition='';b.style.setProperty('--titty-pct',target);
    if(enter||old?.value!==b.dataset.barValue)b.closest('.lineup-figure').classList.add('is-scored');
+  });
+ });
+ // Move Overachiever figures and their platforms using the same value and timing.
+ out.querySelectorAll('.over-figure').forEach(figure=>{
+  const target=figure.style.getPropertyValue('--over-shift'),old=shifts.get(figure.dataset.overId);
+  const prev=enter?'0':old&&old.neg===figure.classList.contains('is-neg')?old.shift:null;
+  if(!motion||prev==null||prev===target)return;
+  figure.classList.add('no-motion');
+  figure.style.setProperty('--over-shift',prev);
+  movements.push(()=>{
+   figure.classList.remove('no-motion');
+   figure.style.setProperty('--over-shift',target);
   });
  });
  // One layout flush starts all score transitions together, including first visits.
