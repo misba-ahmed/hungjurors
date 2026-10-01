@@ -226,8 +226,8 @@ function hjChFigureArt(manager,key,crown=false,pose='standing'){
  const slug=String(manager.short).toLowerCase().replaceAll(' ','-');
  const seated=pose==='seated';
  return `<svg class="lms-art manager-real-art" viewBox="0 0 120 240" aria-hidden="true" focusable="false">
- <image href="/assets/managers-v1/${esc(slug)}-${pose}.webp" x="0" y="0" width="120" height="240"/>
- ${crown?`<g transform="translate(24 ${seated?26:-12}) scale(.6)"><g class="lms-crown"><path d="M37 15 43-9 52 5 60-17 68 5 77-9 83 15Z" fill="#e6bb3f" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><path d="M37 15h46v8H37Z" fill="#f3d266" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><circle cx="60" cy="9" r="3" fill="#b3352c"/><circle cx="47" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="73" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="43" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="60" cy="-16" r="2.4" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="77" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/></g></g>`:''}
+ <image href="/assets/managers-v2/${esc(slug)}-${pose}.webp" x="0" y="0" width="120" height="240"/>
+ ${crown?`<g transform="translate(0 ${seated?30:-8})"><g class="lms-crown"><path d="M37 15 43-9 52 5 60-17 68 5 77-9 83 15Z" fill="#e6bb3f" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><path d="M37 15h46v8H37Z" fill="#f3d266" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><circle cx="60" cy="9" r="3" fill="#b3352c"/><circle cx="47" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="73" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="43" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="60" cy="-16" r="2.4" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="77" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/></g></g>`:''}
  </svg>`;
 }
 function hjChLms(model){

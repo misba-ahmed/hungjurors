@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import sharp from 'sharp';
-const dir='assets/managers-v1';
+const dir='assets/managers-v2';
 await fs.mkdir(dir,{recursive:true});
 const html=await fs.readFile('index.html','utf8');
 const av=JSON.parse(html.match(/const AV\s*=\s*(\{[^\n]+\});/)[1]);
@@ -44,15 +44,26 @@ for(const pose of ['standing','seated']){
  for(let n=0;n<10;n++){
   const c=n%5,row=Math.floor(n/5);
   const raw=await alphaTrim(await sharp(atlas).extract({left:cuts[c],top:row?506:0,width:cuts[c+1]-cuts[c],height:row?518:506}).png().toBuffer());
-  const bodyHeight=pose==='standing'?540:426;
-  const body=await sharp(raw).resize({height:bodyHeight}).png().toBuffer();
+  const bodyHeight=pose==='standing'?450:336;
+  const rawSize=await sharp(raw).metadata();
+  const body=await sharp(raw).resize({height:bodyHeight,width:Math.round(rawSize.width*bodyHeight/rawSize.height*1.25),fit:'fill'}).png().toBuffer();
   const bm=await sharp(body).metadata();
-  const head=await sharp(heads[n]).resize({height:144}).png().toBuffer();
+  const head=await sharp(heads[n]).resize({height:228}).png().toBuffer();
   const hm=await sharp(head).metadata();
   const top=669-bodyHeight;
+  async function neckCenter(buffer,atBottom){
+   const {data:d,info:m}=await sharp(buffer).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+   let total=0,weight=0;
+   for(let y=atBottom?m.height-8:0;y<(atBottom?m.height:8);y++)for(let x=0;x<m.width;x++){
+    const a=d[(y*m.width+x)*4+3];if(a<128)continue;total+=x*a;weight+=a;
+   }
+   return weight?total/weight:m.width/2;
+  }
+  const bodyLeft=Math.round((360-bm.width)/2);
+  const headLeft=Math.round(bodyLeft+await neckCenter(body,false)-await neckCenter(head,true));
   const combined=await sharp({create:{width:360,height:720,channels:4,background:'#00000000'}}).composite([
-   {input:body,left:Math.round((360-bm.width)/2),top},
-   {input:head,left:Math.round((360-hm.width)/2),top:top+18-144}
+   {input:body,left:bodyLeft,top},
+   {input:head,left:headLeft,top:top+18-228}
   ]).webp({lossless:true}).toBuffer();
   await fs.writeFile(dir+'/'+slug(names[n])+'-'+pose+'.webp',combined);
  }

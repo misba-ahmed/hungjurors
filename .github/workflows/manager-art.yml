@@ -18,10 +18,11 @@ jobs:
       - run: node scripts/test-challenges.mjs
       - run: npx playwright install chromium
       - run: node .manager-art/check.mjs
+      - run: node .challenge-motion/check.mjs
       - name: Save prepared artwork
         run: |
           git config user.name "misba-ahmed"
           git config user.email "misbauddin.ahmed@gmail.com"
-          git add assets/managers-v1 .manager-art/proof.jpg .manager-art/site-proof.png
+          git add assets/managers-v2 .manager-art/proof.jpg .manager-art/site-proof.png
           git commit -m "Prepare manager figures using original avatar heads"
           git push origin HEAD:manager-suit-artwork
