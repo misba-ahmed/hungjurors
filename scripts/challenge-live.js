@@ -129,7 +129,7 @@ function hjChOpt(model){
  // Everyone rides the bench; the shortest bar (fewest points left behind) wears the crown.
  const figures=names.map((n,i)=>{
   const r=byId.get(n.id)||{total:0,tie:0,missing:[]},pct=max?100*r.total/max:0,crown=leaders.has(n.id);
-  return `<div class="lineup-figure is-seated${crown?' is-leader':''}" role="group" aria-label="${esc(n.short)}: ${r.total.toFixed(2)} points left on the bench${crown?', current leader':''}" data-lineup-manager="${esc(n.id)}" style="${hjChJacket(i)}">${hjChBar(n.id,r.total,pct,`${r.total.toFixed(2)}${r.missing.length?'*':''}`)}${hjChFigureArt(n,`opt-head-${i}`,crown)}<span class="lineup-label"><span class="lineup-name manager-profile-trigger" data-manager="${esc(n.short)}" role="button" tabindex="0" aria-label="Open ${esc(n.short)} profile">${esc(n.short)}</span></span></div>`;
+  return `<div class="lineup-figure is-seated${crown?' is-leader':''}" role="group" aria-label="${esc(n.short)}: ${r.total.toFixed(2)} points left on the bench${crown?', current leader':''}" data-lineup-manager="${esc(n.id)}" style="${hjChJacket(i)}">${hjChBar(n.id,r.total,pct,`${r.total.toFixed(2)}${r.missing.length?'*':''}`)}${hjChFigureArt(n,`opt-head-${i}`,crown,'seated')}<span class="lineup-label"><span class="lineup-name manager-profile-trigger" data-manager="${esc(n.short)}" role="button" tabindex="0" aria-label="Open ${esc(n.short)} profile">${esc(n.short)}</span></span></div>`;
  }).join('');
  const legCount=Math.max(2,Math.ceil((names.length||1)/2)+1),legs=Array.from({length:legCount},(_,i)=>`<span class="opt-bench-leg" style="left:${(4+92*i/(legCount-1)).toFixed(2)}%"></span>`).join('');
  const bench=`<div class="opt-bench" aria-hidden="true"><span class="opt-bench-seat"></span>${legs}</div>`;
@@ -220,28 +220,15 @@ function hjChJacket(index){
 }
 function hjChLmsFigure(manager,elimination,index){
  const out=!!elimination;
- return `<div class="lms-figure${out?' is-eliminated':''}" role="group" aria-label="${esc(manager.short)}: ${out?`eliminated Week ${elimination.week}, seated`:'standing'}" data-lms-manager="${esc(manager.id)}" style="${hjChJacket(index)}">${hjChFigureArt(manager,`lms-head-${index}`)}<span class="lms-name manager-profile-trigger" data-manager="${esc(manager.short)}" role="button" tabindex="0" aria-label="Open ${esc(manager.short)} profile">${esc(manager.short)}</span></div>`;
+ return `<div class="lms-figure${out?' is-eliminated':''}" role="group" aria-label="${esc(manager.short)}: ${out?`eliminated Week ${elimination.week}, seated`:'standing'}" data-lms-manager="${esc(manager.id)}" style="${hjChJacket(index)}">${hjChFigureArt(manager,`lms-head-${index}`,false,out?'seated':'standing')}<span class="lms-name manager-profile-trigger" data-manager="${esc(manager.short)}" role="button" tabindex="0" aria-label="Open ${esc(manager.short)} profile">${esc(manager.short)}</span></div>`;
 }
-function hjChFigureArt(manager,key,crown=false){
- // A dedicated transparent head preserves Misba's full curls without the legacy oval crop.
- const fullHead=manager.short==='MISBA';
- return `<svg class="lms-art" viewBox="0 0 120 240" aria-hidden="true" focusable="false">
- ${fullHead?'':`<defs><clipPath id="${key}"><ellipse cx="60" cy="40" rx="30" ry="37"/></clipPath></defs>`}
- <ellipse class="lms-shadow" cx="60" cy="223" rx="35" ry="5"/>
- <g class="lms-standing-legs"><path d="M43 136 40 214M77 136 80 214" fill="none" stroke="#142c42" stroke-width="19" stroke-linecap="round"/><path d="M28 214h21v9H25q-5-5 3-9M72 214h21q8 4 3 9H72Z" fill="#0a1c2d"/><path d="M27 222h22M73 222h22" stroke="#c7d0d4" stroke-width="2"/></g>
- <g class="lms-seated-legs"><path d="M43 194 26 211 56 218M77 194 94 211 65 218" fill="none" stroke="#142c42" stroke-width="18" stroke-linecap="round"/><path d="m43 213 18 2v8H40q-5-5 3-10M65 214l17-2q7 7 2 11H65Z" fill="#0a1c2d"/></g>
- <g class="lms-bench-legs"><path d="M47 178 37 202M73 178l10 24" fill="none" stroke="#1d3b58" stroke-width="22" stroke-linecap="round"/><path d="M37 200v31M83 200v31" fill="none" stroke="#142c42" stroke-width="17" stroke-linecap="butt"/><path d="M25 230h22v9H22q-5-5 3-9M73 230h22q8 4 3 9H73Z" fill="#0a1c2d"/><path d="M24 238h22M74 238h22" stroke="#c7d0d4" stroke-width="2"/></g>
- <g class="lms-upper"><path d="M52 62h16v18H52Z" fill="#d7b69b"/>
- <path d="M42 77 27 88 21 125M78 77l15 11 6 37" fill="none" stroke="var(--lms-jacket)" stroke-width="17" stroke-linecap="round"/>
- <path d="m21 125 2 10M99 125l-2 10" stroke="#d7b69b" stroke-width="10" stroke-linecap="round"/>
- <path d="M40 74 52 70h16l12 4 5 73H35Z" fill="var(--lms-jacket)" stroke="#132c41" stroke-width="2"/>
- <path d="m50 72 10 49 10-49Z" fill="#f5f1e5"/><path d="m57 79 6 0 3 26-6 11-6-11Z" fill="#c39b42"/>
- <path d="m48 72-7 16 10 7-6 8 15 24M72 72l7 16-10 7 6 8-15 24" fill="none" stroke="#ffffff" stroke-opacity=".2" stroke-width="2"/>
- <path d="M60 124v22M39 137h12M69 137h12" stroke="#11283c" stroke-width="2"/><circle cx="64" cy="131" r="1.5" fill="#cfb365"/>
- <path d="M70 91h9v2h-9Z" fill="#dfc778"/>
- ${fullHead?'<image class="lms-natural-head" href="/assets/avatars/misba-head-20260929-v2.png" x="15" y="-8" width="90" height="90" preserveAspectRatio="xMidYMid meet"/>':`<image href="data:image/png;base64,${AV[manager.short]||AV_DEFAULT}" x="12" y="-2" width="96" height="96" clip-path="url(#${key})"/>`}
- ${crown?'<g class="lms-crown"><path d="M37 15 43-9 52 5 60-17 68 5 77-9 83 15Z" fill="#e6bb3f" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><path d="M37 15h46v8H37Z" fill="#f3d266" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><circle cx="60" cy="9" r="3" fill="#b3352c"/><circle cx="47" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="73" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="43" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="60" cy="-16" r="2.4" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="77" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/></g>':''}
- </g></svg>`;
+function hjChFigureArt(manager,key,crown=false,pose='standing'){
+ const slug=String(manager.short).toLowerCase().replaceAll(' ','-');
+ const seated=pose==='seated';
+ return `<svg class="lms-art manager-real-art" viewBox="0 0 120 240" aria-hidden="true" focusable="false">
+ <image href="/assets/managers-v1/${esc(slug)}-${pose}.webp" x="0" y="0" width="120" height="240"/>
+ ${crown?`<g transform="translate(24 ${seated?26:-12}) scale(.6)"><g class="lms-crown"><path d="M37 15 43-9 52 5 60-17 68 5 77-9 83 15Z" fill="#e6bb3f" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><path d="M37 15h46v8H37Z" fill="#f3d266" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><circle cx="60" cy="9" r="3" fill="#b3352c"/><circle cx="47" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="73" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="43" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="60" cy="-16" r="2.4" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="77" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/></g></g>`:''}
+ </svg>`;
 }
 function hjChLms(model){
  const names=HJ_CHALLENGE_STATE.names,eliminated=new Map(model.eliminations.map(e=>[e.id,e]));

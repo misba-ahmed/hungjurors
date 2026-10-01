@@ -159,12 +159,12 @@
 .lineup-figure.is-seated .lms-upper{transform:translateY(30px)}
 .lineup-figure.is-seated .lms-standing-legs,.lineup-figure.is-seated .lms-shadow{opacity:0}
 .lineup-figure.is-seated .lms-bench-legs{opacity:1}
-.opt-view .lineup-bar-wrap{margin-bottom:calc(var(--lineup-figure)*-.21)}
+.opt-view .lineup-bar-wrap{margin-bottom:calc(var(--lineup-figure)*-.40)}
 .opt-view .lineup{padding-top:30px}
 .opt-bench{position:absolute;left:0;right:0;bottom:0;top:0;z-index:-1;pointer-events:none}
 .opt-bench-seat,.opt-bench-leg{position:absolute;background:linear-gradient(180deg,#d4b070,#b08748 50%,#85602a);border:1px solid #5e401a;box-shadow:inset 0 1px 0 #fff6}
-.opt-bench-seat{left:1%;right:1%;bottom:calc(var(--lineup-figure)*.383);height:calc(var(--lineup-figure)*.11);border-radius:4px;background-image:linear-gradient(180deg,#d9b877,#b08748 45%,#85602a),repeating-linear-gradient(90deg,transparent 0 38px,#00000012 38px 40px);background-blend-mode:multiply}
-.opt-bench-leg{width:calc(var(--lineup-figure)*.06);bottom:calc(var(--lineup-figure)*.017);height:calc(var(--lineup-figure)*.38);transform:translateX(-50%);border-radius:0 0 3px 3px}
+.opt-bench-seat{left:1%;right:1%;bottom:calc(var(--lineup-figure)*.56);height:calc(var(--lineup-figure)*.09);border-radius:4px;background-image:linear-gradient(180deg,#d9b877,#b08748 45%,#85602a),repeating-linear-gradient(90deg,transparent 0 38px,#00000012 38px 40px);background-blend-mode:multiply}
+.opt-bench-leg{width:calc(var(--lineup-figure)*.06);bottom:calc(var(--lineup-figure)*.142);height:calc(var(--lineup-figure)*.42);transform:translateX(-50%);border-radius:0 0 3px 3px}
 .opt-view .lineup-row:after{display:none}
 /* Weekly tables under the Raffle and Last Man Standing lineups. */
 .week-table td>b{color:var(--navy)}
