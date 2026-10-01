@@ -1,0 +1,24 @@
+name: Prepare manager artwork
+on:
+  push:
+    branches: [manager-suit-artwork]
+    paths: ['.manager-art/**', '.github/workflows/manager-art.yml']
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false sharp
+      - run: node .manager-art/build.mjs
+      - name: Save prepared artwork
+        run: |
+          git config user.name "misba-ahmed"
+          git config user.email "misbauddin.ahmed@gmail.com"
+          git add assets/managers-v1 .manager-art/proof.jpg
+          git commit -m "Prepare manager figures using original avatar heads"
+          git push origin HEAD:manager-suit-artwork
