@@ -13,12 +13,15 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - run: npm install --no-save --package-lock=false sharp
+      - run: npm install --no-save --package-lock=false sharp playwright
       - run: node .manager-art/build.mjs
+      - run: node scripts/test-challenges.mjs
+      - run: npx playwright install chromium
+      - run: node .manager-art/check.mjs
       - name: Save prepared artwork
         run: |
           git config user.name "misba-ahmed"
           git config user.email "misbauddin.ahmed@gmail.com"
-          git add assets/managers-v1 .manager-art/proof.jpg
+          git add assets/managers-v1 .manager-art/proof.jpg .manager-art/site-proof.png
           git commit -m "Prepare manager figures using original avatar heads"
           git push origin HEAD:manager-suit-artwork
