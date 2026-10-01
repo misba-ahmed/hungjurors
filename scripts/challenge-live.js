@@ -283,6 +283,30 @@ function hjChSpecial(ch,model){
  }).reverse().join('');
  return `<div class="challenge-live-cards">${cards}</div>${hjChTable(['Rank','Manager',`Week ${latest}`,'Season total',...(tiebreak?[tieLabel]:[])],table)}${rows.some(r=>r.missing.length)?'<p class="challenge-live-note">* Partial total. Missing weeks stay pending until ESPN supplies the records.</p>':''}${history}`;
 }
+// Play entrances only when a challenge graphic first appears or the selected challenge changes.
+function hjChIntro(out,id){
+ out.classList.add('ch-enter');
+ const play=(node,frames,delay=0,duration=850)=>{
+  if(node?.animate)node.animate(frames,{duration,delay,easing:'cubic-bezier(.2,.75,.2,1)',fill:'backwards'});
+ };
+ out.querySelectorAll('.lineup-figure,.lms-figure').forEach((figure,i)=>{
+  const delay=Math.min(i*35,280);
+  figure.style.setProperty('--ch-enter-delay',delay+'ms');
+  // Overachiever uses its actual score-driven platform/sinking transition below.
+  if(id!=='overachiever'){
+   const seated=figure.classList.contains('is-seated')||figure.classList.contains('is-eliminated');
+   play(figure.querySelector('.lms-art'),[
+    {opacity:0,transform:seated?'translateY(-12px)':'translateY(16px)'},
+    {opacity:1,transform:'translateY(0)'}
+   ],delay);
+  }
+  play(figure.querySelector('.raffle-stack'),[
+   {opacity:0,transform:'translateY(-20px) scale(.92)'},
+   {opacity:1,transform:'translateY(0) scale(1)'}
+  ],delay+120,950);
+  play(figure.querySelector('.lms-crown'),[{opacity:0},{opacity:1}],delay+350,500);
+ });
+}
 function hjRenderChallenge(){
  const state=HJ_CHALLENGE_STATE,ch=CHALLENGES.find(c=>c.id===state.active)||CHALLENGES[0],out=$('#challenge-out');if(!out)return;
  const model=state.model,time=state.checkedAt?new Date(state.checkedAt).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
@@ -298,20 +322,34 @@ function hjRenderChallenge(){
  const shifts=new Map([...out.querySelectorAll('.over-figure')].map(f=>[f.dataset.overId,{shift:f.style.getPropertyValue('--over-shift'),neg:f.classList.contains('is-neg')}]));
  if(state.lastHtml===html)return;
  state.lastHtml=html;
+ const hasGraphic=!!out.querySelector('.lms-view'),enter=!!model&&(out.dataset.renderedChallenge!==ch.id||!hasGraphic);
+ out.classList.remove('ch-enter');
  out.innerHTML=html;
+ out.dataset.renderedChallenge=ch.id;
  out.querySelectorAll('details').forEach(n=>{const label=n.querySelector('summary')?.textContent;if(opened.includes(label))n.open=true;else if(closed.includes(label))n.open=false;});
  if(openDetailKey){const cell=out.querySelector(`.ch-cell[data-ch-kind="${openDetailKey[0]}"][data-ch-id="${CSS.escape(openDetailKey[1])}"][data-ch-week="${openDetailKey[2]}"]`);if(cell)hjChOpenDetail(cell,false);}
  // Grow bars from their previous height so a live titty visibly moves the graph.
  const motion=!matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const movements=[];
  out.querySelectorAll('.over-figure').forEach(f=>{
-  const prev=shifts.get(f.dataset.overId),target=f.style.getPropertyValue('--over-shift');if(!prev||!motion||prev.neg!==f.classList.contains('is-neg')||prev.shift===target)return;
-  f.classList.add('no-motion');f.style.setProperty('--over-shift',prev.shift);f.getBoundingClientRect();f.classList.remove('no-motion');f.style.setProperty('--over-shift',target);
+  const target=f.style.getPropertyValue('--over-shift'),old=shifts.get(f.dataset.overId);
+  const prev=enter?'0':old&&old.neg===f.classList.contains('is-neg')?old.shift:null;
+  if(!motion||prev==null||prev===target)return;
+  f.classList.add('no-motion');f.style.setProperty('--over-shift',prev);
+  movements.push(()=>{f.classList.remove('no-motion');f.style.setProperty('--over-shift',target);});
  });
  out.querySelectorAll('.lineup-bar').forEach(b=>{
-  const prev=bars.get(b.dataset.barId),target=b.style.getPropertyValue('--titty-pct');if(!prev||!motion||prev.pct===target)return;
-  b.style.transition='none';b.style.setProperty('--titty-pct',prev.pct);b.getBoundingClientRect();b.style.transition='';b.style.setProperty('--titty-pct',target);
-  if(prev.value!==b.dataset.barValue){const fig=b.closest('.lineup-figure');fig.classList.remove('is-scored');fig.getBoundingClientRect();fig.classList.add('is-scored');}
+  const old=bars.get(b.dataset.barId),target=b.style.getPropertyValue('--titty-pct'),prev=old?.pct??(enter?'0':null);
+  if(!motion||prev==null||prev===target)return;
+  b.style.transition='none';b.style.setProperty('--titty-pct',prev);
+  movements.push(()=>{
+   b.style.transition='';b.style.setProperty('--titty-pct',target);
+   if(enter||old?.value!==b.dataset.barValue)b.closest('.lineup-figure').classList.add('is-scored');
+  });
  });
+ // One layout flush starts all score transitions together, including first visits.
+ if(movements.length){out.getBoundingClientRect();movements.forEach(move=>move());}
+ if(enter&&motion)hjChIntro(out,ch.id);
 }
 function selectChallenge(id){
  const ch=CHALLENGES.find(c=>c.id===id)||CHALLENGES[0];HJ_CHALLENGE_STATE.active=ch.id;

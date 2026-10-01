@@ -1,0 +1,45 @@
+import fs from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {chromium} from 'playwright';
+const source=await fs.readFile('scripts/challenge-live.js','utf8');
+const code=source.slice(source.indexOf('function hjChIntro('),source.indexOf('function selectChallenge('));
+const css=await fs.readFile('styles/season-challenges.css','utf8');
+const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+const page=await browser.newPage({viewport:{width:390,height:844}});
+await page.setContent('<style>'+css+'</style><div id="challenge-out"></div>');
+await page.evaluate(code=>{
+ window.$=s=>document.querySelector(s);window.esc=String;
+ window.CHALLENGES=['raffle','lms','titty','mvp','overachiever','optimizer'].map(id=>({id}));
+ window.HJ_LEAGUE_STATE={};window.HJ_CHALLENGE_STATE={active:'raffle',model:{finalWeek:3},checkedAt:0};
+ window.points=50;
+ const art='<svg class="lms-art" viewBox="0 0 120 240"><rect width="100" height="220"/><g class="lms-crown"></g></svg>';
+ const figure=(kind)=>kind==='overachiever'?['pos','neg'].map((sign,i)=>'<div class="lineup-figure over-figure is-'+sign+'" data-over-id="'+i+'" style="--over-shift:.5"><span class="over-'+(sign==='pos'?'pedestal':'pit')+'"></span><div class="over-body">'+art+'</div></div>').join(''):'<div class="'+(kind==='lms'?'lms-figure':'lineup-figure')+(kind==='optimizer'?' is-seated':'')+'">'+(['titty','mvp','optimizer'].includes(kind)?'<div class="lineup-bar" data-bar-id="1" data-bar-value="'+window.points+'" style="--titty-pct:'+window.points+'"></div>':'<div class="raffle-stack">ticket</div>')+art+'</div>';
+ const markup=kind=>'<div class="lms-view" data-kind="'+kind+'"><div class="lms-stage"><div class="lineup-row" style="--lineup-figure:100px;width:200px">'+figure(kind)+'</div></div></div>';
+ for(const [fn,kind]of [['hjChRaffle','raffle'],['hjChLms','lms'],['hjChTitty','titty'],['hjChMvp','mvp'],['hjChOver','overachiever'],['hjChOpt','optimizer']])window[fn]=()=>markup(kind);
+ window.eval(code);
+},code);
+for(const id of ['raffle','lms','titty','mvp','optimizer']){
+ await page.evaluate(id=>{HJ_CHALLENGE_STATE.active=id;hjRenderChallenge();},id);
+ assert(await page.locator('#challenge-out').evaluate(e=>e.classList.contains('ch-enter')));
+ assert(await page.evaluate(()=>document.getAnimations().length)>0,id+' has no entrance');
+}
+await page.evaluate(()=>{HJ_CHALLENGE_STATE.active='overachiever';hjRenderChallenge();});
+await page.waitForTimeout(120);
+const early=await page.locator('.over-figure.is-neg .lms-art').evaluate(e=>new DOMMatrix(getComputedStyle(e).transform).m42);
+assert(early<45,'Sinking figure should be between the surface and final depth');
+await page.waitForTimeout(1100);
+const final=await page.locator('.over-figure.is-neg .lms-art').evaluate(e=>new DOMMatrix(getComputedStyle(e).transform).m42);
+assert(Math.abs(final-45)<.1,'Sinking figure must finish at its score-driven depth');
+await page.evaluate(()=>{HJ_CHALLENGE_STATE.active='titty';hjRenderChallenge();});
+await page.waitForTimeout(1200);
+await page.evaluate(()=>{window.points=75;hjRenderChallenge();});
+assert.equal(await page.locator('#challenge-out').evaluate(e=>e.classList.contains('ch-enter')),false,'Live refresh must not replay intro');
+await page.evaluate(()=>{for(const active of ['raffle','optimizer','overachiever','mvp','lms']){HJ_CHALLENGE_STATE.active=active;hjRenderChallenge();}});
+assert.equal(await page.locator('.lms-view').getAttribute('data-kind'),'lms');
+await page.emulateMedia({reducedMotion:'reduce'});
+await page.evaluate(()=>{HJ_CHALLENGE_STATE.active='overachiever';hjRenderChallenge();});
+assert.equal(await page.locator('#challenge-out').evaluate(e=>e.classList.contains('ch-enter')),false);
+assert.equal(await page.locator('.over-figure.is-neg .lms-art').evaluate(e=>new DOMMatrix(getComputedStyle(e).transform).m42),45);
+assert.equal(await page.evaluate(()=>document.getAnimations().length),0);
+console.log('PASS: six challenge intros, score-driven sinking, live refresh, rapid switching, reduced motion');
+await browser.close();
