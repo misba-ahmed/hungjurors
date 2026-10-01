@@ -13,8 +13,8 @@ for(const name of names)for(const pose of ['standing','seated']){
   while(k<anchors.length-2&&dy>anchors[k+1][1])k++;
   const [s0,d0]=anchors[k],[s1,d1]=anchors[k+1];
   const sy=s0+(dy-d0)*(s1-s0)/(d1-d0);
-  const start=seated?83:53, t=Math.max(0,Math.min(1,(sy-start)/30)), blend=t*t*(3-2*t);
-  const scale=1.64+(1.16-1.64)*blend;
+  const start=seated?70:37, t=Math.max(0,Math.min(1,(sy-start)/17)), blend=t*t*(3-2*t);
+  const scale=1.64+(1.2-1.64)*blend;
   for(let x=0;x<360;x++){
    const sx=((x+.5)/3-60)/scale+60, px=sx*3-.5,py=sy*3-.5;
    const ix=Math.floor(px),iy=Math.floor(py),fx=px-ix,fy=py-iy;
