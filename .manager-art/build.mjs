@@ -44,13 +44,13 @@ for(const pose of ['standing','seated']){
  for(let n=0;n<10;n++){
   const c=n%5,row=Math.floor(n/5);
   const raw=await alphaTrim(await sharp(atlas).extract({left:cuts[c],top:row?506:0,width:cuts[c+1]-cuts[c],height:row?518:506}).png().toBuffer());
-  const bodyHeight=pose==='standing'?450:336;
+  const bodyHeight=pose==='standing'?450:408;
   const rawSize=await sharp(raw).metadata();
   const body=await sharp(raw).resize({height:bodyHeight,width:Math.round(rawSize.width*bodyHeight/rawSize.height*1.25),fit:'fill'}).png().toBuffer();
   const bm=await sharp(body).metadata();
   const head=await sharp(heads[n]).resize({height:228}).png().toBuffer();
   const hm=await sharp(head).metadata();
-  const top=669-bodyHeight;
+  const top=(pose==='standing'?669:717)-bodyHeight;
   async function neckCenter(buffer,atBottom){
    const {data:d,info:m}=await sharp(buffer).ensureAlpha().raw().toBuffer({resolveWithObject:true});
    let total=0,weight=0;
