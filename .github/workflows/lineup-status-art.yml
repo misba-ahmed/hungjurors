@@ -1,0 +1,25 @@
+name: Prepare lineup status pictures
+on:
+  push:
+    branches: [lineup-status-art]
+    paths: ['.lineup-status/**', '.github/workflows/lineup-status-art.yml']
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false sharp
+      - run: node .lineup-status/build.mjs
+      - run: node scripts/test-lineup-status.mjs
+      - name: Save status artwork
+        run: |
+          git config user.name "misba-ahmed"
+          git config user.email "misbauddin.ahmed@gmail.com"
+          git add assets/team-photos scripts/team-photos.js scripts/test-lineup-status.mjs .lineup-status/proof.png
+          git commit -m "Prepare roster status artwork and automatic healthy restoration"
+          git push origin HEAD:lineup-status-art
