@@ -197,3 +197,6 @@
  width:var(--showcase-width);height:var(--showcase-height);
  transform:translate(calc(-50% + var(--showcase-shift,0px)),6px);
 }
+
+/* A light gray cast only while a crutch/handcuff alternate is displayed. */
+#league-hq .hj-team-photo-player.is-unavailable .hj-team-photo-figure img{filter:saturate(.75) contrast(.94)}
