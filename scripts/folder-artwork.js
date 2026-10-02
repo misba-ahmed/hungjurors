@@ -18,6 +18,14 @@
  function render(){
   queued=0;const dock=nav.closest('.hj-folder-dock');if(!dock)return;
   const bounds=nav.getBoundingClientRect();if(!bounds.width)return;
+  // Keep nearby artwork ready for scrolling, but release offscreen pixel stores.
+  // In particular, challenge zoom must not retain an invisible HQ folder stack.
+  if(bounds.bottom < -600 || bounds.top > window.innerHeight+600){
+   nav.querySelectorAll('.hj-folder-layer').forEach(canvas=>{
+    if(canvas.width||canvas.height){canvas.width=canvas.height=0;canvas._paintKey=null;}
+   });
+   return;
+  }
   const buttons=[...nav.querySelectorAll('.hq-tab')],last=buttons[buttons.length-1];
   const railWidth=Math.max(nav.clientWidth,last?last.offsetLeft+last.offsetWidth+200:nav.clientWidth);
   // Keep the original rail coordinates and texture phase, but allocate only
@@ -86,6 +94,7 @@
  nav.addEventListener('scroll',schedule,{passive:true});
  window.addEventListener('resize',schedule);document.fonts?.ready.then(schedule);
  new ResizeObserver(schedule).observe(nav);
+ new IntersectionObserver(schedule,{rootMargin:'600px'}).observe(nav);
  new MutationObserver(records=>{if(records.some(r=>r.type==='childList'||r.attributeName==='aria-selected'||r.target.classList?.contains('hq-folder-art')))schedule()}).observe(nav,{childList:true,subtree:true,attributes:true,attributeFilter:['src','aria-selected']});
  schedule();
 })();
