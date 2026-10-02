@@ -1,0 +1,25 @@
+name: Check live lineup spacing
+on:
+  push:
+    branches: [lineup-original-rules-audit]
+    paths: ['scripts/check-lineup-spacing.mjs', '.github/workflows/lineup-spacing.yml']
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/check-lineup-spacing.mjs
+      - run: |
+          git config user.name "misba-ahmed"
+          git config user.email "misbauddin.ahmed@gmail.com"
+          git add .lineup-audit
+          git commit -m "Record live lineup spacing"
+          git pull --rebase origin lineup-original-rules-audit
+          git push origin HEAD:lineup-original-rules-audit
