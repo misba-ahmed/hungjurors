@@ -1,0 +1,82 @@
+{
+  "out": [
+    {
+      "class": "hj-team-photo-player is-starter is-active",
+      "top": 525.703125,
+      "bottom": 599.03125,
+      "height": 73.328125,
+      "padding": "0px",
+      "margin": "0px",
+      "align": "normal",
+      "minHeight": "0px"
+    },
+    {
+      "class": "hj-team-photo-stage",
+      "top": 515.765625,
+      "bottom": 600.296875,
+      "height": 84.53125,
+      "padding": "0px",
+      "margin": "0px",
+      "align": "normal",
+      "minHeight": "0px"
+    },
+    {
+      "class": "hj-team-photo has-spotlight",
+      "top": 363.765625,
+      "bottom": 658.296875,
+      "height": 294.53125,
+      "padding": "152px 0px 58px",
+      "margin": "0px",
+      "align": "normal",
+      "minHeight": "auto"
+    },
+    {
+      "class": "league-roster-head",
+      "top": 13.046875,
+      "bottom": 670.296875,
+      "height": 657.25,
+      "padding": "6px 0px 10px",
+      "margin": "0px 0px 3px",
+      "align": "center",
+      "minHeight": "0px"
+    },
+    {
+      "class": "league-team-view",
+      "top": -0.953125,
+      "bottom": 1624.328125,
+      "height": 1625.28125,
+      "padding": "14px 0px 0px",
+      "margin": "0px",
+      "align": "normal",
+      "minHeight": "0px"
+    },
+    {
+      "class": "hq-tab-panel",
+      "top": -71.953125,
+      "bottom": 1634.328125,
+      "height": 1706.28125,
+      "padding": "0px 2px 10px",
+      "margin": "0px",
+      "align": "normal",
+      "minHeight": "0px"
+    },
+    {
+      "class": "league-sync-shell league-sync-flat",
+      "top": -71.953125,
+      "bottom": 1634.328125,
+      "height": 1706.28125,
+      "padding": "0px",
+      "margin": "0px",
+      "align": "normal",
+      "minHeight": "0px"
+    }
+  ],
+  "fig": {
+    "top": 392.53125,
+    "height": 212.5
+  },
+  "img": {
+    "top": 392.53125,
+    "height": 212.5
+  }
+}
