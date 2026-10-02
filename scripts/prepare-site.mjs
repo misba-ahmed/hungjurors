@@ -31,7 +31,12 @@ function replaceOnce(html,pattern,replacement){
  if([...html.matchAll(pattern)].length!==1)throw Error('Source markup changed; review site preparation');
  return html.replace(pattern,()=>replacement);
 }
+const folderArtwork=readFileSync(new URL('./folder-artwork.js',import.meta.url),'utf8');
 export function prepareSite(html){
+ html=replaceOnce(html,/<script id="hj-folder-stack-script">[^]*?<\/script>/g,
+  '<script id="hj-folder-stack-script">'+folderArtwork+'</script>');
+ html=html.replace("ctx.putImageData(pixels,0,0);folderURL=canvas.toDataURL('image/png');",
+  "ctx.putImageData(pixels,0,0);folderURL=canvas.toDataURL('image/png');canvas.width=canvas.height=0;");
  html=prepareCardGestures(html);
  html=preparePlayerStatBars(html);
  html=prepareDefenseFantasyRanks(html);
