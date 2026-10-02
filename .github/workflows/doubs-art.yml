@@ -13,7 +13,9 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
+      - run: npm install --no-save --package-lock=false sharp
       - run: node .doubs/prepare.mjs
+      - run: node scripts/test-lineup-status.mjs
       - name: Save artwork
         run: |
           git config user.name "misba-ahmed"
