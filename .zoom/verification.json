@@ -1,0 +1,233 @@
+{
+  "errors": [],
+  "comparisons": [
+    {
+      "w": 390,
+      "i": 0,
+      "mean": 0.011861214536111655,
+      "max": 3,
+      "over10": 0,
+      "dimensions": {
+        "format": "raw",
+        "width": 1134,
+        "height": 243,
+        "channels": 4,
+        "depth": "uchar",
+        "premultiplied": false,
+        "hasAlpha": true,
+        "size": 1102248
+      }
+    },
+    {
+      "w": 390,
+      "i": 1,
+      "mean": 0.00025946973820773546,
+      "max": 2,
+      "over10": 0,
+      "dimensions": {
+        "format": "raw",
+        "width": 1134,
+        "height": 243,
+        "channels": 4,
+        "depth": "uchar",
+        "premultiplied": false,
+        "hasAlpha": true,
+        "size": 1102248
+      }
+    },
+    {
+      "w": 390,
+      "i": 2,
+      "mean": 0.013808144809516552,
+      "max": 3,
+      "over10": 0,
+      "dimensions": {
+        "format": "raw",
+        "width": 1134,
+        "height": 243,
+        "channels": 4,
+        "depth": "uchar",
+        "premultiplied": false,
+        "hasAlpha": true,
+        "size": 1102248
+      }
+    },
+    {
+      "w": 1280,
+      "i": 0,
+      "mean": 0,
+      "max": 0,
+      "over10": 0,
+      "dimensions": {
+        "format": "raw",
+        "width": 3720,
+        "height": 243,
+        "channels": 4,
+        "depth": "uchar",
+        "premultiplied": false,
+        "hasAlpha": true,
+        "size": 3615840
+      }
+    },
+    {
+      "w": 1280,
+      "i": 1,
+      "mean": 0,
+      "max": 0,
+      "over10": 0,
+      "dimensions": {
+        "format": "raw",
+        "width": 3720,
+        "height": 243,
+        "channels": 4,
+        "depth": "uchar",
+        "premultiplied": false,
+        "hasAlpha": true,
+        "size": 3615840
+      }
+    },
+    {
+      "w": 1280,
+      "i": 2,
+      "mean": 0,
+      "max": 0,
+      "over10": 0,
+      "dimensions": {
+        "format": "raw",
+        "width": 3720,
+        "height": 243,
+        "channels": 4,
+        "depth": "uchar",
+        "premultiplied": false,
+        "hasAlpha": true,
+        "size": 3615840
+      }
+    }
+  ],
+  "buffers": [
+    {
+      "variant": "before",
+      "w": 390,
+      "bytes": 82270080,
+      "canvases": [
+        [
+          3174,
+          540
+        ],
+        [
+          3174,
+          540
+        ],
+        [
+          3174,
+          540
+        ],
+        [
+          3174,
+          540
+        ],
+        [
+          3174,
+          540
+        ],
+        [
+          3174,
+          540
+        ]
+      ]
+    },
+    {
+      "variant": "after",
+      "w": 390,
+      "bytes": 21228480,
+      "canvases": [
+        [
+          1638,
+          540
+        ],
+        [
+          1638,
+          540
+        ],
+        [
+          1638,
+          540
+        ],
+        [
+          1638,
+          540
+        ],
+        [
+          1638,
+          540
+        ],
+        [
+          1638,
+          540
+        ]
+      ]
+    },
+    {
+      "variant": "before",
+      "w": 1280,
+      "bytes": 96422400,
+      "canvases": [
+        [
+          3720,
+          540
+        ],
+        [
+          3720,
+          540
+        ],
+        [
+          3720,
+          540
+        ],
+        [
+          3720,
+          540
+        ],
+        [
+          3720,
+          540
+        ],
+        [
+          3720,
+          540
+        ]
+      ]
+    },
+    {
+      "variant": "after",
+      "w": 1280,
+      "bytes": 48211200,
+      "canvases": [
+        [
+          3720,
+          540
+        ],
+        [
+          3720,
+          540
+        ],
+        [
+          3720,
+          540
+        ],
+        [
+          3720,
+          540
+        ],
+        [
+          3720,
+          540
+        ],
+        [
+          3720,
+          540
+        ]
+      ]
+    }
+  ]
+}
