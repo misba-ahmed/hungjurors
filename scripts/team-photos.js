@@ -63,12 +63,26 @@ function hjTeamPhotoName(player){
  const parts=full.split(/\s+/);
  return {full,first:player.firstName||parts.shift(),last:player.lastName||parts.join(' ')};
 }
+
+// Alternate poses are roster-only and resolve from the latest ESPN player status.
+// Missing status does not falsely signal a recovery; the regular asset is kept intact.
+function hjTeamPhotoAsset(entry){
+ const p=hjPlayer(entry),base=HJ_TEAM_PHOTO_ASSETS[String(p.id||entry.playerId||'')];
+ if(!base?.unavailable)return base;
+ const status=String(p.injuryStatus||'').trim().toUpperCase().replace(/[ -]+/g,'_');
+ const rosterStatus=String(typeof p.status==='object'?p.status?.type||p.status?.name||'':p.status||'').toUpperCase().replace(/[ -]+/g,'_');
+ const blocked=new Set(['OUT','DOUBTFUL','QUESTIONABLE','INJURY_RESERVE','INJURED_RESERVE','IR','SUSPENSION','SUSPENDED','EXEMPT','COMMISSIONER_EXEMPT','NON_FOOTBALL_INJURY','PHYSICALLY_UNABLE_TO_PERFORM','PUP','INACTIVE']);
+ const unavailable=p.injured===true||p.active===false||blocked.has(status)||blocked.has(rosterStatus);
+ const healthy=['ACTIVE','HEALTHY','NORMAL'].includes(status)||(!status&&p.injured===false&&p.active===true);
+ return healthy&&!unavailable?base:{...base,...base.unavailable};
+}
+
 function hjTeamPhotoHTML(team){
  hjTeamPhotoLoadScores();
  const entries=hjTeamPhotoOrder(hjRosterEntries(team)),teamId=String(team.id);
  if(!entries.length)return '';
  const rows=entries.map(e=>{
-  const p=hjPlayer(e),id=String(p.id||e.playerId||''),asset=HJ_TEAM_PHOTO_ASSETS[id];
+  const p=hjPlayer(e),id=String(p.id||e.playerId||''),asset=hjTeamPhotoAsset(e);
   const height=asset?.heightInches||73,ratio=asset?.ratio||.44;
   return {id,p,asset,height,width:height*ratio,starter:![20,21].includes(Number(e.lineupSlotId)),position:hjPlayerPosition(e),name:hjTeamPhotoName(p),score:hjTeamPhotoFinalScore(e)};
  });
