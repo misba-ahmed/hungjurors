@@ -29,3 +29,5 @@ These are existing user requirements, not new design choices. Later explicit use
 
 Run `node scripts/test-lineup-rules.mjs`, `node scripts/test-lineup-status.mjs` and `node scripts/test-lineup-live-scores.mjs`. For interaction/sizing changes also run `node scripts/test-lineup-spotlight.mjs` and `node scripts/test-roster-swipe.mjs` with Playwright available.
 For new assets, verify official heights and update `height-reference.json`; `scripts/audit-lineup-assets.mjs` checks every catalog entry against ESPN and image metadata. Review the visual proof as required above; automated checks cannot prove facial likeness or artistic consistency.
+
+- All currently displayed crutch and handcuff variants receive a subtle gray cast (retain color). The tint must disappear automatically with the alternate image on healthy/active restoration; do not tint regular figures.
