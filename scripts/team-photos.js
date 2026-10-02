@@ -128,7 +128,7 @@ function hjTeamPhotoHTML(team){
   button.style.setProperty('--showcase-height',target+'px');
   button.style.setProperty('--showcase-width',target*ratio+'px');
   button.style.setProperty('--showcase-scale',scale);
-  HJ_TEAM_PHOTO_UI.headroom=Math.ceil(target-r.height+12);
+  HJ_TEAM_PHOTO_UI.headroom=Math.max(0,Math.ceil(target-(r.bottom-bounds.top)+2));
   group.style.setProperty('--showcase-headroom',HJ_TEAM_PHOTO_UI.headroom+'px');
   const half=Math.max(r.width*scale/2,62),center=r.left+r.width/2;
   const min=Math.max(8,bounds.left)+half,max=Math.min(innerWidth-8,bounds.right)-half;

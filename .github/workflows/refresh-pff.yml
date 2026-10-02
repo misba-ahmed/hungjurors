@@ -33,6 +33,9 @@ jobs:
           node scripts/test-player-stat-bars.mjs
           node scripts/test-defense-fantasy-ranks.mjs
           node scripts/test-trade-finder.mjs
+          node scripts/test-lineup-rules.mjs
+          node scripts/test-lineup-status.mjs
+          node scripts/test-lineup-live-scores.mjs
       - uses: actions/configure-pages@v5
         id: pages
       - name: Stage site

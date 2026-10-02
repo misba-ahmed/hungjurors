@@ -12,7 +12,7 @@ for(const width of [390,768,1280]){
   const r=await page.locator('.is-active').evaluate(b=>{const img=b.querySelector('img').getBoundingClientRect(),group=b.closest('.hj-team-photo').getBoundingClientRect(),stage=b.closest('.hj-team-photo').querySelector('.hj-team-photo-stage').getBoundingClientRect();return{height:img.height,left:img.left,right:img.right,top:img.top,groupTop:group.top,base:b.getBoundingClientRect().height,width:innerWidth,padding:stage.top-group.top};});
   assert(r.height>=212&&r.height<=214,JSON.stringify(r));
   assert(r.left>=7&&r.right<=r.width-7,JSON.stringify(r));
-  assert(r.top>=r.groupTop&&r.top-r.groupTop<30,JSON.stringify(r));
+  assert(r.top>=r.groupTop&&r.top-r.groupTop<12,JSON.stringify(r));
   assert(r.height>r.base,JSON.stringify(r));
  }
  await page.keyboard.press('Escape');assert.equal(await page.locator('.is-active').count(),0);await page.close();
