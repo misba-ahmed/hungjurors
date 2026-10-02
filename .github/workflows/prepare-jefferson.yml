@@ -1,0 +1,27 @@
+name: Prepare Jefferson crutches
+on:
+  push:
+    branches: [justin-jefferson-crutches]
+    paths: ['.jj/source.png', '.jj/prepare.mjs', '.github/workflows/prepare-jefferson.yml']
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false sharp
+      - run: |
+          node .jj/prepare.mjs
+          node scripts/test-lineup-rules.mjs
+          node scripts/test-lineup-status.mjs
+          node scripts/test-lineup-live-scores.mjs
+      - run: |
+          git config user.name "misba-ahmed"
+          git config user.email "misbauddin.ahmed@gmail.com"
+          git add assets/team-photos/catalog.json assets/team-photos/players/4262921-crutches-v1.webp .jj/proof.jpg
+          git commit -m "Prepare Jefferson crutches asset and visual proof [skip ci]"
+          git push origin HEAD:justin-jefferson-crutches
