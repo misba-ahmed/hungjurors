@@ -130,6 +130,8 @@
 .lineup-figure .lms-art,.lms-figure .lms-art{cursor:pointer}
 @media(max-width:600px){.mvp-card{flex-basis:136px;padding:40px 8px 12px}.mvp-card-photo{width:64px;height:64px;top:-32px}.mvp-card-points{font-size:20px}.mvp-week .mvp-cards{padding:40px 10px 10px;gap:10px}}
 /* Overachiever lineup: the ground line is the projection. Over it, a manager rises on a gold pedestal; under it, he sinks into a pit. */
+/* Sinking figures must not create a vertical scroll/bounce area. */
+.over-view .lms-stage{overflow-y:hidden;overscroll-behavior-y:none}
 .over-view .lineup{padding-top:40px;padding-bottom:66px}
 .over-view .lineup-row:after{bottom:calc(var(--lineup-figure)*.025)}
 .over-figure{--over-px:calc(var(--lineup-figure)*.9*var(--over-shift,0));--sink:0px;justify-content:flex-end;font-size:15px}
