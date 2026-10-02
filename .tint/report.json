@@ -1,0 +1,14 @@
+{
+  "before": {
+    "filter": "saturate(0.18) contrast(0.94)",
+    "classes": "hj-team-photo-player is-unavailable",
+    "matches": [
+      {
+        "selector": "#league-hq .hj-team-photo-player.is-unavailable .hj-team-photo-figure img",
+        "filter": "saturate(0.18) contrast(0.94)",
+        "priority": ""
+      }
+    ]
+  },
+  "after": "saturate(0.18) contrast(0.94)"
+}
