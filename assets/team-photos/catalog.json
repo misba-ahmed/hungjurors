@@ -427,7 +427,14 @@
     "heightInches": 71,
     "name": "Rico Dowdle",
     "teamId": 23,
-    "jersey": "13"
+    "jersey": "13",
+    "unavailable": {
+      "file": "4038815-crutches-v1.webp",
+      "width": 317,
+      "height": 850,
+      "ratio": 0.37294,
+      "kind": "injury"
+    }
   },
   "4038941": {
     "file": "4038941-faces-v2.webp",
@@ -457,7 +464,14 @@
     "heightInches": 70,
     "name": "Josh Jacobs",
     "teamId": 9,
-    "jersey": "8"
+    "jersey": "8",
+    "unavailable": {
+      "file": "4047365-unavailable-v1.webp",
+      "width": 307,
+      "height": 850,
+      "ratio": 0.36118,
+      "kind": "legal"
+    }
   },
   "4047646": {
     "file": "4047646-faces-v2.webp",
@@ -467,7 +481,14 @@
     "heightInches": 73,
     "name": "A.J. Brown",
     "teamId": 17,
-    "jersey": "1"
+    "jersey": "1",
+    "unavailable": {
+      "file": "4047646-crutches-v1.webp",
+      "width": 320,
+      "height": 850,
+      "ratio": 0.37647,
+      "kind": "injury"
+    }
   },
   "4047650": {
     "file": "4047650-faces-v2.webp",
@@ -497,7 +518,14 @@
     "heightInches": 70,
     "name": "Travis Etienne Jr.",
     "teamId": 18,
-    "jersey": "3"
+    "jersey": "3",
+    "unavailable": {
+      "file": "4239996-crutches-v1.webp",
+      "width": 317,
+      "height": 850,
+      "ratio": 0.37294,
+      "kind": "injury"
+    }
   },
   "4241389": {
     "file": "4241389-faces-v2.webp",
@@ -607,7 +635,14 @@
     "heightInches": 75,
     "name": "Alec Pierce",
     "teamId": 11,
-    "jersey": "14"
+    "jersey": "14",
+    "unavailable": {
+      "file": "4360078-crutches-v1.webp",
+      "width": 309,
+      "height": 850,
+      "ratio": 0.36353,
+      "kind": "injury"
+    }
   },
   "4360234": {
     "file": "4360234-faces-v2.webp",
@@ -647,7 +682,14 @@
     "heightInches": 71,
     "name": "Jordan Mason",
     "teamId": 16,
-    "jersey": "27"
+    "jersey": "27",
+    "unavailable": {
+      "file": "4360569-crutches-v1.webp",
+      "width": 324,
+      "height": 850,
+      "ratio": 0.38118,
+      "kind": "injury"
+    }
   },
   "4360689": {
     "file": "4360689-faces-v2.webp",
@@ -757,7 +799,14 @@
     "heightInches": 71,
     "name": "Jayden Reed",
     "teamId": 9,
-    "jersey": "11"
+    "jersey": "11",
+    "unavailable": {
+      "file": "4362249-crutches-v1.webp",
+      "width": 307,
+      "height": 850,
+      "ratio": 0.36118,
+      "kind": "injury"
+    }
   },
   "4362628": {
     "file": "4362628-faces-v2.webp",
@@ -857,7 +906,14 @@
     "heightInches": 73,
     "name": "Zach Charbonnet",
     "teamId": 26,
-    "jersey": "26"
+    "jersey": "26",
+    "unavailable": {
+      "file": "4426385-crutches-v1.webp",
+      "width": 343,
+      "height": 850,
+      "ratio": 0.40353,
+      "kind": "injury"
+    }
   },
   "4426388": {
     "file": "4426388-faces-v2.webp",
@@ -957,7 +1013,14 @@
     "heightInches": 69,
     "name": "De'Von Achane",
     "teamId": 15,
-    "jersey": "28"
+    "jersey": "28",
+    "unavailable": {
+      "file": "4429160-crutches-v1.webp",
+      "width": 327,
+      "height": 850,
+      "ratio": 0.38471,
+      "kind": "injury"
+    }
   },
   "4429205": {
     "file": "4429205-faces-v2.webp",
@@ -1307,7 +1370,14 @@
     "heightInches": 72,
     "name": "Jonathon Brooks",
     "teamId": 29,
-    "jersey": "25"
+    "jersey": "25",
+    "unavailable": {
+      "file": "4678008-crutches-v1.webp",
+      "width": 321,
+      "height": 850,
+      "ratio": 0.37765,
+      "kind": "injury"
+    }
   },
   "4682745": {
     "file": "4682745-faces-v2.webp",
@@ -1477,7 +1547,14 @@
     "heightInches": 68,
     "name": "Jonah Coleman",
     "teamId": 7,
-    "jersey": "20"
+    "jersey": "20",
+    "unavailable": {
+      "file": "4702555-crutches-v1.webp",
+      "width": 332,
+      "height": 850,
+      "ratio": 0.39059,
+      "kind": "injury"
+    }
   },
   "4711533": {
     "file": "4711533-faces-v2.webp",
