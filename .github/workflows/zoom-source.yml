@@ -1,0 +1,20 @@
+name: Inspect zoom source
+on:
+  push:
+    branches: [mobile-zoom-diagnosis]
+    paths: ['scripts/inspect-zoom-source.mjs']
+permissions:
+  contents: write
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: node scripts/inspect-zoom-source.mjs
+      - run: |
+          git config user.name "misba-ahmed"
+          git config user.email "misbauddin.ahmed@gmail.com"
+          git add .zoom/source.json
+          git commit -m "Extract zoom rendering source"
+          git pull --rebase origin mobile-zoom-diagnosis
+          git push origin HEAD:mobile-zoom-diagnosis
