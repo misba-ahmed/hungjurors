@@ -1,0 +1,31 @@
+name: Verify original lineup rules
+on:
+  push:
+    branches: [lineup-original-rules-audit]
+    paths: ['scripts/team-photos.js', 'scripts/test-lineup-rules.mjs', '.github/workflows/lineup-rules.yml']
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright sharp
+      - run: npx playwright install --with-deps chromium
+      - run: |
+          node scripts/test-lineup-rules.mjs
+          node scripts/test-lineup-status.mjs
+          node scripts/test-lineup-live-scores.mjs
+          node scripts/test-lineup-spotlight.mjs
+          node scripts/test-roster-swipe.mjs
+      - run: |
+          node --input-type=module -e "import sharp from 'sharp'; for(let i=0;i<4;i++) await sharp('.lineup-audit/sheet-'+i+'.png').jpeg({quality:65}).toFile('.lineup-audit/sheet-'+i+'.jpg')"
+          git config user.name "misba-ahmed"
+          git config user.email "misbauddin.ahmed@gmail.com"
+          git add .lineup-audit/*.jpg
+          git commit -m "Prepare visual lineup audit proof"
+          git pull --rebase origin lineup-original-rules-audit
+          git push origin HEAD:lineup-original-rules-audit
