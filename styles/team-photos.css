@@ -199,4 +199,4 @@
 }
 
 /* Nearly grayscale with a hint of uniform color, only while a crutch/handcuff alternate is displayed. */
-#league-hq .hj-team-photo-player.is-unavailable .hj-team-photo-figure img{filter:saturate(.18) contrast(.94)}
+#league-hq .hj-team-photo-player.is-unavailable .hj-team-photo-figure img{filter:saturate(.28) contrast(.94)}
