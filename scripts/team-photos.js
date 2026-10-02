@@ -122,7 +122,7 @@ function hjTeamPhotoHTML(team){
   const sourceHeight=Number(img.getAttribute('height'))||850;
   const target=Math.max(r.height,Math.min(innerHeight*.48,420,
    (Math.min(bounds.width,innerWidth)-24)/ratio,
-   sourceHeight/Math.max(1,window.devicePixelRatio||1))*.6);
+   sourceHeight/Math.max(1,window.devicePixelRatio||1))*.75);
   const scale=target/Math.max(1,r.height);
   Object.assign(HJ_TEAM_PHOTO_UI,{figureHeight:target,figureWidth:target*ratio,scale});
   button.style.setProperty('--showcase-height',target+'px');
