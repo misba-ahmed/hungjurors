@@ -1,0 +1,25 @@
+name: Diagnose mobile zoom
+on:
+  push:
+    branches: [mobile-zoom-diagnosis]
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright sharp
+      - run: npx playwright install --with-deps webkit
+      - run: node scripts/diagnose-mobile-zoom.mjs
+      - if: always()
+        run: |
+          git config user.name "misba-ahmed"
+          git config user.email "misbauddin.ahmed@gmail.com"
+          git add .zoom
+          git commit -m "Record mobile zoom diagnostics"
+          git push origin HEAD:mobile-zoom-diagnosis
