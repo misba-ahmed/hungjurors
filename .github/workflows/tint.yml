@@ -13,7 +13,7 @@ jobs:
         with:
           node-version: '24'
       - run: npm install --no-save --package-lock=false playwright
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps webkit
       - run: node scripts/test-unavailable-tint.mjs
       - run: |
           git config user.name "misba-ahmed"

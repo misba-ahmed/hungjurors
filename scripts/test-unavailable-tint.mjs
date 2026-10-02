@@ -1,7 +1,7 @@
-import fs from 'node:fs/promises';import assert from 'node:assert/strict';import {chromium} from 'playwright';
-const browser=await chromium.launch({args:['--no-sandbox']});
+import fs from 'node:fs/promises';import assert from 'node:assert/strict';import {webkit} from 'playwright';
+const browser=await webkit.launch();
 try{
- const page=await browser.newPage({viewport:{width:1000,height:850}});
+ const page=await browser.newPage({viewport:{width:1000,height:600},isMobile:true,hasTouch:true,deviceScaleFactor:3});
  await page.goto('https://hungjurors.com',{waitUntil:'domcontentloaded'});
  await page.locator('.hj-team-photo-player').first().waitFor({timeout:60000});
  const tabs=page.locator('[data-league-team]');
