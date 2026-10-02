@@ -1,0 +1,1 @@
+import fs from 'node:fs/promises';await fs.mkdir('.doubs',{recursive:true});const r=await fetch('https://a.espncdn.com/i/headshots/nfl/players/full/4361432.png');if(!r.ok)throw Error(r.status);await fs.writeFile('.doubs/headshot.png',Buffer.from(await r.arrayBuffer()));

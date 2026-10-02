@@ -1,0 +1,23 @@
+name: Prepare Doubs lineup artwork
+on:
+  push:
+    branches: [doubs-lineup-art]
+    paths: ['.doubs/**', '.github/workflows/doubs-art.yml']
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: node .doubs/prepare.mjs
+      - name: Save artwork
+        run: |
+          git config user.name "misba-ahmed"
+          git config user.email "misbauddin.ahmed@gmail.com"
+          git add .doubs assets/team-photos
+          git commit -m "Prepare Romeo Doubs lineup artwork"
+          git push origin HEAD:doubs-lineup-art
