@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';import sharp from 'sharp';
 const catalog=JSON.parse(await fs.readFile('assets/team-photos/catalog.json','utf8'));
 const ids=Object.keys(catalog),reference={},changes=[],warnings=[],failures=[];
 async function inspect(id){
- const a=catalog[id],url='https://sports.core.api.espn.com/v2/sports/football/nfl/athletes/'+id+'?lang=en&region=us';
+ const a=catalog[id],url='https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/'+id+'?lang=en&region=us';
  try{
  const res=await fetch(url,{signal:AbortSignal.timeout(25000)});if(!res.ok)throw Error('HTTP '+res.status);const p=await res.json();
  const height=Number(p.height);if(!(height>=60&&height<=90))throw Error('Missing height');
