@@ -1,5 +1,5 @@
 /* The showcase uses current roster slots and actual final weekly scores only. */
-const HJ_TEAM_PHOTO_UI={team:'',player:'',mode:'',shift:0,headroom:0};
+const HJ_TEAM_PHOTO_UI={team:'',player:'',mode:'',shift:0,headroom:0,figureHeight:0,figureWidth:0,scale:1};
 function hjTeamPhotoOrder(entries){
  const eligible=(entries||[]).filter(e=>{const p=hjPlayer(e);return Number(p.defaultPositionId)!==16&&Number(e.lineupSlotId)!==16;});
  const bench=eligible.filter(e=>Number(e.lineupSlotId)===20).sort(hjBenchCompare);
@@ -94,7 +94,7 @@ function hjTeamPhotoHTML(team){
   const active=selected?.id===r.id,left=(positions[i]+2)/width*100,bodyHeight=r.height/height*100,bodyWidth=r.width/width*100;
   const src=r.asset?'/assets/team-photos/players/'+r.asset.file:hjPlayerPhoto(entries[i]);
   const label=r.name.full+', '+r.position+(r.score===null?'':', final fantasy score '+r.score);
-  return '<div role="group" class="hj-team-photo-player'+(r.starter?' is-starter':'')+(!r.asset?' is-portrait':'')+(active?' is-active':'')+'" data-team-photo-player="'+esc(r.id)+'" aria-label="'+esc(label)+'" tabindex="'+(selected?active?0:-1:i===0?0:-1)+'" style="left:'+left.toFixed(4)+'%;width:'+bodyWidth.toFixed(4)+'%;height:'+bodyHeight.toFixed(4)+'%;--player-layer:'+(100-Math.round(Math.abs(i-(rows.length-1)/2)))+';--showcase-shift:'+(active?HJ_TEAM_PHOTO_UI.shift:0)+'px"><span class="hj-team-photo-figure"><img src="'+esc(src)+'" alt="" width="'+(r.asset?.width||350)+'" height="'+(r.asset?.height||800)+'" decoding="async" draggable="false"></span><span class="hj-team-photo-score" aria-hidden="true"'+(r.score===null?' hidden':'')+'>'+esc(r.score??'')+'</span><span class="hj-team-photo-caption"><span class="hj-team-photo-position">'+esc(r.position)+'</span><button type="button" class="hj-team-photo-name" data-pc-id="'+esc(r.id)+'" data-pc-name="'+esc(r.name.full)+'" data-pc-team="'+esc(hjPlayerTeam(entries[i]))+'" data-pc-position="'+esc(r.position)+'" data-pc-photo="'+esc(hjPlayerPhoto(entries[i]))+'" aria-label="Open '+esc(r.name.full)+' player card" tabindex="'+(active?0:-1)+'"><span>'+esc(r.name.first)+'</span>'+(r.name.last?'<span>'+esc(r.name.last)+'</span>':'')+'</button></span></div>';
+  return '<div role="group" class="hj-team-photo-player'+(r.starter?' is-starter':'')+(!r.asset?' is-portrait':'')+(active?' is-active':'')+'" data-team-photo-player="'+esc(r.id)+'" aria-label="'+esc(label)+'" tabindex="'+(selected?active?0:-1:i===0?0:-1)+'" style="left:'+left.toFixed(4)+'%;width:'+bodyWidth.toFixed(4)+'%;height:'+bodyHeight.toFixed(4)+'%;--player-layer:'+(100-Math.round(Math.abs(i-(rows.length-1)/2)))+';--showcase-shift:'+(active?HJ_TEAM_PHOTO_UI.shift:0)+'px;--showcase-height:'+HJ_TEAM_PHOTO_UI.figureHeight+'px;--showcase-width:'+HJ_TEAM_PHOTO_UI.figureWidth+'px;--showcase-scale:'+HJ_TEAM_PHOTO_UI.scale+'"><span class="hj-team-photo-figure"><img src="'+esc(src)+'" alt="" width="'+(r.asset?.width||350)+'" height="'+(r.asset?.height||800)+'" decoding="async" draggable="false"></span><span class="hj-team-photo-score" aria-hidden="true"'+(r.score===null?' hidden':'')+'>'+esc(r.score??'')+'</span><span class="hj-team-photo-caption"><span class="hj-team-photo-position">'+esc(r.position)+'</span><button type="button" class="hj-team-photo-name" data-pc-id="'+esc(r.id)+'" data-pc-name="'+esc(r.name.full)+'" data-pc-team="'+esc(hjPlayerTeam(entries[i]))+'" data-pc-position="'+esc(r.position)+'" data-pc-photo="'+esc(hjPlayerPhoto(entries[i]))+'" aria-label="Open '+esc(r.name.full)+' player card" tabindex="'+(active?0:-1)+'"><span>'+esc(r.name.first)+'</span>'+(r.name.last?'<span>'+esc(r.name.last)+'</span>':'')+'</button></span></div>';
  }).join('')+'</div></div>';
 }
 (function(){
@@ -114,13 +114,25 @@ function hjTeamPhotoHTML(team){
  }
  function fit(button){
   const group=groupOf(button),stage=group.querySelector('.hj-team-photo-stage'),r=button.getBoundingClientRect(),bounds=stage.getBoundingClientRect();
-  const scale=parseFloat(getComputedStyle(button).getPropertyValue('--showcase-scale'))||1.38;
-  HJ_TEAM_PHOTO_UI.headroom=Math.ceil(r.height*(scale-1)+24);
+  // Render at the enlarged dimensions, rather than magnifying a tiny filtered layer.
+  // Layout viewport stays stable during pinch zoom; never refit from visualViewport.
+  const img=button.querySelector('.hj-team-photo-figure img');
+  const ratio=r.width/Math.max(1,r.height);
+  const sourceHeight=Number(img.getAttribute('height'))||850;
+  const target=Math.max(r.height,Math.min(innerHeight*.48,420,
+   (Math.min(bounds.width,innerWidth)-24)/ratio,
+   sourceHeight/Math.max(1,window.devicePixelRatio||1)));
+  const scale=target/Math.max(1,r.height);
+  Object.assign(HJ_TEAM_PHOTO_UI,{figureHeight:target,figureWidth:target*ratio,scale});
+  button.style.setProperty('--showcase-height',target+'px');
+  button.style.setProperty('--showcase-width',target*ratio+'px');
+  button.style.setProperty('--showcase-scale',scale);
+  HJ_TEAM_PHOTO_UI.headroom=Math.ceil(target-r.height+12);
   group.style.setProperty('--showcase-headroom',HJ_TEAM_PHOTO_UI.headroom+'px');
   const half=Math.max(r.width*scale/2,62),center=r.left+r.width/2;
   const min=Math.max(8,bounds.left)+half,max=Math.min(innerWidth-8,bounds.right)-half;
-  const target=min>max?(bounds.left+bounds.right)/2:Math.max(min,Math.min(max,center));
-  const shift=Math.round((target-center)*100)/100;
+  const targetX=min>max?(bounds.left+bounds.right)/2:Math.max(min,Math.min(max,center));
+  const shift=Math.round((targetX-center)*100)/100;
   button.style.setProperty('--showcase-shift',shift+'px');
   HJ_TEAM_PHOTO_UI.shift=shift;
  }
