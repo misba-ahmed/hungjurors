@@ -46,9 +46,11 @@
   const s=states.get(deck);clearTimeout(s.timer);s.timer=setTimeout(()=>settle(deck),180);
  }
  function go(deck,index,animate=false){
-  const s=states.get(deck),card=cards(deck)[clamp(deck,index)];if(!s||!card)return;
-  s.target=clamp(deck,index);s.moving=true;choose(deck,s.target);
-  deck.scrollTo({left:offset(deck,card),behavior:animate&&!matchMedia('(prefers-reduced-motion: reduce)').matches?'smooth':'instant'});
+  const count=cards(deck).length;if(!count)return;
+  const wrapped=((index%count)+count)%count,wraps=wrapped!==index;
+  const s=states.get(deck),card=cards(deck)[wrapped];if(!s||!card)return;
+  s.target=wrapped;s.moving=true;choose(deck,s.target);
+  deck.scrollTo({left:offset(deck,card),behavior:animate&&!wraps&&!matchMedia('(prefers-reduced-motion: reduce)').matches?'smooth':'instant'});
   later(deck);
  }
  function install(){
@@ -96,6 +98,50 @@
   const index=cards(deck).findIndex(c=>c.dataset.hqMatchupKey===button.dataset.hqMatchupJump);if(index<0)return;
   event.preventDefault();event.stopImmediatePropagation();install();go(deck,index,true);
  },true);
+
+ // Roster content swipes use the existing manager selector so every roster view
+ // shares one selected manager. Player showcases and nested rails own their gestures.
+ let rosterTouch=null,rosterClickUntil=0;
+ const rosterPanel=target=>target?.closest?.('#league-sync-content');
+ const rosterTabs=panel=>Array.from(panel.querySelectorAll('[data-league-team]'));
+ const zoomed=()=>window.visualViewport&&window.visualViewport.scale>1.01;
+ root.addEventListener('touchstart',event=>{
+  rosterTouch=null;
+  const panel=rosterPanel(event.target);
+  if(!panel||event.touches.length!==1||zoomed()||
+   event.target.closest('input,select,textarea,[contenteditable],.hj-team-photo,[data-league-team]')||
+   nestedRail(event.target,panel))return;
+  const tabs=rosterTabs(panel);if(tabs.length<2)return;
+  const index=tabs.findIndex(b=>b.classList.contains('active')||b.getAttribute('aria-selected')==='true');
+  if(index<0)return;
+  const t=event.touches[0];rosterTouch={panel,index,x:t.clientX,y:t.clientY,axis:''};
+ },{passive:true});
+ root.addEventListener('touchmove',event=>{
+  if(!rosterTouch)return;
+  if(event.touches.length!==1||zoomed()){rosterTouch=null;return;}
+  const t=event.touches[0],dx=t.clientX-rosterTouch.x,dy=t.clientY-rosterTouch.y;
+  if(!rosterTouch.axis&&Math.hypot(dx,dy)>10)rosterTouch.axis=Math.abs(dx)>Math.abs(dy)*1.15?'x':'y';
+  if(rosterTouch.axis==='y'){rosterTouch=null;return;}
+  if(rosterTouch.axis==='x'&&event.cancelable)event.preventDefault();
+ },{passive:false});
+ root.addEventListener('touchend',event=>{
+  const start=rosterTouch;rosterTouch=null;
+  if(!start||event.touches.length||zoomed())return;
+  const t=event.changedTouches[0];if(!t)return;
+  const dx=t.clientX-start.x,dy=t.clientY-start.y;
+  if(Math.abs(dx)<=24||Math.abs(dx)<=Math.abs(dy)*1.15)return;
+  const tabs=rosterTabs(start.panel);if(tabs.length<2)return;
+  const next=(start.index+(dx<0?1:-1)+tabs.length)%tabs.length;
+  // Suppress only the physical click that can follow a swipe, not this selection.
+  tabs[next].click();rosterClickUntil=Date.now()+500;
+ },{passive:true});
+ root.addEventListener('touchcancel',()=>{rosterTouch=null;},{passive:true});
+ root.addEventListener('click',event=>{
+  if(event.isTrusted&&Date.now()<rosterClickUntil&&rosterPanel(event.target)){
+   event.preventDefault();event.stopImmediatePropagation();
+  }
+ },true);
+
  let queued=false;const schedule=()=>{if(!queued){queued=true;requestAnimationFrame(()=>{queued=false;install()})}};
  new MutationObserver(schedule).observe(root,{childList:true,subtree:true});
  root.addEventListener('toggle',schedule,true);
