@@ -1,7 +1,8 @@
-name: Diagnose mobile zoom
+name: Verify zoom rendering
 on:
   push:
     branches: [mobile-zoom-diagnosis]
+    paths: ['scripts/folder-artwork.js', 'scripts/verify-zoom-rendering.mjs', '.github/workflows/zoom-diagnosis.yml']
 permissions:
   contents: write
 jobs:
@@ -15,11 +16,12 @@ jobs:
           node-version: '24'
       - run: npm install --no-save --package-lock=false playwright sharp
       - run: npx playwright install --with-deps webkit
-      - run: node scripts/diagnose-mobile-zoom.mjs
+      - run: node scripts/verify-zoom-rendering.mjs
       - if: always()
         run: |
           git config user.name "misba-ahmed"
           git config user.email "misbauddin.ahmed@gmail.com"
           git add .zoom
-          git commit -m "Record mobile zoom diagnostics"
+          git commit -m "Record zoom rendering comparison [skip ci]"
+          git pull --rebase origin mobile-zoom-diagnosis
           git push origin HEAD:mobile-zoom-diagnosis
