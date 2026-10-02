@@ -639,7 +639,14 @@
     "heightInches": 73,
     "name": "Justin Jefferson",
     "teamId": 16,
-    "jersey": "18"
+    "jersey": "18",
+    "unavailable": {
+      "file": "4262921-crutches-v1.webp",
+      "width": 415,
+      "height": 850,
+      "ratio": 0.48824,
+      "kind": "injury"
+    }
   },
   "4360078": {
     "file": "4360078-faces-v2.webp",
