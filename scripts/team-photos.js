@@ -1,4 +1,4 @@
-/* The showcase uses current roster slots and actual final weekly scores only. */
+/* The showcase uses current roster slots and actual live and final weekly scores. */
 const HJ_TEAM_PHOTO_UI={team:'',player:'',mode:'',shift:0,headroom:0,figureHeight:0,figureWidth:0,scale:1};
 function hjTeamPhotoOrder(entries){
  const eligible=(entries||[]).filter(e=>{const p=hjPlayer(e);return Number(p.defaultPositionId)!==16&&Number(e.lineupSlotId)!==16;});
@@ -35,8 +35,9 @@ function hjTeamPhotoLoadScores(data=HJ_LEAGUE_STATE.data){
   const [pool,games]=await Promise.all([hjDataPool(season,week),week===current?schedule:hjDataSchedule(season,week)]);
   const byTeam=new Map();
   for(const event of games.events||[]){
-   const comp=event.competitions?.[0],final=!!(event.status?.type?.completed||comp?.status?.type?.completed);
-   for(const side of comp?.competitors||[])byTeam.set(pcTeam(side.team?.abbreviation),final);
+   const comp=event.competitions?.[0],types=[event.status?.type,comp?.status?.type];
+   const started=types.some(type=>type?.completed||type?.state==='in'||type?.state==='post');
+   for(const side of comp?.competitors||[])byTeam.set(pcTeam(side.team?.abbreviation),started);
   }
   Object.assign(state,{key,week,checked:Date.now(),players:new Map(pool.map(e=>[String(hjPlayer(e).id),e])),games:byTeam});
  })().catch(()=>{state.key=key;state.checked=Date.now()-45000;}).finally(()=>{
@@ -52,8 +53,8 @@ function hjTeamPhotoFinalScore(entry,data=HJ_LEAGUE_STATE.data){
   const week=valid?state.week:current,id=String(hjPlayer(entry).id||entry.playerId);
   const source=valid?state.players.get(id)||entry:entry;
   const game=hjUpcomingForWeek(hjPlayerTeam(source),week)?.game;
-  const final=valid?state.games.get(pcTeam(hjPlayerTeam(source))):game&&(game.state==='post'||game.completed===true);
-  if(!final)return null;
+  const started=valid?state.games.get(pcTeam(hjPlayerTeam(source))):game&&(['in','post'].includes(game.state)||game.completed===true);
+  if(!started)return null;
   const stat=hjWeeklyStat(source,week),score=stat?hjNumber(stat.appliedTotal):hjPlayerActualScore(entry,week,data);
   return Number.isFinite(score)?Number(score).toFixed(2):null;
  }catch(_){return null}
@@ -93,7 +94,7 @@ function hjTeamPhotoHTML(team){
  return '<div class="hj-team-photo'+(selected?' has-spotlight':'')+'" data-team-photo-team="'+esc(teamId)+'" style="--showcase-headroom:'+(selected?HJ_TEAM_PHOTO_UI.headroom:0)+'px" role="group" aria-label="Interactive team photo"><div class="hj-team-photo-stage" style="aspect-ratio:'+width.toFixed(2)+' / '+height+'">'+rows.map((r,i)=>{
   const active=selected?.id===r.id,left=(positions[i]+2)/width*100,bodyHeight=r.height/height*100,bodyWidth=r.width/width*100;
   const src=r.asset?'/assets/team-photos/players/'+r.asset.file:hjPlayerPhoto(entries[i]);
-  const label=r.name.full+', '+r.position+(r.score===null?'':', final fantasy score '+r.score);
+  const label=r.name.full+', '+r.position+(r.score===null?'':', fantasy score '+r.score);
   return '<div role="group" class="hj-team-photo-player'+(r.starter?' is-starter':'')+(!r.asset?' is-portrait':'')+(active?' is-active':'')+'" data-team-photo-player="'+esc(r.id)+'" aria-label="'+esc(label)+'" tabindex="'+(selected?active?0:-1:i===0?0:-1)+'" style="left:'+left.toFixed(4)+'%;width:'+bodyWidth.toFixed(4)+'%;height:'+bodyHeight.toFixed(4)+'%;--player-layer:'+(100-Math.round(Math.abs(i-(rows.length-1)/2)))+';--showcase-shift:'+(active?HJ_TEAM_PHOTO_UI.shift:0)+'px;--showcase-height:'+HJ_TEAM_PHOTO_UI.figureHeight+'px;--showcase-width:'+HJ_TEAM_PHOTO_UI.figureWidth+'px;--showcase-scale:'+HJ_TEAM_PHOTO_UI.scale+'"><span class="hj-team-photo-figure"><img src="'+esc(src)+'" alt="" width="'+(r.asset?.width||350)+'" height="'+(r.asset?.height||800)+'" decoding="async" draggable="false"></span><span class="hj-team-photo-score" aria-hidden="true"'+(r.score===null?' hidden':'')+'>'+esc(r.score??'')+'</span><span class="hj-team-photo-caption"><span class="hj-team-photo-position">'+esc(r.position)+'</span><button type="button" class="hj-team-photo-name" data-pc-id="'+esc(r.id)+'" data-pc-name="'+esc(r.name.full)+'" data-pc-team="'+esc(hjPlayerTeam(entries[i]))+'" data-pc-position="'+esc(r.position)+'" data-pc-photo="'+esc(hjPlayerPhoto(entries[i]))+'" aria-label="Open '+esc(r.name.full)+' player card" tabindex="'+(active?0:-1)+'"><span>'+esc(r.name.first)+'</span>'+(r.name.last?'<span>'+esc(r.name.last)+'</span>':'')+'</button></span></div>';
  }).join('')+'</div></div>';
 }
@@ -142,7 +143,7 @@ function hjTeamPhotoHTML(team){
   if(!entry)return;
   const score=hjTeamPhotoFinalScore(entry,data),badge=button.querySelector('.hj-team-photo-score'),name=hjTeamPhotoName(hjPlayer(entry));
   badge.hidden=score===null;badge.textContent=score??'';
-  button.setAttribute('aria-label',name.full+', '+hjPlayerPosition(entry)+(score===null?'':', final fantasy score '+score));
+  button.setAttribute('aria-label',name.full+', '+hjPlayerPosition(entry)+(score===null?'':', fantasy score '+score));
  }
  function show(button,mode){
   if(!button?.isConnected)return;
