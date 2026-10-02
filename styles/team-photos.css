@@ -182,3 +182,18 @@
  transform:translate3d(0,2px,0) scale(1.05);
 }
 #league-hq .hj-team-photo .hj-team-photo-player.is-active{z-index:250}
+
+/* Spotlight is painted at its final size, preserving detail on high-DPI phones.
+   Stable player hit boxes still drive the finger-sweep interaction. */
+#league-hq .hj-team-photo .hj-team-photo-figure{
+ inset:auto;left:50%;bottom:0;width:100%;height:100%;
+ transform:translateX(-50%);
+ transition:width 200ms cubic-bezier(.2,.8,.2,1),height 200ms cubic-bezier(.2,.8,.2,1),transform 200ms cubic-bezier(.2,.8,.2,1),opacity 180ms ease;
+}
+#league-hq .hj-team-photo .is-starter:not(.is-active) .hj-team-photo-figure{
+ transform:translate(-50%,2px) scale(1.05);
+}
+#league-hq .hj-team-photo .is-active .hj-team-photo-figure{
+ width:var(--showcase-width);height:var(--showcase-height);
+ transform:translate(calc(-50% + var(--showcase-shift,0px)),6px);
+}
