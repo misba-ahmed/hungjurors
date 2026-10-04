@@ -1,10 +1,1 @@
-import fs from 'node:fs';import sharp from 'sharp';import {execFileSync} from 'node:child_process';
-const dir='assets/team-photos/mascots/';
-const svg=fs.readFileSync(dir+'patriots-wordmark.svg','utf8').replace(/#024/g,'#FFFFFF');
-const logo=await sharp(Buffer.from(svg)).resize({width:760}).png().toBuffer();
-const small=await sharp(logo).trim().resize({width:86}).png().toBuffer();
-const original=dir+'dst-17-mascot-v1.webp';const m=await sharp(original).metadata();const file='dst-17-mascot-wordmark-v3.webp';
-await sharp(original).composite([{input:small,left:Math.round((m.width-86)/2),top:301}]).webp({quality:97,alphaQuality:100}).toFile(dir+file);
-const cat=JSON.parse(fs.readFileSync('assets/team-photos/mascots.json'));cat[17].file=file;fs.writeFileSync('assets/team-photos/mascots.json',JSON.stringify(cat,null,2)+'\n');
-await sharp(dir+file).flatten({background:'#f8ecd3'}).jpeg({quality:95}).toFile('.mascot-fix/patriots-proof.jpg');
-for(const name of ['mascots','rules','status','live-scores'])execFileSync('node',['scripts/test-lineup-'+name+'.mjs'],{stdio:'inherit'});
+import fs from 'node:fs';const s=fs.readFileSync('index.html','utf8');const matches=[...s.matchAll(/.{0,60}(?:leagueId|LEAGUE_ID|league_id).{0,80}/g)].map(m=>m[0]);fs.writeFileSync('.mascot-fix/league-info.json',JSON.stringify(matches));console.log(matches.slice(0,20));
