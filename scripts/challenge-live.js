@@ -388,3 +388,70 @@ function selectChallenge(id){
  selectChallenge('raffle');if(HJ_LEAGUE_STATE.data)hjRefreshChallenges(HJ_LEAGUE_STATE.data);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&HJ_LEAGUE_STATE.data)hjRefreshChallenges(HJ_LEAGUE_STATE.data)});
 }
+
+/* Horizontal challenge paging. Nested graphics/rails own their full gesture. */
+(function(){
+ const root=document.getElementById('challenges'),out=document.getElementById('challenge-out');if(!root||!out)return;
+ let touch=null,moving=false,cancelMotion=null,clickUntil=0;
+ const zoomed=()=>window.visualViewport&&window.visualViewport.scale>1.01;
+ const nodes=()=>[root.querySelector('.ch-card'),out].filter(Boolean);
+ function ownsGesture(target){
+  if(target.closest('button,a,input,select,textarea,summary,[contenteditable],#challenge-strip,.ch-top'))return true;
+  const view=target.closest('.lms-view');
+  if(view&&!view.classList.contains('is-fit')&&target.closest('.lms-stage'))return true;
+  for(let n=target;n&&n!==root;n=n.parentElement){
+   if(n.scrollWidth>n.clientWidth+1&&/^(auto|scroll)$/.test(getComputedStyle(n).overflowX))return true;
+  }
+  return false;
+ }
+ function resetDrag(){nodes().forEach(n=>n.style.removeProperty('translate'));}
+ function stop(){if(touch)root.style.overflowX=touch.overflow;cancelMotion?.();cancelMotion=null;moving=false;resetDrag();touch=null;}
+ function settle(direction,dx){
+  const list=CHALLENGES,index=list.findIndex(ch=>ch.id===HJ_CHALLENGE_STATE.active);
+  if(index<0||list.length<2)return;
+  const next=list[(index+direction+list.length)%list.length].id;
+  if(HJ_CHALLENGE_STATE.profileTimer){clearTimeout(HJ_CHALLENGE_STATE.profileTimer);HJ_CHALLENGE_STATE.profileTimer=null;}
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){selectChallenge(next);return;}
+  // Animate the real nodes, never clone a large chart/table or retained canvas.
+  const width=out.getBoundingClientRect().width,oldOverflow=root.style.overflowX;
+  let cancelled=false,animations=[];
+  moving=true;root.style.overflowX='clip';
+  const cleanup=()=>{cancelled=true;animations.forEach(a=>a.cancel());root.style.overflowX=oldOverflow;resetDrag();moving=false;cancelMotion=null;};
+  cancelMotion=cleanup;
+  animations=nodes().map(n=>n.animate([{transform:'translateX('+dx+'px)'},{transform:'translateX('+(-direction*width)+'px)'}],{duration:120,easing:'ease-in',fill:'forwards'}));
+  Promise.allSettled(animations.map(a=>a.finished)).then(()=>{
+   if(cancelled)return;
+   animations.forEach(a=>a.cancel());selectChallenge(next);
+   animations=nodes().map(n=>n.animate([{transform:'translateX('+(direction*width)+'px)'},{transform:'translateX(0px)'}],{duration:180,easing:'cubic-bezier(.2,.75,.2,1)'}));
+   return Promise.allSettled(animations.map(a=>a.finished)).then(()=>{if(!cancelled)cleanup();});
+  });
+ }
+ root.addEventListener('touchstart',e=>{
+  stop();
+  if(e.touches.length!==1||zoomed()||ownsGesture(e.target)||!e.target.closest('#challenge-out,.ch-card'))return;
+  const t=e.touches[0];touch={x:t.clientX,y:t.clientY,dx:0,axis:'',id:HJ_CHALLENGE_STATE.active,overflow:root.style.overflowX};
+ },{passive:true});
+ root.addEventListener('touchmove',e=>{
+  if(!touch)return;
+  if(e.touches.length!==1||zoomed()||touch.id!==HJ_CHALLENGE_STATE.active){root.style.overflowX=touch.overflow;stop();return;}
+  const t=e.touches[0],dx=t.clientX-touch.x,dy=t.clientY-touch.y;
+  if(!touch.axis&&Math.hypot(dx,dy)>10)touch.axis=Math.abs(dx)>Math.abs(dy)*1.15?'x':'y';
+  if(touch.axis==='y'){root.style.overflowX=touch.overflow;stop();return;}
+  if(touch.axis==='x'){if(e.cancelable)e.preventDefault();touch.dx=dx;root.style.overflowX='clip';nodes().forEach(n=>n.style.translate=dx+'px 0');}
+ },{passive:false});
+ root.addEventListener('touchend',e=>{
+  const s=touch;touch=null;if(!s)return;
+  root.style.overflowX=s.overflow;resetDrag();
+  if(e.touches.length||zoomed()||s.id!==HJ_CHALLENGE_STATE.active)return;
+  const t=e.changedTouches[0];if(!t)return;
+  const dx=t.clientX-s.x,dy=t.clientY-s.y;
+  if(s.axis!=='x'||Math.abs(dx)<=24||Math.abs(dx)<=Math.abs(dy)*1.15)return;
+  clickUntil=Date.now()+500;
+  settle(dx<0?1:-1,dx);
+ },{passive:true});
+ root.addEventListener('touchcancel',()=>{if(touch)root.style.overflowX=touch.overflow;stop();},{passive:true});
+ root.addEventListener('click',e=>{
+  if(e.isTrusted&&Date.now()<clickUntil){e.preventDefault();e.stopImmediatePropagation();return;}
+  if(moving)stop();
+ },true);
+})();
