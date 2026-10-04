@@ -1,0 +1,23 @@
+name: Prepare roster references
+on:
+  push:
+    branches: [roster-update-oct4]
+    paths: ['.roster-check/references.mjs']
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false sharp
+      - run: node .roster-check/references.mjs
+      - run: |
+          git config user.name "misba-ahmed"
+          git config user.email "misbauddin.ahmed@gmail.com"
+          git add .roster-check/headshots.jpg .roster-check/metadata.json
+          git commit -m "Capture official player references [skip ci]"
+          git push origin HEAD:roster-update-oct4

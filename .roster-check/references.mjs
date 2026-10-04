@@ -1,0 +1,4 @@
+import fs from 'node:fs/promises';import sharp from 'sharp';
+const ids=['4695883','4685512','3121422'];const layers=[],meta=[];
+for(let i=0;i<ids.length;i++){const id=ids[i],r=await fetch('https://a.espncdn.com/i/headshots/nfl/players/full/'+id+'.png');if(!r.ok)throw Error('headshot '+id);const b=await sharp(Buffer.from(await r.arrayBuffer())).resize(300,220,{fit:'contain',background:'#ffffff'}).png().toBuffer();layers.push({input:b,left:i*300,top:0});const a=await(await fetch('https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/'+id+'?lang=en&region=us')).json();meta.push({id,name:a.fullName,height:a.height,jersey:a.jersey,team:a.team});}
+await sharp({create:{width:900,height:220,channels:3,background:'#ffffff'}}).composite(layers).jpeg({quality:95}).toFile('.roster-check/headshots.jpg');await fs.writeFile('.roster-check/metadata.json',JSON.stringify(meta,null,2));
