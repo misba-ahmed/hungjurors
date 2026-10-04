@@ -20,6 +20,8 @@ for(const [i,id,name] of [[0,13,'Raider Rusher'],[1,1,'Freddie Falcon'],[2,27,'C
   if(edge&&crop.data[p+1]>Math.max(crop.data[p],crop.data[p+2])*1.08)crop.data[p+1]=Math.max(crop.data[p],crop.data[p+2]);
  }
 
+ // These three costumes contain no green; neutralize residual spill in pale hair.
+ for(let p=0;p<crop.data.length;p+=4){const m=Math.max(crop.data[p],crop.data[p+2]);if(crop.data[p+1]>m)crop.data[p+1]=m;}
  let png=await sharp(crop.data,{raw:crop.info}).png().toBuffer();
  png=await sharp(png).trim({background:'#00000000',threshold:8}).png().toBuffer();
  const native=await sharp(png).metadata(),file='dst-'+id+'-mascot-v2.webp';
