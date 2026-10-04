@@ -2,7 +2,7 @@ import fs from 'node:fs';import sharp from 'sharp';import{execFileSync}from'node
 const r=await sharp('.mascot-fix/source.png').ensureAlpha().raw().toBuffer({resolveWithObject:true});
 for(let p=0;p<r.data.length;p+=4){const red=r.data[p],g=r.data[p+1],b=r.data[p+2];if(g>100&&g>red*2.5&&g>b*2.5){r.data[p+3]=0;continue;}const m=Math.max(red,b);if(g>m)r.data[p+1]=m;}
 let png=await sharp(r.data,{raw:r.info}).png().toBuffer();png=await sharp(png).trim({background:'#00000000',threshold:8}).png().toBuffer();
-const file='4635008-faces-v1.webp',dest='assets/team-photos/players/'+file;
+const file='4635008-faces-v2.webp',dest='assets/team-photos/players/'+file;
 await sharp(png).resize({height:850}).webp({quality:95,alphaQuality:100}).toFile(dest);
 const m=await sharp(dest).metadata(),c=JSON.parse(fs.readFileSync('assets/team-photos/catalog.json'));
 c['4635008']={file,width:m.width,height:m.height,ratio:Number((m.width/m.height).toFixed(5)),heightInches:75,name:'Keon Coleman',teamId:2,jersey:'0'};
