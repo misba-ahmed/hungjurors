@@ -8,7 +8,8 @@ if(g>65&&r>g*.85&&g>b*.8)for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)mask.
 }
 for(const n of mask){const y=Math.floor(n/info.width),x=n%info.width,t=Math.max(0,Math.min(1,(y-339)/43));for(let c=0;c<3;c++)data[n*4+c]=Math.round(original[(339*info.width+x)*4+c]*(1-t)+original[(382*info.width+x)*4+c]*t);}
 const svg=await fs.readFile('.mascot-fix/wordmark.svg');
-const mark=await sharp(svg).resize({width:138}).png().toBuffer();
+const jerseyMark=Buffer.from(svg.toString().replaceAll('#ffc62f','#OUTLINE').replaceAll('#4f2683','#ffc62f').replaceAll('#OUTLINE','#4f2683'));
+const mark=await sharp(jerseyMark).resize({width:138}).png().toBuffer();
 const base=await sharp(data,{raw:info}).png().toBuffer();
 const file='dst-16-mascot-wordmark-v3.webp',out=await sharp(base).composite([{input:mark,left:163,top:332}]).webp({quality:100,alphaQuality:100}).toBuffer();
 await fs.writeFile('assets/team-photos/mascots/'+file,out);
