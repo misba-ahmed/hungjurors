@@ -5,12 +5,12 @@
     "team": "Falcons",
     "name": "Freddie Falcon",
     "custom": false,
-    "file": "dst-1-mascot-v1.webp",
-    "width": 553,
+    "file": "dst-1-mascot-v2.webp",
+    "width": 446,
     "height": 850,
-    "ratio": 0.6505882352941177,
+    "ratio": 0.5247058823529411,
     "displayHeight": 73,
-    "nativeHeight": 321
+    "nativeHeight": 920
   },
   "2": {
     "mascot": true,
@@ -161,12 +161,12 @@
     "team": "Raiders",
     "name": "Raider Rusher",
     "custom": false,
-    "file": "dst-13-mascot-v1.webp",
-    "width": 411,
+    "file": "dst-13-mascot-v2.webp",
+    "width": 375,
     "height": 850,
-    "ratio": 0.4835294117647059,
+    "ratio": 0.4411764705882353,
     "displayHeight": 73,
-    "nativeHeight": 343
+    "nativeHeight": 969
   },
   "14": {
     "mascot": true,
@@ -343,12 +343,12 @@
     "team": "Buccaneers",
     "name": "Captain Fear",
     "custom": false,
-    "file": "dst-27-mascot-v1.webp",
-    "width": 494,
+    "file": "dst-27-mascot-v2.webp",
+    "width": 374,
     "height": 850,
-    "ratio": 0.5811764705882353,
+    "ratio": 0.44,
     "displayHeight": 73,
-    "nativeHeight": 332
+    "nativeHeight": 1503
   },
   "28": {
     "mascot": true,
