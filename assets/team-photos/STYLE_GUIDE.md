@@ -31,3 +31,5 @@ Run `node scripts/test-lineup-rules.mjs`, `node scripts/test-lineup-status.mjs` 
 For new assets, verify official heights and update `height-reference.json`; `scripts/audit-lineup-assets.mjs` checks every catalog entry against ESPN and image metadata. Review the visual proof as required above; automated checks cannot prove facial likeness or artistic consistency.
 
 - All currently displayed crutch and handcuff variants appear nearly grayscale with a small amount of color retained (28% saturation), visibly distinct from active players. The tint must disappear automatically with the alternate image on healthy/active restoration; do not tint regular figures.
+
+- An explicit current-week ESPN projected total of 0 also selects an available injury variant, even if ESPN still labels the player active. Actual scores, missing projections, and previous-week projections must not trigger this. Keep the existing non-health variant for Josh Jacobs.
