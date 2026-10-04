@@ -13,6 +13,16 @@ for(let i=0;i<32;i++){
   if(g>100&&g>r*2.5&&g>b*2.5){crop.data[p+3]=0;continue;}
   // Remove green spill only along the exterior, preserving costume colors.
  }
+ // Despill the two-pixel transparent boundary without desaturating green uniforms.
+ const alpha=Uint8Array.from({length:crop.info.width*crop.info.height},(_,n)=>crop.data[n*4+3]);
+ for(let y=0;y<crop.info.height;y++)for(let x=0;x<crop.info.width;x++){
+  const n=y*crop.info.width+x,p=n*4;if(!alpha[n])continue;
+  let edge=false;
+  for(let dy=-2;dy<=2&&!edge;dy++)for(let dx=-2;dx<=2;dx++){
+   const xx=x+dx,yy=y+dy;if(xx>=0&&yy>=0&&xx<crop.info.width&&yy<crop.info.height&&!alpha[yy*crop.info.width+xx]){edge=true;break;}
+  }
+  if(edge&&crop.data[p+1]>Math.max(crop.data[p],crop.data[p+2])*1.08)crop.data[p+1]=Math.max(crop.data[p],crop.data[p+2]);
+ }
  let png=await sharp(crop.data,{raw:crop.info}).png().toBuffer();
  png=await sharp(png).trim({background:'#00000000',threshold:8}).png().toBuffer();
  const native=await sharp(png).metadata();
