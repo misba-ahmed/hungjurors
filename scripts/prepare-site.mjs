@@ -25,6 +25,7 @@ const playerValue=readFileSync(new URL('./player-value.js',import.meta.url),'utf
 const tradeDesk=readFileSync(new URL('./trade-desk.js',import.meta.url),'utf8');
 const teamPhotoScript=readFileSync(new URL('./team-photos.js',import.meta.url),'utf8');
 const teamPhotoAssets=readFileSync(new URL('../assets/team-photos/catalog.json',import.meta.url),'utf8');
+const dstMascots=readFileSync(new URL('../assets/team-photos/mascots.json',import.meta.url),'utf8');
 const sideBets=readFileSync(new URL('./side-bets.js',import.meta.url),'utf8');
 const challengeScripts=['challenge-engine.js','challenge-live.js'].map(file=>readFileSync(new URL(file,import.meta.url),'utf8')).join('\n');
 function replaceOnce(html,pattern,replacement){
@@ -147,7 +148,7 @@ export function prepareSite(html){
  if(html.split(oldManagerOrder).length!==2)throw Error('Manager order source changed');
  html=html.replace(oldManagerOrder,"const teams=[...(data.teams||[])].sort((a,b)=>(hjCurrentStandingRank(a,data)||Infinity)-(hjCurrentStandingRank(b,data)||Infinity)||Number(a.id)-Number(b.id));");
  html=prepareLiveDisplay(html);
- html=replaceOnce(html,/function hjTeamViewHTML\(team,data\)\{/g,'const HJ_TEAM_PHOTO_ASSETS='+teamPhotoAssets+';\n'+teamPhotoScript+'\nfunction hjTeamViewHTML(team,data){');
+ html=replaceOnce(html,/function hjTeamViewHTML\(team,data\)\{/g,'const HJ_DST_MASCOTS='+dstMascots+';\nconst HJ_TEAM_PHOTO_ASSETS='+teamPhotoAssets+';\n'+teamPhotoScript+'\nfunction hjTeamViewHTML(team,data){');
  const rosterHead='<div class="league-roster-head">${identity}${matchupHTML}</div>';
  if(!html.includes(rosterHead))throw Error('Roster header changed');
  html=html.split(rosterHead).join('<div class="league-roster-head">${identity}${hjTeamPhotoHTML(team)}${matchupHTML}</div>');

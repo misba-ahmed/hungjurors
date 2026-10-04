@@ -1,0 +1,28 @@
+name: Prepare DST mascot lineups
+on:
+  push:
+    branches: [dst-mascot-lineups]
+    paths: ['.dst/**', 'scripts/team-photos.js', 'scripts/test-lineup-mascots.mjs']
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false sharp
+      - run: |
+          node .dst/prepare.mjs
+          node scripts/test-lineup-mascots.mjs
+          node scripts/test-lineup-rules.mjs
+          node scripts/test-lineup-status.mjs
+          node scripts/test-lineup-live-scores.mjs
+      - run: |
+          git config user.name "misba-ahmed"
+          git config user.email "misbauddin.ahmed@gmail.com"
+          git add assets/team-photos/mascots assets/team-photos/mascots.json .dst/proof.jpg .dst/comparison.jpg
+          git commit -m "Prepare approved DST mascot cutouts [skip ci]"
+          git push origin HEAD:dst-mascot-lineups
