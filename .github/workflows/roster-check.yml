@@ -1,0 +1,25 @@
+name: Check current roster artwork
+on:
+  push:
+    branches: [roster-update-oct4]
+    paths: ['.roster-check/check.mjs', '.github/workflows/roster-check.yml']
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright sharp
+      - run: npx playwright install chromium
+      - run: node .roster-check/check.mjs
+      - run: |
+          git config user.name "misba-ahmed"
+          git config user.email "misbauddin.ahmed@gmail.com"
+          git add .roster-check/current.json
+          git commit -m "Record current roster projections [skip ci]"
+          git push origin HEAD:roster-update-oct4
