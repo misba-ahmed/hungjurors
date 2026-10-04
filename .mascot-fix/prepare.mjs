@@ -1,15 +1,9 @@
 import fs from 'node:fs';import sharp from 'sharp';import {execFileSync} from 'node:child_process';
-const dir='assets/team-photos/mascots/';const cat=JSON.parse(fs.readFileSync('assets/team-photos/mascots.json'));
-for(const [id,key,width,top] of [[7,'broncos',132,344],[9,'packers',72,340],[17,'patriots',112,296]]){
-let svg=fs.readFileSync('.mascot-fix/'+key+'-wordmark.svg','utf8').replace(/#0A2343|#203731|#024/g,key==='packers'?'#FFB612':'#FFFFFF');
-let logo=await sharp(Buffer.from(svg)).resize({width:760}).png().toBuffer();
-if(id===7)logo=await sharp(logo).extract({left:0,top:0,width:760,height:88}).png().toBuffer();
-logo=await sharp(logo).trim().resize({width}).png().toBuffer();
-const old=dir+'dst-'+id+'-mascot-v1.webp';const m=await sharp(old).metadata();const file='dst-'+id+'-mascot-wordmark-v2.webp';
-await sharp(old).composite([{input:logo,left:Math.round((m.width-width)/2),top}]).webp({quality:97,alphaQuality:100}).toFile(dir+file);
-cat[id]={...cat[id],file};fs.writeFileSync(dir+key+'-wordmark.svg',fs.readFileSync('.mascot-fix/'+key+'-wordmark.svg'));
-}
+const r=await sharp('.mascot-fix/source.png').ensureAlpha().raw().toBuffer({resolveWithObject:true});
+for(let p=0;p<r.data.length;p+=4){const red=r.data[p],g=r.data[p+1],b=r.data[p+2];if(g>100&&g>red*2.5&&g>b*2.5){r.data[p+3]=0;continue;}const m=Math.max(red,b);if(g>m)r.data[p+1]=m;}
+let png=await sharp(r.data,{raw:r.info}).png().toBuffer();png=await sharp(png).trim({background:'#00000000',threshold:8}).png().toBuffer();
+const native=await sharp(png).metadata();const file='dst-23-mascot-v3.webp';const dest='assets/team-photos/mascots/'+file;
+await sharp(png).resize({height:850}).webp({quality:95,alphaQuality:100}).toFile(dest);
+const m=await sharp(dest).metadata();const cat=JSON.parse(fs.readFileSync('assets/team-photos/mascots.json'));cat[23]={...cat[23],file,width:m.width,height:m.height,ratio:m.width/m.height,nativeHeight:native.height};
 fs.writeFileSync('assets/team-photos/mascots.json',JSON.stringify(cat,null,2)+'\n');
-const composites=[];for(const [i,id] of [7,9,17].entries()){const b=await sharp(dir+cat[id].file).resize({height:600}).png().toBuffer();composites.push({input:b,left:i*360,top:0});}
-await sharp({create:{width:1080,height:600,channels:3,background:'#f8ecd3'}}).composite(composites).jpeg({quality:95}).toFile('.mascot-fix/wordmarks-proof.jpg');
 for(const name of ['mascots','rules','status','live-scores'])execFileSync('node',['scripts/test-lineup-'+name+'.mjs'],{stdio:'inherit'});
