@@ -1,3 +1,3 @@
 import fs from 'node:fs/promises';import sharp from 'sharp';
-let r=await fetch('https://static.clubs.nfl.com/image/private/f_auto/steelers/he4vqtvqcisqe3jc3a88');if(!r.ok)throw Error(r.status);await sharp(Buffer.from(await r.arrayBuffer())).resize({width:1000,height:1000,fit:'inside'}).jpeg({quality:93}).toFile('.mascot-fix/steely-reference.jpg');
-r=await fetch('https://upload.wikimedia.org/wikipedia/commons/2/25/Denver_Broncos_wordmark.svg');if(!r.ok)throw Error(r.status);const svg=await r.text();await fs.writeFile('.mascot-fix/broncos-wordmark.svg',svg);await sharp(Buffer.from(svg)).resize({width:700}).png().toFile('.mascot-fix/broncos-wordmark.png');
+const r=await fetch('https://upload.wikimedia.org/wikipedia/commons/1/1f/SteelyMcBeam.jpg');if(!r.ok)throw Error(r.status);await sharp(Buffer.from(await r.arrayBuffer())).resize({width:1000,height:1000,fit:'inside'}).jpeg({quality:92}).toFile('.mascot-fix/steely-face.jpg');
+const s=await fs.readFile('.mascot-fix/broncos-wordmark.svg','utf8');console.log(s);
