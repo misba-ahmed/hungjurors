@@ -1,0 +1,18 @@
+name: Verify challenge swiping
+on:
+  push:
+    branches: [side-challenge-swiping]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright
+      - run: npx playwright install chromium
+      - run: node scripts/test-challenge-swipe.mjs
