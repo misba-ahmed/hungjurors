@@ -5,7 +5,8 @@ for(let p=0;p<src.data.length;p+=4){const r=src.data[p],g=src.data[p+1],b=src.da
 const layers=[];let left=10;
 for(let i=0;i<ids.length;i++){const id=ids[i],official=meta.find(m=>m.id===id);assert.equal(cat[id].heightInches,official.height);assert.equal(cat[id].jersey,official.jersey);
 const x=Math.round(i*src.info.width/3),right=Math.round((i+1)*src.info.width/3);
-const out=await sharp(src.data,{raw:src.info}).extract({left:x,top:0,width:right-x,height:src.info.height}).trim({background:'#00000000',threshold:8}).resize({height:850}).webp({quality:95}).toBuffer();
+const slice=await sharp(src.data,{raw:src.info}).extract({left:x,top:0,width:right-x,height:src.info.height}).png().toBuffer();
+const out=await sharp(slice).trim({background:'#00000000',threshold:8}).resize({height:850}).webp({quality:95}).toBuffer();
 const m=await sharp(out).metadata(),file=id+'-crutches-v1.webp';assert(m.hasAlpha);assert.equal(m.height,850);
 await fs.writeFile('assets/team-photos/players/'+file,out);cat[id].unavailable={file,width:m.width,height:m.height,ratio:Number((m.width/m.height).toFixed(5)),kind:'injury'};
 layers.push({input:out,left,top:10});left+=m.width+20;}
