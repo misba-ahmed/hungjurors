@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: hungjurors-private-mobile-test
+    runtime: docker
+    plan: free
+    branch: private-espn-connection-prototype
+    rootDir: prototype/espn-mobile
+    dockerfilePath: ./Dockerfile
+    autoDeployTrigger: off
+    healthCheckPath: /health
+    envVars:
+      - key: TEST_ACCESS_CODE
+        sync: false

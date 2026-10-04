@@ -1,0 +1,14 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Private ESPN mobile test</title><link rel="stylesheet" href="/style.css"></head><body><main>
+<p class="tag">HUNG JURORS · PRIVATE MOBILE TEST</p><h1>Connect ESPN from your phone</h1>
+<p>This prototype only reads your team. Your live site and roster stay unchanged.</p>
+<form id="login"><label>Private test access code<input type="password" id="code" autocomplete="off" required minlength="20"></label><button>Open private test</button></form>
+<div id="test" hidden>
+<p>ESPN sign-in runs in a temporary cloud browser. Your typing passes through this private server to ESPN. Passwords are not stored or recorded. Ending the test clears the browser session.</p>
+<button id="start">Open ESPN sign-in</button>
+<section id="viewer" hidden><p id="location"></p><p>Tap a field in the ESPN window, then use the typing box below. Swipe the window to scroll.</p><img id="screen" alt="Interactive ESPN sign-in screen" draggable="false">
+<form id="typing"><label>Type into the selected ESPN field<input id="text" type="password" autocomplete="off" autocapitalize="none" spellcheck="false"></label><button>Send text</button></form>
+<div class="keys"><button data-key="Tab">Next field</button><button data-key="Enter">Enter</button><button data-key="Backspace">Delete</button><button data-key="ControlOrMeta+A">Select all</button><button id="refresh">Refresh view</button></div>
+<form id="roster"><label>ESPN league ID<input id="league" inputmode="numeric" required pattern="[0-9]+"></label><label>Season<input id="season" type="number" value="2026" required></label><button>I'm signed in — read my team</button></form>
+</section><div id="results"></div><button id="end">End test &amp; clear session</button></div>
+<p id="status" role="status" aria-live="polite"></p><p class="small">Read-only connection proof. Live ESPN login, account access and roster transactions are not pre-verified. Session expires after 20 minutes.</p>
+</main><script type="module" src="/app.js"></script></body></html>

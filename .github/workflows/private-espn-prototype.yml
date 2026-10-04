@@ -1,0 +1,32 @@
+name: Verify private mobile ESPN prototype
+on:
+  push:
+    branches: [private-espn-connection-prototype]
+    paths: ['prototype/espn-mobile/**', '.github/workflows/private-espn-prototype.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Install prototype dependencies
+        working-directory: prototype/espn-mobile
+        run: npm install --no-audit --no-fund
+      - name: Verify connection boundary and session isolation
+        working-directory: prototype/espn-mobile
+        run: npm test
+      - name: Install Chromium for mobile interaction test
+        working-directory: prototype/espn-mobile
+        run: npx playwright install --with-deps chromium
+      - name: Test mobile touch and text input with fixture
+        working-directory: prototype/espn-mobile
+        run: node mobile-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: private-mobile-test-proof
+          path: prototype/espn-mobile/mobile-proof.png
