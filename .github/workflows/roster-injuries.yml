@@ -1,0 +1,27 @@
+name: Prepare roster injury pictures
+on:
+  push:
+    branches: [roster-update-oct4]
+    paths: ['.roster-check/source.png', '.roster-check/prepare.mjs']
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false sharp
+      - run: |
+          node .roster-check/prepare.mjs
+          node scripts/test-lineup-rules.mjs
+          node scripts/test-lineup-status.mjs
+          node scripts/test-lineup-live-scores.mjs
+      - run: |
+          git config user.name "misba-ahmed"
+          git config user.email "misbauddin.ahmed@gmail.com"
+          git add assets/team-photos .roster-check/proof.jpg
+          git commit -m "Prepare three crutches cutouts [skip ci]"
+          git push origin HEAD:roster-update-oct4

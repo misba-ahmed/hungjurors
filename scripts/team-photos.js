@@ -73,7 +73,11 @@ function hjTeamPhotoAsset(entry){
  const status=String(p.injuryStatus||'').trim().toUpperCase().replace(/[ -]+/g,'_');
  const rosterStatus=String(typeof p.status==='object'?p.status?.type||p.status?.name||'':p.status||'').toUpperCase().replace(/[ -]+/g,'_');
  const blocked=new Set(['OUT','DOUBTFUL','QUESTIONABLE','INJURY_RESERVE','INJURED_RESERVE','IR','SUSPENSION','SUSPENDED','EXEMPT','COMMISSIONER_EXEMPT','NON_FOOTBALL_INJURY','PHYSICALLY_UNABLE_TO_PERFORM','PUP','INACTIVE']);
- const unavailable=p.injured===true||p.active===false||blocked.has(status)||blocked.has(rosterStatus);
+ // Only an explicit current-week ESPN projection of zero triggers this rule.
+ // Missing projections and actual game scores are not zero projections.
+ const week=typeof hjCurrentWeek==='function'&&typeof HJ_LEAGUE_STATE!=='undefined'?hjCurrentWeek(HJ_LEAGUE_STATE.data):null;
+ const zeroProjection=Number.isFinite(week)&&(p.stats||[]).some(s=>s.statSourceId===1&&s.scoringPeriodId===week&&typeof s.appliedTotal==='number'&&s.appliedTotal===0&&(typeof NFL_SEASON==='undefined'||s.seasonId===Number(NFL_SEASON)));
+ const unavailable=zeroProjection||p.injured===true||p.active===false||blocked.has(status)||blocked.has(rosterStatus);
  const healthy=['ACTIVE','HEALTHY','NORMAL'].includes(status)||(!status&&p.injured===false&&p.active===true);
  return healthy&&!unavailable?base:{...base,...base.unavailable,isUnavailable:true};
 }
