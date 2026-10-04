@@ -1,0 +1,23 @@
+name: Prepare mascot reference corrections
+on:
+  push:
+    branches: [correct-three-dst-mascots]
+    paths: ['.mascot-fix/*.mjs', '.mascot-fix/source.png']
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false sharp
+      - run: node .mascot-fix/prepare.mjs
+      - run: |
+          git config user.name "misba-ahmed"
+          git config user.email "misbauddin.ahmed@gmail.com"
+          git add .mascot-fix assets/team-photos
+          git commit -m "Prepare mascot reference corrections [skip ci]"
+          git push origin HEAD:correct-three-dst-mascots
