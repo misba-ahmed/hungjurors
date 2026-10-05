@@ -1,0 +1,1 @@
+[{"f":"challenge-live.js","line":" <image href=\"/assets/managers-v4/${esc(slug)}-${pose}.webp\" x=\"0\" y=\"${seated&&key.startsWith('lms-')?-16:0}\" width=\"120\" height=\"240\"/>"}]
