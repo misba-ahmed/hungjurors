@@ -1,0 +1,2052 @@
+{
+  "measurementMethod": "Exact alpha bounds at alpha >=128. Facial landmarks in markdown are visual estimates, not detection.",
+  "managers": {
+    "misba": {
+      "standing": {
+        "source": "assets/managers-v4/misba-standing.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 40,
+          "top": 9,
+          "right": 321,
+          "bottom": 668
+        },
+        "visibleHeight": 660,
+        "visibleWidth": 282
+      },
+      "seated": {
+        "source": "assets/managers-v4/misba-seated.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 11,
+          "top": 99,
+          "right": 348,
+          "bottom": 716
+        },
+        "visibleHeight": 618,
+        "visibleWidth": 338
+      }
+    },
+    "bryan": {
+      "standing": {
+        "source": "assets/managers-v4/bryan-standing.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 54,
+          "top": 9,
+          "right": 306,
+          "bottom": 668
+        },
+        "visibleHeight": 660,
+        "visibleWidth": 253
+      },
+      "seated": {
+        "source": "assets/managers-v4/bryan-seated.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 23,
+          "top": 99,
+          "right": 337,
+          "bottom": 716
+        },
+        "visibleHeight": 618,
+        "visibleWidth": 315
+      }
+    },
+    "tyler": {
+      "standing": {
+        "source": "assets/managers-v4/tyler-standing.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 28,
+          "top": 9,
+          "right": 333,
+          "bottom": 668
+        },
+        "visibleHeight": 660,
+        "visibleWidth": 306
+      },
+      "seated": {
+        "source": "assets/managers-v4/tyler-seated.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 0,
+          "top": 99,
+          "right": 359,
+          "bottom": 716
+        },
+        "visibleHeight": 618,
+        "visibleWidth": 360
+      }
+    },
+    "nathan-m": {
+      "standing": {
+        "source": "assets/managers-v4/nathan-m-standing.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 38,
+          "top": 9,
+          "right": 322,
+          "bottom": 668
+        },
+        "visibleHeight": 660,
+        "visibleWidth": 285
+      },
+      "seated": {
+        "source": "assets/managers-v4/nathan-m-seated.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 7,
+          "top": 99,
+          "right": 353,
+          "bottom": 716
+        },
+        "visibleHeight": 618,
+        "visibleWidth": 347
+      }
+    },
+    "wasi": {
+      "standing": {
+        "source": "assets/managers-v4/wasi-standing.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 37,
+          "top": 9,
+          "right": 323,
+          "bottom": 668
+        },
+        "visibleHeight": 660,
+        "visibleWidth": 287
+      },
+      "seated": {
+        "source": "assets/managers-v4/wasi-seated.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 13,
+          "top": 99,
+          "right": 346,
+          "bottom": 716
+        },
+        "visibleHeight": 618,
+        "visibleWidth": 334
+      }
+    },
+    "cesar": {
+      "standing": {
+        "source": "assets/managers-v4/cesar-standing.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 34,
+          "top": 9,
+          "right": 325,
+          "bottom": 668
+        },
+        "visibleHeight": 660,
+        "visibleWidth": 292
+      },
+      "seated": {
+        "source": "assets/managers-v4/cesar-seated.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 12,
+          "top": 99,
+          "right": 348,
+          "bottom": 716
+        },
+        "visibleHeight": 618,
+        "visibleWidth": 337
+      }
+    },
+    "nathan-t": {
+      "standing": {
+        "source": "assets/managers-v4/nathan-t-standing.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 55,
+          "top": 9,
+          "right": 304,
+          "bottom": 668
+        },
+        "visibleHeight": 660,
+        "visibleWidth": 250
+      },
+      "seated": {
+        "source": "assets/managers-v4/nathan-t-seated.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 25,
+          "top": 99,
+          "right": 335,
+          "bottom": 716
+        },
+        "visibleHeight": 618,
+        "visibleWidth": 311
+      }
+    },
+    "garrett": {
+      "standing": {
+        "source": "assets/managers-v4/garrett-standing.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 32,
+          "top": 9,
+          "right": 327,
+          "bottom": 668
+        },
+        "visibleHeight": 660,
+        "visibleWidth": 296
+      },
+      "seated": {
+        "source": "assets/managers-v4/garrett-seated.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 13,
+          "top": 99,
+          "right": 347,
+          "bottom": 716
+        },
+        "visibleHeight": 618,
+        "visibleWidth": 335
+      }
+    },
+    "jarrett": {
+      "standing": {
+        "source": "assets/managers-v4/jarrett-standing.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 53,
+          "top": 9,
+          "right": 306,
+          "bottom": 668
+        },
+        "visibleHeight": 660,
+        "visibleWidth": 254
+      },
+      "seated": {
+        "source": "assets/managers-v4/jarrett-seated.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 26,
+          "top": 99,
+          "right": 334,
+          "bottom": 716
+        },
+        "visibleHeight": 618,
+        "visibleWidth": 309
+      }
+    },
+    "kat": {
+      "standing": {
+        "source": "assets/managers-v4/kat-standing.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 60,
+          "top": 9,
+          "right": 300,
+          "bottom": 668
+        },
+        "visibleHeight": 660,
+        "visibleWidth": 241
+      },
+      "seated": {
+        "source": "assets/managers-v4/kat-seated.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 44,
+          "top": 99,
+          "right": 316,
+          "bottom": 716
+        },
+        "visibleHeight": 618,
+        "visibleWidth": 273
+      }
+    }
+  },
+  "players": {
+    "catalog": "assets/team-photos/catalog.json",
+    "heightAuthority": "assets/team-photos/height-reference.json",
+    "approvedBody": "assets/team-photos/players/4047646-faces-v2.webp",
+    "nativeHeight": 850,
+    "resting": "proportional to heightInches; common baseline",
+    "selected": "uniform target size independent of heightInches; 75% of original target",
+    "entries": {
+      "12483": {
+        "file": "12483-faces-v2.webp",
+        "width": 325,
+        "height": 850,
+        "ratio": 0.38235,
+        "heightInches": 75,
+        "name": "Matthew Stafford",
+        "teamId": 14,
+        "jersey": "9"
+      },
+      "15847": {
+        "file": "15847-faces-v2.webp",
+        "width": 324,
+        "height": 850,
+        "ratio": 0.38118,
+        "heightInches": 77,
+        "name": "Travis Kelce",
+        "teamId": 12,
+        "jersey": "87"
+      },
+      "16737": {
+        "file": "16737-faces-v2.webp",
+        "width": 318,
+        "height": 850,
+        "ratio": 0.37412,
+        "heightInches": 77,
+        "name": "Mike Evans",
+        "teamId": 25,
+        "jersey": "5"
+      },
+      "16800": {
+        "file": "16800-faces-v2.webp",
+        "width": 330,
+        "height": 850,
+        "ratio": 0.38824,
+        "heightInches": 73,
+        "name": "Davante Adams",
+        "teamId": 14,
+        "jersey": "17"
+      },
+      "17372": {
+        "file": "17372-faces-v2.webp",
+        "width": 324,
+        "height": 850,
+        "ratio": 0.38118,
+        "heightInches": 74,
+        "name": "Chris Boswell",
+        "teamId": 23,
+        "jersey": "9"
+      },
+      "2473037": {
+        "file": "2473037-faces-v2.webp",
+        "width": 318,
+        "height": 850,
+        "ratio": 0.37412,
+        "heightInches": 70,
+        "name": "Jason Myers",
+        "teamId": 26,
+        "jersey": "5"
+      },
+      "2576925": {
+        "file": "2576925-faces-v2.webp",
+        "width": 318,
+        "height": 850,
+        "ratio": 0.37412,
+        "heightInches": 78,
+        "name": "Darren Waller",
+        "teamId": 29,
+        "jersey": "88"
+      },
+      "2577417": {
+        "file": "2577417-faces-v2.webp",
+        "width": 324,
+        "height": 850,
+        "ratio": 0.38118,
+        "heightInches": 74,
+        "name": "Dak Prescott",
+        "teamId": 6,
+        "jersey": "4"
+      },
+      "2971573": {
+        "file": "2971573-faces-v2.webp",
+        "width": 321,
+        "height": 850,
+        "ratio": 0.37765,
+        "heightInches": 72,
+        "name": "Ka'imi Fairbairn",
+        "teamId": 34,
+        "jersey": "15"
+      },
+      "2973405": {
+        "file": "2973405-faces-v2.webp",
+        "width": 306,
+        "height": 850,
+        "ratio": 0.36,
+        "heightInches": 69,
+        "name": "Kalif Raymond",
+        "teamId": 3,
+        "jersey": "14"
+      },
+      "2976212": {
+        "file": "2976212-faces-v2.webp",
+        "width": 325,
+        "height": 850,
+        "ratio": 0.38235,
+        "heightInches": 72,
+        "name": "Stefon Diggs",
+        "teamId": 28,
+        "jersey": "3"
+      },
+      "3040151": {
+        "file": "3040151-faces-v2.webp",
+        "width": 318,
+        "height": 850,
+        "ratio": 0.37412,
+        "heightInches": 76,
+        "name": "George Kittle",
+        "teamId": 25,
+        "jersey": "85"
+      },
+      "3042519": {
+        "file": "3042519-faces-v2.webp",
+        "width": 327,
+        "height": 850,
+        "ratio": 0.38471,
+        "heightInches": 70,
+        "name": "Aaron Jones Sr.",
+        "teamId": 16,
+        "jersey": "33"
+      },
+      "3043078": {
+        "file": "3043078-faces-v2.webp",
+        "width": 346,
+        "height": 850,
+        "ratio": 0.40706,
+        "heightInches": 74,
+        "name": "Derrick Henry",
+        "teamId": 33,
+        "jersey": "22"
+      },
+      "3046439": {
+        "file": "3046439-faces-v2.webp",
+        "width": 326,
+        "height": 850,
+        "ratio": 0.38353,
+        "heightInches": 77,
+        "name": "Hunter Henry",
+        "teamId": 17,
+        "jersey": "85"
+      },
+      "3046779": {
+        "file": "3046779-faces-v2.webp",
+        "width": 331,
+        "height": 850,
+        "ratio": 0.38941,
+        "heightInches": 76,
+        "name": "Jared Goff",
+        "teamId": 8,
+        "jersey": "16"
+      },
+      "3054850": {
+        "file": "3054850-faces-v2.webp",
+        "width": 344,
+        "height": 850,
+        "ratio": 0.40471,
+        "heightInches": 70,
+        "name": "Alvin Kamara",
+        "teamId": 18,
+        "jersey": "41"
+      },
+      "3055899": {
+        "file": "3055899-faces-v2.webp",
+        "width": 316,
+        "height": 850,
+        "ratio": 0.37176,
+        "heightInches": 76,
+        "name": "Harrison Butker",
+        "teamId": 12,
+        "jersey": "7"
+      },
+      "3116165": {
+        "file": "3116165-faces-v2.webp",
+        "width": 352,
+        "height": 850,
+        "ratio": 0.41412,
+        "heightInches": 73,
+        "name": "Chris Godwin Jr.",
+        "teamId": 27,
+        "jersey": "14"
+      },
+      "3116365": {
+        "file": "3116365-faces-v2.webp",
+        "width": 331,
+        "height": 850,
+        "ratio": 0.38941,
+        "heightInches": 77,
+        "name": "Mark Andrews",
+        "teamId": 33,
+        "jersey": "89"
+      },
+      "3117251": {
+        "file": "3117251-faces-v2.webp",
+        "width": 323,
+        "height": 850,
+        "ratio": 0.38,
+        "heightInches": 71,
+        "name": "Christian McCaffrey",
+        "teamId": 25,
+        "jersey": "23"
+      },
+      "3117256": {
+        "file": "3117256-faces-v2.webp",
+        "width": 311,
+        "height": 850,
+        "ratio": 0.36588,
+        "heightInches": 77,
+        "name": "Dalton Schultz",
+        "teamId": 34,
+        "jersey": "86"
+      },
+      "3121023": {
+        "file": "3121023-faces-v2.webp",
+        "width": 311,
+        "height": 850,
+        "ratio": 0.36588,
+        "heightInches": 77,
+        "name": "Dallas Goedert",
+        "teamId": 21,
+        "jersey": "88",
+        "unavailable": {
+          "file": "3121023-crutches-v1.webp",
+          "width": 359,
+          "height": 850,
+          "ratio": 0.42235,
+          "kind": "injury"
+        }
+      },
+      "3121422": {
+        "file": "3121422-faces-v2.webp",
+        "width": 310,
+        "height": 850,
+        "ratio": 0.36471,
+        "heightInches": 72,
+        "name": "Terry McLaurin",
+        "teamId": 28,
+        "jersey": "17",
+        "unavailable": {
+          "file": "3121422-crutches-v1.webp",
+          "width": 349,
+          "height": 850,
+          "ratio": 0.41059,
+          "kind": "injury"
+        }
+      },
+      "3126486": {
+        "file": "3126486-faces-v2.webp",
+        "width": 327,
+        "height": 850,
+        "ratio": 0.38471,
+        "heightInches": 72,
+        "name": "Deebo Samuel Sr.",
+        "teamId": 25,
+        "jersey": "19"
+      },
+      "3128429": {
+        "file": "3128429-faces-v2.webp",
+        "width": 316,
+        "height": 850,
+        "ratio": 0.37176,
+        "heightInches": 76,
+        "name": "Courtland Sutton",
+        "teamId": 7,
+        "jersey": "14"
+      },
+      "3139477": {
+        "file": "3139477-faces-v2.webp",
+        "width": 319,
+        "height": 850,
+        "ratio": 0.37529,
+        "heightInches": 74,
+        "name": "Patrick Mahomes",
+        "teamId": 12,
+        "jersey": "15"
+      },
+      "3915416": {
+        "file": "3915416-faces-v2.webp",
+        "width": 317,
+        "height": 850,
+        "ratio": 0.37294,
+        "heightInches": 72,
+        "name": "DJ Moore",
+        "teamId": 2,
+        "jersey": "2"
+      },
+      "3915511": {
+        "file": "3915511-faces-v2.webp",
+        "width": 311,
+        "height": 850,
+        "ratio": 0.36588,
+        "heightInches": 76,
+        "name": "Joe Burrow",
+        "teamId": 4,
+        "jersey": "9"
+      },
+      "3916148": {
+        "file": "3916148-faces-v2.webp",
+        "width": 327,
+        "height": 850,
+        "ratio": 0.38471,
+        "heightInches": 72,
+        "name": "Tony Pollard",
+        "teamId": 10,
+        "jersey": "20"
+      },
+      "3916387": {
+        "file": "3916387-faces-v2.webp",
+        "width": 325,
+        "height": 850,
+        "ratio": 0.38235,
+        "heightInches": 74,
+        "name": "Lamar Jackson",
+        "teamId": 33,
+        "jersey": "8"
+      },
+      "3916433": {
+        "file": "3916433-faces-v2.webp",
+        "width": 313,
+        "height": 850,
+        "ratio": 0.36824,
+        "heightInches": 74,
+        "name": "Jakobi Meyers",
+        "teamId": 30,
+        "jersey": "3"
+      },
+      "3917315": {
+        "file": "3917315-faces-v2.webp",
+        "width": 314,
+        "height": 850,
+        "ratio": 0.36941,
+        "heightInches": 70,
+        "name": "Kyler Murray",
+        "teamId": 16,
+        "jersey": "1"
+      },
+      "3918298": {
+        "file": "3918298-faces-v2.webp",
+        "width": 326,
+        "height": 850,
+        "ratio": 0.38353,
+        "heightInches": 77,
+        "name": "Josh Allen",
+        "teamId": 2,
+        "jersey": "17"
+      },
+      "3929630": {
+        "file": "3929630-faces-v2.webp",
+        "width": 332,
+        "height": 850,
+        "ratio": 0.39059,
+        "heightInches": 72,
+        "name": "Saquon Barkley",
+        "teamId": 21,
+        "jersey": "26"
+      },
+      "3929645": {
+        "file": "3929645-faces-v2.webp",
+        "width": 348,
+        "height": 850,
+        "ratio": 0.40941,
+        "heightInches": 76,
+        "name": "Juwan Johnson",
+        "teamId": 18,
+        "jersey": "83"
+      },
+      "3953687": {
+        "file": "3953687-faces-v2.webp",
+        "width": 318,
+        "height": 850,
+        "ratio": 0.37412,
+        "heightInches": 75,
+        "name": "Brandon Aubrey",
+        "teamId": 6,
+        "jersey": "17"
+      },
+      "4034949": {
+        "file": "4034949-faces-v2.webp",
+        "width": 347,
+        "height": 850,
+        "ratio": 0.40824,
+        "heightInches": 71,
+        "name": "Eddy Pineiro",
+        "teamId": 25,
+        "jersey": "18"
+      },
+      "4035538": {
+        "file": "4035538-faces-v2.webp",
+        "width": 334,
+        "height": 850,
+        "ratio": 0.39294,
+        "heightInches": 71,
+        "name": "David Montgomery",
+        "teamId": 34,
+        "jersey": "32"
+      },
+      "4035687": {
+        "file": "4035687-faces-v2.webp",
+        "width": 305,
+        "height": 850,
+        "ratio": 0.35882,
+        "heightInches": 76,
+        "name": "Michael Pittman Jr.",
+        "teamId": 23,
+        "jersey": "11"
+      },
+      "4036133": {
+        "file": "4036133-faces-v2.webp",
+        "width": 338,
+        "height": 850,
+        "ratio": 0.39765,
+        "heightInches": 77,
+        "name": "T.J. Hockenson",
+        "teamId": 16,
+        "jersey": "87"
+      },
+      "4036378": {
+        "file": "4036378-faces-v2.webp",
+        "width": 341,
+        "height": 850,
+        "ratio": 0.40118,
+        "heightInches": 76,
+        "name": "Jordan Love",
+        "teamId": 9,
+        "jersey": "10"
+      },
+      "4038815": {
+        "file": "4038815-faces-v2.webp",
+        "width": 319,
+        "height": 850,
+        "ratio": 0.37529,
+        "heightInches": 71,
+        "name": "Rico Dowdle",
+        "teamId": 23,
+        "jersey": "13",
+        "unavailable": {
+          "file": "4038815-crutches-v1.webp",
+          "width": 317,
+          "height": 850,
+          "ratio": 0.37294,
+          "kind": "injury"
+        }
+      },
+      "4038941": {
+        "file": "4038941-faces-v2.webp",
+        "width": 321,
+        "height": 850,
+        "ratio": 0.37765,
+        "heightInches": 78,
+        "name": "Justin Herbert",
+        "teamId": 24,
+        "jersey": "10"
+      },
+      "4040715": {
+        "file": "4040715-faces-v2.webp",
+        "width": 325,
+        "height": 850,
+        "ratio": 0.38235,
+        "heightInches": 73,
+        "name": "Jalen Hurts",
+        "teamId": 21,
+        "jersey": "1"
+      },
+      "4047365": {
+        "file": "4047365-faces-v2.webp",
+        "width": 315,
+        "height": 850,
+        "ratio": 0.37059,
+        "heightInches": 70,
+        "name": "Josh Jacobs",
+        "teamId": 9,
+        "jersey": "8",
+        "unavailable": {
+          "file": "4047365-unavailable-v1.webp",
+          "width": 307,
+          "height": 850,
+          "ratio": 0.36118,
+          "kind": "legal"
+        }
+      },
+      "4047646": {
+        "file": "4047646-faces-v2.webp",
+        "width": 322,
+        "height": 850,
+        "ratio": 0.37882,
+        "heightInches": 73,
+        "name": "A.J. Brown",
+        "teamId": 17,
+        "jersey": "1",
+        "unavailable": {
+          "file": "4047646-crutches-v1.webp",
+          "width": 320,
+          "height": 850,
+          "ratio": 0.37647,
+          "kind": "injury"
+        }
+      },
+      "4047650": {
+        "file": "4047650-faces-v2.webp",
+        "width": 320,
+        "height": 850,
+        "ratio": 0.37647,
+        "heightInches": 76,
+        "name": "DK Metcalf",
+        "teamId": 23,
+        "jersey": "4"
+      },
+      "4239993": {
+        "file": "4239993-faces-v2.webp",
+        "width": 326,
+        "height": 850,
+        "ratio": 0.38353,
+        "heightInches": 76,
+        "name": "Tee Higgins",
+        "teamId": 4,
+        "jersey": "5"
+      },
+      "4239996": {
+        "file": "4239996-faces-v2.webp",
+        "width": 323,
+        "height": 850,
+        "ratio": 0.38,
+        "heightInches": 70,
+        "name": "Travis Etienne Jr.",
+        "teamId": 18,
+        "jersey": "3",
+        "unavailable": {
+          "file": "4239996-crutches-v1.webp",
+          "width": 317,
+          "height": 850,
+          "ratio": 0.37294,
+          "kind": "injury"
+        }
+      },
+      "4241389": {
+        "file": "4241389-faces-v2.webp",
+        "width": 319,
+        "height": 850,
+        "ratio": 0.37529,
+        "heightInches": 74,
+        "name": "CeeDee Lamb",
+        "teamId": 6,
+        "jersey": "88"
+      },
+      "4241416": {
+        "file": "4241416-faces-v2.webp",
+        "width": 338,
+        "height": 850,
+        "ratio": 0.39765,
+        "heightInches": 73,
+        "name": "Chuba Hubbard",
+        "teamId": 29,
+        "jersey": "30"
+      },
+      "4241478": {
+        "file": "4241478-faces-v2.webp",
+        "width": 297,
+        "height": 850,
+        "ratio": 0.34941,
+        "heightInches": 72,
+        "name": "DeVonta Smith",
+        "teamId": 21,
+        "jersey": "6",
+        "unavailable": {
+          "file": "4241478-crutches-v1.webp",
+          "width": 350,
+          "height": 850,
+          "ratio": 0.41176,
+          "kind": "injury"
+        }
+      },
+      "4241985": {
+        "file": "4241985-faces-v2.webp",
+        "width": 327,
+        "height": 850,
+        "ratio": 0.38471,
+        "heightInches": 70,
+        "name": "J.K. Dobbins",
+        "teamId": 7,
+        "jersey": "27"
+      },
+      "4242335": {
+        "file": "4242335-faces-v2.webp",
+        "width": 328,
+        "height": 850,
+        "ratio": 0.38588,
+        "heightInches": 70,
+        "name": "Jonathan Taylor",
+        "teamId": 11,
+        "jersey": "28"
+      },
+      "4243331": {
+        "file": "4243331-faces-v2.webp",
+        "width": 317,
+        "height": 850,
+        "ratio": 0.37294,
+        "heightInches": 77,
+        "name": "Cade Otton",
+        "teamId": 27,
+        "jersey": "88"
+      },
+      "4248528": {
+        "file": "4248528-faces-v2.webp",
+        "width": 328,
+        "height": 850,
+        "ratio": 0.38588,
+        "heightInches": 76,
+        "name": "Christian Watson",
+        "teamId": 9,
+        "jersey": "9"
+      },
+      "4258173": {
+        "file": "4258173-faces-v2.webp",
+        "width": 323,
+        "height": 850,
+        "ratio": 0.38,
+        "heightInches": 76,
+        "name": "Nico Collins",
+        "teamId": 34,
+        "jersey": "12"
+      },
+      "4259545": {
+        "file": "4259545-faces-v2.webp",
+        "width": 327,
+        "height": 850,
+        "ratio": 0.38471,
+        "heightInches": 68,
+        "name": "D'Andre Swift",
+        "teamId": 3,
+        "jersey": "4"
+      },
+      "4262921": {
+        "file": "4262921-faces-v2.webp",
+        "width": 313,
+        "height": 850,
+        "ratio": 0.36824,
+        "heightInches": 73,
+        "name": "Justin Jefferson",
+        "teamId": 16,
+        "jersey": "18",
+        "unavailable": {
+          "file": "4262921-crutches-v1.webp",
+          "width": 415,
+          "height": 850,
+          "ratio": 0.48824,
+          "kind": "injury"
+        }
+      },
+      "4360078": {
+        "file": "4360078-faces-v2.webp",
+        "width": 313,
+        "height": 850,
+        "ratio": 0.36824,
+        "heightInches": 75,
+        "name": "Alec Pierce",
+        "teamId": 11,
+        "jersey": "14",
+        "unavailable": {
+          "file": "4360078-crutches-v1.webp",
+          "width": 309,
+          "height": 850,
+          "ratio": 0.36353,
+          "kind": "injury"
+        }
+      },
+      "4360234": {
+        "file": "4360234-faces-v2.webp",
+        "width": 307,
+        "height": 850,
+        "ratio": 0.36118,
+        "heightInches": 71,
+        "name": "Evan McPherson",
+        "teamId": 4,
+        "jersey": "2"
+      },
+      "4360248": {
+        "file": "4360248-faces-v2.webp",
+        "width": 310,
+        "height": 850,
+        "ratio": 0.36471,
+        "heightInches": 78,
+        "name": "Kyle Pitts Sr.",
+        "teamId": 1,
+        "jersey": "8"
+      },
+      "4360310": {
+        "file": "4360310-faces-v2.webp",
+        "width": 319,
+        "height": 850,
+        "ratio": 0.37529,
+        "heightInches": 78,
+        "name": "Trevor Lawrence",
+        "teamId": 30,
+        "jersey": "16"
+      },
+      "4360569": {
+        "file": "4360569-faces-v2.webp",
+        "width": 342,
+        "height": 850,
+        "ratio": 0.40235,
+        "heightInches": 71,
+        "name": "Jordan Mason",
+        "teamId": 16,
+        "jersey": "27",
+        "unavailable": {
+          "file": "4360569-crutches-v1.webp",
+          "width": 324,
+          "height": 850,
+          "ratio": 0.38118,
+          "kind": "injury"
+        }
+      },
+      "4360689": {
+        "file": "4360689-faces-v2.webp",
+        "width": 310,
+        "height": 850,
+        "ratio": 0.36471,
+        "heightInches": 77,
+        "name": "Tyler Shough",
+        "teamId": 18,
+        "jersey": "6"
+      },
+      "4360761": {
+        "file": "4360761-faces-v2.webp",
+        "width": 309,
+        "height": 850,
+        "ratio": 0.36353,
+        "heightInches": 74,
+        "name": "Michael Wilson",
+        "teamId": 22,
+        "jersey": "14"
+      },
+      "4360939": {
+        "file": "4360939-faces-v2.webp",
+        "width": 313,
+        "height": 850,
+        "ratio": 0.36824,
+        "heightInches": 73,
+        "name": "Rashod Bateman",
+        "teamId": 33,
+        "jersey": "7"
+      },
+      "4361050": {
+        "file": "4361050-faces-v2.webp",
+        "width": 315,
+        "height": 850,
+        "ratio": 0.37059,
+        "heightInches": 76,
+        "name": "Isaiah Likely",
+        "teamId": 19,
+        "jersey": "9"
+      },
+      "4361307": {
+        "file": "4361307-faces-v2.webp",
+        "width": 326,
+        "height": 850,
+        "ratio": 0.38353,
+        "heightInches": 76,
+        "name": "Trey McBride",
+        "teamId": 22,
+        "jersey": "85"
+      },
+      "4361370": {
+        "file": "4361370-faces-v2.webp",
+        "width": 322,
+        "height": 850,
+        "ratio": 0.37882,
+        "heightInches": 72,
+        "name": "Chris Olave",
+        "teamId": 18,
+        "jersey": "12"
+      },
+      "4361411": {
+        "file": "4361411-faces-v2.webp",
+        "width": 320,
+        "height": 850,
+        "ratio": 0.37647,
+        "heightInches": 77,
+        "name": "Pat Freiermuth",
+        "teamId": 23,
+        "jersey": "88"
+      },
+      "4361432": {
+        "file": "4361432-faces-v3.webp",
+        "width": 320,
+        "height": 850,
+        "ratio": 0.37647,
+        "heightInches": 74,
+        "name": "Romeo Doubs",
+        "teamId": 17,
+        "jersey": "87"
+      },
+      "4361579": {
+        "file": "4361579-faces-v2.webp",
+        "width": 329,
+        "height": 850,
+        "ratio": 0.38706,
+        "heightInches": 70,
+        "name": "Javonte Williams",
+        "teamId": 6,
+        "jersey": "33"
+      },
+      "4361741": {
+        "file": "4361741-faces-v2.webp",
+        "width": 312,
+        "height": 850,
+        "ratio": 0.36706,
+        "heightInches": 73,
+        "name": "Brock Purdy",
+        "teamId": 25,
+        "jersey": "13"
+      },
+      "4362238": {
+        "file": "4362238-faces-v2.webp",
+        "width": 307,
+        "height": 850,
+        "ratio": 0.36118,
+        "heightInches": 70,
+        "name": "Chase Brown",
+        "teamId": 4,
+        "jersey": "30"
+      },
+      "4362249": {
+        "file": "4362249-faces-v2.webp",
+        "width": 306,
+        "height": 850,
+        "ratio": 0.36,
+        "heightInches": 71,
+        "name": "Jayden Reed",
+        "teamId": 9,
+        "jersey": "11",
+        "unavailable": {
+          "file": "4362249-crutches-v1.webp",
+          "width": 307,
+          "height": 850,
+          "ratio": 0.36118,
+          "kind": "injury"
+        }
+      },
+      "4362628": {
+        "file": "4362628-faces-v2.webp",
+        "width": 325,
+        "height": 850,
+        "ratio": 0.38235,
+        "heightInches": 72,
+        "name": "Ja'Marr Chase",
+        "teamId": 4,
+        "jersey": "1"
+      },
+      "4371733": {
+        "file": "4371733-faces-v2.webp",
+        "width": 327,
+        "height": 850,
+        "ratio": 0.38471,
+        "heightInches": 69,
+        "name": "Kenny Gainwell",
+        "teamId": 27,
+        "jersey": "1"
+      },
+      "4372016": {
+        "file": "4372016-faces-v2.webp",
+        "width": 298,
+        "height": 850,
+        "ratio": 0.35059,
+        "heightInches": 70,
+        "name": "Jaylen Waddle",
+        "teamId": 7,
+        "jersey": "17"
+      },
+      "4373678": {
+        "file": "4373678-faces-v2.webp",
+        "width": 320,
+        "height": 850,
+        "ratio": 0.37647,
+        "heightInches": 72,
+        "name": "Khalil Shakir",
+        "teamId": 2,
+        "jersey": "10"
+      },
+      "4374302": {
+        "file": "4374302-faces-v2.webp",
+        "width": 319,
+        "height": 850,
+        "ratio": 0.37529,
+        "heightInches": 72,
+        "name": "Amon-Ra St. Brown",
+        "teamId": 8,
+        "jersey": "14"
+      },
+      "4379399": {
+        "file": "4379399-faces-v2.webp",
+        "width": 304,
+        "height": 850,
+        "ratio": 0.35765,
+        "heightInches": 71,
+        "name": "James Cook III",
+        "teamId": 2,
+        "jersey": "4"
+      },
+      "4385690": {
+        "file": "4385690-faces-v2.webp",
+        "width": 329,
+        "height": 850,
+        "ratio": 0.38706,
+        "heightInches": 75,
+        "name": "Dalton Kincaid",
+        "teamId": 2,
+        "jersey": "86"
+      },
+      "4426348": {
+        "file": "4426348-faces-v2.webp",
+        "width": 308,
+        "height": 850,
+        "ratio": 0.36235,
+        "heightInches": 76,
+        "name": "Jayden Daniels",
+        "teamId": 28,
+        "jersey": "5",
+        "unavailable": {
+          "file": "4426348-crutches-v1.webp",
+          "width": 358,
+          "height": 850,
+          "ratio": 0.42118,
+          "kind": "injury"
+        }
+      },
+      "4426354": {
+        "file": "4426354-faces-v2.webp",
+        "width": 321,
+        "height": 850,
+        "ratio": 0.37765,
+        "heightInches": 75,
+        "name": "George Pickens",
+        "teamId": 6,
+        "jersey": "3"
+      },
+      "4426385": {
+        "file": "4426385-faces-v2.webp",
+        "width": 334,
+        "height": 850,
+        "ratio": 0.39294,
+        "heightInches": 73,
+        "name": "Zach Charbonnet",
+        "teamId": 26,
+        "jersey": "26",
+        "unavailable": {
+          "file": "4426385-crutches-v1.webp",
+          "width": 343,
+          "height": 850,
+          "ratio": 0.40353,
+          "kind": "injury"
+        }
+      },
+      "4426388": {
+        "file": "4426388-faces-v2.webp",
+        "width": 300,
+        "height": 850,
+        "ratio": 0.35294,
+        "heightInches": 73,
+        "name": "Jameson Williams",
+        "teamId": 8,
+        "jersey": "1"
+      },
+      "4426502": {
+        "file": "4426502-faces-v2.webp",
+        "width": 313,
+        "height": 850,
+        "ratio": 0.36824,
+        "heightInches": 76,
+        "name": "Drake London",
+        "teamId": 1,
+        "jersey": "5"
+      },
+      "4426515": {
+        "file": "4426515-faces-v2.webp",
+        "width": 313,
+        "height": 850,
+        "ratio": 0.36824,
+        "heightInches": 74,
+        "name": "Puka Nacua",
+        "teamId": 14,
+        "jersey": "12"
+      },
+      "4427366": {
+        "file": "4427366-faces-v2.webp",
+        "width": 314,
+        "height": 850,
+        "ratio": 0.36941,
+        "heightInches": 71,
+        "name": "Breece Hall",
+        "teamId": 20,
+        "jersey": "20",
+        "unavailable": {
+          "file": "4427366-crutches-v1.webp",
+          "width": 358,
+          "height": 850,
+          "ratio": 0.42118,
+          "kind": "injury"
+        }
+      },
+      "4428331": {
+        "file": "4428331-faces-v2.webp",
+        "width": 319,
+        "height": 850,
+        "ratio": 0.37529,
+        "heightInches": 73,
+        "name": "Rashee Rice",
+        "teamId": 12,
+        "jersey": "4"
+      },
+      "4428850": {
+        "file": "4428850-faces-v2.webp",
+        "width": 306,
+        "height": 850,
+        "ratio": 0.36,
+        "heightInches": 73,
+        "name": "Dontayvion Wicks",
+        "teamId": 21,
+        "jersey": "13"
+      },
+      "4429025": {
+        "file": "4429025-faces-v2.webp",
+        "width": 320,
+        "height": 850,
+        "ratio": 0.37647,
+        "heightInches": 74,
+        "name": "Quentin Johnston",
+        "teamId": 24,
+        "jersey": "1"
+      },
+      "4429086": {
+        "file": "4429086-faces-v2.webp",
+        "width": 335,
+        "height": 850,
+        "ratio": 0.39412,
+        "heightInches": 76,
+        "name": "Michael Mayer",
+        "teamId": 13,
+        "jersey": "87"
+      },
+      "4429096": {
+        "file": "4429096-faces-v2.webp",
+        "width": 330,
+        "height": 850,
+        "ratio": 0.38824,
+        "heightInches": 68,
+        "name": "Blake Corum",
+        "teamId": 14,
+        "jersey": "24"
+      },
+      "4429160": {
+        "file": "4429160-faces-v2.webp",
+        "width": 326,
+        "height": 850,
+        "ratio": 0.38353,
+        "heightInches": 69,
+        "name": "De'Von Achane",
+        "teamId": 15,
+        "jersey": "28",
+        "unavailable": {
+          "file": "4429160-crutches-v1.webp",
+          "width": 327,
+          "height": 850,
+          "ratio": 0.38471,
+          "kind": "injury"
+        }
+      },
+      "4429205": {
+        "file": "4429205-faces-v2.webp",
+        "width": 310,
+        "height": 850,
+        "ratio": 0.36471,
+        "heightInches": 71,
+        "name": "Jordan Addison",
+        "teamId": 16,
+        "jersey": "3"
+      },
+      "4429615": {
+        "file": "4429615-faces-v2.webp",
+        "width": 305,
+        "height": 850,
+        "ratio": 0.35882,
+        "heightInches": 69,
+        "name": "Zay Flowers",
+        "teamId": 33,
+        "jersey": "4"
+      },
+      "4429795": {
+        "file": "4429795-faces-v2.webp",
+        "width": 301,
+        "height": 850,
+        "ratio": 0.35412,
+        "heightInches": 69,
+        "name": "Jahmyr Gibbs",
+        "teamId": 8,
+        "jersey": "0"
+      },
+      "4430027": {
+        "file": "4430027-faces-v2.webp",
+        "width": 332,
+        "height": 850,
+        "ratio": 0.39059,
+        "heightInches": 75,
+        "name": "Sam LaPorta",
+        "teamId": 8,
+        "jersey": "87"
+      },
+      "4430737": {
+        "file": "4430737-faces-v2.webp",
+        "width": 315,
+        "height": 850,
+        "ratio": 0.37059,
+        "heightInches": 69,
+        "name": "Kyren Williams",
+        "teamId": 14,
+        "jersey": "23"
+      },
+      "4430807": {
+        "file": "4430807-faces-v2.webp",
+        "width": 321,
+        "height": 850,
+        "ratio": 0.37765,
+        "heightInches": 71,
+        "name": "Bijan Robinson",
+        "teamId": 1,
+        "jersey": "7"
+      },
+      "4430878": {
+        "file": "4430878-faces-v2.webp",
+        "width": 314,
+        "height": 850,
+        "ratio": 0.36941,
+        "heightInches": 72,
+        "name": "Jaxon Smith-Njigba",
+        "teamId": 26,
+        "jersey": "11"
+      },
+      "4431299": {
+        "file": "4431299-faces-v2.webp",
+        "width": 312,
+        "height": 850,
+        "ratio": 0.36706,
+        "heightInches": 75,
+        "name": "Rome Odunze",
+        "teamId": 3,
+        "jersey": "15"
+      },
+      "4431452": {
+        "file": "4431452-faces-v2.webp",
+        "width": 321,
+        "height": 850,
+        "ratio": 0.37765,
+        "heightInches": 76,
+        "name": "Drake Maye",
+        "teamId": 17,
+        "jersey": "10"
+      },
+      "4431459": {
+        "file": "4431459-faces-v2.webp",
+        "width": 323,
+        "height": 850,
+        "ratio": 0.38,
+        "heightInches": 78,
+        "name": "Tyler Warren",
+        "teamId": 11,
+        "jersey": "84"
+      },
+      "4431611": {
+        "file": "4431611-faces-v2.webp",
+        "width": 320,
+        "height": 850,
+        "ratio": 0.37647,
+        "heightInches": 73,
+        "name": "Caleb Williams",
+        "teamId": 3,
+        "jersey": "18",
+        "unavailable": {
+          "file": "4431611-crutches-v1.webp",
+          "width": 357,
+          "height": 850,
+          "ratio": 0.42,
+          "kind": "injury"
+        }
+      },
+      "4432577": {
+        "file": "4432577-faces-v2.webp",
+        "width": 321,
+        "height": 850,
+        "ratio": 0.37765,
+        "heightInches": 75,
+        "name": "C.J. Stroud",
+        "teamId": 34,
+        "jersey": "7"
+      },
+      "4432620": {
+        "file": "4432620-faces-v2.webp",
+        "width": 305,
+        "height": 850,
+        "ratio": 0.35882,
+        "heightInches": 70,
+        "name": "Parker Washington",
+        "teamId": 30,
+        "jersey": "11"
+      },
+      "4432665": {
+        "file": "4432665-faces-v2.webp",
+        "width": 320,
+        "height": 850,
+        "ratio": 0.37647,
+        "heightInches": 76,
+        "name": "Brock Bowers",
+        "teamId": 13,
+        "jersey": "89"
+      },
+      "4432708": {
+        "file": "4432708-faces-v2.webp",
+        "width": 323,
+        "height": 850,
+        "ratio": 0.38,
+        "heightInches": 75,
+        "name": "Marvin Harrison Jr.",
+        "teamId": 22,
+        "jersey": "18"
+      },
+      "4432710": {
+        "file": "4432710-faces-v2.webp",
+        "width": 317,
+        "height": 850,
+        "ratio": 0.37294,
+        "heightInches": 70,
+        "name": "TreVeyon Henderson",
+        "teamId": 17,
+        "jersey": "32"
+      },
+      "4432773": {
+        "file": "4432773-faces-v2.webp",
+        "width": 310,
+        "height": 850,
+        "ratio": 0.36471,
+        "heightInches": 74,
+        "name": "Brian Thomas Jr.",
+        "teamId": 30,
+        "jersey": "7"
+      },
+      "4567048": {
+        "file": "4567048-faces-v2.webp",
+        "width": 333,
+        "height": 850,
+        "ratio": 0.39176,
+        "heightInches": 69,
+        "name": "Kenneth Walker III",
+        "teamId": 12,
+        "jersey": "9"
+      },
+      "4567750": {
+        "file": "4567750-faces-v2.webp",
+        "width": 314,
+        "height": 850,
+        "ratio": 0.36941,
+        "heightInches": 73,
+        "name": "Emeka Egbuka",
+        "teamId": 27,
+        "jersey": "2"
+      },
+      "4568490": {
+        "file": "4568490-faces-v2.webp",
+        "width": 324,
+        "height": 850,
+        "ratio": 0.38118,
+        "heightInches": 68,
+        "name": "RJ Harvey",
+        "teamId": 7,
+        "jersey": "12"
+      },
+      "4569173": {
+        "file": "4569173-faces-v2.webp",
+        "width": 335,
+        "height": 850,
+        "ratio": 0.39412,
+        "heightInches": 72,
+        "name": "Rhamondre Stevenson",
+        "teamId": 17,
+        "jersey": "38"
+      },
+      "4569559": {
+        "file": "4569559-faces-v2.webp",
+        "width": 288,
+        "height": 850,
+        "ratio": 0.33882,
+        "heightInches": 77,
+        "name": "Devaughn Vele",
+        "teamId": 18,
+        "jersey": "14"
+      },
+      "4569587": {
+        "file": "4569587-faces-v2.webp",
+        "width": 327,
+        "height": 850,
+        "ratio": 0.38471,
+        "heightInches": 68,
+        "name": "Wan'Dale Robinson",
+        "teamId": 10,
+        "jersey": "4"
+      },
+      "4569618": {
+        "file": "4569618-faces-v2.webp",
+        "width": 304,
+        "height": 850,
+        "ratio": 0.35765,
+        "heightInches": 72,
+        "name": "Garrett Wilson",
+        "teamId": 20,
+        "jersey": "5"
+      },
+      "4569987": {
+        "file": "4569987-faces-v2.webp",
+        "width": 317,
+        "height": 850,
+        "ratio": 0.37294,
+        "heightInches": 68,
+        "name": "Jaylen Warren",
+        "teamId": 23,
+        "jersey": "30"
+      },
+      "4571557": {
+        "file": "4571557-faces-v2.webp",
+        "width": 334,
+        "height": 850,
+        "ratio": 0.39294,
+        "heightInches": 74,
+        "name": "Spencer Shrader",
+        "teamId": 11,
+        "jersey": "3"
+      },
+      "4572680": {
+        "file": "4572680-faces-v2.webp",
+        "width": 330,
+        "height": 850,
+        "ratio": 0.38824,
+        "heightInches": 77,
+        "name": "Tucker Kraft",
+        "teamId": 9,
+        "jersey": "85"
+      },
+      "4574716": {
+        "file": "4574716-faces-v2.webp",
+        "width": 330,
+        "height": 850,
+        "ratio": 0.38824,
+        "heightInches": 72,
+        "name": "Harrison Mevis",
+        "teamId": 14,
+        "jersey": "92"
+      },
+      "4575131": {
+        "file": "4575131-faces-v2.webp",
+        "width": 329,
+        "height": 850,
+        "ratio": 0.38706,
+        "heightInches": 71,
+        "name": "Jacory Croskey-Merritt",
+        "teamId": 28,
+        "jersey": "22"
+      },
+      "4595348": {
+        "file": "4595348-faces-v2.webp",
+        "width": 317,
+        "height": 850,
+        "ratio": 0.37294,
+        "heightInches": 72,
+        "name": "Malik Nabers",
+        "teamId": 19,
+        "jersey": "1"
+      },
+      "4596448": {
+        "file": "4596448-faces-v2.webp",
+        "width": 323,
+        "height": 850,
+        "ratio": 0.38,
+        "heightInches": 70,
+        "name": "Bucky Irving",
+        "teamId": 27,
+        "jersey": "7"
+      },
+      "4597500": {
+        "file": "4597500-faces-v2.webp",
+        "width": 303,
+        "height": 850,
+        "ratio": 0.35647,
+        "heightInches": 74,
+        "name": "Adonai Mitchell",
+        "teamId": 20,
+        "jersey": "15",
+        "unavailable": {
+          "file": "4597500-crutches-v1.webp",
+          "width": 358,
+          "height": 850,
+          "ratio": 0.42118,
+          "kind": "injury"
+        }
+      },
+      "4608686": {
+        "file": "4608686-faces-v2.webp",
+        "width": 347,
+        "height": 850,
+        "ratio": 0.40824,
+        "heightInches": 68,
+        "name": "Kyle Monangai",
+        "teamId": 3,
+        "jersey": "25"
+      },
+      "4612826": {
+        "file": "4612826-faces-v2.webp",
+        "width": 322,
+        "height": 850,
+        "ratio": 0.37882,
+        "heightInches": 72,
+        "name": "Ladd McConkey",
+        "teamId": 24,
+        "jersey": "15"
+      },
+      "4635008": {
+        "file": "4635008-faces-v2.webp",
+        "width": 303,
+        "height": 850,
+        "ratio": 0.35647,
+        "heightInches": 75,
+        "name": "Keon Coleman",
+        "teamId": 2,
+        "jersey": "0"
+      },
+      "4678008": {
+        "file": "4678008-faces-v2.webp",
+        "width": 323,
+        "height": 850,
+        "ratio": 0.38,
+        "heightInches": 72,
+        "name": "Jonathon Brooks",
+        "teamId": 29,
+        "jersey": "25",
+        "unavailable": {
+          "file": "4678008-crutches-v1.webp",
+          "width": 321,
+          "height": 850,
+          "ratio": 0.37765,
+          "kind": "injury"
+        }
+      },
+      "4682745": {
+        "file": "4682745-faces-v2.webp",
+        "width": 350,
+        "height": 850,
+        "ratio": 0.41176,
+        "heightInches": 70,
+        "name": "Jaylen Wright",
+        "teamId": 15,
+        "jersey": "5"
+      },
+      "4683062": {
+        "file": "4683062-faces-v2.webp",
+        "width": 321,
+        "height": 850,
+        "ratio": 0.37765,
+        "heightInches": 71,
+        "name": "Xavier Worthy",
+        "teamId": 12,
+        "jersey": "1"
+      },
+      "4685247": {
+        "file": "4685247-faces-v2.webp",
+        "width": 350,
+        "height": 850,
+        "ratio": 0.41176,
+        "heightInches": 73,
+        "name": "Braelon Allen",
+        "teamId": 20,
+        "jersey": "0"
+      },
+      "4685278": {
+        "file": "4685278-faces-v2.webp",
+        "width": 313,
+        "height": 850,
+        "ratio": 0.36824,
+        "heightInches": 72,
+        "name": "Luther Burden III",
+        "teamId": 3,
+        "jersey": "10"
+      },
+      "4685382": {
+        "file": "4685382-faces-v2.webp",
+        "width": 322,
+        "height": 850,
+        "ratio": 0.37882,
+        "heightInches": 72,
+        "name": "Omarion Hampton",
+        "teamId": 24,
+        "jersey": "8"
+      },
+      "4685472": {
+        "file": "4685472-faces-v2.webp",
+        "width": 329,
+        "height": 850,
+        "ratio": 0.38706,
+        "heightInches": 77,
+        "name": "Tetairoa McMillan",
+        "teamId": 29,
+        "jersey": "4"
+      },
+      "4685512": {
+        "file": "4685512-faces-v2.webp",
+        "width": 332,
+        "height": 850,
+        "ratio": 0.39059,
+        "heightInches": 71,
+        "name": "Jadarian Price",
+        "teamId": 26,
+        "jersey": "8",
+        "unavailable": {
+          "file": "4685512-crutches-v1.webp",
+          "width": 366,
+          "height": 850,
+          "ratio": 0.43059,
+          "kind": "injury"
+        }
+      },
+      "4685702": {
+        "file": "4685702-faces-v2.webp",
+        "width": 335,
+        "height": 850,
+        "ratio": 0.39412,
+        "heightInches": 72,
+        "name": "Quinshon Judkins",
+        "teamId": 5,
+        "jersey": "10"
+      },
+      "4685720": {
+        "file": "4685720-faces-v2.webp",
+        "width": 298,
+        "height": 850,
+        "ratio": 0.35059,
+        "heightInches": 70,
+        "name": "Bryce Young",
+        "teamId": 29,
+        "jersey": "9"
+      },
+      "4686361": {
+        "file": "4686361-faces-v2.webp",
+        "width": 319,
+        "height": 850,
+        "ratio": 0.37529,
+        "heightInches": 73,
+        "name": "Cam Little",
+        "teamId": 30,
+        "jersey": "39"
+      },
+      "4688813": {
+        "file": "4688813-faces-v2.webp",
+        "width": 300,
+        "height": 850,
+        "ratio": 0.35294,
+        "heightInches": 69,
+        "name": "Josh Downs",
+        "teamId": 11,
+        "jersey": "2"
+      },
+      "4689936": {
+        "file": "4689936-faces-v2.webp",
+        "width": 311,
+        "height": 850,
+        "ratio": 0.36588,
+        "heightInches": 70,
+        "name": "Jake Bates",
+        "teamId": 8,
+        "jersey": "39"
+      },
+      "4695883": {
+        "file": "4695883-faces-v2.webp",
+        "width": 298,
+        "height": 850,
+        "ratio": 0.35059,
+        "heightInches": 75,
+        "name": "Jalen Coker",
+        "teamId": 29,
+        "jersey": "18",
+        "unavailable": {
+          "file": "4695883-crutches-v1.webp",
+          "width": 349,
+          "height": 850,
+          "ratio": 0.41059,
+          "kind": "injury"
+        }
+      },
+      "4696981": {
+        "file": "4696981-faces-v2.webp",
+        "width": 331,
+        "height": 850,
+        "ratio": 0.38941,
+        "heightInches": 71,
+        "name": "Cam Skattebo",
+        "teamId": 19,
+        "jersey": "44"
+      },
+      "4697745": {
+        "file": "4697745-faces-v2.webp",
+        "width": 333,
+        "height": 850,
+        "ratio": 0.39176,
+        "heightInches": 71,
+        "name": "Tyler Loop",
+        "teamId": 33,
+        "jersey": "33"
+      },
+      "4701936": {
+        "file": "4701936-faces-v2.webp",
+        "width": 302,
+        "height": 850,
+        "ratio": 0.35529,
+        "heightInches": 71,
+        "name": "Matthew Golden",
+        "teamId": 9,
+        "jersey": "0"
+      },
+      "4702555": {
+        "file": "4702555-faces-v2.webp",
+        "width": 336,
+        "height": 850,
+        "ratio": 0.39529,
+        "heightInches": 68,
+        "name": "Jonah Coleman",
+        "teamId": 7,
+        "jersey": "20",
+        "unavailable": {
+          "file": "4702555-crutches-v1.webp",
+          "width": 332,
+          "height": 850,
+          "ratio": 0.39059,
+          "kind": "injury"
+        }
+      },
+      "4711533": {
+        "file": "4711533-faces-v2.webp",
+        "width": 336,
+        "height": 850,
+        "ratio": 0.39529,
+        "heightInches": 74,
+        "name": "Ollie Gordon II",
+        "teamId": 15,
+        "jersey": "0"
+      },
+      "4723086": {
+        "file": "4723086-faces-v2.webp",
+        "width": 330,
+        "height": 850,
+        "ratio": 0.38824,
+        "heightInches": 78,
+        "name": "Colston Loveland",
+        "teamId": 3,
+        "jersey": "84"
+      },
+      "4832800": {
+        "file": "4832800-faces-v2.webp",
+        "width": 296,
+        "height": 850,
+        "ratio": 0.34824,
+        "heightInches": 76,
+        "name": "Denzel Boston",
+        "teamId": 5,
+        "jersey": "12"
+      },
+      "4869461": {
+        "file": "4869461-faces-v2.webp",
+        "width": 332,
+        "height": 850,
+        "ratio": 0.39059,
+        "heightInches": 73,
+        "name": "Trey Smack",
+        "teamId": 9,
+        "jersey": "28"
+      },
+      "4870808": {
+        "file": "4870808-faces-v2.webp",
+        "width": 331,
+        "height": 850,
+        "ratio": 0.38941,
+        "heightInches": 72,
+        "name": "Jeremiyah Love",
+        "teamId": 22,
+        "jersey": "4"
+      },
+      "4871023": {
+        "file": "4871023-faces-v2.webp",
+        "width": 334,
+        "height": 850,
+        "ratio": 0.39294,
+        "heightInches": 74,
+        "name": "Carnell Tate",
+        "teamId": 10,
+        "jersey": "14"
+      },
+      "4882093": {
+        "file": "4882093-faces-v2.webp",
+        "width": 323,
+        "height": 850,
+        "ratio": 0.38,
+        "heightInches": 69,
+        "name": "Bhayshul Tuten",
+        "teamId": 30,
+        "jersey": "33"
+      },
+      "4887558": {
+        "file": "4887558-faces-v2.webp",
+        "width": 353,
+        "height": 850,
+        "ratio": 0.41529,
+        "heightInches": 70,
+        "name": "Emanuel Wilson",
+        "teamId": 26,
+        "jersey": "23"
+      },
+      "4890973": {
+        "file": "4890973-faces-v2.webp",
+        "width": 321,
+        "height": 850,
+        "ratio": 0.37765,
+        "heightInches": 68,
+        "name": "Ashton Jeanty",
+        "teamId": 13,
+        "jersey": "2"
+      },
+      "5083076": {
+        "file": "5083076-faces-v2.webp",
+        "width": 321,
+        "height": 850,
+        "ratio": 0.37765,
+        "heightInches": 76,
+        "name": "Harold Fannin Jr.",
+        "teamId": 5,
+        "jersey": "44"
+      },
+      "5083315": {
+        "file": "5083315-faces-v2.webp",
+        "width": 317,
+        "height": 850,
+        "ratio": 0.37294,
+        "heightInches": 75,
+        "name": "Kenyon Sadiq",
+        "teamId": 20,
+        "jersey": "16"
+      }
+    }
+  }
+}
