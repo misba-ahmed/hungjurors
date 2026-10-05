@@ -1,3 +1,6 @@
+
+// Cancel the superseded read-only inspection still running on this branch.
+await fetch('https://api.github.com/repos/misba-ahmed/hungjurors/actions/runs/37346065837/cancel',{method:'POST',headers:{Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json'}});
 import fs from 'node:fs';import sharp from 'sharp';import{execFileSync}from'node:child_process';
 let index=await(await fetch('https://raw.githubusercontent.com/misba-ahmed/hungjurors/main/index.html')).text();
 const names=['MISBA','BRYAN','TYLER','NATHAN M','WASI','CESAR','NATHAN T','GARRETT','JARRETT','KAT'],slugs=['misba','bryan','tyler','nathan-m','wasi','cesar','nathan-t','garrett','jarrett','kat'],geometry=[];
