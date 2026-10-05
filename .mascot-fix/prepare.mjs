@@ -1,8 +1,8 @@
-import fs from 'node:fs';import sharp from 'sharp';
-const base='https://raw.githubusercontent.com/misba-ahmed/hungjurors/main/';
-const cat=await(await fetch(base+'assets/team-photos/catalog.json')).json();
-const data=await(await fetch('https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/2026/segments/0/leagues/1630558?view=mRoster&view=mTeam')).json();
-const week=data.scoringPeriodId||data.status?.currentMatchupPeriod;const rows=[];
-for(const t of data.teams||[])for(const e of t.roster?.entries||[]){const p=e.playerPoolEntry.player;if(p.defaultPositionId===16)continue;const stats=(p.stats||[]).filter(s=>s.statSourceId===1&&s.scoringPeriodId===week&&s.seasonId===2026);const proj=stats.find(s=>s.appliedTotal!=null)?.appliedTotal;const missing=!cat[p.id],status=p.injuryStatus;const need=['OUT','QUESTIONABLE','DOUBTFUL','INJURY_RESERVE','SUSPENSION','EXEMPT'].includes(status)||p.active===false||proj===0;
-if(missing||need||cat[p.id]?.unavailable){const row={id:p.id,name:p.fullName,manager:t.name||t.location,team:p.proTeamId,status,active:p.active,proj,missing,needsVariant:need&&!cat[p.id]?.unavailable,variant:cat[p.id]?.unavailable?.file,regular:cat[p.id]?.file};rows.push(row);if(missing||row.needsVariant){const a=await(await fetch('https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/'+p.id)).json();Object.assign(row,{height:a.height,jersey:a.jersey,headshot:a.headshot?.href});if(a.headshot?.href)await sharp(Buffer.from(await(await fetch(a.headshot.href)).arrayBuffer())).png().toFile('.mascot-fix/head-'+p.id+'.png');}}}
-fs.writeFileSync('.mascot-fix/roster-audit.json',JSON.stringify({week,totalTeams:data.teams?.length,rows},null,2));
+import sharp from 'sharp';import fs from 'node:fs';
+const orig='assets/team-photos/mascots/dst-17-mascot-wordmark-v3.webp';
+const normalized=await sharp('.mascot-fix/source.png').resize(422,850,{fit:'fill'}).png().toBuffer();
+const patch=await sharp(normalized).extract({left:150,top:290,width:120,height:175}).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+for(let y=0;y<175;y++)for(let x=0;x<120;x++){const d=Math.min(x,y,119-x,174-y);patch.data[(y*120+x)*4+3]=Math.round(255*Math.min(1,d/5));}
+const buf=await sharp(patch.data,{raw:patch.info}).png().toBuffer();
+await sharp(orig).composite([{input:buf,left:150,top:290}]).webp({lossless:true}).toFile('assets/team-photos/mascots/dst-17-mascot-wordmark-v4.webp');
+await sharp('assets/team-photos/mascots/dst-17-mascot-wordmark-v4.webp').png().toFile('.mascot-fix/patriots-proof.png');
