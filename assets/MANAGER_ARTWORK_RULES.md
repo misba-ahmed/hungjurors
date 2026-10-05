@@ -29,10 +29,12 @@ October 5 correction: v7 was rejected for a floating head. Preserve the continuo
 
 
 ## Circular portrait framing (October 5)
-Jarrett's circle uses assets/avatars/jarrett-20261005-framed.svg, embedding the unchanged approved portrait PNG. The 512px canvas places a uniformly scaled 614px portrait at x=-51, y=20. This is circle framing only; never apply that transform to full-body figures. Shared prepare-manager-avatars.mjs selects the file throughout the site. Preserve full hair, visible ears, and a comparable hair-to-chin occupancy to the other managers rather than including extra chest/neck.
+Jarrett's circle uses assets/avatars/jarrett-20261005-circle-v2.svg, embedding the unchanged approved portrait PNG. The 512px canvas places a uniformly scaled 552px portrait at x=-20, y=20. This is circle framing only; never apply that transform to full-body figures. Shared prepare-manager-avatars.mjs selects the file throughout the site. Preserve full hair, visible ears, and a comparable hair-to-chin occupancy to the other managers rather than including extra chest/neck.
 Weekly Recap High Five and Free Agent Gold must use the same official player headshots and cover/top image crop as other player circles. Only D/ST logos use contain. Do not generate replacement faces to solve a CSS crop issue.
 
 
 ## Approved Last Man Standing elimination pose (October 5)
 User approved the sad cross-legged ground-seated sheet. This is a separate, explicit pose exception for LMS only: hips and legs rest directly on the floor with contact shadows, closed downturned mouths and sad brows. No bench, invisible chair, hovering, or squat. Keep ordinary standing and Optimizer bench poses unchanged.
 Production sheet: assets/managers-lms-v1/ground-seated-sad.png (2079 x 756, transparent, 2 rows of 5). Frame metadata: assets/managers-lms-v1/frames.json. Original approved colored mockup is the corresponding approval.png in that folder. Inline nested SVG crops the shared sheet; do not use an external-image SVG wrapper, because browsers block external resources inside SVG image files. All ten use the same scale and floor baseline. Only final eliminations from Week 5 onward select pose "eliminated". Existing elimination fade is CSS; never bake it into face artwork.
+
+The previous 614px (120%) circle enlargement was rejected as too large. Do not restore it. Circle v2 reduces that rendered portrait size by 10%, preserves the approved face, and uses a new URL so the browser cannot keep the rejected crop.
