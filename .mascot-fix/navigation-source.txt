@@ -1,0 +1,958 @@
+ update();
+ // A selected matchup is always expanded. The selector owns navigation.
+ document.addEventListener('click',e=>{if(e.target.closest('[data-hq-matchup-toggle]')){e.preventDefault();e.stopImmediatePropagation()}},true);
+});
+function hjNewsGameHTML(item){
+ const player={id:item.espn_id,name:item.player,team:item.team,position:item.position};
+ try{return hjGameContextHTML(player,hjCurrentWeek())}catch(_){
+   const t=pair.textContent.trim(),match=t.match(/^(?:ESPN|E)\s*([+−\-\d.,—…]+)\s*(?:[·|/]\s*)?(?:Vegas\*?|V)\s*([+−\-\d.,—…]+)$/i);
+   if(!match)return;
+   const owner=pair.closest('[data-hq-directory-id],[data-player-id],[data-hq-matchup-key],[data-hq-manager]');
+   const context=owner?(owner.getAttribute('data-hq-directory-id')||owner.getAttribute('data-player-id')||owner.getAttribute('data-hq-matchup-key')||owner.getAttribute('data-hq-manager')):'';
+   const key=context?`legacy:${context}:${pair.className}:${pair.closest('.right')?'right':'left'}`:'';
+   pair.innerHTML=hjProjectionFlipHTML(match[1],match[2],key);
+  });
+   if(!match)return;
+   const owner=pair.closest('[data-hq-directory-id],[data-player-id],[data-hq-matchup-key],[data-hq-manager]');
+   const context=owner?(owner.getAttribute('data-hq-directory-id')||owner.getAttribute('data-player-id')||owner.getAttribute('data-hq-matchup-key')||owner.getAttribute('data-hq-manager')):'';
+   const key=context?`legacy:${context}:${pair.className}:${pair.closest('.right')?'right':'left'}`:'';
+   pair.innerHTML=hjProjectionFlipHTML(match[1],match[2],key);
+  });
+ }
+ },60000);
+}
+async function hjDataSchedule(season,week){return hjDataRequest(`nfl:${season}:${week}`,()=>hjDataJson(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${season}&seasontype=2&week=${week}&limit=100`),60000)}
+async function hjDataScheduleMap(season,weeks){
+ const schedule=new Map(HJ_GAME_RANKS.schedule);
+ await Promise.allSettled([...new Set(weeks)].map(async week=>{
+  const payload=await hjDataSchedule(season,week);
+}
+async function hjDataSchedule(season,week){return hjDataRequest(`nfl:${season}:${week}`,()=>hjDataJson(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${season}&seasontype=2&week=${week}&limit=100`),60000)}
+async function hjDataScheduleMap(season,weeks){
+ const schedule=new Map(HJ_GAME_RANKS.schedule);
+ await Promise.allSettled([...new Set(weeks)].map(async week=>{
+  const payload=await hjDataSchedule(season,week);
+  for(const event of payload.events||[]){const competition=event.competitions?.[0],home=competition?.competitors?.find(c=>c.homeAway==='home'),away=competition?.competitors?.find(c=>c.homeAway==='away');if(!home||!away)continue;
+ }
+}
+async function hjDataEnrichSchedule(season,loadWeek,rows){
+ try{
+  const schedule=await hjDataScheduleMap(season,rows.map(r=>Number(r.week)));
+  if(loadWeek!==hjCurrentWeek())return;HJ_GAME_RANKS.schedule=schedule;
+  const enriched=(HJ_DATA.seasons.get(season)||rows).map(row=>{
+function hjGameFinal(game,data){const week=Number(game.matchupPeriodId);return !!(game.home&&game.away&&game.playoffTierType!=='WINNERS_BRACKET'&&(['HOME','AWAY','TIE'].includes(game.winner))&&hjSideScore(game.home,week)!==null&&hjSideScore(game.away,week)!==null)}
+function hjWeeklyStat(entry,week,source=0,season=Number(NFL_SEASON)){return (hjPlayer(entry).stats||[]).find(s=>Number(s.seasonId)===season&&Number(s.scoringPeriodId)===Number(week)&&Number(s.statSourceId)===source&&Number(s.statSplitTypeId)===1&&hjNumber(s.appliedTotal)!==null)||null}
+function hjHistoricalEntries(game,sideName,week){const side=game?.[sideName];return (side?.rosterForCurrentScoringPeriod||side?.rosterForMatchupPeriod||side?.roster)?.entries||[]}
+function hjOptimalLineup(entries,data,week){
+ if(!entries?.length||entries.some(e=>!hjPlayer(e).id||!Array.isArray(hjPlayer(e).eligibleSlots)||(Number(e.lineupSlotId)!==21&&!hjWeeklyStat(e,week))))return null;
+ const plan=hjLineupPlan(data),pool=entries.filter(e=>Number(e.lineupSlotId)!==21),memo=new Map();
+ const cacheKey=JSON.stringify([NFL_SEASON,week,plan,entries.map(e=>[hjPlayer(e).id,e.lineupSlotId,hjPlayer(e).eligibleSlots,hjWeeklyStat(e,week)?.appliedTotal])]);if(HJ_DATA.optimal.has(cacheKey))return HJ_DATA.optimal.get(cacheKey);
+ // Optional enrichment never blocks the recap's core results or the Players list.
+ if(HJ_HQ_STATE.activeTab==='recap'&&!HJ_RECAP_EXTRA.jobs.has(week)&&Date.now()-(HJ_RECAP_EXTRA.weeks.get(week)?.checked||0)>300000)setTimeout(()=>hjRecapLoadExtra(chosen),0);
+ return `<div class="hq-module-body hj-recap"><div class="hj-recap-head"><div><span class="recap-eyebrow">THE WEEKLY EDITION</span><h2>Week ${week} in the books</h2></div><label><span class="sr-only">Recap week</span><select data-hj-recap-week aria-label="Recap week">${[...weeks].reverse().map(w=>`<option value="${w.week}"${w.week===week?' selected':''}>Week ${w.week}</option>`).join('')}</select></label></div><div class="recap-highlights">${basic}</div>${leaders?`<section class="recap-position-sheet"><h3>Position leaders <small>Week ${week} · league scoring</small></h3><div class="recap-position-leaders">${leaders}</div></section>`:''}<section class="recap-ledger"><h3>The league, side by side</h3><table><thead><tr><th>Manager / matchup</th><th>Result</th><th>All-play</th><th>Efficiency</th></tr></thead><tbody>${allPlay}</tbody></table></section>${hjRecapStoriesHTML(chosen,weeks)}</div>`;
+}
+async function hjRecapLoadExtra(chosen){
+ const {week}=chosen;if(HJ_RECAP_EXTRA.jobs.has(week))return HJ_RECAP_EXTRA.jobs.get(week);
+ const old=HJ_RECAP_EXTRA.weeks.get(week);if(old&&Date.now()-old.checked<300000)return old;
+  return {season:NFL_SEASON,seasonType:2,week};
+}
+function nflScheduleUrl(period=nflActivePeriod()){
+  const params=new URLSearchParams({dates:String(period.season),seasontype:String(period.seasonType),week:String(period.week),limit:'100',_:String(Date.now())});
+  return `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?${params}`;
+}
+function nflTeamKey(value=''){
+  };
+}
+function nflScheduleRange(games){
+  const dates=games.map(g=>new Date(g.kickoff)).filter(d=>Number.isFinite(d.getTime())).sort((a,b)=>a-b);
+  if(!dates.length)return '';
+  const zone='America/Chicago',first=dates[0],last=dates[dates.length-1];
+  const month=d=>new Intl.DateTimeFormat('en-US',{month:'short',timeZone:zone}).format(d);
+  return month(first)===month(last)?`${month(first)} ${day(first)}–${day(last)}`:`${month(first)} ${day(first)}–${month(last)} ${day(last)}`;
+}
+function nflReadScheduleCache(period){
+  try{
+    const cached=JSON.parse(localStorage.getItem(NFL_SCHEDULE_CACHE_KEY)||'null');
+    if(!cached||Date.now()-Number(cached.at)>NFL_SCHEDULE_CACHE_MS)return null;
+    if(Number(cached.week)!==period.week||Number(cached.seasonType)!==period.seasonType||!Array.isArray(cached.games)||!cached.games.length)return null;
+  }catch(_){return null}
+}
+function nflWriteScheduleCache(period,games){
+  try{localStorage.setItem(NFL_SCHEDULE_CACHE_KEY,JSON.stringify({at:Date.now(),week:period.week,seasonType:period.seasonType,games}))}catch(_){}
+}
+
+function depthInitials(name=''){
+    const max = Math.max(0, week1El.scrollWidth - week1El.clientWidth);
+    const target = Math.min(max, Math.max(0, card.offsetLeft - (week1El.clientWidth - card.offsetWidth)/2));
+    week1El.scrollTo({left:target, behavior:'smooth'});
+  },80));
+}
+function closeGameCard(card){
+  if(!card) return;
+  if(meta)meta.innerHTML=`${esc(g.day)} | ${esc(g.date)} | ${esc(g.time)} · <span class="nfl-depth-game">${esc(g.a[0])} / ${esc(g.b[0])}</span>`;
+}
+function renderNFLWeekSchedule(){
+  if(!week1El)return;
+  const title=$('#nfl-week-title');
+  const period=nflActivePeriod();
+  if(!NFL_WEEK1.length){
+  week1El.innerHTML=NFL_WEEK1.map(nflCardHTML).join('');
+}
+function nflScheduleSignature(games){
+  return games.map(g=>g.eventId).join('|');
+}
+function nflQueueScheduleRefresh(delay){
+  clearTimeout(nflScheduleTimer);
+  return games.map(g=>g.eventId).join('|');
+}
+function nflQueueScheduleRefresh(delay){
+  clearTimeout(nflScheduleTimer);
+  nflScheduleTimer=setTimeout(()=>refreshNFLWeeklySchedule(),delay);
+}
+function nflScheduleRefreshDelay(games){
+  nflScheduleTimer=setTimeout(()=>refreshNFLWeeklySchedule(),delay);
+}
+function nflScheduleRefreshDelay(games){
+  if(games.some(g=>g.state==='in'))return NFL_LIVE_REFRESH_MS;
+  const now=Date.now();
+  const nearKickoff=games.some(g=>{
+    if(g.state!=='pre')return false;
+  return nearKickoff?NFL_LIVE_REFRESH_MS:NFL_IDLE_REFRESH_MS;
+}
+async function refreshNFLWeeklySchedule(forceRender=false){
+  if(nflScheduleRefreshing||document.hidden)return;
+  nflScheduleRefreshing=true;
+  try{
+    const requested=nflActivePeriod();
+  if(!data||typeof hjRosterEntries!=='function')return index;
+  (data.teams||[]).forEach(team=>{
+    const manager=(typeof hjMatchManager==='function'?hjMatchManager(team,data):'')||(typeof hjOwnerName==='function'?hjOwnerName(team,data):'');
+    if(!manager)return;
+    const ids=new Set(),names=new Set();
+    hjRosterEntries(team).forEach(entry=>{
+      const p=typeof hjPlayer==='function'?hjPlayer(entry):(entry?.player||entry?.playerPoolEntry?.player||{}),id=String(p?.id||entry?.playerId||'');
+  if(reset)reset.disabled=!ffnFiltersActive();
+  ffnRebuildRail();
+  $('#ffn-scroll')?.scrollTo({left:0,behavior:'auto'});
+}
+function ffnResetFilters(){
+  const player=$('#ffn-player-filter');
+  const team=$('#ffn-team-filter');
+  const card=state.newsId?rail.querySelector(`[data-news-id="${CSS.escape(state.newsId)}"]`):null;
+  const left=card?card.offsetLeft-state.offset:state.scrollLeft;
+  rail.scrollTo({left:Math.max(0,left),behavior:'auto'});
+}
+async function ffnRefreshLatest({returnToStart=false,initial=false}={}){
+  const rail=$('#ffn-scroll');
+  const button=$('#ffn-refresh');
+  const button=$('#ffn-refresh');
+  if(!rail)return [];
+  if(returnToStart)rail.scrollTo({left:0,behavior:'smooth'});
+  if(ffnRefreshPromise)return ffnRefreshPromise;
+  const bootstrap=initial||!ffnLiveReady;
+
+  button?.setAttribute('aria-busy','true');
+        ffnSetFilterControlsDisabled(false);
+        ffnRebuildRail();
+        rail.scrollTo({left:0,behavior:'auto'});
+      }else{
+        const existingIds=new Set(ffnItems.map(x=>String(x?.id||'')).filter(Boolean));
+        const existingSignatures=new Set(ffnItems.map(ffnNewsSignature));
+        fresh=fetched.filter(item=>{
+          ffnRebuildRail();
+          if(returnToStart){
+            rail.scrollTo({left:0,behavior:'smooth'});
+          }else if(railState){
+            ffnRestoreRailState(rail,railState,fresh.length);
+          }
+        }
+  return ffnRefreshPromise;
+}
+function ffnScheduleAutoRefresh(){
+  clearTimeout(ffnAutoRefreshTimer);
+  if(document.hidden)return;
+  const elapsed=ffnLastCheckAt?Date.now()-ffnLastCheckAt:0;
+  const delay=Math.max(1000,FFN_AUTO_REFRESH_MS-elapsed);
+function pcNorm(value=''){return String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
+function pcBaseName(value=''){return pcNorm(value).replace(/\b(jr|sr|ii|iii|iv|v)\b/g,'').replace(/\s+/g,' ').trim()}
+function pcNameMatch(a,b){const x=pcNorm(a),y=pcNorm(b);return !!x&&!!y&&(x===y||pcBaseName(x)===pcBaseName(y))}
+function pcAverage(values){const clean=values.filter(Number.isFinite);return clean.length?clean.reduce((a,b)=>a+b,0)/clean.length:0}
+function pcCsvLine(line){const out=[];let value='',quoted=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(quoted&&line[i+1]==='"'){value+='"';i++}else quoted=!quoted}else if(ch===','&&!quoted){out.push(value);value=''}else value+=ch}out.push(value);return out}
+function pcParseCsv(text,fields,keep){
+  const lines=String(text||'').replace(/\r/g,'').split('\n');
+function pcTouchdowns(row,pos=String(row.position||'')){return pos==='QB'?pcNumber(row.passing_tds)+pcNumber(row.rushing_tds):pos==='K'?0:pcNumber(row.rushing_tds)+pcNumber(row.receiving_tds)+pcNumber(row.special_teams_tds)}
+const pcSeasonFetchedAt=new Map();
+function pcEspnActualSeasonMatch(stat,season){return Number(stat?.seasonId??stat?.seasonValue)===Number(season)}
+function pcEspnActualPlayer(entry){return entry?.player||entry?.playerPoolEntry?.player||{}}
+function pcEspnActualPosition(player){return ({1:'QB',2:'RB',3:'WR',4:'TE',5:'K'})[Number(player?.defaultPositionId)]||''}
+function pcEspnActualTeam(player){const id=String(player?.proTeamId||'');return pcTeam(Object.entries(NFL_TEAM_IDS).find(([,teamId])=>String(teamId)===id)?.[0]||'')}
+function pcEspnRaw(stats,...ids){for(const id of ids){const value=stats?.[String(id)]??stats?.[id];if(value!==''&&value!=null&&Number.isFinite(Number(value)))return Number(value)}return null}
+ const wanted=period==='season'?0:Number(week),season=Number(entry?._pcSeason||NFL_SEASON);return (pcSpecialPlayer(entry).stats||[]).find(s=>Number(s.seasonId)===season&&Number(s.statSourceId)===1&&Number(s.statSplitTypeId)===(period==='season'?0:1)&&Number(s.scoringPeriodId)===wanted&&hjNumber(s.appliedTotal)!==null)||null;
+}
+function pcSpecialProjectionFind(data,player){const entries=data?.entries||[],position=String(player.position||'').toUpperCase(),samePosition=entry=>pcSpecialPosition(entry)===position;return entries.find(entry=>samePosition(entry)&&String(pcSpecialPlayer(entry)?.id||entry?.id)===String(player.id))||entries.find(entry=>position==='D/ST'&&samePosition(entry)&&pcTeam(pcSpecialTeam(entry))===pcTeam(player.team))||entries.find(entry=>samePosition(entry)&&pcNameMatch(pcSpecialPlayer(entry)?.fullName,player.name))}
+function pcSpecialProjectionRank(data,entry,period='week',week=1){if(!entry)return null;const position=pcSpecialPosition(entry),rows=(data?.entries||[]).filter(item=>pcSpecialPosition(item)===position).map(item=>({entry:item,stat:pcSpecialProjectionStat(item,period,week)})).filter(item=>item.stat).sort((a,b)=>pcNumber(b.stat.appliedTotal)-pcNumber(a.stat.appliedTotal)),index=rows.findIndex(item=>item.entry===entry);return index<0?null:{rank:index+1,total:rows.length}}
+function pcSpecialProjectionPanel(label,data,entry,period,week){
+  const stat=pcSpecialProjectionStat(entry,period,week);if(!stat)return '';
+  const position=pcSpecialPosition(entry),context=pcSpecialProjectionRank(data,entry,period,week),s=stat.stats||{};
+  const weeklyTarget=root.querySelector('[data-pc-vegas-week],[data-pc-special-week]'),seasonTarget=root.querySelector('[data-pc-vegas-season],[data-pc-special-season]');if(!weeklyTarget&&!seasonTarget)return;const data=await pcLoadSpecialProjections(NFL_SEASON);if(!pcActive||token!==pcActive.token)return;const entry=pcSpecialProjectionFind(data,player),week=typeof hjCurrentWeek==='function'?hjCurrentWeek():Number(NFL_WEEK1[0]?.week||1),render=(target,label,period)=>{if(!target)return;target.classList.add('hj-special-projections');target.classList.toggle('hj-special-season',period==='season');const panel=pcSpecialProjectionPanel(label,data,entry,period,week);if(!panel){target.innerHTML='<div class="pc-vegas-state">No current projection is available for this player.</div>';return}target.innerHTML=`<div class="pc-vegas-head"><span class="pc-vegas-title">${period==='season'?'ESPN fantasy season projection':'ESPN fantasy projection'}</span><span class="pc-vegas-updated">${data.updated?`Updated ${esc(data.updated)}`:''}</span></div><div class="pc-vegas-grid is-single">${panel}</div>`};render(weeklyTarget,'This week','week');render(seasonTarget,'Season','season');
+}
+function pcDstStats(entry){const season=Number(entry?._pcSeason||NFL_SEASON);return (entry?.player?.stats||[]).filter(stat=>Number(stat?.scoringPeriodId)>0&&Number(stat?.statSourceId)===0&&Number(stat?.statSplitTypeId)===1&&pcEspnActualSeasonMatch(stat,season)).sort((a,b)=>Number(a.scoringPeriodId)-Number(b.scoringPeriodId))}
+function pcDstTotal(entry){return pcDstStats(entry).reduce((sum,stat)=>sum+pcNumber(stat.appliedTotal),0)}
+function pcDstTeam(entry){const id=String(entry?.player?.proTeamId||'');return Object.entries(NFL_TEAM_IDS).find(([,teamId])=>String(teamId)===id)?.[0]?.toUpperCase().replace(/^WSH$/,'WAS')||''}
+function pcDstFind(entries,player){return entries.find(entry=>String(entry?.player?.id||entry?.id)===String(player.id))||entries.find(entry=>pcTeam(pcDstTeam(entry))===pcTeam(player.team))||entries.find(entry=>pcNameMatch(entry?.player?.fullName,player.name))}
+function pcDstSeasonRank(entries,entry){if(!entry)return null;const total=pcDstTotal(entry);return 1+entries.filter(item=>pcDstTotal(item)>total).length}
+function pcDstTotal(entry){return pcDstStats(entry).reduce((sum,stat)=>sum+pcNumber(stat.appliedTotal),0)}
+function pcDstTeam(entry){const id=String(entry?.player?.proTeamId||'');return Object.entries(NFL_TEAM_IDS).find(([,teamId])=>String(teamId)===id)?.[0]?.toUpperCase().replace(/^WSH$/,'WAS')||''}
+function pcDstFind(entries,player){return entries.find(entry=>String(entry?.player?.id||entry?.id)===String(player.id))||entries.find(entry=>pcTeam(pcDstTeam(entry))===pcTeam(player.team))||entries.find(entry=>pcNameMatch(entry?.player?.fullName,player.name))}
+function pcDstSeasonRank(entries,entry){if(!entry)return null;const total=pcDstTotal(entry);return 1+entries.filter(item=>pcDstTotal(item)>total).length}
+function pcDstWeekRank(entries,week,value){return 1+entries.filter(entry=>{const stat=pcDstStats(entry).find(item=>Number(item.scoringPeriodId)===Number(week));return stat&&pcNumber(stat.appliedTotal)>pcNumber(value)}).length}
+function pcDstCategoryTotal(entry,ids){return pcDstStats(entry).reduce((sum,stat)=>sum+ids.reduce((subtotal,id)=>subtotal+pcNumber(stat?.stats?.[id]),0),0)}
+function pcDstCategoryRank(entries,entry,ids){if(!entry)return null;const total=pcDstCategoryTotal(entry,ids);return 1+entries.filter(item=>pcDstCategoryTotal(item,ids)>total).length}
+function pcDstCategoryTotal(entry,ids){return pcDstStats(entry).reduce((sum,stat)=>sum+ids.reduce((subtotal,id)=>subtotal+pcNumber(stat?.stats?.[id]),0),0)}
+function pcDstCategoryRank(entries,entry,ids){if(!entry)return null;const total=pcDstCategoryTotal(entry,ids);return 1+entries.filter(item=>pcDstCategoryTotal(item,ids)>total).length}
+function pcDstScheduleGame(team,season,week,schedule){return [...(schedule?.values?.()||[])].find(game=>Number(game.season)===Number(season)&&Number(game.week)===Number(week)&&(pcTeam(game.home_team)===pcTeam(team)||pcTeam(game.away_team)===pcTeam(team)))||null}
+function pcDstOffenseRanks(entries,season,schedule){
+  const map=new Map();entries.forEach(entry=>{const defense=pcDstTeam(entry);pcDstStats(entry).forEach(stat=>{const week=Number(stat.scoringPeriodId),game=pcDstScheduleGame(defense,season,week,schedule);if(!game)return;const offense=pcTeam(game.home_team)===pcTeam(defense)?pcTeam(game.away_team):pcTeam(game.home_team);if(!map.has(offense))map.set(offense,[]);map.get(offense).push(pcNumber(stat.appliedTotal))})});
+  const ranked=[...map].map(([team,points])=>({team,points,avg:pcAverage(points)})).sort((a,b)=>a.avg-b.avg);ranked.forEach(item=>item.rank=1+ranked.filter(other=>other.avg<item.avg-1e-9).length);return new Map(ranked.map(item=>[item.team,item]));
+}
+  return `<div class="pc-table-wrap"><table class="pc-table pc-dst-vs-table"><colgroup>${'<col>'.repeat(10)}</colgroup><thead><tr class="pc-group-head"><th class="pc-id-head" rowspan="2">${h('WK','Identity')}</th><th class="pc-id-head" rowspan="2">${h('D/ST','Identity')}</th><th class="pc-category-head" colspan="2">Fantasy</th><th class="pc-category-head" colspan="4">Defense</th><th class="pc-category-head" colspan="2">Allowed</th></tr><tr class="pc-column-head"><th class="pc-group-start">${h('FPTS','Fantasy')}</th><th>${h('RANK','Fantasy')}</th><th class="pc-group-start">${h('SACK','Defense')}</th><th>${h('INT','Defense')}</th><th>${h('FR','Defense')}</th><th>${h('TD','Defense')}</th><th class="pc-group-start">${h('PA','Allowed')}</th><th>${h('YA','Allowed')}</th></tr></thead><tbody>${body}</tbody></table></div><div class="pc-scroll-hint">Scroll sideways for the full defensive stat line.</div>`;
+}
+function pcDstMatchupHTML(player,season,entries,schedule){
+  const upcoming=pcUpcoming(player.team);if(!upcoming)return '';const offense=pcTeam(upcoming.abbr),name=PC_TEAM_NAMES[offense]||upcoming.name,dateLine=[upcoming.day,upcoming.date,upcoming.time,upcoming.network].filter(Boolean).join(' · ')||upcoming.detail||'Kickoff TBD',logo=upcoming.logo?`<span class="pc-matchup-logo-shell"><img class="pc-matchup-logo" src="${esc(upcoming.logo)}" alt=""></span>`:'',detail=pcDstVsOffenseHTML(entries,season,schedule,offense),rankMap=pcDstOffenseRanks(entries,season,schedule),entry=rankMap.get(offense),leagueAvg=pcAverage([...rankMap.values()].map(item=>item.avg)),last3=pcAverage(pcDstVsOffenseRows(entries,season,schedule,offense).slice(0,3).map(item=>item.points)),difference=entry?entry.avg-leagueAvg:null,differenceValue=difference==null?'—':Math.abs(difference)<.005?'About average':`${pcFpts(Math.abs(difference))} ${difference>0?'more':'fewer'}`;
+  const context=entry?`<div class="pc-dvp-grid"><div class="pc-dvp-stat"><span>${esc(name)} vs D/ST</span><strong>#${esc(entry.rank)}</strong><small>1 = fewest D/ST FPTS allowed</small></div><div class="pc-dvp-stat"><span>D/ST FPTS allowed per game</span><strong>${pcFpts(entry.avg)}</strong><small>All defenses faced</small></div><div class="pc-dvp-stat"><span>Last 3: D/ST FPTS allowed/game</span><strong>${pcFpts(last3)}</strong><small>Most recent three games</small></div><div class="pc-dvp-stat"><span>Compared with NFL average</span><strong>${esc(differenceValue)}</strong><small>NFL average: ${pcFpts(leagueAvg)} D/ST FPTS allowed/game</small></div></div>`:'<div class="pc-dvp-empty">No completed defense results against this offense yet.</div>';
+  return `<section class="pc-section" data-pc-section="matchup"><div class="pc-section-head"><h3 class="pc-section-title">Upcoming matchup</h3></div><div class="pc-matchup"><div><div class="pc-matchup-label">${esc(player.team)} ${esc(upcoming.location)} ${esc(offense)}</div><div class="pc-matchup-title">${esc(name)}</div><div class="pc-matchup-time">${hjGameContextHTML(player,hjCurrentWeek())}${hjProfileGamePoints(player)}<span>${esc(upcoming.date||'')} · ${esc(upcoming.network||'')}</span></div></div>${logo}</div><div class="pc-vegas" data-pc-special-week><div class="pc-vegas-state">Loading weekly projection…</div></div>${context}<details class="pc-expand"><summary>${esc(name)} vs D/ST - week by week</summary><div class="pc-expand-body">${detail}</div></details></section>`;
+}
+  const upcoming=pcUpcoming(player.team);if(!upcoming)return '';const offense=pcTeam(upcoming.abbr),name=PC_TEAM_NAMES[offense]||upcoming.name,dateLine=[upcoming.day,upcoming.date,upcoming.time,upcoming.network].filter(Boolean).join(' · ')||upcoming.detail||'Kickoff TBD',logo=upcoming.logo?`<span class="pc-matchup-logo-shell"><img class="pc-matchup-logo" src="${esc(upcoming.logo)}" alt=""></span>`:'',detail=pcDstVsOffenseHTML(entries,season,schedule,offense),rankMap=pcDstOffenseRanks(entries,season,schedule),entry=rankMap.get(offense),leagueAvg=pcAverage([...rankMap.values()].map(item=>item.avg)),last3=pcAverage(pcDstVsOffenseRows(entries,season,schedule,offense).slice(0,3).map(item=>item.points)),difference=entry?entry.avg-leagueAvg:null,differenceValue=difference==null?'—':Math.abs(difference)<.005?'About average':`${pcFpts(Math.abs(difference))} ${difference>0?'more':'fewer'}`;
+  const context=entry?`<div class="pc-dvp-grid"><div class="pc-dvp-stat"><span>${esc(name)} vs D/ST</span><strong>#${esc(entry.rank)}</strong><small>1 = fewest D/ST FPTS allowed</small></div><div class="pc-dvp-stat"><span>D/ST FPTS allowed per game</span><strong>${pcFpts(entry.avg)}</strong><small>All defenses faced</small></div><div class="pc-dvp-stat"><span>Last 3: D/ST FPTS allowed/game</span><strong>${pcFpts(last3)}</strong><small>Most recent three games</small></div><div class="pc-dvp-stat"><span>Compared with NFL average</span><strong>${esc(differenceValue)}</strong><small>NFL average: ${pcFpts(leagueAvg)} D/ST FPTS allowed/game</small></div></div>`:'<div class="pc-dvp-empty">No completed defense results against this offense yet.</div>';
+  return `<section class="pc-section" data-pc-section="matchup"><div class="pc-section-head"><h3 class="pc-section-title">Upcoming matchup</h3></div><div class="pc-matchup"><div><div class="pc-matchup-label">${esc(player.team)} ${esc(upcoming.location)} ${esc(offense)}</div><div class="pc-matchup-title">${esc(name)}</div><div class="pc-matchup-time">${hjGameContextHTML(player,hjCurrentWeek())}${hjProfileGamePoints(player)}<span>${esc(upcoming.date||'')} · ${esc(upcoming.network||'')}</span></div></div>${logo}</div><div class="pc-vegas" data-pc-special-week><div class="pc-vegas-state">Loading weekly projection…</div></div>${context}<details class="pc-expand"><summary>${esc(name)} vs D/ST - week by week</summary><div class="pc-expand-body">${detail}</div></details></section>`;
+}
+function pcDstProfileHTML(player,season,entries,schedule,allRows=[]){
+  const entry=pcDstFind(entries,player),stats=entry?pcDstStats(entry):[],upcoming=pcDstMatchupHTML(player,season,entries,schedule),teamSection=pcTeamHTML(player,allRows,season);if(!entry||!stats.length)return `<div class="pc-summary-section" data-pc-section="summary"><div class="pc-empty"><strong>No ${esc(season)} defense results yet</strong><span>Weekly results will appear after this defense plays.</span></div>${hjPffModuleHTML(player,season)}<div class="pc-vegas pc-vegas-summary" data-pc-special-season><div class="pc-vegas-state">Loading season projection…</div></div></div>${teamSection}${upcoming}<section class="pc-section" data-pc-section="game-log"><div class="pc-section-head"><h3 class="pc-section-title">Game Log</h3></div>${pcDstTable(pcDstTimeline(entry,player,season,schedule,entries))}</section>${pcLatestNews(player)}`;
+  const total=pcDstTotal(entry),rank=pcDstSeasonRank(entries,entry),games=stats.length,team=pcDstTeam(entry)||player.team;player.team=team;
+}
+
+function pcLoadSchedules(){
+  if(!pcSchedulePromise){const source=PC_EMBEDDED.schedules?pcEmbeddedCsv(PC_EMBEDDED.schedules):pcFetchCsv('https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv.gz','https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv');pcSchedulePromise=source.then(text=>pcParseCsv(text,PC_SCHEDULE_FIELDS,row=>String(row.game_type||'REG').toUpperCase()==='REG')).then(rows=>{pcScheduleValue=new Map(rows.map(row=>[row.game_id,{...row,away_team:pcTeam(row.away_team),home_team:pcTeam(row.home_team)}]));return pcScheduleValue;}).catch(error=>{pcSchedulePromise=null;throw error})}
+  return pcSchedulePromise;
+}
+function pcPlayerFromTrigger(trigger){
+  });
+}
+function pcProfileNavHTML(items=[['summary','Summary'],['team','Team'],['matchup','Matchup'],['game-log','Game log'],['splits','Splits'],['news','News']]){return items.map(([key,label],index)=>`<button class="pc-profile-jump${index===0?' is-active':''}" type="button" data-pc-jump="${esc(key)}">${esc(label)}</button>`).join('')}
+function pcDepthPlayerHTML(item,team,slot,isCurrent=false){
+  const position=String(item.position||'').toUpperCase(),photo=item.photo||(position==='D/ST'?ffnTeamLogo(team):nflHeadshot(item.id));
+  return `<button class="pc-depth-player pc-player-trigger${isCurrent?' is-current':''}" type="button" ${ffnPlayerDataAttrs({id:item.id,name:item.name,team,position,photo})} aria-label="Open ${esc(item.name)} profile"><span class="pc-depth-photo">${photo?`<img src="${esc(photo)}" alt="" loading="lazy">`:esc(ffnInitials(item.name))}</span><span class="pc-depth-name">${esc(item.name)}</span><span class="pc-depth-slot">${esc(slot)}</span></button>`;
+}
+  return games.map((rows,index)=>{rows.sort((a,b)=>pcPoints(b)-pcPoints(a));const total=rows.reduce((sum,row)=>sum+pcPoints(row),0),team=rows[0]?.team||'Opponent';return `<details class="pc-week-detail" ${index===0?'open':''}><summary>Week ${esc(rows[0]?.week||'—')} · ${esc(team)} · ${pcFpts(total)} ${esc(position)} FPTS</summary>${pcTable(rows,position,{weeklyRanks,snaps,rates,schedule,players:true})}</details>`}).join('');
+}
+function pcMatchupHTML(player,season,allRows,weeklyRanks,snaps,rates,schedule){
+  const upcoming=pcUpcoming(player.team);if(!upcoming)return '';
+  const entry=pcDvp(allRows,player.position).find(item=>item.defense===upcoming.abbr),league=pcDvp(allRows,player.position),leagueAvg=pcAverage(league.map(item=>item.avg));
+  const dateLine=[upcoming.day,upcoming.date,upcoming.time,upcoming.network].filter(Boolean).join(' · ')||upcoming.detail||'Kickoff TBD';
+  const detail=entry?pcDvpDetail(entry,player.position,weeklyRanks,snaps,rates,schedule):'';
+  const logo=upcoming.logo?`<span class="pc-matchup-logo-shell"><img class="pc-matchup-logo" src="${esc(upcoming.logo)}" alt=""></span>`:'';
+  const defense=entry?`<div class="pc-dvp-grid"><div class="pc-dvp-stat"><span>${esc(opponentName)} vs ${esc(plural)}</span>${hjOpponentRankHTML(entry.rank,player.position,season)}<small>1 = fewest FPTS allowed</small></div><div class="pc-dvp-stat"><span>${esc(player.position)} FPTS allowed per game</span><strong>${pcFpts(entry.avg)}</strong><small>All ${esc(plural)} faced</small></div><div class="pc-dvp-stat"><span>Last 3: ${esc(player.position)} FPTS allowed/game</span><strong>${pcFpts(entry.last3)}</strong><small>All ${esc(plural)} faced</small></div><div class="pc-dvp-stat"><span>Compared with NFL average</span><strong>${esc(differenceValue)}</strong><small>NFL average: ${pcFpts(leagueAvg)} ${esc(player.position)} FPTS allowed per game</small></div></div><details class="pc-expand"><summary>${esc(opponentName)} vs ${esc(player.position)} - week by week</summary><div class="pc-expand-body">${detail}</div></details>`:`<p class="pc-dvp-empty">No defense-vs-${esc(player.position)} results are available for this opponent yet.</p>`;
+  return `<section class="pc-section" data-pc-section="matchup"><div class="pc-section-head"><h3 class="pc-section-title">Upcoming matchup</h3><span class="pc-section-note">${esc(NFL_WEEK1[0]?.week?`Week ${NFL_WEEK1[0].week}`:'Next game')}</span></div><div class="pc-matchup"><div><div class="pc-matchup-label">${esc(player.team)} ${esc(upcoming.location)} ${hjOpponentHTML(upcoming.abbr,entry?.rank,player.position,season)}</div><div class="pc-matchup-title">${esc(opponentName)}</div><div class="pc-matchup-time">${hjGameContextHTML(player,hjCurrentWeek())}${hjProfileGamePoints(player,allRows)}<span>${esc(upcoming.date||'')} · ${esc(upcoming.network||'')}</span></div></div>${logo}</div>${vegas}${defense}</section>`;
+}
+function pcSplitRows(playerRows,allRows,player,schedule,rates){
+  const pos=player.position,make=(label,rows)=>rows.length?{label,games:rows.length,fp:pcAverage(rows.map(pcPoints)),opp:pcAverage(rows.map(row=>pcOpportunities(row,pos)))}:null,pairs=[],add=(title,aLabel,aRows,bLabel,bRows)=>{const a=make(aLabel,aRows),b=make(bLabel,bRows);if(a&&b)pairs.push({title,a,b})};
+  const game=row=>schedule?.get(row.game_id),home=playerRows.filter(row=>game(row)?.home_team===row.team),road=playerRows.filter(row=>game(row)?.away_team===row.team);add('Venue','Home',home,'Road',road);
+  return `<article class="pc-vegas-panel"><div class="pc-vegas-panel-head"><span class="pc-vegas-period">${esc(label)}</span><span class="pc-vegas-fpts-block"><strong class="pc-vegas-fpts">${pcFpts(vegasValue)}<small>Vegas FPTS</small></strong>${espnSub||'<span class="pc-vegas-espn-sub">ESPN —</span>'}</span></div>${context?`<div class="pc-vegas-context"><span class="pc-rank-source-vegas">Vegas #${context.rank} of ${context.total} ${esc(position)}s</span><span>${esc(comparison)}</span></div>`:''}<div class="pc-vegas-lines">${stats}</div></article>`;
+}
+function pcFindLeagueProjectionEntry(player){const data=typeof HJ_LEAGUE_STATE!=='undefined'?HJ_LEAGUE_STATE.data:null;if(!data)return null;const all=(data.teams||[]).flatMap(team=>hjRosterEntries(team)),id=String(player?.id||'');return all.find(entry=>id&&String(hjPlayer(entry)?.id||entry?.playerId||'')===id)||all.find(entry=>pcNameMatch(hjPlayer(entry)?.fullName||hjPlayer(entry)?.displayName,player?.name))||null}
+function pcEspnProjectionStat(entry,period='week',week=1,season=Number(NFL_SEASON)){
+ const player=entry?.player||entry?.playerPoolEntry?.player||{},split=period==='season'?0:1,wanted=period==='season'?0:Number(week);
+ const stat=(player.stats||[]).find(s=>Number(s.seasonId)===Number(season)&&Number(s.statSourceId)===1&&Number(s.statSplitTypeId)===split&&Number(s.scoringPeriodId)===wanted&&hjNumber(s.appliedTotal)!==null);
+ return stat?Number(stat.appliedTotal):null;
+}
+function pcBindProfileNav(scroll){
+  const nav=scroll?.closest('.pc-modal')?.querySelector('[data-pc-profile-nav]');if(!nav)return;const available=[['summary','Summary'],['team','Team'],['matchup','Matchup'],['game-log','Game log'],['splits','Splits'],['news','News']].filter(([key])=>scroll.querySelector(`[data-pc-section="${key}"]`));nav.innerHTML=pcProfileNavHTML(available);const buttons=[...nav.querySelectorAll('[data-pc-jump]')],sections=available.map(([key])=>scroll.querySelector(`[data-pc-section="${key}"]`));if(!sections.length)return;
+  if(scroll._pcNavHandler)scroll.removeEventListener('scroll',scroll._pcNavHandler);const activate=()=>{const marker=scroll.getBoundingClientRect().top+18;let current=sections[0];sections.forEach(section=>{if(section.getBoundingClientRect().top<=marker)current=section});buttons.forEach(button=>button.classList.toggle('is-active',button.dataset.pcJump===current.dataset.pcSection));const active=buttons.find(button=>button.classList.contains('is-active'));if(active){const left=active.offsetLeft,right=left+active.offsetWidth;if(left<nav.scrollLeft)nav.scrollLeft=left;else if(right>nav.scrollLeft+nav.clientWidth)nav.scrollLeft=right-nav.clientWidth}};scroll._pcNavHandler=activate;
+  nav.onclick=event=>{const button=event.target.closest('[data-pc-jump]');if(!button)return;const target=scroll.querySelector(`[data-pc-section="${button.dataset.pcJump}"]`);if(!target)return;const top=scroll.scrollTop+target.getBoundingClientRect().top-scroll.getBoundingClientRect().top-8;scroll.scrollTo({top:Math.max(0,top),behavior:'smooth'})};scroll.addEventListener('scroll',activate,{passive:true});activate();
+}
+async function pcRenderSeason(season){
+  const nav=scroll?.closest('.pc-modal')?.querySelector('[data-pc-profile-nav]');if(!nav)return;const available=[['summary','Summary'],['team','Team'],['matchup','Matchup'],['game-log','Game log'],['splits','Splits'],['news','News']].filter(([key])=>scroll.querySelector(`[data-pc-section="${key}"]`));nav.innerHTML=pcProfileNavHTML(available);const buttons=[...nav.querySelectorAll('[data-pc-jump]')],sections=available.map(([key])=>scroll.querySelector(`[data-pc-section="${key}"]`));if(!sections.length)return;
+  if(scroll._pcNavHandler)scroll.removeEventListener('scroll',scroll._pcNavHandler);const activate=()=>{const marker=scroll.getBoundingClientRect().top+18;let current=sections[0];sections.forEach(section=>{if(section.getBoundingClientRect().top<=marker)current=section});buttons.forEach(button=>button.classList.toggle('is-active',button.dataset.pcJump===current.dataset.pcSection));const active=buttons.find(button=>button.classList.contains('is-active'));if(active){const left=active.offsetLeft,right=left+active.offsetWidth;if(left<nav.scrollLeft)nav.scrollLeft=left;else if(right>nav.scrollLeft+nav.clientWidth)nav.scrollLeft=right-nav.clientWidth}};scroll._pcNavHandler=activate;
+  nav.onclick=event=>{const button=event.target.closest('[data-pc-jump]');if(!button)return;const target=scroll.querySelector(`[data-pc-section="${button.dataset.pcJump}"]`);if(!target)return;const top=scroll.scrollTop+target.getBoundingClientRect().top-scroll.getBoundingClientRect().top-8;scroll.scrollTo({top:Math.max(0,top),behavior:'smooth'})};scroll.addEventListener('scroll',activate,{passive:true});activate();
+}
+async function pcRenderSeason(season){
+  pcHideStatHelp();if(!pcActive)return;
+  season=Number(season);const active=pcActive,token=++pcProfileRequestId,scroll=active.overlay.querySelector('.pc-modal-scroll');
+    },0);
+  }
+  function acceptSchedule(schedule){if(!current())return;for(const [id,game] of schedule)state.schedule.set(id,game);refresh();}
+  function acceptSeason(event){if(!current()||Number(event.detail?.season)!==season)return;state.rows=event.detail.rows;refresh();}
+  active.stopLoading=()=>{state.disposed=true;clearTimeout(state.timer);document.removeEventListener('hj:season-data',acceptSeason);document.removeEventListener('hj:snaps-data',acceptSnaps);};
+  document.addEventListener('hj:season-data',acceptSeason);
+  function acceptSnaps(event){if(current()&&Number(event.detail?.season)===season){state.snaps=event.detail.snaps;refresh();}}
+  return /^https?:\/\//i.test(String(raw||''))?String(raw):'';
+}
+function hjMatchManager(team,data=HJ_LEAGUE_STATE.data){
+  const owner=hjOwner(team,data),ownerName=hjOwnerName(team,data),candidateText=hjNorm([ownerName,owner?.firstName,owner?.lastName,hjTeamName(team),team?.abbrev].filter(Boolean).join(' '));
+  if(!candidateText)return '';
+  const managers=DATA.managers.map(manager=>manager.short);
+  const historical=(HIST.manager_seasons||[]).filter(row=>Number(row.year)===2025).find(row=>hjNorm(row.team)===hjNorm(hjTeamName(team))&&managers.includes(row.manager));
+}
+
+function hjCurrentWeek(data=HJ_LEAGUE_STATE.data){return Number(data?.status?.currentMatchupPeriod||data?.scoringPeriodId||1)||1}
+function hjCurrentMatchup(teamId,data=HJ_LEAGUE_STATE.data){
+  const week=hjCurrentWeek(data),schedule=Array.isArray(data?.schedule)?data.schedule:[];
+  const matchup=schedule.find(game=>Number(game?.matchupPeriodId)===week&&(Number(game?.home?.teamId)===Number(teamId)||Number(game?.away?.teamId)===Number(teamId)));
+  if(!matchup)return null;
+
+function hjCurrentWeek(data=HJ_LEAGUE_STATE.data){return Number(data?.status?.currentMatchupPeriod||data?.scoringPeriodId||1)||1}
+function hjCurrentMatchup(teamId,data=HJ_LEAGUE_STATE.data){
+  const week=hjCurrentWeek(data),schedule=Array.isArray(data?.schedule)?data.schedule:[];
+  const matchup=schedule.find(game=>Number(game?.matchupPeriodId)===week&&(Number(game?.home?.teamId)===Number(teamId)||Number(game?.away?.teamId)===Number(teamId)));
+  if(!matchup)return null;
+  const homeIsTeam=Number(matchup?.home?.teamId)===Number(teamId),side=homeIsTeam?matchup.home:matchup.away,opponent=homeIsTeam?matchup.away:matchup.home;
+  return `<button class="hq-lineup-player${right?' is-right':''} pc-player-trigger" type="button" ${ffnPlayerDataAttrs({id,name,team,position,photo})} aria-label="Open ${esc(name)} player profile">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="ffnImageFallback(this)">`:`<span class="league-team-initials">${esc(hjInitials(name))}</span>`}<span class="hq-lineup-player-copy"><span class="hq-lineup-player-name" title="${esc(name)}">${esc(displayName)}</span><span class="hq-lineup-player-meta"><span class="hq-lineup-team-code">${esc(team)}</span><span class="hq-lineup-meta-dot">•</span><span class="hq-lineup-rank">${esc(rankedPosition)}</span></span></span><span class="hq-lineup-score${hasActual?' has-actual':''}">${liveBadge}<strong>${fmt(mainValue)}</strong>${scoreSub}</span><span class="hq-lineup-player-game">${esc(compactGame)}</span></button>`;
+}
+function hjMatchupLineupHTML(teamA,teamB,managerA,managerB,rosterA,rosterB,week,key){
+  const mode=HJ_HQ_STATE.lineupModes.get(key)||'actual',plan=hjLineupPlan(HJ_LEAGUE_STATE.data),selectedA=hjSelectionForMode(rosterA.entries,plan,week,mode),selectedB=hjSelectionForMode(rosterB.entries,plan,week,mode),totalsA=hjSelectionTotals(selectedA,week),totalsB=hjSelectionTotals(selectedB,week),benchRows=hjBenchRows(hjRemainingBench(rosterA.entries,selectedA),hjRemainingBench(rosterB.entries,selectedB)),fmt=value=>Number.isFinite(value)?pcFpts(value):'—',modeLabel=mode==='actual'?'Actual lineup':mode==='espn'?'ESPN optimal':mode==='vegas'?'Vegas optimal':'Combo optimal';
+  const rows=plan.map((slot,index)=>`<div class="hq-lineup-row"><div>${hjLineupPlayerHTML(selectedA[index],week,false)}</div><div class="hq-lineup-slot">${esc(slot.label)}</div><div>${hjLineupPlayerHTML(selectedB[index],week,true)}</div></div>`).join('');
+  const bench=benchRows.length?`<div class="hq-lineup-bench-divider"><span>Bench</span></div>${benchRows.map(row=>`<div class="hq-lineup-row is-bench-row"><div>${hjLineupPlayerHTML(row.a,week,false)}</div><div class="hq-lineup-slot hq-lineup-slot-bench" aria-hidden="true"></div><div>${hjLineupPlayerHTML(row.b,week,true)}</div></div>`).join('')}`:'';
+  const modes=[['actual','Actual','Actual lineup'],['espn','ESPN','ESPN optimal'],['vegas','Vegas','Vegas optimal'],['combo','Combo','Combo optimal']].map(([id,label,full])=>`<button type="button" class="hq-lineup-mode${mode===id?' active':''}" data-hq-lineup-mode="${id}" data-hq-matchup-key="${esc(key)}" aria-label="${full}" aria-pressed="${mode===id}">${label}</button>`).join('');
+  const rows=plan.map((slot,index)=>`<div class="hq-lineup-row"><div>${hjLineupPlayerHTML(selectedA[index],week,false)}</div><div class="hq-lineup-slot">${esc(slot.label)}</div><div>${hjLineupPlayerHTML(selectedB[index],week,true)}</div></div>`).join('');
+  const bench=benchRows.length?`<div class="hq-lineup-bench-divider"><span>Bench</span></div>${benchRows.map(row=>`<div class="hq-lineup-row is-bench-row"><div>${hjLineupPlayerHTML(row.a,week,false)}</div><div class="hq-lineup-slot hq-lineup-slot-bench" aria-hidden="true"></div><div>${hjLineupPlayerHTML(row.b,week,true)}</div></div>`).join('')}`:'';
+  const modes=[['actual','Actual','Actual lineup'],['espn','ESPN','ESPN optimal'],['vegas','Vegas','Vegas optimal'],['combo','Combo','Combo optimal']].map(([id,label,full])=>`<button type="button" class="hq-lineup-mode${mode===id?' active':''}" data-hq-lineup-mode="${id}" data-hq-matchup-key="${esc(key)}" aria-label="${full}" aria-pressed="${mode===id}">${label}</button>`).join('');
+  return `<div class="hq-lineup-wrap"><div class="hq-lineup-clip"><div class="hq-lineup-detail"><div class="hq-lineup-toolbar"><div class="hq-lineup-toolbar-copy"><b>${modeLabel}</b></div><div class="hq-lineup-modes" aria-label="Lineup view">${modes}</div></div><div class="hq-lineup-table"><div class="hq-lineup-head"><div class="hq-lineup-team-head"><b>${esc(managerA)}</b><small><span class="hq-proj-e">E ${fmt(totalsA.espn)}</span><span class="hq-proj-sep"> · </span><span class="hq-proj-v">V ${fmt(totalsA.vegas)}</span></small></div><div class="hq-lineup-slot-head">Position</div><div class="hq-lineup-team-head right"><b>${esc(managerB)}</b><small><span class="hq-proj-e">E ${fmt(totalsB.espn)}</span><span class="hq-proj-sep"> · </span><span class="hq-proj-v">V ${fmt(totalsB.vegas)}</span></small></div></div><div class="hj-starters">${rows}</div>${bench}</div></div></div></div>`;
+}
+
+function hjPlayerHTML(entry,week,season=HJ_LEAGUE_SEASON){
+  keys.forEach(key=>{[...rows].sort((a,b)=>b.values[key]-a.values[key]||a.manager.localeCompare(b.manager)).forEach((row,index,list)=>{row.ranks[key]=index&&Math.abs(row.values[key]-list[index-1].values[key])<.005?list[index-1].ranks[key]:index+1})});return rows;
+}
+function hjMatchupUnits(entries,week,season){
+ const keys=['QB','RB','WR','TE','FLEX','D/ST','K'],values=Object.fromEntries(keys.map(key=>[key,0])),players=[],missing=new Set();
+ for(const entry of entries.filter(e=>![20,21].includes(Number(e.lineupSlotId)))){const slot=Number(entry.lineupSlotId),position=hjPlayerPosition(entry),group=slot===0||slot===1?'QB':slot===2?'RB':slot===4?'WR':slot===6?'TE':[3,5,7,23,24].includes(slot)?'FLEX':slot===16?'D/ST':slot===17?'K':position,stat=hjMathCanonicalStat(entry,'week',week,season,1),value=stat?Number(stat.appliedTotal):null;if(value===null)missing.add(group);else if(values[group]!=null)values[group]+=value;players.push({entry,value})}
+ for(const key of missing)values[key]=null;
+ return {values,players,total:players.length&&!missing.size?Object.values(values).reduce((n,v)=>n+v,0):null};
+  const lineup=hjBuildLineup(effective.entries,effective.season,1),divisor=17,values=Object.fromEntries(['QB','RB','WR','TE','FLEX','D/ST','K'].map(key=>[key,(lineup.values[key]||0)/divisor])),players=Object.values(lineup.groups).flat().map(item=>({entry:item.entry,value:item.score/divisor}));return {values,players,total:(lineup.values.OVERALL||0)/divisor};
+}
+function hjMatchupLiveActual(entries,week,data=HJ_LEAGUE_STATE.data){
+  const plan=hjLineupPlan(data),selection=hjActualSelection(entries,plan);let total=0,hasActual=false;
+  selection.filter(Boolean).forEach(entry=>{const value=hjPlayerActualScore(entry,week,data);if(Number.isFinite(value)){total+=value;hasActual=true}});
+  return {total,hasActual};
+}
+  return {total,hasActual};
+}
+function hjMatchupCardHTML(game,sourceData,data,placeholder){
+  const sourceHome=(sourceData?.teams||[]).find(team=>Number(team.id)===Number(game?.home?.teamId)),sourceAway=(sourceData?.teams||[]).find(team=>Number(team.id)===Number(game?.away?.teamId));if(!sourceHome||!sourceAway)return '';
+  const managerA=hjMatchManager(sourceHome,sourceData)||hjOwnerName(sourceHome,sourceData)||`Manager ${sourceHome.id}`,managerB=hjMatchManager(sourceAway,sourceData)||hjOwnerName(sourceAway,sourceData)||`Manager ${sourceAway.id}`,findCurrent=(name,fallback)=>(data?.teams||[]).find(team=>hjMatchManager(team,data)===name)||(data?.teams||[]).find(team=>Number(team.id)===Number(fallback.id))||fallback,teamA=findCurrent(managerA,sourceHome),teamB=findCurrent(managerB,sourceAway),rosterA=hjEffectiveRoster(teamA,data),rosterB=hjEffectiveRoster(teamB,data),week=Number(game?.matchupPeriodId)||hjCurrentWeek(data),usePlaceholder=placeholder||rosterA.usingPrevious||rosterB.usingPrevious,unitsA=usePlaceholder?hjPlaceholderUnits(rosterA):hjMatchupUnits(rosterA.entries,week,rosterA.season),unitsB=usePlaceholder?hjPlaceholderUnits(rosterB):hjMatchupUnits(rosterB.entries,week,rosterB.season),liveActualA=usePlaceholder?{total:0,hasActual:false}:hjMatchupLiveActual(rosterA.entries,week,data),liveActualB=usePlaceholder?{total:0,hasActual:false}:hjMatchupLiveActual(rosterB.entries,week,data),scoreboardActualA=Number(game?.home?.totalPoints)||0,scoreboardActualB=Number(game?.away?.totalPoints)||0,live=!usePlaceholder&&(liveActualA.hasActual||liveActualB.hasActual||scoreboardActualA!==0||scoreboardActualB!==0||hjEntriesHaveLiveGame(rosterA.entries)||hjEntriesHaveLiveGame(rosterB.entries)),actualA=liveActualA.hasActual?liveActualA.total:scoreboardActualA,actualB=liveActualB.hasActual?liveActualB.total:scoreboardActualB,projectionA=usePlaceholder?unitsA.total:(Number(game?.home?.totalProjectedPoints)||unitsA.total),projectionB=usePlaceholder?unitsB.total:(Number(game?.away?.totalProjectedPoints)||unitsB.total),displayA=live?actualA:projectionA,displayB=live?actualB:projectionB,winChance=Math.max(1,Math.min(99,Math.round(100/(1+Math.exp(-(projectionA-projectionB)/15))))),leftA=usePlaceholder?'':`${hjPlayersLeft(rosterA.entries,week,data)} players left`,leftB=usePlaceholder?'':`${hjPlayersLeft(rosterB.entries,week,data)} players left`,edges=['QB','RB','WR','TE','FLEX','D/ST','K'].map(key=>{const delta=unitsA.values[key]-unitsB.values[key],winner=Math.abs(delta)<.005?'Even':`${delta>0?managerA:managerB} +${pcFpts(Math.abs(delta))}`;return `<div class="hq-edge${Math.abs(delta)<.005?' is-even':''}"><span>${esc(key)}</span><strong title="${esc(winner)}">${Math.abs(delta)<.005?'Even':`${esc(delta>0?managerA:managerB)} <span class="hq-edge-amount">+${pcFpts(Math.abs(delta))}</span>`}</strong></div>`}).join(''),swing=[...unitsA.players,...unitsB.players].sort((a,b)=>b.value-a.value).slice(0,3).map(hjMiniPlayerHTML).join(''),focused=String(HJ_HQ_STATE.focusTeamId||'')==String(teamA.id)||String(HJ_HQ_STATE.focusTeamId||'')==String(teamB.id),key=`${week}:${teamA.id}:${teamB.id}`,open=HJ_HQ_STATE.openMatchups.has(key),vegasA=usePlaceholder?null:hjTeamVegasProjection(teamA,week,data),vegasB=usePlaceholder?null:hjTeamVegasProjection(teamB,week,data),fmt=value=>Number.isFinite(value)?pcFpts(value):'—';
+  const projPair=(espn,vegas)=>usePlaceholder?'':`<span class="hq-matchup-projpair">${live?`<span>ESPN <b>${fmt(espn)}</b></span>`:''}<span>Vegas <b>${fmt(vegas)}</b></span></span>`;
+  const details=!usePlaceholder?hjMatchupLineupHTML(teamA,teamB,managerA,managerB,rosterA,rosterB,week,key):'';
+  const projPair=(espn,vegas)=>usePlaceholder?'':`<span class="hq-matchup-projpair">${live?`<span>ESPN <b>${fmt(espn)}</b></span>`:''}<span>Vegas <b>${fmt(vegas)}</b></span></span>`;
+  const details=!usePlaceholder?hjMatchupLineupHTML(teamA,teamB,managerA,managerB,rosterA,rosterB,week,key):'';
+  return `<section class="hq-matchup${focused?' is-focused':''}${open?' is-open':''}" data-hq-matchup data-hq-matchup-key="${esc(key)}" data-hq-team-a="${esc(teamA.id)}" data-hq-team-b="${esc(teamB.id)}"><div class="hq-matchup-head"><div class="hq-matchup-head-copy"><h4>Week ${week} matchup</h4><span class="hq-matchup-head-meta">${usePlaceholder?'2025 averages':live?'Live score':'Projected'}</span></div>${!usePlaceholder?`<button type="button" class="hq-matchup-toggle" data-hq-matchup-toggle="${esc(key)}" aria-expanded="${open}">${open?'Hide lineups':'View lineups'} <span class="chev">⌄</span></button>`:''}</div><div class="hq-matchup-main"><div class="hq-matchup-manager hq-home-side">${av(managerA)}<div><b class="hq-matchup-manager-name">${esc(managerA)}</b>${leftA?`<small>${esc(leftA)}</small>`:''}${projPair(projectionA,vegasA?.vegas)}</div><strong class="hq-matchup-points">${pcFpts(displayA)}</strong></div><div class="hq-matchup-middle"><div class="hq-win-bar" aria-label="${esc(managerA)} ${winChance}% win chance"><span style="width:${winChance}%"></span></div><div class="hq-win-copy"><span>${esc(managerA)} ${winChance}%</span><span>${100-winChance}% ${esc(managerB)}</span></div><div class="hq-matchup-vs">Win chance</div></div><div class="hq-matchup-manager is-away hq-away-side"><strong class="hq-matchup-points">${pcFpts(displayB)}</strong><div><b class="hq-matchup-manager-name">${esc(managerB)}</b>${leftB?`<small>${esc(leftB)}</small>`:''}${projPair(projectionB,vegasB?.vegas)}</div>${av(managerB)}</div></div><div class="hq-edge-grid">${edges}</div>${swing?`<div class="hq-swing"><span class="hq-swing-label">Swing players</span><div class="hq-swing-rail">${swing}</div></div>`:''}${details}</section>`;
+}
+function hjScheduleWeekSource(data,week){
+ const current=hjCurrentWeek(data);let source=data;
+ if(Number(week)<current){source=HJ_DATA.history.get(Number(week));if(!source){hjEnsureCompletedHistory(data);return {games:[],sourceData:data,usingPrevious:false}}}
+  return `<section class="hq-matchup${focused?' is-focused':''}${open?' is-open':''}" data-hq-matchup data-hq-matchup-key="${esc(key)}" data-hq-team-a="${esc(teamA.id)}" data-hq-team-b="${esc(teamB.id)}"><div class="hq-matchup-head"><div class="hq-matchup-head-copy"><h4>Week ${week} matchup</h4><span class="hq-matchup-head-meta">${usePlaceholder?'2025 averages':live?'Live score':'Projected'}</span></div>${!usePlaceholder?`<button type="button" class="hq-matchup-toggle" data-hq-matchup-toggle="${esc(key)}" aria-expanded="${open}">${open?'Hide lineups':'View lineups'} <span class="chev">⌄</span></button>`:''}</div><div class="hq-matchup-main"><div class="hq-matchup-manager hq-home-side">${av(managerA)}<div><b class="hq-matchup-manager-name">${esc(managerA)}</b>${leftA?`<small>${esc(leftA)}</small>`:''}${projPair(projectionA,vegasA?.vegas)}</div><strong class="hq-matchup-points">${pcFpts(displayA)}</strong></div><div class="hq-matchup-middle"><div class="hq-win-bar" aria-label="${esc(managerA)} ${winChance}% win chance"><span style="width:${winChance}%"></span></div><div class="hq-win-copy"><span>${esc(managerA)} ${winChance}%</span><span>${100-winChance}% ${esc(managerB)}</span></div><div class="hq-matchup-vs">Win chance</div></div><div class="hq-matchup-manager is-away hq-away-side"><strong class="hq-matchup-points">${pcFpts(displayB)}</strong><div><b class="hq-matchup-manager-name">${esc(managerB)}</b>${leftB?`<small>${esc(leftB)}</small>`:''}${projPair(projectionB,vegasB?.vegas)}</div>${av(managerB)}</div></div><div class="hq-edge-grid">${edges}</div>${swing?`<div class="hq-swing"><span class="hq-swing-label">Swing players</span><div class="hq-swing-rail">${swing}</div></div>`:''}${details}</section>`;
+}
+function hjScheduleWeekSource(data,week){
+ const current=hjCurrentWeek(data);let source=data;
+ if(Number(week)<current){source=HJ_DATA.history.get(Number(week));if(!source){hjEnsureCompletedHistory(data);return {games:[],sourceData:data,usingPrevious:false}}}
+ return {games:(source.schedule||[]).filter(g=>Number(g.matchupPeriodId)===Number(week)&&g.home&&g.away),sourceData:source,usingPrevious:false};
+}
+ return {games:(source.schedule||[]).filter(g=>Number(g.matchupPeriodId)===Number(week)&&g.home&&g.away),sourceData:source,usingPrevious:false};
+}
+function hjScheduleManagerName(teamId,sourceData){
+  const team=(sourceData?.teams||[]).find(item=>Number(item.id)===Number(teamId));
+  return team?(hjMatchManager(team,sourceData)||hjOwnerName(team,sourceData)||`Manager ${teamId}`):'—';
+}
+function hjScheduleMatrixHTML(data){
+  return team?(hjMatchManager(team,sourceData)||hjOwnerName(team,sourceData)||`Manager ${teamId}`):'—';
+}
+function hjScheduleMatrixHTML(data){
+  const currentWeek=hjCurrentWeek(data),currentHasSchedule=(data?.schedule||[]).some(game=>Number(game?.home?.teamId)&&Number(game?.away?.teamId)),sourceData=data,weeks=Array.from({length:14},(_,index)=>index+1),teams=sourceData?.teams||[];
+  if(!teams.length)return `<div class="hq-empty">The full schedule will appear when league sync finishes.</div>`;
+  const heads=`<div class="schedule-matrix-head">Manager</div>${weeks.map(week=>`<div class="schedule-matrix-head${week>=10?' rematch':''}">W${week}</div>`).join('')}`;
+  const rows=teams.map(team=>{const manager=hjScheduleManagerName(team.id,sourceData),cells=weeks.map(week=>{const game=(sourceData.schedule||[]).find(item=>Number(item.matchupPeriodId)===week&&(Number(item?.home?.teamId)===Number(team.id)||Number(item?.away?.teamId)===Number(team.id))),home=Number(game?.home?.teamId)===Number(team.id),opponentId=game?(home?game.away.teamId:game.home.teamId):null,opponent=opponentId?hjScheduleManagerName(opponentId,sourceData):'—',own=game?Number(home?game.home.totalPoints:game.away.totalPoints):0,opp=game?Number(home?game.away.totalPoints:game.home.totalPoints):0,played=Boolean(own||opp),result=played?`${own>=opp?'W':'L'} ${pcFpts(own)}–${pcFpts(opp)}`:(week>=10?'REMATCH':'VS'),cls=played?(own>=opp?' win':' loss'):'';return `<button type="button" class="schedule-matrix-cell${week>=10?' rematch':''}${week===currentWeek?' current':''}${cls}" data-hq-schedule-week="${week}" aria-label="${esc(manager)} Week ${week} vs ${esc(opponent)}"><span>${esc(opponent)}</span><small>${esc(result)}</small></button>`}).join('');return `<div class="schedule-matrix-manager">${av(manager)}<span>${esc(manager)}</span></div>${cells}`}).join('');
+  return `<div class="schedule-matrix-pane"><div class="schedule-matrix-scroll"><div class="schedule-matrix">${heads}${rows}</div></div></div>`;
+}
+function hjMatchupScheduleButtonsHTML(selectedWeek){
+  return Array.from({length:14},(_,index)=>index+1).map(week=>`<button type="button" class="schedule-week-btn${week===selectedWeek?' active':''}${week>=10?' rematch':''}" data-hq-schedule-week="${week}" aria-label="Show Week ${week} matchups"><span class="schedule-week-n">${week}</span></button>`).join('');
+}
+function hjMatchupCenterPanelHTML(data){
+  const week=HJ_HQ_STATE.matchupWeek||hjCurrentWeek(data),view=HJ_HQ_STATE.matchupView,source=hjScheduleWeekSource(data,week),placeholder=source.usingPrevious||(data?.teams||[]).every(team=>!hjRosterEntries(team).length),phase=view==='matrix'?'Full 14-week schedule':`Week ${week}${week>=10?' · Rematch':' · Matchups'}`,cards=source.games.length?`<div class="hq-matchup-list">${source.games.map(game=>hjMatchupCardHTML(game,source.sourceData,data,placeholder)).join('')}</div>`:`<div class="hq-empty">Week ${week} matchups will appear when the schedule loads.</div>`;
+}
+function hjMatchupScheduleButtonsHTML(selectedWeek){
+  return Array.from({length:14},(_,index)=>index+1).map(week=>`<button type="button" class="schedule-week-btn${week===selectedWeek?' active':''}${week>=10?' rematch':''}" data-hq-schedule-week="${week}" aria-label="Show Week ${week} matchups"><span class="schedule-week-n">${week}</span></button>`).join('');
+}
+function hjMatchupCenterPanelHTML(data){
+  const week=HJ_HQ_STATE.matchupWeek||hjCurrentWeek(data),view=HJ_HQ_STATE.matchupView,source=hjScheduleWeekSource(data,week),placeholder=source.usingPrevious||(data?.teams||[]).every(team=>!hjRosterEntries(team).length),phase=view==='matrix'?'Full 14-week schedule':`Week ${week}${week>=10?' · Rematch':' · Matchups'}`,cards=source.games.length?`<div class="hq-matchup-list">${source.games.map(game=>hjMatchupCardHTML(game,source.sourceData,data,placeholder)).join('')}</div>`:`<div class="hq-empty">Week ${week} matchups will appear when the schedule loads.</div>`;
+  return `<div class="hq-matchup-schedule"><div class="schedule-weeknav">${hjMatchupScheduleButtonsHTML(week)}</div>${view==='matrix'?hjScheduleMatrixHTML(data):`<div class="schedule-week-panel">${cards}</div>`}<div class="schedule-playoff-runway"><div class="schedule-playoff-label">Playoffs</div><div class="schedule-playoff-step"><b>W15 · Round 1</b></div><div class="schedule-playoff-step"><b>W16 · Round 2</b></div></div></div>`;
+  return Array.from({length:14},(_,index)=>index+1).map(week=>`<button type="button" class="schedule-week-btn${week===selectedWeek?' active':''}${week>=10?' rematch':''}" data-hq-schedule-week="${week}" aria-label="Show Week ${week} matchups"><span class="schedule-week-n">${week}</span></button>`).join('');
+}
+function hjMatchupCenterPanelHTML(data){
+  const week=HJ_HQ_STATE.matchupWeek||hjCurrentWeek(data),view=HJ_HQ_STATE.matchupView,source=hjScheduleWeekSource(data,week),placeholder=source.usingPrevious||(data?.teams||[]).every(team=>!hjRosterEntries(team).length),phase=view==='matrix'?'Full 14-week schedule':`Week ${week}${week>=10?' · Rematch':' · Matchups'}`,cards=source.games.length?`<div class="hq-matchup-list">${source.games.map(game=>hjMatchupCardHTML(game,source.sourceData,data,placeholder)).join('')}</div>`:`<div class="hq-empty">Week ${week} matchups will appear when the schedule loads.</div>`;
+  return `<div class="hq-matchup-schedule"><div class="schedule-weeknav">${hjMatchupScheduleButtonsHTML(week)}</div>${view==='matrix'?hjScheduleMatrixHTML(data):`<div class="schedule-week-panel">${cards}</div>`}<div class="schedule-playoff-runway"><div class="schedule-playoff-label">Playoffs</div><div class="schedule-playoff-step"><b>W15 · Round 1</b></div><div class="schedule-playoff-step"><b>W16 · Round 2</b></div></div></div>`;
+}
+function hjRenderMatchupCenter(){
+  return `<div class="hq-matchup-schedule"><div class="schedule-weeknav">${hjMatchupScheduleButtonsHTML(week)}</div>${view==='matrix'?hjScheduleMatrixHTML(data):`<div class="schedule-week-panel">${cards}</div>`}<div class="schedule-playoff-runway"><div class="schedule-playoff-label">Playoffs</div><div class="schedule-playoff-step"><b>W15 · Round 1</b></div><div class="schedule-playoff-step"><b>W16 · Round 2</b></div></div></div>`;
+}
+function hjRenderMatchupCenter(){
+  const target=$('#hq-matchup-content'),note=$('#hq-matchup-note'),data=HJ_LEAGUE_STATE.data;if(!target||!data)return;target.innerHTML=hjMatchupCenterPanelHTML(data);if(note)note.textContent=HJ_HQ_STATE.matchupView==='matrix'?'Weeks 1–14':`Week ${HJ_HQ_STATE.matchupWeek||hjCurrentWeek(data)}`;
+}
+function hjBuildVegasSeasonLineup(entries,week=hjCurrentWeek()){
+  const pool=entries.filter(entry=>Number(entry?.lineupSlotId)!==21).map(entry=>{const vegas=hjVegasProjection(entry,'season'),espn=hjEntrySeasonValue(entry,HJ_LEAGUE_SEASON,week);return {entry,position:hjPlayerPosition(entry),score:Number.isFinite(vegas)?vegas:espn}}).filter(item=>HJ_POSITION_ORDER[item.position]!=null).sort((a,b)=>b.score-a.score),used=new Set(),take=(position,count)=>{const found=pool.filter(item=>item.position===position&&!used.has(item.entry)).slice(0,count);found.forEach(item=>used.add(item.entry));return found},groups={};
+}
+function hjReadActivity(){try{const rows=JSON.parse(localStorage.getItem(HJ_ACTIVITY_CACHE_KEY)||'[]');return Array.isArray(rows)?rows:[]}catch(_){return []}}
+function hjRosterMap(data){const map=new Map();(data?.teams||[]).forEach(team=>{const manager=hjMatchManager(team,data)||hjOwnerName(team,data)||`Manager ${team.id}`;hjRosterEntries(team).forEach(entry=>{const player=hjPlayer(entry),id=String(player?.id||entry?.playerId||''),name=player?.fullName||player?.displayName||'Player',key=id||hjNorm(name);if(key)map.set(key,{id,name,manager,team:hjPlayerTeam(entry),position:hjPlayerPosition(entry),photo:hjPlayerPhoto(entry)})})});return map}
+function hjTrackActivity(before,after){
+  const oldMap=hjRosterMap(before),newMap=hjRosterMap(after);if(oldMap.size<5||newMap.size<5)return;const at=Date.now(),changes=[];newMap.forEach((player,key)=>{const old=oldMap.get(key);if(!old)changes.push({at,type:'Add',player,to:player.manager});else if(old.manager!==player.manager)changes.push({at,type:'Trade',player,from:old.manager,to:player.manager})});oldMap.forEach((player,key)=>{if(!newMap.has(key))changes.push({at,type:'Drop',player,from:player.manager})});if(!changes.length)return;try{localStorage.setItem(HJ_ACTIVITY_CACHE_KEY,JSON.stringify([...changes,...hjReadActivity()].slice(0,60)))}catch(_){}
+}
+function hjActivityHTML(){
+}
+function hjSetHQTab(tab,focusTeamId=null){
+  if(!HJ_HQ_TABS.some(item=>item[0]===tab))return;HJ_HQ_STATE.activeTab=tab;if(tab==='recap')hjRefreshRecap();HJ_HQ_STATE.focusTeamId=focusTeamId;if(tab==='matchups'&&focusTeamId){HJ_HQ_STATE.matchupWeek=hjCurrentWeek(HJ_LEAGUE_STATE.data);HJ_HQ_STATE.matchupView='week';hjRenderMatchupCenter()}hjRenderHQTabs();if(tab==='matchups'){const cards=[...document.querySelectorAll('[data-hq-matchup]')],target=focusTeamId?cards.find(card=>String(card.dataset.hqTeamA)===String(focusTeamId)||String(card.dataset.hqTeamB)===String(focusTeamId)):null;cards.forEach(card=>card.classList.toggle('is-focused',card===target));if(target)requestAnimationFrame(()=>target.scrollIntoView({behavior:'smooth',block:'nearest'}))}
+}
+function hjRenderLeagueTools(data){
+  const root=$('#league-hq-tools');if(!root)return;if(!data){root.innerHTML='';hjRenderHQTabs();return}const strength=hjStrengthHTML(data),selectedWeek=HJ_HQ_STATE.matchupWeek||hjCurrentWeek(data);root.innerHTML=`<div class="hq-tab-panel" id="hq-panel-matchups" data-hq-panel="matchups" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Matchup Center</h3><span class="hq-module-note" id="hq-matchup-note">${HJ_HQ_STATE.matchupView==='matrix'?'Weeks 1–14':`Week ${selectedWeek}`}</span></div><div class="hq-module-body" id="hq-matchup-content">${hjMatchupCenterPanelHTML(data)}</div></div></div><div class="hq-tab-panel" id="hq-panel-free-agents" data-hq-panel="free-agents" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Free Agents</h3><span class="hq-module-note" id="hq-fa-count">Open tab to load projections</span></div>${hjFreeAgentControlsHTML()}<div id="hq-fa-results"><div class="hq-empty">Free-agent projections load when this tab is opened.</div></div></div></div><div class="hq-tab-panel" id="hq-panel-strength" data-hq-panel="strength" role="tabpanel">${strength}</div><div class="hq-tab-panel" id="hq-panel-activity" data-hq-panel="activity" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">League Activity</h3><span class="hq-module-note">Completed moves</span></div>${hjActivityHTML()}</div></div><div class="hq-tab-panel" id="hq-panel-recap" data-hq-panel="recap" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Weekly Recap</h3><span class="hq-module-note">${hjCurrentWeek(data)>1?`Week ${hjCurrentWeek(data)-1}`:'After Week 1'}</span></div>${hjWeeklyRecapHTML(data)}</div></div>`;hjRenderHQTabs();if(HJ_HQ_STATE.activeTab==='free-agents'&&HJ_HQ_STATE.freeAgents.length)requestAnimationFrame(()=>{try{hjRenderFreeAgentResults(false)}catch(_){}});
+}
+}
+function hjRenderLeagueTools(data){
+  const root=$('#league-hq-tools');if(!root)return;if(!data){root.innerHTML='';hjRenderHQTabs();return}const strength=hjStrengthHTML(data),selectedWeek=HJ_HQ_STATE.matchupWeek||hjCurrentWeek(data);root.innerHTML=`<div class="hq-tab-panel" id="hq-panel-matchups" data-hq-panel="matchups" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Matchup Center</h3><span class="hq-module-note" id="hq-matchup-note">${HJ_HQ_STATE.matchupView==='matrix'?'Weeks 1–14':`Week ${selectedWeek}`}</span></div><div class="hq-module-body" id="hq-matchup-content">${hjMatchupCenterPanelHTML(data)}</div></div></div><div class="hq-tab-panel" id="hq-panel-free-agents" data-hq-panel="free-agents" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Free Agents</h3><span class="hq-module-note" id="hq-fa-count">Open tab to load projections</span></div>${hjFreeAgentControlsHTML()}<div id="hq-fa-results"><div class="hq-empty">Free-agent projections load when this tab is opened.</div></div></div></div><div class="hq-tab-panel" id="hq-panel-strength" data-hq-panel="strength" role="tabpanel">${strength}</div><div class="hq-tab-panel" id="hq-panel-activity" data-hq-panel="activity" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">League Activity</h3><span class="hq-module-note">Completed moves</span></div>${hjActivityHTML()}</div></div><div class="hq-tab-panel" id="hq-panel-recap" data-hq-panel="recap" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Weekly Recap</h3><span class="hq-module-note">${hjCurrentWeek(data)>1?`Week ${hjCurrentWeek(data)-1}`:'After Week 1'}</span></div>${hjWeeklyRecapHTML(data)}</div></div>`;hjRenderHQTabs();if(HJ_HQ_STATE.activeTab==='free-agents'&&HJ_HQ_STATE.freeAgents.length)requestAnimationFrame(()=>{try{hjRenderFreeAgentResults(false)}catch(_){}});
+}
+function hjTeamViewHTML(team,data){
+  const week=hjCurrentWeek(data),manager=hjMatchManager(team,data),owner=manager||hjOwnerName(team,data)||`Manager ${team.id}`,currentEntries=hjRosterEntries(team),previousData=HJ_LEAGUE_STATE.previousData;
+  const previousTeam=(previousData?.teams||[]).find(item=>(manager&&hjMatchManager(item,previousData)===manager)||Number(item.id)===Number(team.id)),previousEntries=hjRosterEntries(previousTeam),usingPrevious=false,rosterSeason=usingPrevious?HJ_LEAGUE_PREVIOUS_SEASON:HJ_LEAGUE_SEASON,entries=usingPrevious?previousEntries:currentEntries;
+  const ownScore=Number(matchup?.side?.totalPoints),oppScore=Number(matchup?.opponent?.totalPoints),ownProjected=Number(matchup?.side?.totalProjectedPoints),oppProjected=Number(matchup?.opponent?.totalProjectedPoints),hasScore=(Number.isFinite(ownScore)&&ownScore!==0)||(Number.isFinite(oppScore)&&oppScore!==0),hasProjection=(Number.isFinite(ownProjected)&&ownProjected!==0)||(Number.isFinite(oppProjected)&&oppProjected!==0),opponentName=opponent?(hjMatchManager(opponent,data)||hjOwnerName(opponent,data)||`Manager ${opponent.id}`):'',scoreLine=hasScore?`${pcFpts(ownScore)} – ${pcFpts(oppScore)}`:hasProjection?`${pcFpts(ownProjected)} – ${pcFpts(oppProjected)} projected`:'';
+  const vegasOwn=matchup&&!usingPrevious?hjTeamVegasProjection(team,week,data):null,vegasOpp=matchup&&!usingPrevious&&opponent?hjTeamVegasProjection(opponent,week,data):null,projectionCompare=matchup&&!usingPrevious&&hasProjection?`<span class="league-matchup-projections">ESPN ${pcFpts(ownProjected)}–${pcFpts(oppProjected)} · Vegas* ${Number.isFinite(vegasOwn?.vegas)?pcFpts(vegasOwn.vegas):'—'}–${Number.isFinite(vegasOpp?.vegas)?pcFpts(vegasOpp.vegas):'—'}</span>`:'';
+  const matchupHTML=matchup?`<button class="league-matchup-score" type="button" data-hq-open-matchup="${esc(team.id)}" aria-label="Open Week ${matchup.week} matchup in Matchup Center"><span class="league-matchup-team">Week ${matchup.week} matchup<b>${scoreLine||`vs ${esc(opponentName||'TBD')}`}</b>${scoreLine&&opponentName?`<span>vs ${esc(opponentName)}</span>`:''}${projectionCompare}</span></button>`:'';
+  const record=hjTeamRecordIfPlayed(team),identity=hjManagerBusinessCard(team,data,owner,manager);
+  if(!entries.length)return `<div class="league-roster-head">${identity}${matchupHTML}</div><div class="league-sync-empty"><strong>Rosters appear after the draft</strong><span>The site will switch to the 2026 rosters automatically when ESPN posts them.</span></div>`;
+  return `<div class="league-roster-head">${identity}${matchupHTML}</div><div class="league-roster-groups">${hjRosterGroupHTML(usingPrevious?'Final lineup':'Starting lineup',starters,week,'',rosterSeason)}${hjRosterGroupHTML('Bench',bench,week,'is-bench',rosterSeason)}</div>${ir.length?`<div class="league-ir-wrap">${hjRosterGroupHTML('Injured reserve',ir,week,'',rosterSeason)}</div>`:''}`;
+}
+$('#league-sync-content')?.addEventListener('click',event=>{
+  const retry=event.target.closest('[data-league-retry]');if(retry){hjSyncLeague(true);return}
+  const matchup=event.target.closest('[data-hq-open-matchup]');if(matchup){hjSetHQTab('matchups',matchup.dataset.hqOpenMatchup);return}
+  const tab=event.target.closest('[data-league-team]');if(!tab)return;HJ_LEAGUE_STATE.selectedTeamId=tab.dataset.leagueTeam;try{localStorage.setItem(HJ_LEAGUE_TEAM_KEY,String(HJ_LEAGUE_STATE.selectedTeamId))}catch(_){}hjRenderLeague();
+});
+$('#league-hq-tabs')?.addEventListener('click',event=>{const tab=event.target.closest('[data-hq-tab]');if(tab)hjSetHQTab(tab.dataset.hqTab)});
+$('#league-hq-tools')?.addEventListener('click',event=>{
+$('#league-hq-tools')?.addEventListener('click',event=>{
+  const lineupMode=event.target.closest('[data-hq-lineup-mode]');if(lineupMode){const key=lineupMode.dataset.hqMatchupKey,mode=lineupMode.dataset.hqLineupMode;if(key&&['actual','espn','vegas','combo'].includes(mode)){HJ_HQ_STATE.lineupModes.set(key,mode);HJ_HQ_STATE.openMatchups.add(key);hjRenderMatchupCenter()}return}
+  const matchupToggle=event.target.closest('[data-hq-matchup-toggle]');if(matchupToggle){const key=matchupToggle.dataset.hqMatchupToggle;if(HJ_HQ_STATE.openMatchups.has(key))HJ_HQ_STATE.openMatchups.delete(key);else HJ_HQ_STATE.openMatchups.add(key);hjRenderMatchupCenter();return}
+  const scheduleView=event.target.closest('[data-hq-schedule-view]');if(scheduleView){HJ_HQ_STATE.matchupView=scheduleView.dataset.hqScheduleView;hjRenderMatchupCenter();return}
+  const scheduleWeek=event.target.closest('[data-hq-schedule-week]');if(scheduleWeek){HJ_HQ_STATE.matchupWeek=Number(scheduleWeek.dataset.hqScheduleWeek)||hjCurrentWeek(HJ_LEAGUE_STATE.data);HJ_HQ_STATE.matchupView='week';hjRenderMatchupCenter();return}
+  const manager=event.target.closest('[data-hq-manager]');if(manager&&!event.target.closest('.manager-profile-avatar')){HJ_LEAGUE_STATE.selectedTeamId=manager.dataset.hqManager;HJ_HQ_STATE.activeTab='rosters';try{localStorage.setItem(HJ_LEAGUE_TEAM_KEY,String(HJ_LEAGUE_STATE.selectedTeamId))}catch(_){}hjRenderLeague();$('#league-sync-shell')?.scrollIntoView({behavior:'smooth',block:'start'});return}
+  if(event.target.closest('#hq-fa-reset')){HJ_HQ_STATE.query='';HJ_HQ_STATE.position='ALL';HJ_HQ_STATE.sort='week';const search=$('#hq-fa-search'),position=$('#hq-fa-position'),sort=$('#hq-fa-sort');if(search)search.value='';if(position)position.value='ALL';if(sort)sort.value='week';hjRenderFreeAgentResults()}
+  const lineupMode=event.target.closest('[data-hq-lineup-mode]');if(lineupMode){const key=lineupMode.dataset.hqMatchupKey,mode=lineupMode.dataset.hqLineupMode;if(key&&['actual','espn','vegas','combo'].includes(mode)){HJ_HQ_STATE.lineupModes.set(key,mode);HJ_HQ_STATE.openMatchups.add(key);hjRenderMatchupCenter()}return}
+  const matchupToggle=event.target.closest('[data-hq-matchup-toggle]');if(matchupToggle){const key=matchupToggle.dataset.hqMatchupToggle;if(HJ_HQ_STATE.openMatchups.has(key))HJ_HQ_STATE.openMatchups.delete(key);else HJ_HQ_STATE.openMatchups.add(key);hjRenderMatchupCenter();return}
+  const scheduleView=event.target.closest('[data-hq-schedule-view]');if(scheduleView){HJ_HQ_STATE.matchupView=scheduleView.dataset.hqScheduleView;hjRenderMatchupCenter();return}
+  const scheduleWeek=event.target.closest('[data-hq-schedule-week]');if(scheduleWeek){HJ_HQ_STATE.matchupWeek=Number(scheduleWeek.dataset.hqScheduleWeek)||hjCurrentWeek(HJ_LEAGUE_STATE.data);HJ_HQ_STATE.matchupView='week';hjRenderMatchupCenter();return}
+  const manager=event.target.closest('[data-hq-manager]');if(manager&&!event.target.closest('.manager-profile-avatar')){HJ_LEAGUE_STATE.selectedTeamId=manager.dataset.hqManager;HJ_HQ_STATE.activeTab='rosters';try{localStorage.setItem(HJ_LEAGUE_TEAM_KEY,String(HJ_LEAGUE_STATE.selectedTeamId))}catch(_){}hjRenderLeague();$('#league-sync-shell')?.scrollIntoView({behavior:'smooth',block:'start'});return}
+  if(event.target.closest('#hq-fa-reset')){HJ_HQ_STATE.query='';HJ_HQ_STATE.position='ALL';HJ_HQ_STATE.sort='week';const search=$('#hq-fa-search'),position=$('#hq-fa-position'),sort=$('#hq-fa-sort');if(search)search.value='';if(position)position.value='ALL';if(sort)sort.value='week';hjRenderFreeAgentResults()}
+});
+  const matchupToggle=event.target.closest('[data-hq-matchup-toggle]');if(matchupToggle){const key=matchupToggle.dataset.hqMatchupToggle;if(HJ_HQ_STATE.openMatchups.has(key))HJ_HQ_STATE.openMatchups.delete(key);else HJ_HQ_STATE.openMatchups.add(key);hjRenderMatchupCenter();return}
+  const scheduleView=event.target.closest('[data-hq-schedule-view]');if(scheduleView){HJ_HQ_STATE.matchupView=scheduleView.dataset.hqScheduleView;hjRenderMatchupCenter();return}
+  const scheduleWeek=event.target.closest('[data-hq-schedule-week]');if(scheduleWeek){HJ_HQ_STATE.matchupWeek=Number(scheduleWeek.dataset.hqScheduleWeek)||hjCurrentWeek(HJ_LEAGUE_STATE.data);HJ_HQ_STATE.matchupView='week';hjRenderMatchupCenter();return}
+  const manager=event.target.closest('[data-hq-manager]');if(manager&&!event.target.closest('.manager-profile-avatar')){HJ_LEAGUE_STATE.selectedTeamId=manager.dataset.hqManager;HJ_HQ_STATE.activeTab='rosters';try{localStorage.setItem(HJ_LEAGUE_TEAM_KEY,String(HJ_LEAGUE_STATE.selectedTeamId))}catch(_){}hjRenderLeague();$('#league-sync-shell')?.scrollIntoView({behavior:'smooth',block:'start'});return}
+  if(event.target.closest('#hq-fa-reset')){HJ_HQ_STATE.query='';HJ_HQ_STATE.position='ALL';HJ_HQ_STATE.sort='week';const search=$('#hq-fa-search'),position=$('#hq-fa-position'),sort=$('#hq-fa-sort');if(search)search.value='';if(position)position.value='ALL';if(sort)sort.value='week';hjRenderFreeAgentResults()}
+});
+let hjFaSearchTimer=0;
+  const scheduleView=event.target.closest('[data-hq-schedule-view]');if(scheduleView){HJ_HQ_STATE.matchupView=scheduleView.dataset.hqScheduleView;hjRenderMatchupCenter();return}
+  const scheduleWeek=event.target.closest('[data-hq-schedule-week]');if(scheduleWeek){HJ_HQ_STATE.matchupWeek=Number(scheduleWeek.dataset.hqScheduleWeek)||hjCurrentWeek(HJ_LEAGUE_STATE.data);HJ_HQ_STATE.matchupView='week';hjRenderMatchupCenter();return}
+  const manager=event.target.closest('[data-hq-manager]');if(manager&&!event.target.closest('.manager-profile-avatar')){HJ_LEAGUE_STATE.selectedTeamId=manager.dataset.hqManager;HJ_HQ_STATE.activeTab='rosters';try{localStorage.setItem(HJ_LEAGUE_TEAM_KEY,String(HJ_LEAGUE_STATE.selectedTeamId))}catch(_){}hjRenderLeague();$('#league-sync-shell')?.scrollIntoView({behavior:'smooth',block:'start'});return}
+  if(event.target.closest('#hq-fa-reset')){HJ_HQ_STATE.query='';HJ_HQ_STATE.position='ALL';HJ_HQ_STATE.sort='week';const search=$('#hq-fa-search'),position=$('#hq-fa-position'),sort=$('#hq-fa-sort');if(search)search.value='';if(position)position.value='ALL';if(sort)sort.value='week';hjRenderFreeAgentResults()}
+});
+let hjFaSearchTimer=0;
+$('#league-hq-tools')?.addEventListener('input',event=>{if(event.target.id!=='hq-fa-search')return;HJ_HQ_STATE.query=event.target.value;clearTimeout(hjFaSearchTimer);hjFaSearchTimer=setTimeout(hjRenderFreeAgentResults,120)});
+      if(strip && tab && strip.scrollWidth>strip.clientWidth){
+        const left=tab.offsetLeft-(strip.clientWidth-tab.offsetWidth)/2;
+        strip.scrollTo({left:Math.max(0,left),behavior:'smooth'});
+      }
+      $('#challenges')?.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+  });
+        strip.scrollTo({left:Math.max(0,left),behavior:'smooth'});
+      }
+      $('#challenges')?.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+  });
+}
+
+  </div>`;
+}
+function scheduleMatchupDetailHTML(week,a,b){
+  const s=scheduleAllTimeSeries(a,b);
+  const first=scheduleFirstMeetingForRematch(week);
+  const diff=s.aPF-s.bPF;
+  return `<div class="schedule-matchup-detail">
+  </div>`;
+}
+function scheduleMatchupHTML(week,pair,i){
+  const [a,b]=pair;
+  const sa=scheduleScoreRow(week,a), sb=scheduleScoreRow(week,b);
+  const s=scheduleAllTimeSeries(a,b);
+  const rematch=week>=10;
+    ? `REMATCH · W${LEAGUE_REMATCH_FIRST_WEEK[week]}`
+    : (s.games?`${s.games} meetings · ${s.aWins}–${s.bWins}${s.ties?`–${s.ties}`:''}`:'No prior meetings');
+  return `<article class="schedule-matchup" data-schedule-matchup="${week}-${i}">
+    <div class="schedule-matchup-main" role="button" tabindex="0" aria-expanded="false">
+      <div class="schedule-matchup-person left">${av(a)}<span class="schedule-matchup-name">${esc(a)}</span><span class="schedule-matchup-score">${sa?pcFpts(sa.pts):''}</span></div>
+      <div class="schedule-matchup-center"><span class="schedule-vs">${sa&&sb?'—':'VS'}</span><span class="schedule-matchup-meta${rematch?' rematch':''}">${esc(meta)}</span></div>
+      <div class="schedule-matchup-person right">${av(b)}<span class="schedule-matchup-name">${esc(b)}</span><span class="schedule-matchup-score">${sb?pcFpts(sb.pts):''}</span></div>
+  return Array.from({length:14},(_,i)=>i+1).map(w=>`<button type="button" class="schedule-week-btn${w===scheduleSelectedWeek?' active':''}${w>=10?' rematch':''}" data-schedule-week="${w}"><span class="schedule-week-n">${w}</span><span class="schedule-week-l">${w>=10?'R':'W'}</span></button>`).join('');
+}
+function renderLeagueSchedule(animate=false){
+  const out=$('#schedule-out');
+  if(!out)return;
+  const phase=schedulePhaseCopy(scheduleSelectedWeek);
+  const oldPane=out.querySelector('.schedule-week-pane,.schedule-matrix-pane');
+    closeMenu();
+    const sec=$('#challenges');
+    if(sec) sec.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  document.addEventListener('click', e=>{ if(!menu.hidden && !menu.contains(e.target) && e.target!==trigger && !trigger.contains(e.target)) closeMenu(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeMenu(); });
+  window.addEventListener('resize', ()=>{ if(!menu.hidden) positionMenu(); }, {passive:true});
+/* ---- data helpers ---- */
+function wireTeamMap(data){return new Map((data?.teams||[]).map(t=>[Number(t.id),t]))}
+function wireManager(team,data){return team?(hjMatchManager(team,data)||hjOwnerName(team,data)||`Manager ${team.id}`):'—'}
+function wireMgrHTML(name,cls=''){if(!name||name==='—')return '';const known=Object.prototype.hasOwnProperty.call(AV,name);return `<button type="button" class="wc-mgr ${cls} ${known?'manager-profile-trigger':''}" ${known?`data-manager="${esc(name)}"`:''}>${known?av(name):''}<span>${esc(name)}</span></button>`}
+function wireMiniMgr(name){const known=Object.prototype.hasOwnProperty.call(AV,name);return `${known?av(name):''}<b>${esc(name)}</b>`}
+function wirePlayerObj(p){
+  if(!p)return null;const id=String(p.id||''),position=HJ_POSITION_IDS[p.defaultPositionId]||'',team=HJ_PRO_TEAM_BY_ID[String(p.proTeamId||'')]||'FA';
+}
+document.addEventListener('click',event=>{
+ const button=event.target.closest('[data-wire-matchup]');if(!button)return;
+ event.preventDefault();event.stopPropagation();
+ const key=button.dataset.wireMatchup,[week,home,away]=key.split(':');
+ if(!Number(week)||!home||!away)return;
+ wireCloseExpanded();
+ HJ_HQ_STATE.matchupWeek=Number(week);HJ_HQ_STATE.matchupView='week';HJ_HQ_STATE.matchupFocusKey=key;HJ_HQ_STATE.focusTeamId=home;HJ_HQ_STATE.openMatchups.add(key);
+ hjSetHQTab('matchups');HJ_HQ_STATE.focusTeamId=home;hjRenderMatchupCenter();
+ requestAnimationFrame(()=>{const card=[...document.querySelectorAll('[data-hq-matchup-key]')].find(node=>node.dataset.hqMatchupKey===key);if(card){card.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center',inline:'center'});card.setAttribute('tabindex','-1');card.focus({preventScroll:true});}});
+},true);
+
+
+function wireWaiverCard(data){
+  const prev=$('#wire-prev'),next=$('#wire-next');if(prev)prev.disabled=idx<=0;if(next)next.disabled=idx>=nodes.length-1;
+}
+function wireScrollTo(i){const nodes=wireCardNodes(),scroller=$('#wire-scroll');if(!nodes.length||!scroller)return;i=Math.max(0,Math.min(nodes.length-1,i));WIRE.index=i;nodes.forEach((node,index)=>node.classList.toggle('is-scroll-active',index===i));const el=nodes[i];scroller.scrollTo({left:el.offsetLeft-(scroller.clientWidth-el.offsetWidth)/2,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
+function wireCloseExpanded(){
+  const overlay=document.querySelector('.wire-expanded-overlay');if(!overlay)return;
+  overlay.classList.remove('is-open');document.body.classList.remove('wire-modal-open');
+  setTimeout(()=>overlay.remove(),matchMedia('(prefers-reduced-motion: reduce)').matches?0:210);
+        link.classList.add('active');
+        /* Keep the active tab visible by moving only the nav's horizontal
+           scroller. scrollIntoView() can move the document vertically on
+           mobile Safari, which makes the page appear to jump back upward. */
+        const navScroller = link.closest('nav');
+        if(navScroller){
+          const lr = link.getBoundingClientRect();
+  };
+  const details=!usePlaceholder?hjMatchupLineupHTML(teamA,teamB,managerA,managerB,rosterA,rosterB,week,matchupKey):'';
+  return `<section class="hq-matchup${focused?' is-focused':''}${open?' is-open':''}" data-hq-matchup data-hq-matchup-key="${esc(matchupKey)}" data-hq-team-a="${esc(teamA.id)}" data-hq-team-b="${esc(teamB.id)}"><div class="hq-matchup-head"><div class="hq-matchup-head-copy"><h4>Week ${week} matchup</h4><span class="hq-matchup-head-meta">${usePlaceholder?'2025 averages':live?'Live score':'Projected'}</span></div>${!usePlaceholder?`<button type="button" class="hq-matchup-toggle" data-hq-matchup-toggle="${esc(matchupKey)}" aria-expanded="${open}">${open?'Hide lineups':'View lineups'} <span class="chev">⌄</span></button>`:''}</div><div class="hq-matchup-summary">${teamBlock(managerA,leftA,displayA,projectionA,vegasA?.vegas,false)}${teamBlock(managerB,leftB,displayB,projectionB,vegasB?.vegas,true)}</div><div class="hq-match-win"><div class="hq-match-win-inner"><div class="hq-match-win-bar" data-espn-live-a="${barProjectionA}" data-espn-live-b="${barProjectionB}" aria-label="${esc(managerA)} ${winChance===null?'—':winChance+'%'} win chance"><span style="width:${winChance??0}%"></span></div><div class="hq-match-win-labels"><span>${esc(managerA)} ${winChance===null?'—':winChance+'%'}</span><b>${past?'Final':winChance===null?'Unavailable':'Est. win chance'}</b><span>${winChance===null?'—':(100-winChance)+'%'} ${esc(managerB)}</span></div></div></div><div class="hq-edge-grid">${edges}</div>${details}</section>`;
+};
+/* v16: removed legacy hjLineupPlayerHTML runtime override. The canonical renderer above is authoritative. */
+
+/* Free Agents use the same direct ESPN projection lookup the player profile
+  </div>`;
+}
+function hjDirectoryPositionMatch(player){
+  return HJ_HQ_STATE.position==='ALL'||player.position===HJ_HQ_STATE.position||(HJ_HQ_STATE.position==='FLEX'&&['RB','WR','TE'].includes(player.position));
+}
+function hjDirectoryFilteredRows(){
+  const query=hjNorm(HJ_HQ_STATE.query),all=HJ_PLAYER_DIRECTORY.rows.filter(player=>hjDirectoryPositionMatch(player)&&(HJ_PLAYER_DIRECTORY.mode!=='free'||!player.ownership?.owned)&&(!query||player.norm.includes(query)||hjNorm(player.team).includes(query)||hjNorm(player.ownership?.owner||'').includes(query)));
+  const projectionLine=matchup&&!usingPrevious?`<span class="league-matchup-projections">${hjProjectionFlipHTML(`${Number.isFinite(ownProjected)?pcFpts(ownProjected):'—'}–${Number.isFinite(oppProjected)?pcFpts(oppProjected):'—'}`,`${Number.isFinite(vegasOwn?.vegas)?pcFpts(vegasOwn.vegas):'—'}–${Number.isFinite(vegasOpp?.vegas)?pcFpts(vegasOpp.vegas):'—'}`,`roster-matchup:${week}:${team.id}`)}</span>`:'';
+  const liveLabel=matchupLive?`<span class="hq-lineup-live-label league-matchup-live-label">${matchupFinal?'FINAL':'LIVE'}</span>`:'';
+  const matchupHTML=matchup?`<button class="league-matchup-score${matchupLive?' has-actual':''}" type="button" data-hq-open-matchup="${esc(team.id)}" aria-label="Open Week ${matchup.week} matchup in Matchup Center"><span class="league-matchup-team">Week ${matchup.week} matchup${liveLabel}<b class="${matchupLive?'is-actual':''}">${scoreLine||`vs ${esc(opponentName||'TBD')}`}</b>${scoreLine&&opponentName?`<span>vs ${esc(opponentName)}</span>`:''}${projectionLine}</span></button>`:'';
+  const record=hjTeamRecordIfPlayed(team),identity=hjManagerBusinessCard(team,data,owner,manager);
+  if(!entries.length)return `<div class="league-roster-head">${identity}${matchupHTML}</div><div class="league-sync-empty"><strong>Rosters appear after the draft</strong><span>The site will switch to the 2026 rosters automatically when ESPN posts them.</span></div>`;
+
+  const ir=entries.filter(entry=>Number(entry.lineupSlotId)===21).sort(hjBenchCompare);
+function hj3FlexEntry(row){for(let i=0;i<row.selection.length;i++){const e=row.selection[i];if(e&&hjStrengthSlotUnit(row.plan[i]?.slotId,e)==='FLEX')return e}return null}
+
+function hj3VegasLike(name,position,kind='weekly'){const data=HJ_PROJECTION_STATE[kind];if(!data?.rows||!HJ3_SKILL_POS.includes(position))return null;const r=data.rows.find(item=>String(item.position||'').toUpperCase()===position&&pcNameMatch(item.name,name));return r?pcVegasPoints(r,position):null}
+function hj3ParseEspnFA(entry,week){const p=hjEspnPoolEntryPlayer(entry),id=String(p?.id||entry?.id||''),position=hjEspnPoolPosition(entry),name=p?.fullName||p?.displayName||p?.name||'Player';if(!HJ3_SKILL_POS.includes(position)||!id)return null;const espnWeek=pcEspnProjectionStat(entry,'week',week),espnSeason=pcEspnProjectionStat(entry,'season',week),vegasWeek=hj3VegasLike(name,position,'weekly'),vegasSeason=hj3VegasLike(name,position,'season');return {id,name,position,team:HJ_PRO_TEAM_BY_ID[String(p?.proTeamId||'')]||'FA',espnWeek:Number.isFinite(espnWeek)?espnWeek:null,espnSeason:Number.isFinite(espnSeason)?espnSeason:null,vegasWeek:Number.isFinite(vegasWeek)?vegasWeek:null,vegasSeason:Number.isFinite(vegasSeason)?vegasSeason:null}}
+function hj3CandidateScore(player,model){const m=hj3ScoreModel(model),e=Number(player?.espnWeek),v=Number(player?.vegasWeek),hasE=Number.isFinite(e),hasV=Number.isFinite(v);if(m==='vegas')return hasV?v:(hasE?e:null);if(m==='combo')return hasE&&hasV?(e+v)/2:(hasE?e:(hasV?v:null));return hasE?e:(hasV?v:null)}
+function hj3CandidatePool(data){const rostered=hjRosteredKeys(data),map=new Map(),put=p=>{if(!p||!HJ3_SKILL_POS.includes(p.position))return;const id=String(p.id||''),nk=hjNorm(p.name||'');if((id&&rostered.ids.has(id))||(nk&&rostered.names.has(nk)))return;const key=id||`${p.position}|${nk}`,prior=map.get(key)||{};map.set(key,{...prior,...p,id,name:p.name||prior.name||'Player',position:p.position})};HJ3_REPLACEMENT.players.forEach(put);if(typeof HJ_PLAYER_DIRECTORY!=='undefined')HJ_PLAYER_DIRECTORY.rows.filter(p=>!p.ownership?.owned&&HJ3_SKILL_POS.includes(p.position)).forEach(p=>put({id:p.id,name:p.name,position:p.position,team:p.team,espnWeek:p.espnWeekFpts,espnSeason:p.espnSeasonFpts,vegasWeek:p.vegasWeekFpts,vegasSeason:p.vegasSeasonFpts}));if(typeof HJ_ESPN_HQ_POOL!=='undefined')HJ_ESPN_HQ_POOL.byId.forEach(entry=>{const p=hj3ParseEspnFA(entry,hjCurrentWeek(data));if(p)put(p)});hjFreeAgentBase(data).filter(p=>HJ3_SKILL_POS.includes(p.position)).forEach(p=>put({id:p.id,name:p.name,position:p.position,team:p.team,vegasWeek:hj3VegasLike(p.name,p.position,'weekly'),vegasSeason:hj3VegasLike(p.name,p.position,'season')}));return [...map.values()]}
+function hj3ReplacementLevels(candidates,model){const levels={};HJ3_SKILL_POS.forEach(pos=>{const vals=candidates.filter(p=>p.position===pos).map(p=>hj3CandidateScore(p,model)).filter(Number.isFinite).sort((a,b)=>b-a).slice(0,3);levels[pos]=hj3Median(vals)});return levels}
+function hj3CacheReady(data){return HJ3_CACHE.data===data&&HJ3_CACHE.weekly===HJ_PROJECTION_STATE.weekly&&HJ3_CACHE.season===HJ_PROJECTION_STATE.season&&HJ3_CACHE.special===HJ_PROJECTION_STATE.special&&HJ3_CACHE.replVersion===HJ3_REPLACEMENT.version}
+function hj3ResetCache(data){HJ3_CACHE.data=data;HJ3_CACHE.weekly=HJ_PROJECTION_STATE.weekly;HJ3_CACHE.season=HJ_PROJECTION_STATE.season;HJ3_CACHE.special=HJ_PROJECTION_STATE.special;HJ3_CACHE.replVersion=HJ3_REPLACEMENT.version;HJ3_CACHE.models.clear();HJ3_CACHE.candidates=hj3CandidatePool(data)}
+function hj3BuildModel(data,model){if(!hj3CacheReady(data))hj3ResetCache(data);if(HJ3_CACHE.models.has(model))return HJ3_CACHE.models.get(model);const week=hjCurrentWeek(data),plan=hjLineupPlan(data),scoreModel=hj3ScoreModel(model),candidates=HJ3_CACHE.candidates||[],rows=(data?.teams||[]).map(team=>{const manager=hjMatchManager(team,data)||hjOwnerName(team,data)||`Manager ${team.id}`,effective=hjEffectiveRoster(team,data),current=hjSelectionForMode(effective.entries,plan,week,'actual'),optimal=hjSelectionForMode(effective.entries,plan,week,model==='actual'?'espn':model),selection=model==='actual'?current:optimal,totals=hj3SelectionTotals(selection,plan,model,effective.season,week),currentTotals=hj3SelectionTotals(current,plan,model,effective.season,week),optimalTotals=hj3SelectionTotals(optimal,plan,model,effective.season,week),depth=hj3Depth(effective.entries,selection,plan,model,week,candidates),gap=Math.max(0,optimalTotals.total-currentTotals.total);return {team,manager,...effective,model,scoreModel,plan,selection,currentSelection:current,optimalSelection:optimal,values:totals.values,starterRaw:totals.total,depthRaw:depth.raw,depth,gap,currentTotal:currentTotals.total,optimalTotal:optimalTotals.total,unitRanks:{},components:{},power:0,powerRank:0}});const count=rows.length||1,depthReady=rows.every(r=>r.depth.ready);[...rows].sort((a,b)=>b.starterRaw-a.starterRaw).forEach((r,i)=>r.starterRank=i+1);if(depthReady)[...rows].sort((a,b)=>b.depthRaw-a.depthRaw).forEach((r,i)=>r.depthRank=i+1);else rows.forEach(r=>r.depthRank=null);HJ_STRENGTH_KEYS.forEach(key=>[...rows].sort((a,b)=>b.values[key]-a.values[key]||a.manager.localeCompare(b.manager)).forEach((r,i)=>r.unitRanks[key]=i+1));rows.forEach(r=>{r.components.balance=Object.entries(HJ_STRENGTH_UNIT_WEIGHTS).reduce((sum,[key,w])=>sum+hjStrengthRankScore(r.unitRanks[key]||count,count)*w,0)});hj3MagnitudeComponent(rows,'starterRaw','starter',{floorFraction:.025,absFloor:4});if(depthReady)hj3MagnitudeComponent(rows,'depthRaw','depth',{floorFraction:0,absFloor:.65});else rows.forEach(r=>r.components.depth=75);rows.forEach(r=>{r.power=hj3Clamp(.60*r.components.starter+.25*r.components.depth+.15*r.components.balance,45,98)});[...rows].sort((a,b)=>b.power-a.power||b.starterRaw-a.starterRaw).forEach((r,i)=>r.powerRank=i+1);HJ3_CACHE.models.set(model,rows);return rows}
+
+function hj3UnitFill(row,key,count){return Math.max(12,Math.min(100,hjStrengthRankScore(row.unitRanks[key]||count,count)))}
+function hj3PlayerRow(entry,row,{forceFlex=false,right=false}={}){const p=hjPlayer(entry),name=p?.fullName||p?.displayName||'Player',id=p?.id||entry?.playerId||'',team=hjPlayerTeam(entry),pos=hjPlayerPosition(entry),score=hj3SeasonScore(entry,row.model,row.season,hjCurrentWeek()),selected=row.selection.includes(entry),slotMap=hj3SelectionSlotMap(row.selection,row.plan),slot=slotMap.get(entry),atFlex=slot&&hjStrengthSlotUnit(slot.slotId,entry)==='FLEX',ir=Number(entry?.lineupSlotId)===21,attrs=ffnPlayerDataAttrs({id,name,team,position:pos,photo:hjPlayerPhoto(entry)});return `<button type="button" class="hj3-player pc-player-trigger${selected?' is-start':''}" ${attrs}><span class="n">${esc(name)}${(forceFlex||atFlex)?'<span class="hj3-flex-dot">FLEX</span>':''}${ir?'<span class="hj3-ir-dot">IR</span>':''}</span><span class="v">${pcFpts(score)}</span></button>`}
+function hj3UnitPlayers(row,key){if(key==='FLEX'){const entry=hj3FlexEntry(row);return entry?hj3PlayerRow(entry,row,{forceFlex:true}):'<div class="hj3-empty">No flex slot</div>'}const entries=row.entries.filter(e=>hjPlayerPosition(e)===key).slice().sort((a,b)=>{const as=row.selection.includes(a)?0:1,bs=row.selection.includes(b)?0:1;return as-bs||hj3SeasonScore(b,row.model,row.season,hjCurrentWeek())-hj3SeasonScore(a,row.model,row.season,hjCurrentWeek())});return entries.length?entries.map(e=>hj3PlayerRow(e,row)).join(''):`<div class="hj3-empty">None</div>`}
+   including the Players panel installer, but leaves Strength as a cheap shell
+   until somebody actually opens it. */
+hjRenderLeagueTools=function(data){const root=$('#league-hq-tools');if(!root)return;if(!data){root.innerHTML='';hjRenderHQTabs();return}const selectedWeek=HJ_HQ_STATE.matchupWeek||hjCurrentWeek(data),strength=HJ_HQ_STATE.activeTab==='strength'?hjStrengthHTML(data):'<section class="hq-module hj3-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3><span class="hq-module-note">Open tab to calculate</span></div></section>';root.innerHTML=`<div class="hq-tab-panel" id="hq-panel-matchups" data-hq-panel="matchups" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Matchup Center</h3><span class="hq-module-note" id="hq-matchup-note">${HJ_HQ_STATE.matchupView==='matrix'?'Weeks 1–14':`Week ${selectedWeek}`}</span></div><div class="hq-module-body" id="hq-matchup-content">${hjMatchupCenterPanelHTML(data)}</div></div></div><div class="hq-tab-panel" id="hq-panel-free-agents" data-hq-panel="free-agents" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Free Agents</h3><span class="hq-module-note" id="hq-fa-count">Open tab to load projections</span></div>${hjFreeAgentControlsHTML()}<div id="hq-fa-results"><div class="hq-empty">Free-agent projections load when this tab is opened.</div></div></div></div><div class="hq-tab-panel" id="hq-panel-strength" data-hq-panel="strength" role="tabpanel">${strength}</div><div class="hq-tab-panel" id="hq-panel-activity" data-hq-panel="activity" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">League Activity</h3><span class="hq-module-note">Completed moves</span></div>${hjActivityHTML()}</div></div><div class="hq-tab-panel" id="hq-panel-recap" data-hq-panel="recap" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Weekly Recap</h3><span class="hq-module-note">${hjCurrentWeek(data)>1?`Week ${hjCurrentWeek(data)-1}`:'After Week 1'}</span></div>${hjWeeklyRecapHTML(data)}</div></div>`;if(typeof hjInstallPlayersPanel==='function')hjInstallPlayersPanel();hjRenderHQTabs();if(HJ_HQ_STATE.activeTab==='free-agents'&&typeof HJ_PLAYER_DIRECTORY!=='undefined'&&HJ_PLAYER_DIRECTORY.rows?.length)requestAnimationFrame(()=>{try{hjRenderPlayerDirectory(false)}catch(_){}});if(HJ_HQ_STATE.activeTab==='strength')requestAnimationFrame(()=>hj3EnsureSources(data))}
+
+const hj3SetHQTabBase=hjSetHQTab;
+hjSetHQTab=function(tab,focusTeamId=null){hj3SetHQTabBase(tab,focusTeamId);if(tab==='strength')requestAnimationFrame(()=>hjRerenderStrength())}
+
+function hjMathPlayer(entry){return entry?.player||entry?.playerPoolEntry?.player||(typeof hjPlayer==='function'?hjPlayer(entry):{})||{}}
+function hjMathStats(entry){const p=hjMathPlayer(entry);return Array.isArray(p?.stats)?p.stats:[]}
+function hjMathSeasonMatches(stat,season){return Number(stat?.seasonId??stat?.seasonValue)===Number(season)}
+function hjMathSource(stat){const raw=stat?.statSourceId??stat?.statTypeId;return Number(raw)}
+function hjMathSplit(stat){const raw=stat?.statSplitTypeId;return raw==null?null:Number(raw)}
+function hjMathCanonicalStat(entry,period='week',week=1,season=HJ_LEAGUE_SEASON,source=1){
+  const stats=hjMathStats(entry).filter(stat=>hjMathSource(stat)===Number(source)&&hjMathSeasonMatches(stat,season)&&hjNumber(stat?.appliedTotal)!==null);
+  const nav=document.createElement('nav');nav.className='manager-profile-nav';nav.setAttribute('aria-label','Manager profile sections');nav.innerHTML=available.map(([key,label],i)=>`<button type="button" class="manager-profile-jump${i===0?' is-active':''}" data-manager-jump="${key}" aria-pressed="${i===0?'true':'false'}">${label}</button>`).join('');head.after(nav);
+  const sections=available.map(([key])=>profile.querySelector(`[data-manager-section="${key}"]`)).filter(Boolean),buttons=[...nav.querySelectorAll('[data-manager-jump]')];let active='';
+  const setActive=key=>{if(active===key)return;active=key;buttons.forEach(b=>{const on=b.dataset.managerJump===key;b.classList.toggle('is-active',on);b.setAttribute('aria-pressed',String(on))});const current=buttons.find(b=>b.dataset.managerJump===key);if(current&&nav.scrollWidth>nav.clientWidth)current.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'})};
+  nav.addEventListener('click',e=>{const b=e.target.closest('[data-manager-jump]');if(!b)return;const target=profile.querySelector(`[data-manager-section="${b.dataset.managerJump}"]`);if(!target)return;scroll.scrollTo({top:Math.max(0,target.offsetTop-6),behavior:'smooth'});setActive(b.dataset.managerJump)});
+  const update=()=>{const top=scroll.scrollTop+28;let current=sections[0];sections.forEach(section=>{if(section.offsetTop<=top)current=section});setActive(current?.dataset.managerSection||'overview')};
+  let ticking=false;scroll.addEventListener('scroll',()=>{if(ticking)return;ticking=true;requestAnimationFrame(()=>{update();ticking=false})},{passive:true});update();
+}
+  const sections=available.map(([key])=>profile.querySelector(`[data-manager-section="${key}"]`)).filter(Boolean),buttons=[...nav.querySelectorAll('[data-manager-jump]')];let active='';
+  const setActive=key=>{if(active===key)return;active=key;buttons.forEach(b=>{const on=b.dataset.managerJump===key;b.classList.toggle('is-active',on);b.setAttribute('aria-pressed',String(on))});const current=buttons.find(b=>b.dataset.managerJump===key);if(current&&nav.scrollWidth>nav.clientWidth)current.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'})};
+  nav.addEventListener('click',e=>{const b=e.target.closest('[data-manager-jump]');if(!b)return;const target=profile.querySelector(`[data-manager-section="${b.dataset.managerJump}"]`);if(!target)return;scroll.scrollTo({top:Math.max(0,target.offsetTop-6),behavior:'smooth'});setActive(b.dataset.managerJump)});
+  const update=()=>{const top=scroll.scrollTop+28;let current=sections[0];sections.forEach(section=>{if(section.offsetTop<=top)current=section});setActive(current?.dataset.managerSection||'overview')};
+  let ticking=false;scroll.addEventListener('scroll',()=>{if(ticking)return;ticking=true;requestAnimationFrame(()=>{update();ticking=false})},{passive:true});update();
+}
+const hjManagerNavObserver=new MutationObserver(mutations=>{for(const m of mutations)for(const node of m.addedNodes){if(!(node instanceof Element))continue;const back=node.matches?.('.manager-modal-back')?node:node.querySelector?.('.manager-modal-back');if(back)requestAnimationFrame(()=>hjInstallManagerProfileNav(back))}});
+wireUpdateDots=function(){
+  const nodes=wireCardNodes(),scroller=$('#wire-scroll'),dots=$('#wire-dots');if(!scroller||!dots)return;const center=scroller.scrollLeft+scroller.clientWidth/2;let idx=0,best=Infinity;nodes.forEach((el,i)=>{const mid=el.offsetLeft+el.offsetWidth/2,d=Math.abs(mid-center);if(d<best){best=d;idx=i}});WIRE.index=idx;nodes.forEach((el,i)=>el.classList.toggle('is-scroll-active',i===idx));dots.innerHTML=nodes.length>1?nodes.map((_,i)=>`<i class="${i===idx?'on':''}"></i>`).join(''):'';const prev=$('#wire-prev'),next=$('#wire-next');if(prev)prev.disabled=idx<=0;if(next)next.disabled=idx>=nodes.length-1;
+  const section=nodes[idx]?.dataset.wireSection||'';{const changed=section!==WIRE.activeSection;WIRE.activeSection=section;const chips=[...document.querySelectorAll('#wire-chips [data-wire-section-jump]')];chips.forEach(chip=>{const on=chip.dataset.wireSectionJump===section;chip.classList.toggle('is-active',on);chip.setAttribute('aria-pressed',String(on))});const active=chips.find(c=>c.dataset.wireSectionJump===section),nav=document.querySelector('#wire-chips');if(changed&&active&&nav&&nav.scrollWidth>nav.clientWidth)active.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'})}
+}
+
+/* Replace the old carousel node to remove every accumulated wheel/touch handler, then install one sane interaction layer. */
+function hjInstallWireScrollerV3(){
+
+/* Schedule cards: whole card opens Matchup Center; avatar alone still opens manager. */
+.profile-schedule-node[data-profile-matchup-week]{cursor:pointer!important}
+.profile-schedule-node[data-profile-matchup-week]:hover{border-color:var(--brass)!important;background:#fffdf7!important}
+.profile-schedule-avatar{appearance:none;border:0;background:transparent;padding:0;margin:0;display:grid;place-items:center;cursor:pointer;flex:0 0 auto}
+.profile-schedule-avatar>.av,.profile-schedule-avatar img.av{pointer-events:none}
+
+/* Schedule cards: whole card opens Matchup Center; avatar alone still opens manager. */
+.profile-schedule-node[data-profile-matchup-week]{cursor:pointer!important}
+.profile-schedule-node[data-profile-matchup-week]:hover{border-color:var(--brass)!important;background:#fffdf7!important}
+.profile-schedule-avatar{appearance:none;border:0;background:transparent;padding:0;margin:0;display:grid;place-items:center;cursor:pointer;flex:0 0 auto}
+.profile-schedule-avatar>.av,.profile-schedule-avatar img.av{pointer-events:none}
+
+/* Draft DNA season rail + in-modal draft card. */
+
+/* -------------------- Current season data continuity -------------------- */
+function hjCurrentManagerTeam(name,data=HJ_LEAGUE_STATE?.data){return (data?.teams||[]).find(t=>(hjMatchManager(t,data)||hjOwnerName(t,data))===name)||null}
+function hjCurrentStandingRank(team,data){const rank=hjNumber(team?.playoffSeed);return rank!==null&&rank>0?rank:0}
+function hjCurrentSeasonHigh(team,data){if(!team||!data)return 0;let best=0;for(const g of data.schedule||[]){for(const side of [g?.home,g?.away])if(Number(side?.teamId)===Number(team.id))best=Math.max(best,Number(side?.totalPoints)||0)}return best}
+function hjPatchManagerLiveSeason(back,name){
+  const data=HJ_LEAGUE_STATE?.data,team=hjCurrentManagerTeam(name,data);if(!data||!team)return;const year=hjManagerSeasonId(data),rec=team?.record?.overall||{},wins=Number(rec.wins)||0,losses=Number(rec.losses)||0,pf=Number(rec.pointsFor)||0,rank=hjCurrentStandingRank(team,data),staticRows=(HIST.manager_seasons||[]).filter(r=>r.manager===name),already=staticRows.some(r=>Number(r.year)===year);
+
+/* -------------------- Schedule cards open Matchup Center -------------------- */
+function hjOpenProfileScheduleMatchup(back,owner,opponent,week){
+  const data=HJ_LEAGUE_STATE?.data;if(!data)return;const team=hjCurrentManagerTeam(owner,data),teamId=team?.id;
+  back.closest('.manager-modal-overlay')?.querySelector('.manager-modal-close')?.click();
+  setTimeout(()=>{
+    HJ_HQ_STATE.matchupWeek=Number(week)||hjCurrentWeek(data);HJ_HQ_STATE.matchupView='week';HJ_HQ_STATE.activeTab='matchups';HJ_HQ_STATE.focusTeamId=teamId||null;
+    HJ_HQ_STATE.matchupWeek=Number(week)||hjCurrentWeek(data);HJ_HQ_STATE.matchupView='week';HJ_HQ_STATE.activeTab='matchups';HJ_HQ_STATE.focusTeamId=teamId||null;
+    try{hjSetHQTab('matchups');hjRenderMatchupCenter()}catch(_){try{hjRenderLeagueTools(data)}catch(__){}}
+    requestAnimationFrame(()=>{const cards=[...document.querySelectorAll('[data-hq-matchup]')],target=teamId?cards.find(c=>String(c.dataset.hqTeamA)===String(teamId)||String(c.dataset.hqTeamB)===String(teamId)):null;cards.forEach(c=>c.classList.toggle('is-focused',c===target));document.querySelector('#league-hq')?.scrollIntoView({behavior:'smooth',block:'start'});if(target)setTimeout(()=>target.scrollIntoView({behavior:'smooth',block:'center'}),260)})
+  },180);
+}
+function hjPatchManagerSchedule(back,name){
+  back.querySelectorAll('.profile-schedule-node').forEach(node=>{if(node.dataset.profileMatchupPatched==='1')return;node.dataset.profileMatchupPatched='1';const opponent=node.dataset.manager||node.querySelector('.profile-schedule-opp-name')?.textContent?.trim()||'',wk=Number((node.querySelector('.profile-schedule-week')?.textContent||'').match(/\d+/)?.[0])||0;node.classList.remove('manager-profile-trigger');node.dataset.profileMatchupWeek=String(wk);node.setAttribute('aria-label',`Open Week ${wk} ${name} vs ${opponent} in Matchup Center`);const avatar=node.querySelector('.av');if(avatar){const wrap=document.createElement('button');wrap.type='button';wrap.className='profile-schedule-avatar manager-profile-trigger';wrap.dataset.manager=opponent;wrap.setAttribute('aria-label',`Open ${opponent} manager profile`);avatar.replaceWith(wrap);wrap.appendChild(avatar)}node.addEventListener('click',e=>{if(e.target.closest('.manager-profile-trigger'))return;e.preventDefault();hjOpenProfileScheduleMatchup(back,name,opponent,wk)});node.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&!e.target.closest('.manager-profile-trigger')){e.preventDefault();hjOpenProfileScheduleMatchup(back,name,opponent,wk)}})});
+  },180);
+}
+function hjPatchManagerSchedule(back,name){
+  back.querySelectorAll('.profile-schedule-node').forEach(node=>{if(node.dataset.profileMatchupPatched==='1')return;node.dataset.profileMatchupPatched='1';const opponent=node.dataset.manager||node.querySelector('.profile-schedule-opp-name')?.textContent?.trim()||'',wk=Number((node.querySelector('.profile-schedule-week')?.textContent||'').match(/\d+/)?.[0])||0;node.classList.remove('manager-profile-trigger');node.dataset.profileMatchupWeek=String(wk);node.setAttribute('aria-label',`Open Week ${wk} ${name} vs ${opponent} in Matchup Center`);const avatar=node.querySelector('.av');if(avatar){const wrap=document.createElement('button');wrap.type='button';wrap.className='profile-schedule-avatar manager-profile-trigger';wrap.dataset.manager=opponent;wrap.setAttribute('aria-label',`Open ${opponent} manager profile`);avatar.replaceWith(wrap);wrap.appendChild(avatar)}node.addEventListener('click',e=>{if(e.target.closest('.manager-profile-trigger'))return;e.preventDefault();hjOpenProfileScheduleMatchup(back,name,opponent,wk)});node.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&!e.target.closest('.manager-profile-trigger')){e.preventDefault();hjOpenProfileScheduleMatchup(back,name,opponent,wk)}})});
+}
+
+/* -------------------- Draft DNA yearly archive -------------------- */
+  const defs=[['overview','Overview'],['schedule','Schedule'],['roster','Roster'],['seasons','Seasons'],['management','Moves'],['h2h','Head-to-Head'],['dna','Draft DNA'],['awards','Awards']],available=defs.filter(([key])=>profile.querySelector(`[data-manager-section="${key}"]`));if(available.length<2)return;
+  back.querySelector('.manager-profile-nav')?.remove();const nav=document.createElement('nav');nav.className='manager-profile-nav';nav.setAttribute('aria-label','Manager profile sections');nav.innerHTML=available.map(([key,label],i)=>`<button type="button" class="manager-profile-jump${i===0?' is-active':''}" data-manager-jump="${key}" aria-pressed="${i===0?'true':'false'}">${label}</button>`).join('');head.after(nav);
+  const buttons=[...nav.querySelectorAll('[data-manager-jump]')],sections=available.map(([key])=>profile.querySelector(`[data-manager-section="${key}"]`)).filter(Boolean);let active='';const setActive=key=>{if(active===key)return;active=key;buttons.forEach(b=>{const on=b.dataset.managerJump===key;b.classList.toggle('is-active',on);b.setAttribute('aria-pressed',String(on))});const btn=buttons.find(b=>b.dataset.managerJump===key);if(btn&&nav.scrollWidth>nav.clientWidth)nav.scrollTo({left:Math.max(0,btn.offsetLeft-(nav.clientWidth-btn.offsetWidth)/2),behavior:'smooth'})};
+  const targetTop=target=>scroll.scrollTop+(target.getBoundingClientRect().top-scroll.getBoundingClientRect().top);
+  nav.addEventListener('click',e=>{const b=e.target.closest('[data-manager-jump]');if(!b)return;const target=profile.querySelector(`[data-manager-section="${b.dataset.managerJump}"]`);if(!target)return;scroll.scrollTo({top:Math.max(0,targetTop(target)),behavior:'smooth'});setActive(b.dataset.managerJump)});
+  const update=()=>{const st=scroll.scrollTop+2;let current=sections[0];for(const section of sections){if(targetTop(section)<=st+3)current=section;else break}setActive(current?.dataset.managerSection||'overview')};let tick=false;scroll.addEventListener('scroll',()=>{if(tick)return;tick=true;requestAnimationFrame(()=>{update();tick=false})},{passive:true});setActive('overview');back.dataset.hjManagerNavV2='1';
+}
+  const buttons=[...nav.querySelectorAll('[data-manager-jump]')],sections=available.map(([key])=>profile.querySelector(`[data-manager-section="${key}"]`)).filter(Boolean);let active='';const setActive=key=>{if(active===key)return;active=key;buttons.forEach(b=>{const on=b.dataset.managerJump===key;b.classList.toggle('is-active',on);b.setAttribute('aria-pressed',String(on))});const btn=buttons.find(b=>b.dataset.managerJump===key);if(btn&&nav.scrollWidth>nav.clientWidth)nav.scrollTo({left:Math.max(0,btn.offsetLeft-(nav.clientWidth-btn.offsetWidth)/2),behavior:'smooth'})};
+  const targetTop=target=>scroll.scrollTop+(target.getBoundingClientRect().top-scroll.getBoundingClientRect().top);
+  nav.addEventListener('click',e=>{const b=e.target.closest('[data-manager-jump]');if(!b)return;const target=profile.querySelector(`[data-manager-section="${b.dataset.managerJump}"]`);if(!target)return;scroll.scrollTo({top:Math.max(0,targetTop(target)),behavior:'smooth'});setActive(b.dataset.managerJump)});
+  const update=()=>{const st=scroll.scrollTop+2;let current=sections[0];for(const section of sections){if(targetTop(section)<=st+3)current=section;else break}setActive(current?.dataset.managerSection||'overview')};let tick=false;scroll.addEventListener('scroll',()=>{if(tick)return;tick=true;requestAnimationFrame(()=>{update();tick=false})},{passive:true});setActive('overview');back.dataset.hjManagerNavV2='1';
+}
+const hjManagerFinalObserver=new MutationObserver(muts=>{for(const m of muts)for(const node of m.addedNodes){if(!(node instanceof Element))continue;const back=node.matches?.('.manager-modal-back')?node:node.querySelector?.('.manager-modal-back');if(back)setTimeout(()=>hjInstallManagerProfileNavV2(back),35)}});hjManagerFinalObserver.observe(document.body,{childList:true,subtree:true});
+
+/* Restore schedule cards to their original manager-profile behavior. */
+.profile-schedule-node{cursor:pointer}
+.profile-schedule-node[data-profile-matchup-week]{cursor:pointer!important}
+.profile-schedule-avatar{display:contents!important}
+
+/* Draft-year detail: one compact continuous draft board. */
+.manager-draft-detail{background:var(--paper)!important}
+  if(!back)return;
+  back.querySelectorAll('.profile-schedule-node').forEach(node=>{
+    node.removeAttribute('data-profile-matchup-week');
+    node.removeAttribute('data-profile-matchup-patched');
+    const wrapper=node.querySelector('.profile-schedule-avatar');
+    if(wrapper){
+      const avatar=wrapper.querySelector('.av');
+  back.querySelectorAll('.profile-schedule-node').forEach(node=>{
+    node.removeAttribute('data-profile-matchup-week');
+    node.removeAttribute('data-profile-matchup-patched');
+    const wrapper=node.querySelector('.profile-schedule-avatar');
+    if(wrapper){
+      const avatar=wrapper.querySelector('.av');
+      if(avatar)wrapper.replaceWith(avatar);
+  requestAnimationFrame(()=>{
+    try{if(typeof hjRenderLeague==='function')hjRenderLeague()}catch(_){}
+    try{if(HJ_HQ_STATE?.activeTab==='matchups'&&typeof hjRenderMatchupCenter==='function')hjRenderMatchupCenter()}catch(_){}
+    try{if(HJ_HQ_STATE?.activeTab==='strength'&&typeof hjRerenderStrength==='function')hjRerenderStrength()}catch(_){}
+    try{if(typeof wireRender==='function')wireRender(true)}catch(_){}
+  });
+}
+HJ_HQ_STATE.matchupFocusKey=HJ_HQ_STATE.matchupFocusKey||'';
+
+function hjMatchupSwitchMetaV32(game,sourceData,data){
+  const sourceHome=(sourceData?.teams||[]).find(team=>Number(team.id)===Number(game?.home?.teamId));
+  const sourceAway=(sourceData?.teams||[]).find(team=>Number(team.id)===Number(game?.away?.teamId));
+  if(!sourceHome||!sourceAway)return null;
+  const managerA=hjMatchManager(sourceHome,sourceData)||hjOwnerName(sourceHome,sourceData)||`Manager ${sourceHome.id}`;
+  return {managerA,managerB,key:`${week}:${teamA.id}:${teamB.id}`,week,scoreA,scoreB};
+}
+function hjMatchupJumpAvatarV32(manager){
+  return `<img class="hq-matchup-jump-avatar" src="${src}" alt="">`;
+}
+function hjMatchupSwitcherHTMLV32(source,data,week){
+  return `<img class="hq-matchup-jump-avatar" src="${src}" alt="">`;
+}
+function hjMatchupSwitcherHTMLV32(source,data,week){
+  const metas=(source?.games||[]).map(game=>hjMatchupSwitchMetaV32(game,source.sourceData,data)).filter(Boolean);
+  if(!metas.length)return '';
+  const weekPrefix=`${week}:`,openKey=[...HJ_HQ_STATE.openMatchups].find(key=>String(key).startsWith(weekPrefix))||'';
+  const selected=metas.some(meta=>meta.key===HJ_HQ_STATE.matchupFocusKey)?HJ_HQ_STATE.matchupFocusKey:openKey;
+  const weekPrefix=`${week}:`,openKey=[...HJ_HQ_STATE.openMatchups].find(key=>String(key).startsWith(weekPrefix))||'';
+  const selected=metas.some(meta=>meta.key===HJ_HQ_STATE.matchupFocusKey)?HJ_HQ_STATE.matchupFocusKey:openKey;
+  return `<div class="hq-matchup-switcher-shell" data-hq-matchup-switcher-shell><div class="hq-matchup-switcher" role="navigation" aria-label="Week ${week} matchup switcher">${metas.map(meta=>`<button type="button" class="hq-matchup-jump${meta.key===selected?' active':''}" data-hq-matchup-jump="${esc(meta.key)}" aria-label="${esc(meta.managerA)} ${pcFpts(meta.scoreA)} versus ${esc(meta.managerB)} ${pcFpts(meta.scoreB)}" aria-pressed="${meta.key===selected}">${hjMatchupJumpAvatarV32(meta.managerA)}<span class="hq-matchup-jump-score">${pcFpts(meta.scoreA)}</span><span class="hq-matchup-jump-vs">vs</span><span class="hq-matchup-jump-score">${pcFpts(meta.scoreB)}</span>${hjMatchupJumpAvatarV32(meta.managerB)}</button>`).join('')}</div></div>`;
+}
+function hjCenterMatchupJumpChipV32(key){
+  const rail=document.querySelector('#hq-matchup-content .hq-matchup-switcher');
+  if(!rail)return;
+  return `<div class="hq-matchup-switcher-shell" data-hq-matchup-switcher-shell><div class="hq-matchup-switcher" role="navigation" aria-label="Week ${week} matchup switcher">${metas.map(meta=>`<button type="button" class="hq-matchup-jump${meta.key===selected?' active':''}" data-hq-matchup-jump="${esc(meta.key)}" aria-label="${esc(meta.managerA)} ${pcFpts(meta.scoreA)} versus ${esc(meta.managerB)} ${pcFpts(meta.scoreB)}" aria-pressed="${meta.key===selected}">${hjMatchupJumpAvatarV32(meta.managerA)}<span class="hq-matchup-jump-score">${pcFpts(meta.scoreA)}</span><span class="hq-matchup-jump-vs">vs</span><span class="hq-matchup-jump-score">${pcFpts(meta.scoreB)}</span>${hjMatchupJumpAvatarV32(meta.managerB)}</button>`).join('')}</div></div>`;
+}
+function hjCenterMatchupJumpChipV32(key){
+  const rail=document.querySelector('#hq-matchup-content .hq-matchup-switcher');
+  if(!rail)return;
+  const chip=[...rail.querySelectorAll('[data-hq-matchup-jump]')].find(item=>item.dataset.hqMatchupJump===key);
+  if(!chip)return;
+  const rail=document.querySelector('#hq-matchup-content .hq-matchup-switcher');
+  if(!rail)return;
+  const chip=[...rail.querySelectorAll('[data-hq-matchup-jump]')].find(item=>item.dataset.hqMatchupJump===key);
+  if(!chip)return;
+  const left=Math.max(0,chip.offsetLeft-(rail.clientWidth-chip.offsetWidth)/2);
+  rail.scrollTo({left,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+}
+  if(!chip)return;
+  const left=Math.max(0,chip.offsetLeft-(rail.clientWidth-chip.offsetWidth)/2);
+  rail.scrollTo({left,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+}
+function hjScrollToMatchupV32(key){
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const target=[...document.querySelectorAll('#hq-matchup-content [data-hq-matchup-key]')].find(card=>card.dataset.hqMatchupKey===key);
+  rail.scrollTo({left,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+}
+function hjScrollToMatchupV32(key){
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const target=[...document.querySelectorAll('#hq-matchup-content [data-hq-matchup-key]')].find(card=>card.dataset.hqMatchupKey===key);
+    if(!target)return;
+    document.querySelectorAll('#hq-matchup-content .hq-matchup.is-switch-selected').forEach(card=>card.classList.remove('is-switch-selected'));
+function hjScrollToMatchupV32(key){
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const target=[...document.querySelectorAll('#hq-matchup-content [data-hq-matchup-key]')].find(card=>card.dataset.hqMatchupKey===key);
+    if(!target)return;
+    document.querySelectorAll('#hq-matchup-content .hq-matchup.is-switch-selected').forEach(card=>card.classList.remove('is-switch-selected'));
+    target.classList.add('is-switch-selected');
+    hjCenterMatchupJumpChipV32(key);
+    const switchH=document.querySelector('#hq-matchup-content .hq-matchup-switcher-shell')?.getBoundingClientRect().height||50;
+    const top=window.scrollY+target.getBoundingClientRect().top-navH-switchH-8;
+    window.scrollTo({top:Math.max(0,top),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+  }));
+}
+
+const hjMatchupCenterPanelHTMLV32Base=hjMatchupCenterPanelHTML;
+  window.__hjMatchupQuickSwitcherV32=true;
+  hjMatchupToolsV32.addEventListener('click',event=>{
+    const jump=event.target.closest?.('[data-hq-matchup-jump]');
+    if(jump){
+      event.preventDefault();
+      event.stopPropagation();
+      const key=jump.dataset.hqMatchupJump||'',week=Number(String(key).split(':')[0])||HJ_HQ_STATE.matchupWeek||hjCurrentWeek(HJ_LEAGUE_STATE.data);
+    const viewButton=event.target.closest?.('[data-hq-schedule-view]');
+    if(viewButton&&viewButton.dataset.hqScheduleView!=='week')HJ_HQ_STATE.matchupFocusKey='';
+    const toggle=event.target.closest?.('[data-hq-matchup-toggle]');
+    if(toggle){
+      const key=toggle.dataset.hqMatchupToggle||'';
+      HJ_HQ_STATE.matchupFocusKey=HJ_HQ_STATE.openMatchups.has(key)?'':key;
+    }
+  window.__hjMatchupQuickSwitcherV33=true;
+
+  function hjMatchupStickyStateV33(){
+    const shell=document.getElementById('league-sync-shell');
+    const panel=document.getElementById('hq-panel-matchups');
+    if(!shell)return;
+    const active=!!panel && !panel.hidden && HJ_HQ_STATE?.activeTab==='matchups' && HJ_HQ_STATE?.matchupView==='week';
+  }
+
+  function hjCenterMatchupRailV33(){
+    const rail=document.querySelector('#hq-matchup-content .hq-matchup-switcher');
+    if(!rail)return;
+    const selected=rail.querySelector('.hq-matchup-jump.active');
+    const left=selected
+    const all=hjDirectoryFilteredRows(),visible=all.slice(0,HJ_PLAYER_DIRECTORY.renderLimit);
+    if(Number(HJ40.year)===Number(NFL_SEASON))setTimeout(()=>{
+      if(typeof hjPffScheduleRefresh!=='function')return;hjPffScheduleRefresh();
+      if(HJ40.statSort==='pffGrade'&&HJ_HQ_STATE.activeTab==='free-agents')all.forEach(player=>{if(hj40HasPffColumn(player)&&!hjPffSaved(String(player.id),Number(NFL_SEASON)))hjPffLoad(String(player.id),Number(NFL_SEASON),{priority:3});});
+    },0);
+    if(!visible.length)return `<div class="hq-empty">No players match those filters.</div>`;
+    const cards=visible.map((player,index)=>{
+#league-hq-tabs .hq-folder-art{position:absolute;left:-15px;top:-12px;bottom:auto;width:calc(100% + 215px);height:152px;max-width:none;pointer-events:none;z-index:var(--folder-layer,1);transform:translateY(var(--lift));filter:brightness(.99) drop-shadow(2px 1px 3px #513f241f);transition:transform 240ms cubic-bezier(.2,.75,.25,1),filter 240ms ease-out}
+#league-hq-tabs .hq-folder-label{position:absolute;z-index:30;top:20px;left:calc((100% + 215px) * .13 - 15px);width:calc((100% + 215px) * .30);text-align:center;white-space:nowrap;box-sizing:border-box;pointer-events:none;transform:translateY(var(--lift));transition:color 180ms ease-out,transform 240ms cubic-bezier(.2,.75,.25,1)}
+#league-hq-tabs .hq-tab[data-hq-tab="matchups"] .hq-folder-label{top:15px}
+#league-hq-tabs .hq-folder-label::after{content:"";display:block;width:36px;height:2px;margin:5px auto 0;background:#b98926;border-radius:2px;opacity:0;transition:opacity 180ms ease-out}
+#league-hq-tabs .hq-tab[aria-selected="true"]{--lift:-10px;color:#123047!important;background:transparent!important;border:0!important;box-shadow:none!important}
+#league-hq-tabs .hq-tab[aria-selected="true"] .hq-folder-art{z-index:20;filter:brightness(1.025) drop-shadow(3px 5px 5px #513f2438)}
+#league-hq-tabs .hq-tab[aria-selected="true"] .hq-folder-label::after{opacity:1}
+<style id="hq-matchups-spacing-and-navy-trim">
+/* Add paper around the Matchups label using the original stacking order. */
+#league-hq-tabs .hq-tab[data-hq-tab="matchups"] .hq-folder-art{
+  top:-21px;height:190px;
+}
+.hq-navy-menu-trim{
+  height:2px;width:calc(100% + 16px);margin:-8px 0 0 -8px;
+hjMatchupLineupHTML=function(teamA,teamB,managerA,managerB,rosterA,rosterB,week,key){
+ const mode=HJ_HQ_STATE.lineupModes.get(key)||'actual',plan=hjLineupPlan(HJ_LEAGUE_STATE.data),a=hjSelectionForMode(rosterA.entries,plan,week,mode),b=hjSelectionForMode(rosterB.entries,plan,week,mode),totalA=hjSelectionTotals(a,week),totalB=hjSelectionTotals(b,week),bench=hjBenchRows(hjRemainingBench(rosterA.entries,a),hjRemainingBench(rosterB.entries,b)),label=mode==='actual'?'Actual lineup':mode==='espn'?'ESPN optimal':mode==='vegas'?'Vegas optimal':'Combo optimal';
+ const modes=[['actual','Actual','Actual lineup'],['espn','ESPN','ESPN optimal'],['vegas','Vegas','Vegas optimal'],['combo','Combo','Combo optimal']].map(([id,text,title])=>`<button type="button" class="hq-lineup-mode${mode===id?' active':''}" data-hq-lineup-mode="${id}" data-hq-matchup-key="${esc(key)}" aria-label="${title}" aria-pressed="${mode===id}">${text}</button>`).join('');
+ const rows=plan.map((slot,i)=>`<div class="hj-lineup-v2-row">${hjLineupPlayerHTML(a[i],week)}<span class="hj-lineup-v2-slot">${esc(slot.label)}</span>${hjLineupPlayerHTML(b[i],week,true)}</div>`).join('');
+ const actualA=hjRosterLiveSelectionState(a,week),actualB=hjRosterLiveSelectionState(b,week);
+ const teamHead=(manager,total,right)=>{const actual=right?actualB:actualA;return `<div class="hj-lineup-v2-team${right?' is-right':''}"><b>${esc(manager)}</b>${actual.started?`<span class="hj-selected-lineup-points">${pcFpts(actual.total)}</span>`:''}${hjProjectionFlipHTML(total.espn,total.vegas,`lineup-total:${key}:${right?'b':'a'}`)}</div>`};
+ return `<div class="hq-lineup-wrap"><div class="hq-lineup-clip"><div class="hq-lineup-detail"><div class="hq-lineup-toolbar"><div class="hq-lineup-toolbar-copy"><b>${label}</b></div><div class="hq-lineup-modes" aria-label="Lineup view">${modes}</div></div><div class="hj-lineup-v2"><div class="hj-lineup-v2-head">${teamHead(managerA,totalA,false)}<span class="hj-lineup-v2-slot">POS</span>${teamHead(managerB,totalB,true)}</div><div class="hj-lineup-v2-starters">${rows}</div>${bench.length?`<div class="hj-lineup-v2-divider" role="separator" aria-label="Bench players"></div><div class="hj-lineup-v2-bench">${bench.map(row=>`<div class="hj-lineup-v2-row">${hjLineupPlayerHTML(row.a,week)}<span class="hj-lineup-v2-slot">BE</span>${hjLineupPlayerHTML(row.b,week,true)}</div>`).join('')}</div>`:''}</div></div></div></div>`;
+  const card=document.querySelector('#hq-panel-matchups .hq-matchup');if(!card)return;
+  const offset=(document.querySelector('body > nav')?.getBoundingClientRect().height||0)+(document.querySelector('.hj-folder-dock')?.getBoundingClientRect().height||0)+(document.querySelector('#hq-panel-matchups .hq-matchup-switcher-shell')?.getBoundingClientRect().height||0)+8;
+  window.scrollTo({top:Math.max(0,window.scrollY+card.getBoundingClientRect().top-offset),behavior:'auto'});
+ });
+};
+</script>
+<style id="hj-v3-refinements">
+#league-hq-tabs .hq-tab.hj-layer-ready>.hq-folder-art{visibility:hidden!important}
+#league-hq-tabs .hq-tab>.hq-folder-label,
+#league-hq-tabs .hq-tab[data-hq-tab="matchups"]>.hq-folder-label{top:18px!important;z-index:1!important;transform:none!important;transition:color 180ms ease!important}
+#league-hq-tabs .hq-tab[data-hq-tab="matchups"]>.hq-folder-art{top:-12px!important;height:152px!important}
+@media(hover:hover){#league-hq-tabs .hq-tab:not([aria-selected="true"]):hover{--lift:-6px;filter:drop-shadow(2px 4px 3px #513f2435)}}
+@media(prefers-reduced-motion:reduce){#league-hq-tabs .hq-tab{transition:none!important}}
+#league-hq #league-sync-shell.league-sync-flat,
+#league-hq-tabs .hq-tab>.hq-folder-label,
+#league-hq-tabs .hq-tab[data-hq-tab="matchups"]>.hq-folder-label{top:18px!important;z-index:1!important;transform:none!important;transition:color 180ms ease!important}
+#league-hq-tabs .hq-tab[data-hq-tab="matchups"]>.hq-folder-art{top:-12px!important;height:152px!important}
+@media(hover:hover){#league-hq-tabs .hq-tab:not([aria-selected="true"]):hover{--lift:-6px;filter:drop-shadow(2px 4px 3px #513f2435)}}
+@media(prefers-reduced-motion:reduce){#league-hq-tabs .hq-tab{transition:none!important}}
+#league-hq #league-sync-shell.league-sync-flat,
+#league-hq #league-sync-content,
+#league-hq-tabs .hq-tab:last-of-type{margin-right:0!important}
+#league-hq-tabs .hq-tab>.hq-folder-label,
+#league-hq-tabs .hq-tab[data-hq-tab="matchups"]>.hq-folder-label{
+ top:21px!important;
+ left:calc((100% + 215px) * .1355 - 15px)!important;
+ width:calc((100% + 215px) * .293)!important;
+ text-align:center!important;
+#league-hq-tabs .hq-tab[aria-selected="true"]{filter:none!important}
+#league-hq-tabs .hq-tab>.hq-folder-label,
+#league-hq-tabs .hq-tab[data-hq-tab="matchups"]>.hq-folder-label{top:27px!important;line-height:17px!important}
+</style><style id="hj-tab-pitch">
+#league-hq #league-hq-tabs.league-hq-direct-tabs{justify-content:flex-start!important;gap:0!important}
+#league-hq #league-hq-tabs .hq-tab{margin-right:-22px!important}
+#league-hq #league-hq-tabs .hq-tab:last-of-type{margin-right:0!important}
+const HJ_STATUS_LIVE=new Map();
+let hjStatusFrame=0;
+function hjScheduleStatuses(){if(hjStatusFrame)return;hjStatusFrame=requestAnimationFrame(()=>{hjStatusFrame=0;hjApplyOfficialStatuses();clearTimeout(hjStatusHydrateTimer);hjStatusHydrateTimer=setTimeout(hjRefreshOfficialStatuses,350)})}
+let hjStatusHydrateTimer;
+new MutationObserver(hjScheduleStatuses).observe(document.body,{childList:true,subtree:true});
+hjScheduleStatuses();
+
+   if(summary&&!card.querySelector('.hj-sticky-scorecard')){const wrap=document.createElement('div');wrap.className='hj-sticky-scorecard';summary.before(wrap);wrap.append(summary);if(win)wrap.append(win)}
+  });
+  const root=document.querySelector('#hq-panel-matchups'),buttons=root?.querySelectorAll('[data-hj-section-projections]'),bands=root?.querySelectorAll('.hj-matchup-actions');
+  if(buttons?.length&&bands?.length){const b=buttons[0];if(b.parentElement!==bands[0])bands[0].append(b);bands.forEach((band,i)=>{if(i&&!band.querySelector('[data-hj-section-projections]'))band.append(b.cloneNode(true))})}
+  const controls=document.querySelector('#hq-panel-free-agents .hq49-controls'),row=controls?.querySelector('.hq49-row-selects'),positions=controls?.querySelectorAll('[data-hq40-position]');
+  if(row&&positions?.length&&!row.querySelector('[data-hj-position-select]')){
+   const select=document.createElement('select');select.className='hq49-select';select.dataset.hjPositionSelect='';select.setAttribute('aria-label','Position');
+   if(head.closest('.hj-transaction'))return;
+   const sync=head.querySelector('.hj-activity-sync');if(sync)head.before(sync);
+   const ev=head.querySelector('[data-hj-section-projections]');if(ev){const band=head.closest('#hq-panel-matchups')?.querySelector('.hj-matchup-actions');if(band)band.append(ev)}
+   head.remove();
+  });
+ }
+ function schedule(){if(!queued){queued=true;requestAnimationFrame(repair)}}
+  const card=pages(deck)[index];if(!card)return;
+  const key=card.dataset.hqMatchupKey;HJ_HQ_STATE.matchupFocusKey=key;
+  document.querySelectorAll(root+' [data-hq-matchup-jump]').forEach(b=>{
+   const active=b.dataset.hqMatchupJump===key;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));
+  });hjCenterMatchupJumpChipV32(key);
+ }
+ function go(deck,index,animate){
+ function go(deck,index,animate){
+  if(!pages(deck)[index])return;
+  deck.scrollTo({left:index*deck.clientWidth,behavior:animate&&!reduced()?'smooth':'instant'});
+ }
+ function install(){
+  const deck=document.querySelector(root+' .hq-matchup-list');if(!deck||ready.has(deck)||!deck.clientWidth)return;
+  ready.add(deck);deck.tabIndex=0;deck.setAttribute('aria-label','Matchups. Scroll left or right.');
+ }
+ window.addEventListener('click',event=>{
+  const b=event.target.closest(root+' [data-hq-matchup-jump]');if(!b)return;
+  const deck=document.querySelector(root+' .hq-matchup-list');if(!deck)return;
+  const index=pages(deck).findIndex(c=>c.dataset.hqMatchupKey===b.dataset.hqMatchupJump);if(index<0)return;
+  event.preventDefault();event.stopImmediatePropagation();choose(deck,index);go(deck,index,true);
+ },true);
+  else if(item.left<left)delta=item.left-left;
+  else if(item.right>right)delta=item.right-right;
+  if(Math.abs(delta)>.5)rail.scrollTo({left:Math.max(0,Math.min(rail.scrollWidth-rail.clientWidth,rail.scrollLeft+delta)),behavior:'instant'});
+ }
+ // Use rail-relative bounds: offsetLeft can refer to an ancestor outside the rail.
+ hjCenterMatchupJumpChipV32=function(){
+  schedule();
+ function key(node){
+  if(node.nodeType!==1)return '';
+  for(const attr of ['id','data-hq-directory-id','data-hq40-stat-rail','data-league-team','data-hq-matchup-jump','data-hq-lineup-mode','data-hq40-period','data-hq40-year','data-hq-matchup-key','data-pc-id','data-hq40-sort-stat','data-pc-section','data-pc-rz']){
+   if(node.hasAttribute(attr))return node.tagName+':'+attr+':'+node.getAttribute(attr);
+  }
+  return '';
+ }
+  // Keep the projection controls that the layout installer added to the headers.
+  element.querySelectorAll('[data-hj-section-projections]').forEach(button=>{
+   const oldCard=button.closest('[data-hq-matchup]');
+   const freshCard=oldCard?Array.from(template.content.querySelectorAll('[data-hq-matchup]')).find(c=>c.dataset.hqMatchupKey===oldCard.dataset.hqMatchupKey):null;
+   const host=freshCard?.querySelector('.hj-matchup-actions')||(!oldCard&&template.content.querySelector('.league-roster-group-head'));
+   if(host&&!host.querySelector('[data-hj-section-projections]'))host.append(button.cloneNode(true));
+  });
+  element.querySelectorAll('[data-hj-section-projections]').forEach(button=>{
+   const oldCard=button.closest('[data-hq-matchup]');
+   const freshCard=oldCard?Array.from(template.content.querySelectorAll('[data-hq-matchup]')).find(c=>c.dataset.hqMatchupKey===oldCard.dataset.hqMatchupKey):null;
+   const host=freshCard?.querySelector('.hj-matchup-actions')||(!oldCard&&template.content.querySelector('.league-roster-group-head'));
+   if(host&&!host.querySelector('[data-hj-section-projections]'))host.append(button.cloneNode(true));
+  });
+  // The Players panel must not flash a loading placeholder while its next data request runs.
+    ? Math.max(0,window.scrollY+panel.getBoundingClientRect().top-navHeight-(dock?.getBoundingClientRect().height||0))
+    : previousY;
+   if(Math.abs(window.scrollY-top)>1)window.scrollTo({top,behavior:'instant'});
+  }
+  place();requestAnimationFrame(place);
+  return result;
+ };
+</style><script id="hj-profile-data-refinements">/* Profile data helpers: request-bound work only; no mutation or scroll observers. */
+const hjProfileScheduleCache=new Map(),hjDepthScoreCache=new Map();
+async function hjProfileSchedule(player,season,base){
+ const result=new Map(base||[]),team=pcTeam(player.team),key=`${season}:${team}`;
+ if([...result.values()].filter(g=>Number(g.season)===Number(season)&&(pcTeam(g.home_team)===team||pcTeam(g.away_team)===team)).length>=17)return result;
+ if(!hjProfileScheduleCache.has(key)){
+  const id=NFL_TEAM_IDS[team.toLowerCase().replace(/^was$/,'wsh')]||team.toLowerCase();
+}
+let hjPffScanTimer=null;
+function hjPffScheduleRefresh(){if(hjPffScanTimer)return;hjPffScanTimer=setTimeout(()=>{hjPffScanTimer=null;hjPffRefreshVisible();},150);}
+setInterval(hjPffRefreshVisible,60000);
+document.addEventListener('visibilitychange',hjPffScheduleRefresh);window.addEventListener('focus',hjPffScheduleRefresh);window.addEventListener('online',()=>{hjPffFeed.retryAt=0;hjPffScheduleRefresh();});window.addEventListener('scroll',hjPffScheduleRefresh,{passive:true});
+</script><style id="hj-profile-wrap-spacing">/* Preserve player-name spelling, including initials and internal capitals. */
+.ffn-card .ffn-player-copy .ffn-player-name{text-transform:none!important}
+function hjPffBuildRows(data){
+ const scope=HJ_STRENGTH_STATE.scope==='all'?'all':'starters',positions=new Set(['QB','RB','WR','TE','K','D/ST']);
+ if(typeof hjPffScheduleRefresh==='function')setTimeout(hjPffScheduleRefresh,0);
+ const rows=(data?.teams||[]).map(team=>{
+  const seen=new Set(),entries=hjRosterEntries(team).filter(e=>{const id=String(hjPlayer(e)?.id??e.playerId??'');if(!id||seen.has(id)||Number(e.lineupSlotId)===21||!positions.has(hjPlayerPosition(e)))return false;seen.add(id);return true;});
+  const lineup=hj6Lineup(entries,'combo','season',hjCurrentWeek(data),Number(HJ_LEAGUE_SEASON));
+  const counted=scope==='all'?entries:lineup.map(x=>x.entry),values=Object.fromEntries(HJ6_KEYS.map(k=>[k,hjPffAverage(k==='FLEX'?lineup.filter(x=>x.role==='FLEX').map(x=>x.entry):scope==='all'?entries.filter(e=>hjPlayerPosition(e)===k):lineup.filter(x=>x.role===k).map(x=>x.entry))]));
