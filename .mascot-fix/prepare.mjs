@@ -1,15 +1,11 @@
-import fs from 'node:fs/promises';
-import sharp from 'sharp';
-const names=['misba','bryan','tyler','nathan-m','wasi','cesar','nathan-t','garrett','jarrett','kat'];
+import fs from 'node:fs/promises';import sharp from 'sharp';
+const html=await fs.readFile('index.html','utf8'),start=html.indexOf('const AV = ')+11,end=html.indexOf(';',start),av=JSON.parse(html.slice(start,end));
+const names=['TYLER','NATHAN M','WASI','JARRETT','CESAR'];
 const layers=[];
 for(let i=0;i<names.length;i++){
- const name=names[i],path='assets/managers-'+(name==='jarrett'?'v8':'v4')+'/'+name+'-seated.webp';
- const {data,info}=await sharp(path).resize(180,360).removeAlpha().greyscale().toColourspace('srgb').ensureAlpha().raw().toBuffer({resolveWithObject:true});
- const original=await sharp(path).resize(180,360).ensureAlpha().raw().toBuffer({resolveWithObject:true});
- for(let p=3;p<data.length;p+=4)data[p]=Math.round(original.data[p]*.58);
- layers.push({input:await sharp(data,{raw:info}).png().toBuffer(),left:80+(i%5)*290,top:90+Math.floor(i/5)*405});
+ const n=names[i];let src=n==='JARRETT'?await fs.readFile('.mascot-fix/jarrett-circle.svg'):Buffer.from(av[n],'base64');
+ const circ=Buffer.from('<svg width="160" height="160"><circle cx="80" cy="80" r="75" fill="white"/></svg>');
+ const p=await sharp(src).resize(160,160).composite([{input:circ,blend:'dest-in'}]).png().toBuffer();
+ layers.push({input:p,left:i*180+10,top:10});
 }
-const labels='<svg width="1500" height="900"><text x="750" y="45" text-anchor="middle" font-family="sans-serif" font-size="27" font-weight="bold" fill="#17334d">LAST MAN STANDING — ELIMINATION POSES</text><text x="750" y="75" text-anchor="middle" font-family="sans-serif" font-size="17" fill="#667888">Approval preview only · All ten shown eliminated to review their artwork</text>'+names.map((n,i)=>'<text x="'+(170+(i%5)*290)+'" y="'+(470+Math.floor(i/5)*405)+'" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#17334d">'+n.replace('-',' ').toUpperCase()+'</text>').join('')+'</svg>';
-layers.push({input:Buffer.from(labels),left:0,top:0});
-await sharp({create:{width:1500,height:900,channels:4,background:'#f8f4e8'}}).composite(layers).png().toFile('.mascot-fix/lms-elimination-preview.png');
-console.log('Rendered all ten existing seated assets; no art regenerated.');
+await sharp({create:{width:900,height:180,channels:4,background:'#f8f4e8'}}).composite(layers).png().toFile('.mascot-fix/jarrett-circle-proof.png');
