@@ -7,3 +7,7 @@ for(let y=180;y<275;y++)for(let x=136;x<224;x++){let p=(y*360+x)*4,q=((y+dy)*360
 const out=await sharp(raw.data,{raw:raw.info}).webp({lossless:true}).toBuffer();fs.writeFileSync('.mascot-fix/jarrett-'+pose+'-v8.webp',out);panels.push({input:await sharp(out).flatten({background:'#f7f3e6'}).png().toBuffer(),left:i*360,top:0});}
 await sharp({create:{width:720,height:720,channels:3,background:'#f7f3e6'}}).composite(panels).png().toFile('.mascot-fix/neck8-proof.png');
 const html=(await get('index.html')).toString();const lines=html.split('\n');fs.writeFileSync('.mascot-fix/layout-excerpts.txt',lines.filter(l=>!l.includes('base64')&&/scrollbar|overflow-x|league-hq|news-rail|nfl-rail/.test(l)).map(l=>l.slice(0,1800)).join('\n'));
+
+const refs=['bryan','nathan-t','jarrett','wasi'],pcs=[];for(const [i,slug]of refs.entries()){const b=slug==='jarrett'?fs.readFileSync('.mascot-fix/jarrett-standing-v8.webp'):await get('assets/managers-v4/'+slug+'-standing.webp');pcs.push({input:await sharp(b).flatten({background:'#f7f3e6'}).png().toBuffer(),left:i*360,top:0});}
+await sharp({create:{width:1440,height:720,channels:3,background:'#f7f3e6'}}).composite(pcs).png().toFile('.mascot-fix/neck8-comparison.png');
+const extra=html.split('\n').filter(l=>!l.includes('base64')&&/section\{|section\s*\{|\.ffn|\.sec-head|week1-|<section|<\/section>|margin-top:.*px/.test(l));fs.writeFileSync('.mascot-fix/spacing.txt',extra.map(l=>l.slice(0,1300)).join('\n'));
