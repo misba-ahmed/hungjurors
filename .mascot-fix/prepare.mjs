@@ -1,5 +1,15 @@
-await fetch('https://api.github.com/repos/misba-ahmed/hungjurors/actions/runs/37364931170/cancel',{method:'POST',headers:{Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json'}});
-import fs from 'node:fs';import sharp from 'sharp';const base='https://raw.githubusercontent.com/misba-ahmed/hungjurors/main/',html=await(await fetch(base+'index.html')).text(),av=JSON.parse(html.match(/const AV = (\{[^\n]+\});/)[1]);const b=Buffer.from(await(await fetch(base+'assets/avatars/jarrett-20261005.png')).arrayBuffer());
-const svg='<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><rect width="512" height="512" fill="white"/><image x="-51" y="20" width="614" height="614" href="data:image/png;base64,'+b.toString('base64')+'"/></svg>';fs.writeFileSync('.mascot-fix/jarrett-framed.svg',svg);
-const pieces=[];for(const [i,n]of ['NATHAN T','CESAR','JARRETT','BRYAN'].entries()){const buf=n==='JARRETT'?Buffer.from(svg):Buffer.from(av[n],'base64');const img=await sharp(buf).resize(160,160).composite([{input:Buffer.from('<svg width="160" height="160"><circle cx="80" cy="80" r="79" fill="white"/></svg>'),blend:'dest-in'}]).png().toBuffer();pieces.push({input:img,left:i*180+10,top:10});}await sharp({create:{width:720,height:180,channels:3,background:'#f7f3e6'}}).composite(pieces).png().toFile('.mascot-fix/avatar-proof.png');
-const styles=[...html.matchAll(/<style[^>]*>([^]*?)<\/style>/g)].map(m=>m[1]).join('\n');const css=[...styles.matchAll(/[^{}]+\{[^{}]*\}/g)].map(x=>x[0]).filter(x=>/hj-v3-avatar|league-player-photo|hq-player-avatar/.test(x)&&!x.includes('base64')&&x.length<2500);fs.writeFileSync('.mascot-fix/avatar-css.txt',css.join('\n'));
+import fs from 'node:fs/promises';
+import sharp from 'sharp';
+const names=['misba','bryan','tyler','nathan-m','wasi','cesar','nathan-t','garrett','jarrett','kat'];
+const layers=[];
+for(let i=0;i<names.length;i++){
+ const name=names[i],path='assets/managers-'+(name==='jarrett'?'v8':'v4')+'/'+name+'-seated.webp';
+ const {data,info}=await sharp(path).resize(180,360).removeAlpha().greyscale().toColourspace('srgb').ensureAlpha().raw().toBuffer({resolveWithObject:true});
+ const original=await sharp(path).resize(180,360).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+ for(let p=3;p<data.length;p+=4)data[p]=Math.round(original.data[p]*.58);
+ layers.push({input:await sharp(data,{raw:info}).png().toBuffer(),left:80+(i%5)*290,top:90+Math.floor(i/5)*345});
+}
+const labels='<svg width="1500" height="810"><text x="750" y="45" text-anchor="middle" font-family="sans-serif" font-size="27" font-weight="bold" fill="#17334d">LAST MAN STANDING — ELIMINATION POSES</text><text x="750" y="75" text-anchor="middle" font-family="sans-serif" font-size="17" fill="#667888">Approval preview only · All ten shown eliminated to review their artwork</text>'+names.map((n,i)=>'<text x="'+(170+(i%5)*290)+'" y="'+(432+Math.floor(i/5)*345)+'" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#17334d">'+n.replace('-',' ').toUpperCase()+'</text>').join('')+'</svg>';
+layers.push({input:Buffer.from(labels),left:0,top:0});
+await sharp({create:{width:1500,height:810,channels:4,background:'#f8f4e8'}}).composite(layers).png().toFile('.mascot-fix/lms-elimination-preview.png');
+console.log('Rendered all ten existing seated assets; no art regenerated.');
