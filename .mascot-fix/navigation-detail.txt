@@ -1,0 +1,420 @@
+
+---
+nd(item=>item.dataset.hqMatchupJump===key);
+  if(!chip)return;
+  const left=Math.max(0,chip.offsetLeft-(rail.clientWidth-chip.offsetWidth)/2);
+  rail.scrollTo({left,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+}
+function hjScrollToMatchupV32(key){
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const target=[...document.querySelectorAll('#hq-matchup-content [data-hq-matchup-key]')].find(card=>card.dataset.hqMatchupKey===key);
+    if(!target)return;
+    document.querySelectorAll('#hq-matchup-content .hq-matchup.is-switch-selected').forEach(card=>card.classList.remove('is-switch-selected'));
+    target.classList.add('is-switch-selected');
+    hjCenterMatchupJumpChipV32(key);
+    const navH=document.querySelector('body > nav')?.getBoundingClientRect().height||43;
+    const switchH=document.querySelector('#hq-matchup-content .hq-matchup-switcher-shell')?.getBoundingClientRect().height||50;
+    const top=window.scrollY+target.getBoundingClientRect().top-navH-switchH-8;
+    window.scrollTo({top:Math.max(0,top),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+  }));
+}
+
+const hjMatchupCenterPanelHTMLV32Base=hjMatchupCenterPanelHTML;
+hjMatchupCenterPanelHTML=function(data){
+  const week=HJ_HQ_STATE.matchupWeek||hjCurrentWeek(data),view=HJ_HQ_STATE.matchupView;
+  HJ_HQ_STATE.matchupView='week';
+  const source=hjScheduleWeekSource(data,week),placeholder=source.usingPrevious||(data?.teams||[]).every(team=>!hjRosterEntries(team).length),phase=`Week ${week}${week>=10?' · Rematch':' · Matchups'}`;
+  const metas=source.games.map(game=>hjMatchupSwitchMetaV32(game,source.sourceData,data)).filter(Boolean);
+  const selected=metas.find(meta=>meta.key===HJ_HQ_STATE.matchupFocusKey)||metas.find(meta=>meta.key.split(':').slice(1).includes(String(HJ_HQ_STATE.focusTeamId)))||metas[0];
+  if(selected){HJ_HQ_STATE.matchupFocusKey=selected.key;HJ_HQ_STATE.openMatchups.clear();HJ_HQ_STATE.openMatchups.add(selected.key)}
+  const selectedGame=source.games.find(game=>hjMatchupSwitchMetaV32(game,source.sourceData,data)?.key===selected?.key);
+  const cards=selectedGame?`<div class="hq-matchup-list">${source.games.map(game=>{const meta=hjMatchupSwitchMetaV32(game,source.sourceData,data);if(!meta)return "";HJ_HQ_STATE.openMatchups.add(meta.key);return hjMatchupCardHTML(game,source.sourceData,data,placeholder)}).join("")}</div>`:`<div class="hq-empty">Week ${week} matchups will appear when the schedule loads.</div>`;
+  const switcher=hjMatchupSwitcherHTMLV32(source,data,week);
+  return `<div class="hq-matchup-schedule"><div class="schedule-weeknav">${hjMatchupScheduleButtonsHTML(week)}</div>${switcher}<div class="schedule-week-panel">${cards}</div><div class="schedule-playoff-runway"><div class="schedule-playoff-label">Playoffs</div><div class="schedule-playoff-step"><b>W15 · Round 1</b></div><div class="schedule-playoff-step"><b>W16 · Round 2</b></div></div></div>`;
+};
+
+const hjMatchupToolsV32=document.querySelector('#league-hq-tools');
+if(hjMatchupToolsV32&&!window.__hjMatchupQuickSwitcherV32){
+  window.__hjMatchupQuickSwitcherV32=true;
+  hjMatchupToolsV32.addEventListener('click',event=>{
+    const jump=event.target.closest?.('[data-hq-matchup-
+---
+rguments);
+  const dock=document.querySelector('.hj-folder-dock');
+  const nav=document.querySelector('body > nav');
+  const navHeight=nav?.getBoundingClientRect().height||0;
+  const wasPinned=!!dock&&dock.getBoundingClientRect().top<=navHeight+2;
+  const previousY=window.scrollY;
+  const result=setTab.apply(this,arguments);
+  if(arguments[1])return result;
+  const panel=document.getElementById(tab==='rosters'?'league-sync-content':'hq-panel-'+tab);
+  if(!panel)return result;
+  function place(){
+   if(HJ_HQ_STATE.activeTab!==tab||!panel.getClientRects().length)return;
+   const top=wasPinned
+    ? Math.max(0,window.scrollY+panel.getBoundingClientRect().top-navHeight-(dock?.getBoundingClientRect().height||0))
+    : previousY;
+   if(Math.abs(window.scrollY-top)>1)window.scrollTo({top,behavior:'instant'});
+  }
+  place();requestAnimationFrame(place);
+  return result;
+ };
+})();
+</script>
+<style id="hj-live-player-cell">
+#league-hq #league-sync-content .hj-player-v3[data-game-in-progress="true"],
+#league-hq #hq-panel-matchups .hj-player-v3[data-game-in-progress="true"]{
+ background:#f8f3e8!important;
+ box-shadow:none!important;
+}
+#league-hq #hq-panel-matchups .hj-player-v3.is-right[data-game-in-progress="true"]{
+ box-shadow:none!important;
+}
+</style>
+<style id="hj-activity-hide-sync-copy">
+#hq-panel-activity .hj-activity-sync,
+#hq-panel-activity .hj-activity-sync-note{display:none!important;}
+</style>
+<style id="hj-sticky-score-overlay">/* Original cards and their native horizontal scroll surface stay intact. */
+#league-hq #hq-panel-matchups .hj-score-overlay{
+ position:sticky;top:var(--hj-score-sticky-top,205px);height:0;z-index:5;
+ width:100%;pointer-events:none;visibility:hidden;
+}
+#league-hq #hq-panel-matchups .hj-score-overlay.is-visible{visibility:visible;}
+#league-hq #hq-panel-matchups .hj-score-overlay-clip{overflow:hidden;width:100%;background:#fffdf7;box-shadow:0 3px 5px #17344d18;}
+#league-hq #hq-panel-matchups .hj-score-overlay-strip{display:flex;width:100%;will-change:transform;}
+#league-hq #hq-panel-matchups .hj-score-overlay-page{flex:0 0 100%;min-width:0;width:100%;}
+#league-hq #hq-panel-matchups .hj-score-overlay .hj-sticky-scorecard{position:static!important;top:auto!important;transform:none!important;box-shadow:none!important;}
+</style>
+<script id="hj-sticky-score-overlay-script">(function(){
+ const host=document.querySelector('#league-hq');if(!host)return;
+ let root=null;
+ let state=null,queued=false,dirty=true;
+ function schedule(){if(!queued){queued=true;requestAnimationFrame(update)}}
+ function makeState(deck){
+  state?.overlay.remove();
+  const overlay=document.createElement('div');overlay.className='hj-score-overlay';overlay.id='hj-pinned-matchup-header';overlay.setAttribute('aria-hidden','true');
+  const clip=document.createElement('div');clip.className='hj-score-overlay-clip';
+  const strip=document.createElement('div');strip.className='hj-score-overlay-strip';clip.append(strip);overlay.append(clip);document.body.append(overlay);
+  deck.addEventListener('scroll',schedule,{passive:true});
+  state={deck,overlay,strip,snapshots:[]};dirty=true;
+ }
+ function update(){
+  queued=false;
+  root=document.querySelector('#hq-panel-matchups');
+  const deck=root?.querySelector('.hq-mat
+---
+osters','matchups'].includes(HJ_HQ_STATE.activeTab)){try{if(HJ_HQ_STATE.activeTab==='matchups')hjRenderMatchupCenter();else hjRenderLeague()}catch(_){}}}).catch(()=>{});
+  hjEnsureProjectionSources().catch(()=>{});
+}
+const hjSetHQTabBase=hjSetHQTab;
+hjSetHQTab=function(tab,focusTeamId=null){hjSetHQTabBase(tab,focusTeamId);if(tab==='free-agents')hjLoadFreeAgentsOnce().catch(()=>{});if(tab==='rosters'||tab==='matchups')hjStartEnhancements()};
+const hqSection=document.querySelector('#league-hq');
+if(hqSection&&'IntersectionObserver' in window){const io=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){hjStartEnhancements();io.disconnect()}},{rootMargin:'250px 0px'});io.observe(hqSection)}
+
+</script>
+<script id="players-directory-pass-js">
+/* ======================================================================
+   PLAYERS DIRECTORY + LIVE OWNERSHIP PASS
+   Keeps the existing internal "free-agents" tab key for compatibility,
+   but turns that tab into a searchable all-player directory with an
+   explicit Free Agents filter. ESPN projections are hydrated only for
+   visible rows, using the same league-scoring endpoint as player profiles.
+   ====================================================================== */
+
+const HJ_PLAYER_DIRECTORY={
+  mode:'all',
+  rows:[],
+  dataKey:'',
+  sourceKey:'',
+  sourcePromise:null,
+  espnCache:new Map(),
+  espnPending:new Set(),
+  renderLimit:36,
+  rankSeason:2026,
+  ownershipById:new Map(),
+  ownershipByName:new Map()
+};
+
+function hjDirectoryDataKey(data=HJ_LEAGUE_STATE.data){
+  const rosterSig=(data?.teams||[]).flatMap(team=>hjRosterEntries(team).map(entry=>`${String(team?.id||'')}:${String(hjPlayer(entry)?.id||entry?.playerId||'')}`)).sort().join(',');
+  return `${HJ_LEAGUE_SEASON}:${hjCurrentWeek(data)}:${Number(data?.status?.latestScoringPeriod||0)}:${rosterSig}`;
+}
+function hjLeagueHas2026Results(data=HJ_LEAGUE_STATE.data){
+  /* Use 2025 final ranks throughout Week 1. Switch only after ESPN marks
+     Week 1 complete, so a Thursday-night partial scoreboard never becomes
+     a fake season-long position ranking. */
+  return Number(data?.status?.latestScoringPeriod||0)>=1||Number(data?.status?.currentMatchupPeriod||1)>1;
+}
+function hjOwnershipBuild(data=HJ_LEAGUE_STATE.data){
+  const byId=new Map(),byName=new Map();
+  (data?.teams||[]).forEach(team=>{
+    const manager=hjMatchManager(team,data)||hjOwnerName(team,data)||hjTeamName(team)||`Team ${team.id}`;
+    hjRosterEntries(team).forEach(entry=>{
+      const player=hjPlayer(entry),id=String(player?.id||entry?.playerId||''),name=player?.fullName||player?.displayName||player?.name||'';
+      const info={owned:true,owner:manager,teamId:String(team.id),fantasyTeam:hjTeamName(team),slot:hjPlayerSlot(entry)};
+      if(id)byId.set(id,info);if(name)byName.set(hjNorm(name),info);
+    });
+  });
+  HJ_PLAYER_DIRECTORY.ownershipById=byId;HJ_PLAYER_DIRECTORY.ownershipByName=byName;
+  return {byId,byName};
+}
+function hjOwnershipForPlayerLike(player){
+  if(!player)return {owned:false,owner:'',label:'Free agent'};
+  const id=String(player.id||player.espn_id||''),name=hjNorm(player.name||player.player||player.fullName||player.displayName||'');
+  const hit=(id&&HJ_PLAYER_DIRECTORY.ownershipById
+---
+RY!=='undefined'&&HJ_PLAYER_DIRECTORY.rows?.length)requestAnimationFrame(()=>{try{hjRenderPlayerDirectory(false)}catch(_){}});if(HJ_HQ_STATE.activeTab==='strength')requestAnimationFrame(()=>hj3EnsureSources(data))}
+
+const hj3SetHQTabBase=hjSetHQTab;
+hjSetHQTab=function(tab,focusTeamId=null){hj3SetHQTabBase(tab,focusTeamId);if(tab==='strength')requestAnimationFrame(()=>hjRerenderStrength())}
+
+async function hj3LoadReplacementPool(data){if(!data)return[];const week=hjCurrentWeek(data),key=`${HJ_LEAGUE_SEASON}:${week}`;if(HJ3_REPLACEMENT.key===key&&(HJ3_REPLACEMENT.loading||['ready','fallback'].includes(HJ3_REPLACEMENT.status)))return HJ3_REPLACEMENT.loading||HJ3_REPLACEMENT.players;HJ3_REPLACEMENT.key=key;HJ3_REPLACEMENT.status='loading';HJ3_REPLACEMENT.loading=(async()=>{let entries=[];const url=`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${HJ_LEAGUE_SEASON}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=${week}&view=kona_player_info`,filter={players:{filterStatus:{value:['FREEAGENT','WAIVERS']},filterSlotIds:{value:[0,2,4,6]},filterStatsForSourceIds:{value:[1]},filterStatsForSplitTypeIds:{value:[0,1]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`00${HJ_LEAGUE_SEASON}`,`10${HJ_LEAGUE_SEASON}`]},sortPercOwned:{sortPriority:1,sortAsc:false},limit:160,offset:0}};try{const response=await fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{'x-fantasy-filter':JSON.stringify(filter)}});if(!response.ok)throw new Error(`ESPN replacement pool ${response.status}`);const payload=await response.json();entries=Array.isArray(payload?.players)?payload.players:[]}catch(error){console.warn('Roster Strength replacement feed unavailable',error)}HJ3_REPLACEMENT.players=entries.map(e=>hj3ParseEspnFA(e,week)).filter(Boolean);HJ3_REPLACEMENT.status=HJ3_REPLACEMENT.players.length?'ready':'fallback';HJ3_REPLACEMENT.version++;HJ3_REPLACEMENT.loading=null;return HJ3_REPLACEMENT.players})().catch(error=>{HJ3_REPLACEMENT.status='fallback';HJ3_REPLACEMENT.version++;HJ3_REPLACEMENT.loading=null;console.warn('Roster Strength replacement load failed',error);return[]});return HJ3_REPLACEMENT.loading}
+function hj3EnsureSources(data){if(HJ3_SOURCE_PROMISE)return HJ3_SOURCE_PROMISE;if(HJ_PROJECTION_STATE.loaded&&['ready','fallback'].includes(HJ3_REPLACEMENT.status))return Promise.resolve();HJ3_SOURCE_PROMISE=Promise.allSettled([HJ_PROJECTION_STATE.loaded?Promise.resolve(HJ_PROJECTION_STATE):hjEnsureProjectionSources(),['ready','fallback'].includes(HJ3_REPLACEMENT.status)?Promise.resolve(HJ3_REPLACEMENT.players):hj3LoadReplacementPool(data)]).then(()=>{HJ3_SOURCE_PROMISE=null;HJ3_CACHE.models.clear();HJ3_CACHE.data=null;if(HJ_HQ_STATE.activeTab==='strength')requestAnimationFrame(()=>hjRerenderStrength())});return HJ3_SOURCE_PROMISE}
+
+$('#league-hq-tools')?.addEventListener('click',event=>{const compare=event.target.closest('[data-hq-strength-compare-expand]');if(!compare)return;event.preventDefault();event.stopPropagation();HJ_STRENGTH_STATE.compareOpen=!HJ_STRENGTH_STATE.compareOpen;hjRerenderStrength()});
+</script>
+
+\n<script id="hj-projection-math-audit-script">
+/* ======================================================================
+   PROJECTION
+---
+y=function(){
+  if(HJ_LIVE_ACTIVITY.loaded)return HJ_LIVE_ACTIVITY.rows.slice();
+  const cached=hjReadLiveActivityCache();if(cached)return (cached.rows||[]).slice();
+  return hjLegacyReadActivityV24();
+};
+
+const hjSetHQTabActivityV24Base=hjSetHQTab;
+hjSetHQTab=function(tab,focusTeamId=null){
+  hjSetHQTabActivityV24Base(tab,focusTeamId);
+  if(tab==='activity')requestAnimationFrame(()=>hjRefreshLiveActivityV24(true));
+};
+
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>hjRefreshLiveActivityV24(false),2200);hjQueueLiveActivityV24()},{once:true});
+else {setTimeout(()=>hjRefreshLiveActivityV24(false),2200);hjQueueLiveActivityV24()}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)hjRefreshLiveActivityV24(false)});
+</script>
+
+
+<style id="pc-season-vegas-compact-v25">
+/* Player profile season Vegas card: one summary-tile-height module. */
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season]{
+  box-sizing:border-box!important;
+  padding:8px 10px!important;
+  margin:0 0 10px!important;
+  overflow:hidden!important;
+}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-head{
+  min-height:16px!important;
+  margin:0 0 5px!important;
+}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-title{font-size:8.6px!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-updated{font-size:7px!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-grid{display:block!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-panel{
+  box-sizing:border-box!important;
+  height:88px!important;
+  padding:7px 8px!important;
+  display:grid!important;
+  grid-template-columns:minmax(175px,.75fr) minmax(0,1.25fr)!important;
+  grid-template-rows:32px 38px!important;
+  grid-template-areas:"head context" "lines lines"!important;
+  column-gap:10px!important;
+  row-gap:4px!important;
+  align-items:center!important;
+  overflow:hidden!important;
+}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-panel-head{
+  grid-area:head!important;
+  display:block!important;
+  min-width:0!important;
+  margin:0!important;
+}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-period{display:none!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-fpts-block{
+  min-width:0!important;
+  align-items:flex-start!important;
+  gap:1px!important;
+  text-align:left!important;
+}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-fpts{font-size:20px!important;line-height:1!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-fpts small{font-size:6.7px!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-espn-sub{font-size:7.8px!important;line-height:1.05!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-espn-sub b{font-size:8.8px!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-context{
+  grid-area:context!important;
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  justify-content:flex-end!important;
+  align-items:center!important;
+  gap:5px!important;
+  min-width:0!importan
+---
+Limit=36;hjRenderPlayerDirectory(true);return}
+  },true);
+
+  document.getElementById('league-hq-tabs')?.addEventListener('click',()=>requestAnimationFrame(hj40StickyState),true);
+  if(typeof hjSetHQTab==='function'){const hj40SetHQTabBase=hjSetHQTab;hjSetHQTab=function(tab){const result=hj40SetHQTabBase.apply(this,arguments);if(tab==='free-agents')hj40EnsureSeason(Number(HJ40.year)).catch(()=>{});requestAnimationFrame(hj40StickyState);return result}}
+  window.addEventListener('resize',()=>requestAnimationFrame(hj40StickyState),{passive:true});
+  window.addEventListener('orientationchange',()=>requestAnimationFrame(hj40StickyState),{passive:true});
+
+  /* Reinstall the Players panel with the new compact controls and begin the
+     selected-season stat load only if the league data is already present. */
+  requestAnimationFrame(()=>{
+    try{if(typeof hjInstallPlayersPanel==='function')hjInstallPlayersPanel();hj40RefreshControls();hj40StickyState();if(HJ_LEAGUE_STATE?.data&&HJ_HQ_STATE?.activeTab==='free-agents'){hjRenderPlayerDirectory(true);hj40EnsureSeason(HJ40.year).catch(()=>{})}}catch(error){console.warn('Players directory overhaul initialization failed',error)}
+  });
+})();
+</script>
+
+
+<style id="hj-players-directory-readability-v41">
+/* ======================================================================
+   PLAYERS DIRECTORY READABILITY V41
+   Visible text in League HQ > Players never drops below 9px. Player
+   identity and owner share one clean header row; projections and stats
+   remain below it with no overlapping geometry.
+   ====================================================================== */
+
+/* Explicit floor for every small-text role used by this section. */
+.hq-player-directory :is(button,input,small,span,b,strong,i){font-size:9px!important}
+.hq-player-directory .hq-module-sub,
+.hq-player-directory .hq-module-note,
+.hq-player-directory .hq-player-directory-note,
+.hq-player-directory .hq40-stat-state,
+.hq-player-directory .hq-empty{font-size:9px!important;line-height:1.3!important}
+
+/* Compact controls, readable type. */
+.hq-player-directory .hq40-controls{gap:7px!important;padding:8px 10px!important}
+.hq40-control-top #hq-fa-search{height:32px!important;font-size:9px!important}
+.hq-player-directory .hq-player-availability button,
+.hq40-proj-sort button,
+.hq40-position-btn,
+.hq40-period-btn,
+.hq40-year-btn{font-size:9px!important;line-height:1!important}
+.hq-player-directory .hq-player-availability button{height:29px!important;padding:0 9px!important}
+.hq40-proj-sort button{height:29px!important;padding:0 8px!important}
+.hq40-position-btn,.hq40-period-btn{height:27px!important;padding:0 9px!important}
+.hq40-year-btn{height:27px!important;padding:0 9px!important}
+.hq40-sort-chip{height:30px!important;padding:0 8px!important}
+.hq40-sort-chip span{font-size:9px!important;font-weight:500!important}
+.hq40-sort-chip b{font-size:9px!important}
+.hq40-sort-chip i{font-size:14px!important}
+.hq40-reset{width:30px!important;height:30px!important;font-size:14px!important}
+.hq-player-directory .hq-player-loadmore button{font-size:9px!important}
+
+/* Clean three-line card: identity header, projection pair, stat rail. */
+.hq-player-directory .hq-player-card.hq40-card{
+  position:relative!im
+---
+4});
+ else if(button.hasAttribute('data-activity-more'))HJ_ACTIVITY_VIEW.limit+=24;
+ else{HJ_ACTIVITY_VIEW.type=button.dataset.activityMetric;HJ_ACTIVITY_VIEW.limit=24}
+ hjRenderActivityPanelV24();
+});
+const hjActivitySetTabDashboardBase=hjSetHQTab;
+hjSetHQTab=function(tab,focusTeamId=null){hjActivitySetTabDashboardBase(tab,focusTeamId);if(tab==='activity'){hjRenderActivityPanelV24();hjQueueLiveActivityV24()}};
+window.addEventListener('online',()=>{if(HJ_HQ_STATE.activeTab==='activity')hjRefreshLiveActivityV24(true)});
+requestAnimationFrame(()=>{hjRenderActivityPanelV24();if(HJ_HQ_STATE.activeTab==='activity')hjRefreshLiveActivityV24(true)});
+</script><script id="hj-drawer-motion">document.addEventListener('click',event=>{
+ const summary=event.target.closest?.('.hj-matchup-preview>summary');if(!summary)return;
+ event.preventDefault();
+ const tray=summary.parentElement,body=tray.querySelector('.hj-matchup-preview-body');if(!body)return;
+ const opening=!(tray._desiredOpen??tray.open),from=tray.open?body.getBoundingClientRect().height:0;
+ tray._desiredOpen=opening;tray._drawerAnimation?.cancel();tray.open=true;
+ summary.setAttribute('aria-expanded',String(opening));
+ body.style.height='auto';const to=opening?body.scrollHeight:0;
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches||!body.animate){tray.open=opening;body.style.height='';tray._desiredOpen=null;return}
+ body.style.height=from+'px';
+ const animation=body.animate([{height:from+'px'},{height:to+'px'}],{duration:280,easing:'cubic-bezier(.2,.7,.2,1)',fill:'both'});tray._drawerAnimation=animation;
+ animation.onfinish=()=>{if(tray._drawerAnimation!==animation)return;tray.open=opening;body.style.height='';animation.cancel();tray._drawerAnimation=null;tray._desiredOpen=null};
+},true);
+</script><style>#hq-panel-activity .hj-activity-day{padding:0!important;margin:12px 0 0!important;min-height:0!important}
+#hq-panel-activity .hj-activity-day>h4{margin:0 0 6px;padding-bottom:5px}
+#hq-panel-activity .hj-activity-metrics{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:6px 0}
+#hq-panel-activity .hj-activity-metrics button{padding:7px}
+#hq-panel-activity .hj-activity-count{margin:7px 0}
+#hq-panel-activity .hj-transaction-grid{gap:8px}
+#hq-panel-activity .hj-transaction>header{padding:8px 10px}
+#hq-panel-activity .hj-transaction time{max-width:135px;white-space:normal;text-align:right;line-height:1.4}
+#hq-panel-activity .hj-tx-moves{padding:4px}
+#hq-panel-activity .hj-transaction-player{padding:5px}
+.hj-espn-status{display:inline-block;margin-left:5px;padding:1px 4px;border-radius:3px;background:#fff0ed;color:#b22e36;font:700 10px/1.25 var(--sans);vertical-align:middle;white-space:nowrap}
+</style><script>const HJ_INJURY_SNAPSHOT={"at":"2026-09-13T20:01:55Z","rows":[{"id":"4430841","name":"Carson Beck","code":"O","label":"OUT"},{"id":"4428633","name":"Dadrion Taylor-Demerson","code":"O","label":"OUT"},{"id":"4869132","name":"Reggie Virgil","code":"O","label":"OUT"},{"id":"4568506","name":"Garrett Williams","code":"O","label":"OUT"},{"id":"5084939","name":"Isaiah Adams","code":"O","label":"OUT"},{"id":"3051775","name":"Andrew Billings","code":"O","label":"OUT"},{"id":"4870808","name":"Jeremiyah Love","code":null,"label":"ACTIVE"},{
+---
+ody?body.innerHTML:hjWeeklyRecapHTML(data));}else{recap.insertAdjacentHTML('beforeend',hjWeeklyRecapHTML(data));}}
+  hjRenderHQTabs();
+ };
+ // Keep sticky navigation in place; open the selected section directly beneath it.
+ const setTab=hjSetHQTab;
+ hjSetHQTab=function(tab){
+  if(tab===HJ_HQ_STATE.activeTab)return setTab.apply(this,arguments);
+  const dock=document.querySelector('.hj-folder-dock');
+  const nav=document.querySelector('body > nav');
+  const navHeight=nav?.getBoundingClientRect().height||0;
+  const wasPinned=!!dock&&dock.getBoundingClientRect().top<=navHeight+2;
+  const previousY=window.scrollY;
+  const result=setTab.apply(this,arguments);
+  if(arguments[1])return result;
+  const panel=document.getElementById(tab==='rosters'?'league-sync-content':'hq-panel-'+tab);
+  if(!panel)return result;
+  function place(){
+   if(HJ_HQ_STATE.activeTab!==tab||!panel.getClientRects().length)return;
+   const top=wasPinned
+    ? Math.max(0,window.scrollY+panel.getBoundingClientRect().top-navHeight-(dock?.getBoundingClientRect().height||0))
+    : previousY;
+   if(Math.abs(window.scrollY-top)>1)window.scrollTo({top,behavior:'instant'});
+  }
+  place();requestAnimationFrame(place);
+  return result;
+ };
+})();
+</script>
+<style id="hj-live-player-cell">
+#league-hq #league-sync-content .hj-player-v3[data-game-in-progress="true"],
+#league-hq #hq-panel-matchups .hj-player-v3[data-game-in-progress="true"]{
+ background:#f8f3e8!important;
+ box-shadow:none!important;
+}
+#league-hq #hq-panel-matchups .hj-player-v3.is-right[data-game-in-progress="true"]{
+ box-shadow:none!important;
+}
+</style>
+<style id="hj-activity-hide-sync-copy">
+#hq-panel-activity .hj-activity-sync,
+#hq-panel-activity .hj-activity-sync-note{display:none!important;}
+</style>
+<style id="hj-sticky-score-overlay">/* Original cards and their native horizontal scroll surface stay intact. */
+#league-hq #hq-panel-matchups .hj-score-overlay{
+ position:sticky;top:var(--hj-score-sticky-top,205px);height:0;z-index:5;
+ width:100%;pointer-events:none;visibility:hidden;
+}
+#league-hq #hq-panel-matchups .hj-score-overlay.is-visible{visibility:visible;}
+#league-hq #hq-panel-matchups .hj-score-overlay-clip{overflow:hidden;width:100%;background:#fffdf7;box-shadow:0 3px 5px #17344d18;}
+#league-hq #hq-panel-matchups .hj-score-overlay-strip{display:flex;width:100%;will-change:transform;}
+#league-hq #hq-panel-matchups .hj-score-overlay-page{flex:0 0 100%;min-width:0;width:100%;}
+#league-hq #hq-panel-matchups .hj-score-overlay .hj-sticky-scorecard{position:static!important;top:auto!important;transform:none!important;box-shadow:none!important;}
+</style>
+<script id="hj-sticky-score-overlay-script">(function(){
+ const host=document.querySelector('#league-hq');if(!host)return;
+ let root=null;
+ let state=null,queued=false,dirty=true;
+ function schedule(){if(!queued){queued=true;requestAnimationFrame(update)}}
+ function makeState(deck){
+  state?.overlay.remove();
+  const overlay=document.createElement('div');overlay.className='hj-score-overlay';overlay.id='hj-pinned-matchup-header';overlay.setAttribute('aria-hidden','true');
+  const clip=document.createElement('div');clip.className='hj-score-overlay-clip';
+  const strip=document.createElement('div');strip.className='hj-sco
+---
+tton.getAttribute('aria-controls'));if(panel)panel.setAttribute('aria-labelledby',button.id)});
+  }if(rosters)rosters.hidden=active!=='rosters';tools?.querySelectorAll('[data-hq-panel]').forEach(panel=>panel.hidden=panel.dataset.hqPanel!==active);
+}
+function hjSetHQTab(tab,focusTeamId=null){
+  if(!HJ_HQ_TABS.some(item=>item[0]===tab))return;HJ_HQ_STATE.activeTab=tab;if(tab==='recap')hjRefreshRecap();HJ_HQ_STATE.focusTeamId=focusTeamId;if(tab==='matchups'&&focusTeamId){HJ_HQ_STATE.matchupWeek=hjCurrentWeek(HJ_LEAGUE_STATE.data);HJ_HQ_STATE.matchupView='week';hjRenderMatchupCenter()}hjRenderHQTabs();if(tab==='matchups'){const cards=[...document.querySelectorAll('[data-hq-matchup]')],target=focusTeamId?cards.find(card=>String(card.dataset.hqTeamA)===String(focusTeamId)||String(card.dataset.hqTeamB)===String(focusTeamId)):null;cards.forEach(card=>card.classList.toggle('is-focused',card===target));if(target)requestAnimationFrame(()=>target.scrollIntoView({behavior:'smooth',block:'nearest'}))}
+}
+function hjRenderLeagueTools(data){
+  const root=$('#league-hq-tools');if(!root)return;if(!data){root.innerHTML='';hjRenderHQTabs();return}const strength=hjStrengthHTML(data),selectedWeek=HJ_HQ_STATE.matchupWeek||hjCurrentWeek(data);root.innerHTML=`<div class="hq-tab-panel" id="hq-panel-matchups" data-hq-panel="matchups" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Matchup Center</h3><span class="hq-module-note" id="hq-matchup-note">${HJ_HQ_STATE.matchupView==='matrix'?'Weeks 1–14':`Week ${selectedWeek}`}</span></div><div class="hq-module-body" id="hq-matchup-content">${hjMatchupCenterPanelHTML(data)}</div></div></div><div class="hq-tab-panel" id="hq-panel-free-agents" data-hq-panel="free-agents" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Free Agents</h3><span class="hq-module-note" id="hq-fa-count">Open tab to load projections</span></div>${hjFreeAgentControlsHTML()}<div id="hq-fa-results"><div class="hq-empty">Free-agent projections load when this tab is opened.</div></div></div></div><div class="hq-tab-panel" id="hq-panel-strength" data-hq-panel="strength" role="tabpanel">${strength}</div><div class="hq-tab-panel" id="hq-panel-activity" data-hq-panel="activity" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">League Activity</h3><span class="hq-module-note">Completed moves</span></div>${hjActivityHTML()}</div></div><div class="hq-tab-panel" id="hq-panel-recap" data-hq-panel="recap" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Weekly Recap</h3><span class="hq-module-note">${hjCurrentWeek(data)>1?`Week ${hjCurrentWeek(data)-1}`:'After Week 1'}</span></div>${hjWeeklyRecapHTML(data)}</div></div>`;hjRenderHQTabs();if(HJ_HQ_STATE.activeTab==='free-agents'&&HJ_HQ_STATE.freeAgents.length)requestAnimationFrame(()=>{try{hjRenderFreeAgentResults(false)}catch(_){}});
+}
+function hjTeamViewHTML(team,data){
+  const week=hjCurrentWeek(data),manager=hjMatchManager(team,data),owner=manager||hjOwnerName(team,data)||`Manager ${team.id}`,currentEntries=hjRosterEntries(team),previousData=HJ_LEAGUE_STATE.previousData;
+  const previ
