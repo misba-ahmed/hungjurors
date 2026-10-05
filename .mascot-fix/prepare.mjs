@@ -1,19 +1,18 @@
-
-// Cancel the superseded read-only inspection still running on this branch.
-await fetch('https://api.github.com/repos/misba-ahmed/hungjurors/actions/runs/37346065837/cancel',{method:'POST',headers:{Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json'}});
 import fs from 'node:fs';import sharp from 'sharp';import{execFileSync}from'node:child_process';
-let index=await(await fetch('https://raw.githubusercontent.com/misba-ahmed/hungjurors/main/index.html')).text();
-const names=['MISBA','BRYAN','TYLER','NATHAN M','WASI','CESAR','NATHAN T','GARRETT','JARRETT','KAT'],slugs=['misba','bryan','tyler','nathan-m','wasi','cesar','nathan-t','garrett','jarrett','kat'],geometry=[];
-for(let i=0;i<10;i++){const r=await sharp('assets/managers-v4/'+slugs[i]+'-standing.webp').ensureAlpha().raw().toBuffer({resolveWithObject:true});let l=r.info.width,t=r.info.height,rr=0,b=0;for(let y=0;y<r.info.height;y++)for(let x=0;x<r.info.width;x++)if(r.data[(y*r.info.width+x)*4+3]>8){l=Math.min(l,x);rr=Math.max(rr,x);t=Math.min(t,y);b=Math.max(b,y);}const scale=201/(b-t+1),cx=i<5?67+i*100:823+(i-5)*100;geometry.push({name:names[i],slug:slugs[i],cx,x:cx-(rr-l+1)*scale/2-l*scale,y:80-t*scale,width:r.info.width*scale,height:r.info.height*scale});}
-const js=fs.readFileSync('.mascot-fix/hero-template.mjs','utf8').replace('__GEOMETRY__',JSON.stringify(geometry)),css=fs.readFileSync('.mascot-fix/hero-style.txt','utf8');
-index=index.replace('</body>','<link rel="stylesheet" href="styles/manager-hero.css?v=1"><script src="scripts/manager-hero.js?v=1"></script>\n</body>');
-fs.writeFileSync('.mascot-fix/site-index.html',index);fs.writeFileSync('.mascot-fix/manager-hero.js',js);fs.writeFileSync('.mascot-fix/manager-hero.css',css);execFileSync('node',['--check','.mascot-fix/manager-hero.js'],{stdio:'inherit'});
-fs.writeFileSync('.mascot-fix/header-test.html','<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:0;background:#f7f3e6}.hero-in{max-width:780px;margin:0 auto;padding:44px 20px;text-align:center}'+css+'</style><div class="hero-in">'+index.match(/<img class="logo"[^>]+>/)[0]+'</div><script>let HJ_LEAGUE_STATE={data:{scoringPeriodId:4,teams:[{id:1,name:"TYLER"}]}};function hjMatchManager(t){return t.name}function hjCurrentMatchup(){return {week:4,side:{totalPointsLive:128.43}}}</script><script>'+js+'</script>');
-execFileSync('npm',['install','--no-save','--package-lock=false','playwright'],{stdio:'inherit'});execFileSync('npx',['playwright','install','chromium'],{stdio:'inherit'});
-const {chromium}=await import('playwright');const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:430,height:650},deviceScaleFactor:2,isMobile:true,hasTouch:true});
-await page.route('https://mock.hj/**',route=>{const p=new URL(route.request().url()).pathname;return route.fulfill({path:p==='/'?'.mascot-fix/header-test.html':p.slice(1)});});
-await page.goto('https://mock.hj/');await page.waitForFunction(()=>document.querySelectorAll('#hj-manager-hero image').length===11);await page.waitForTimeout(600);
-const box=await page.locator('[data-hero-manager="TYLER"]').boundingBox();await page.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);
-if(await page.locator('#hj-manager-hero text').textContent()!=='128.43')throw Error('Live score failed');
-if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw Error('Mobile overflow');
-await page.screenshot({path:'.mascot-fix/header-mobile-proof.png'});await page.setViewportSize({width:1440,height:800});const bounds=await page.locator('#hj-manager-hero image').first().boundingBox();if(Math.abs(bounds.width-210)>1)throw Error('Desktop logo changed size: '+bounds.width);await page.screenshot({path:'.mascot-fix/header-desktop-proof.png'});await browser.close();
+const base='https://raw.githubusercontent.com/misba-ahmed/hungjurors/main/';
+const raw=await sharp('.mascot-fix/source.png').ensureAlpha().raw().toBuffer({resolveWithObject:true});
+for(let p=0;p<raw.data.length;p+=4){let r=raw.data[p],g=raw.data[p+1],b=raw.data[p+2];if(g>100&&g>r*2&&g>b*2){raw.data[p+3]=0;continue;}if(g>Math.max(r,b))raw.data[p+1]=Math.max(r,b);}
+const all=await sharp(raw.data,{raw:raw.info}).png().toBuffer();const panels=[];
+for(const [i,pose]of ['standing','seated'].entries()){
+ const old=await sharp('assets/managers-v4/jarrett-'+pose+'.webp').ensureAlpha().raw().toBuffer({resolveWithObject:true});let l=old.info.width,t=old.info.height,r=0,b=0;for(let y=0;y<old.info.height;y++)for(let x=0;x<old.info.width;x++)if(old.data[(y*old.info.width+x)*4+3]>8){l=Math.min(l,x);r=Math.max(r,x);t=Math.min(t,y);b=Math.max(b,y);}
+ const half=await sharp(all).extract({left:i*Math.floor(raw.info.width/2),top:0,width:Math.floor(raw.info.width/2),height:raw.info.height}).png().toBuffer();const crop=await sharp(half).trim({background:'#00000000',threshold:8}).png().toBuffer();
+ const fit=await sharp(crop).resize({width:r-l+1,height:b-t+1,fit:'inside'}).png().toBuffer(),m=await sharp(fit).metadata();
+ const out=await sharp({create:{width:old.info.width,height:old.info.height,channels:4,background:'#00000000'}}).composite([{input:fit,left:Math.round(l+(r-l+1-m.width)/2),top:b+1-m.height}]).webp({quality:96,alphaQuality:100}).toBuffer();
+ fs.writeFileSync('.mascot-fix/jarrett-'+pose+'.webp',out);panels.push({input:await sharp(out).resize({height:600}).toBuffer(),left:i*340,top:0});
+}
+await sharp('.mascot-fix/jarrett-portrait-source.png').resize(512,512).png().toFile('.mascot-fix/jarrett-20261005.png');
+await sharp({create:{width:680,height:600,channels:3,background:'#f7f3e6'}}).composite(panels).png().toFile('.mascot-fix/jarrett-proof.png');
+let prep=await(await fetch(base+'scripts/prepare-manager-avatars.mjs')).text();prep=prep.replace("avatars.MISBA='/assets/avatars/misba-20260929-v2.png';","avatars.MISBA='/assets/avatars/misba-20260929-v2.png';\n  avatars.JARRETT='/assets/avatars/jarrett-20261005.png';");if(!prep.includes("avatars.JARRETT="))throw Error('Avatar map patch failed');fs.writeFileSync('.mascot-fix/prepare-manager-avatars.mjs',prep);
+let challenge=await(await fetch(base+'scripts/challenge-live.js')).text();const a='/assets/managers-v4/'+String.fromCharCode(36)+'{esc(slug)}-',z='/assets/'+String.fromCharCode(36)+"{slug==='jarrett'?'managers-v5':'managers-v4'}/"+String.fromCharCode(36)+'{esc(slug)}-';if(!challenge.includes(a))throw Error('Challenge path missing');challenge=challenge.replaceAll(a,z);fs.writeFileSync('.mascot-fix/challenge-live.js',challenge);
+let hero=await(await fetch(base+'scripts/manager-hero.js')).text();hero=hero.replace("'/assets/managers-v4/'+f.slug","'/assets/'+(f.slug==='jarrett'?'managers-v5':'managers-v4')+'/'+f.slug");if(!hero.includes('managers-v5'))throw Error('Hero patch missing');fs.writeFileSync('.mascot-fix/manager-hero.js',hero);
+for(const f of ['prepare-manager-avatars.mjs','challenge-live.js','manager-hero.js'])execFileSync('node',['--check','.mascot-fix/'+f],{stdio:'inherit'});
