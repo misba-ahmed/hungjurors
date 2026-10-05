@@ -1,0 +1,78 @@
+{
+  "width": 2079,
+  "height": 756,
+  "frames": {
+    "misba": {
+      "x": 100,
+      "y": 0,
+      "width": 350,
+      "height": 376
+    },
+    "bryan": {
+      "x": 480,
+      "y": 0,
+      "width": 350,
+      "height": 376
+    },
+    "tyler": {
+      "x": 860,
+      "y": 0,
+      "width": 350,
+      "height": 376
+    },
+    "nathan-m": {
+      "x": 1240,
+      "y": 0,
+      "width": 350,
+      "height": 376
+    },
+    "wasi": {
+      "x": 1620,
+      "y": 0,
+      "width": 350,
+      "height": 376
+    },
+    "cesar": {
+      "x": 100,
+      "y": 378,
+      "width": 350,
+      "height": 376
+    },
+    "nathan-t": {
+      "x": 480,
+      "y": 378,
+      "width": 350,
+      "height": 376
+    },
+    "garrett": {
+      "x": 860,
+      "y": 378,
+      "width": 350,
+      "height": 376
+    },
+    "jarrett": {
+      "x": 1240,
+      "y": 378,
+      "width": 350,
+      "height": 376
+    },
+    "kat": {
+      "x": 1620,
+      "y": 378,
+      "width": 350,
+      "height": 376
+    }
+  },
+  "render": {
+    "viewBox": [
+      0,
+      0,
+      120,
+      240
+    ],
+    "x": 0,
+    "y": 100,
+    "width": 120,
+    "height": 128.914286
+  }
+}

@@ -220,10 +220,16 @@ function hjChJacket(index){
 }
 function hjChLmsFigure(manager,elimination,index){
  const out=!!elimination;
- return `<div class="lms-figure lineup-figure${out?' is-eliminated':''}" role="group" aria-label="${esc(manager.short)}: ${out?`eliminated Week ${elimination.week}, seated`:'standing'}" data-lms-manager="${esc(manager.id)}" style="${hjChJacket(index)}">${hjChFigureArt(manager,`lms-head-${index}`,false,out?'seated':'standing')}<span class="lms-name manager-profile-trigger" data-manager="${esc(manager.short)}" role="button" tabindex="0" aria-label="Open ${esc(manager.short)} profile">${esc(manager.short)}</span></div>`;
+ return `<div class="lms-figure lineup-figure${out?' is-eliminated':''}" role="group" aria-label="${esc(manager.short)}: ${out?`eliminated Week ${elimination.week}, sad and seated on the ground`:'standing'}" data-lms-manager="${esc(manager.id)}" style="${hjChJacket(index)}">${hjChFigureArt(manager,`lms-head-${index}`,false,out?'eliminated':'standing')}<span class="lms-name manager-profile-trigger" data-manager="${esc(manager.short)}" role="button" tabindex="0" aria-label="Open ${esc(manager.short)} profile">${esc(manager.short)}</span></div>`;
 }
 function hjChFigureArt(manager,key,crown=false,pose='standing'){
  const slug=String(manager.short).toLowerCase().replaceAll(' ','-');
+ // Approved LMS-only floor poses. Other challenges keep their original seated art.
+ if(pose==='eliminated'){
+  const frame={"misba":{"x":100,"y":0,"width":350,"height":376},"bryan":{"x":480,"y":0,"width":350,"height":376},"tyler":{"x":860,"y":0,"width":350,"height":376},"nathan-m":{"x":1240,"y":0,"width":350,"height":376},"wasi":{"x":1620,"y":0,"width":350,"height":376},"cesar":{"x":100,"y":378,"width":350,"height":376},"nathan-t":{"x":480,"y":378,"width":350,"height":376},"garrett":{"x":860,"y":378,"width":350,"height":376},"jarrett":{"x":1240,"y":378,"width":350,"height":376},"kat":{"x":1620,"y":378,"width":350,"height":376}}[slug];
+  if(!frame)throw new Error('Missing eliminated manager artwork: '+slug);
+  return `<svg class="lms-art manager-real-art lms-ground-art" viewBox="0 0 120 240" aria-hidden="true" focusable="false"><svg x="0" y="100" width="120" height="128.914286" viewBox="${frame.x} ${frame.y} ${frame.width} ${frame.height}" overflow="hidden"><image href="/assets/managers-lms-v1/ground-seated-sad.png" x="0" y="0" width="2079" height="756"/></svg></svg>`;
+ }
  const seated=pose==='seated';
  return `<svg class="lms-art manager-real-art" viewBox="0 0 120 240" aria-hidden="true" focusable="false">
  <image href="/assets/${slug==='jarrett'?'managers-v8':'managers-v4'}/${esc(slug)}-${pose}.webp" x="0" y="${seated&&key.startsWith('lms-')?-16:0}" width="120" height="240"/>
