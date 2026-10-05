@@ -1,0 +1,746 @@
+  #challenges{scroll-margin-top:64px}
+  .challenge-card-blurb{font-size:10.5px;line-height:1.3;color:var(--navy-ink);opacity:.65;margin-top:5px}
+  .trophy-copy .agreement-fold{max-width:680px;margin-top:22px}
+    .trophy-copy .agreement-fold{max-width:none;margin-top:18px}
+  details.agreement-fold{background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-top:16px}
+  .cc-flipcue{margin-top:8px;padding-top:7px;border-top:1px solid rgba(27,55,82,.08);font-family:var(--mono);font-size:7.2px;line-height:1.2;letter-spacing:.10em;text-transform:uppercase;text-align:center;color:#9aa3ad;font-weight:800;white-space:nowrap;transition:color .24s ease}
+  .podium{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:end;gap:8px;margin-top:14px}
+  .scroll-hint{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--navy-ink);opacity:.55;margin-top:2px}
+  .cc-season-snapshot{margin-top:9px;padding:8px 10px;background:var(--paper-dim);border:1px solid rgba(20,50,79,.10);border-radius:7px;display:grid;gap:4px}
+  .cc-featured-standings{margin-top:12px;padding:10px 11px 9px;border:1px solid rgba(20,50,79,.12);border-radius:9px;background:rgba(255,255,255,.72)}
+  .cc.featured-season .cc-flipcue{margin-top:9px;font-size:8px;color:#5E7182}
+    margin-top:3px;
+    margin-top:3px;
+    margin-top:4px;
+    margin-top:3px;
+    margin-top:3px;
+    margin-top:7px;
+    margin-top:9px;
+    margin-top:4px;
+    margin-top:4px;
+    margin-top:5px;
+    .standings-team{font-size:5.8px;margin-top:2px}
+    .standings-core-stat small{font-size:4.8px;margin-top:2px}
+  .standings-team{font-size:9px;margin-top:4px}
+  .standings-core-stat small,.standings-mode-stat small{font-size:8px;margin-top:4px}
+  .standings-analytic-v{font-size:21px;margin-top:5px}
+  .standings-analytic-s{font-size:9px;margin-top:4px}
+  .standings-secondary{gap:6px;margin-top:9px}
+  .standings-preseason-head span{font-size:9.5px;margin-top:8px}
+    .standings-team{font-size:7.8px;margin-top:3px}
+    margin-top:5px;
+    margin-top:5px;
+    margin-top:6px;
+    margin-top:5px;
+    margin-top:11px;
+    margin-top:12px;
+    margin-top:6px;
+      margin-top:8px;
+  .standings-preseason-head span{margin-top:6px;font-size:8px}
+  .standings-manager{font-size:14px}.standings-team{font-size:9px;margin-top:4px}
+  .standings-core-stat small,.standings-mode-stat small{font-size:8px;margin-top:4px}
+  .record-unit{font-size:11px;line-height:1.4;color:#496176;font-weight:600;margin-top:5px;max-width:150px}
+  .record-person-detail{margin-top:1px}
+  .record-card-note{font-size:11px;line-height:1.4;color:#496176;font-weight:600;margin-top:7px;padding-top:7px;border-top:1px solid rgba(20,50,79,.11)}
+  .profile-hint{margin-top:8px;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--navy-ink);opacity:.5}
+  .manager-modal-sub{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.68);margin-top:4px}
+  .profile-winnings-total{display:block;font-family:var(--serif);font-size:24px;line-height:1.1;color:var(--navy);font-weight:900;margin-top:3px}
+  .profile-stat .v{font-family:var(--serif);font-size:24px;font-weight:900;color:var(--navy);line-height:1.1;margin-top:3px}
+  .profile-stat .s{font-size:9.5px;line-height:1.35;color:var(--navy-ink);opacity:.58;margin-top:3px}
+  .profile-section{margin-top:18px}
+  .profile-award-name{font-size:11px;font-weight:800;color:var(--navy);margin-top:3px}
+  .profile-award-stat{font-size:9.5px;color:var(--navy-ink);opacity:.62;margin-top:2px}
+  .record-method{margin-top:12px;background:rgba(255,255,255,.58);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .profile-callout-s{font-size:10px;line-height:1.45;color:rgba(255,255,255,.72);margin-top:4px}
+  .profile-season-meta{grid-column:2/-1;font-size:9px;line-height:1.4;color:var(--navy-ink);opacity:.58;margin-top:-5px}
+  .profile-dna-card .v{font-family:var(--serif);font-size:18px;font-weight:900;color:var(--navy);line-height:1.05;margin-top:4px;overflow-wrap:anywhere}
+  .profile-dna-card .s{font-size:8.7px;line-height:1.35;color:var(--navy-ink);opacity:.58;margin-top:4px}
+  .season-modal-front .podium{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:end;gap:8px;margin-top:14px}
+  .season-modal-scroll details.awards-fold{margin-top:22px}
+  .season-detail-section{margin-top:28px}
+  .season-detail-section .hof{margin-top:16px}
+  .season-capsule-team{font-size:14px;color:rgba(255,255,255,.74);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .season-capsule-badges{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+  .season-title-score .score{font-family:var(--serif);font-size:27px;line-height:1;font-weight:900;color:#fff;margin-top:5px;white-space:nowrap}
+  .season-title-score .opp{font-size:12px;color:rgba(255,255,255,.68);margin-top:6px}
+  .season-section{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px;box-shadow:0 2px 8px rgba(20,50,79,.04)}
+  .season-leader-card .sub{font-size:10.5px;line-height:1.35;color:#52687b;margin-top:7px}
+  .season-story-card .s{font-size:11px;line-height:1.55;color:#52687b;margin-top:7px}
+  .season-first-pick .player{font-size:9.5px;color:#52687b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+  .season-nav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:2px}
+  .season-mini-fact .v{font-size:10.5px;color:var(--navy);font-weight:800;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .season-open-btn{appearance:none;-webkit-appearance:none;margin-top:12px;border:1px solid var(--navy);border-radius:7px;background:var(--navy);color:#fff;padding:8px 11px;font-family:var(--mono);font-size:8.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:800;cursor:pointer}
+    .season-section{padding:15px 13px}
+  .award-modal-front .stat{font-family:var(--mono);font-size:12px;color:var(--brass);margin-top:7px}
+  .award-summary-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px;margin-top:18px}
+  .hero-eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--verdict-red);font-weight:700;display:flex;align-items:center;gap:14px;justify-content:center;margin-top:8px}
+  #countdown .l{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;margin-top:8px;color:var(--brass)}
+  .until{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--navy-ink);opacity:.6;margin-top:10px}
+  .wire{margin-top:6px;text-align:left}
+  .wc-copy{font-size:13px;line-height:1.45;color:var(--navy-ink);opacity:.85;margin-top:2px;overflow-wrap:anywhere}
+  .wc-player{display:flex;align-items:center;gap:11px;margin-top:10px;min-width:0;appearance:none;-webkit-appearance:none;border:0;background:transparent;padding:0;text-align:left;cursor:pointer;color:inherit;width:100%}
+  .wc-player small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--navy-ink);opacity:.65;margin-top:3px}
+  .wc-mgr{display:inline-flex;align-items:center;gap:8px;margin-top:12px;min-width:0;padding:6px 10px 6px 6px;border-radius:999px;background:var(--paper-dim);font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--navy);cursor:pointer;border:0;appearance:none;-webkit-appearance:none;align-self:flex-start;max-width:100%}
+  .wc.is-lead .wc-lead-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}
+  .wc.is-lead .wc-lead-stats span{display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.7;margin-top:3px}
+  .wc-count{display:flex;justify-content:space-between;gap:6px;margin-top:12px}
+  .wc-count .l{font-family:var(--mono);font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;margin-top:6px;color:var(--brass)}
+  .wc-vs{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px}
+  .wc-vs .side strong{display:block;font-family:var(--mono);font-size:26px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;line-height:1.1;margin-top:2px}
+  .wc-vs .side small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;opacity:.55;margin-top:2px}
+  .wc-bar{height:6px;border-radius:3px;background:var(--paper-dim);overflow:hidden;margin-top:10px;display:flex}
+  .wc-foot{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:2px}
+  .wire-hint{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--navy-ink);opacity:.5;text-align:center;margin-top:8px}
+  .week1-wrap{margin:0 auto;padding:0 0 28px;text-align:left;max-width:100%;width:100%}
+  .week1-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 2px 8px}
+  .week1-title{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);font-weight:700}
+  .week1-hint{font-family:var(--mono);font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--navy-ink);opacity:.5;white-space:nowrap}
+  .week1-scroll{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;padding:2px 2px 10px;-webkit-overflow-scrolling:touch;overscroll-behavior-inline:contain}
+  .week1-scroll::-webkit-scrollbar{height:6px}
+  .week1-scroll::-webkit-scrollbar-track{background:var(--paper-dim);border-radius:4px}
+  .week1-scroll::-webkit-scrollbar-thumb{background:rgba(188,137,41,.55);border-radius:4px}
+  .fantasy-updated{text-align:right;margin-top:4px;font-family:var(--mono);font-size:6.1px;letter-spacing:.05em;text-transform:uppercase;color:var(--navy-ink);opacity:.38}
+    .week1-wrap{margin-top:0;padding-bottom:24px}
+    .week1-hint{display:none}
+  section{padding-top:58px}
+  .sec-head{display:flex;align-items:baseline;gap:14px;border-bottom:2px solid var(--navy);padding-bottom:10px;margin-bottom:22px;flex-wrap:wrap}
+  .sec-head .ex{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--brass);text-transform:uppercase;white-space:nowrap}
+  .sec-head h3{font-family:var(--serif);font-weight:900;font-size:clamp(22px,4vw,30px);color:var(--navy)}
+  .sec-head .pot{margin-left:auto;font-family:var(--mono);font-weight:700;font-size:14px;color:var(--win-green);white-space:nowrap}
+  details.sec-fold>summary.sec-head{cursor:pointer;list-style:none;user-select:none;-webkit-user-select:none}
+  details.sec-fold>summary.sec-head::-webkit-details-marker{display:none}
+  details.sec-fold>summary.sec-head:hover h3{color:var(--brass)}
+  details.sec-fold>summary.sec-head:focus-visible{outline:3px solid var(--brass-bright);outline-offset:4px;border-radius:4px}
+  details.sec-fold:not([open])>summary.sec-head{margin-bottom:0}
+  details.sec-fold:not([open])>summary.sec-head .sec-fold-caret{transform:rotate(-90deg)}
+  details.sec-fold-stashed:not([open])>summary.sec-head{border-bottom-color:var(--line);opacity:.8}
+  details.sec-fold-stashed:not([open])>summary.sec-head h3{font-size:clamp(18px,3.4vw,22px)}
+  details.sec-fold-stashed:not([open])>summary.sec-head .pot{font-size:11px;color:var(--navy-ink);opacity:.7}
+  details.sec-fold-stashed:not([open])>summary.sec-head:hover{opacity:1}
+  .card .s{font-size:13px;opacity:.75;margin-top:4px}
+  a.card.draft-link::after{content:attr(data-action);display:block;margin-top:9px;color:var(--win-green);font-family:var(--mono);font-size:10px;letter-spacing:.08em;font-weight:700}
+  .buyin p{margin-top:10px;font-size:14px;color:rgba(247,243,232,.85);max-width:680px}
+  .paybtns{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+  .agreement ol{padding-left:22px;margin-top:4px}
+  .champ-banner .s{color:rgba(247,243,232,.8);font-size:14px;margin-top:4px}
+  .hof{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:14px}
+  .hof .stat{font-family:var(--mono);font-size:12px;color:var(--brass);margin-top:7px}
+  button.card.award-flip-card::after{content:"Flip for details ↻";display:block;margin-top:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);opacity:.78}
+    margin-top:2px;pointer-events:none;user-select:none;
+    border-radius:10px;padding:2px 8px 3px;margin-top:10px;
+  .award-plaque-winner-name{margin-top:5px;font-size:13.5px;line-height:1;font-weight:900;letter-spacing:.025em;color:#17324d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center}
+    width:86%;margin-top:9px;padding-top:7px;
+  .award-modal-front .award-plaque-heading{height:auto;gap:4px;margin-top:0}.award-modal-front .award-plaque-year{font-size:clamp(25px,4vw,38px)}
+  .award-modal-front .award-plaque-engraving{font-size:clamp(12px,1.5vw,16px);min-height:0;margin-top:clamp(12px,2vh,18px);padding-top:clamp(10px,1.6vh,14px);max-width:700px;letter-spacing:.05em}
+  .award-modal-front .award-plaque-winner{margin-top:clamp(16px,3vh,24px)}
+  .award-modal-front .award-plaque-winner-name{font-size:clamp(24px,4vw,38px);margin-top:7px}
+  .award-modal-winner{display:inline-flex;align-items:center;gap:8px;margin-top:7px;padding:5px 8px 5px 5px;border-radius:999px;color:#fff;text-decoration:none;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}
+    .award-plaque-engraving{font-size:7.8px;line-height:1.2;margin-top:4px;padding-top:5px;width:92%;letter-spacing:.04em}
+    .award-plaque-winner{margin-top:7px;padding:1px 5px 2px}
+    .award-plaque-winner-name{font-size:10.2px;margin-top:3px}
+    .award-plaque-prize{font-size:6px;margin-top:7px;padding-top:5px;width:86%}.award-plaque-prize b{font-size:7.8px}
+    .award-modal-front .award-plaque-engraving{font-size:13px;margin-top:12px;padding-top:10px}
+  details.awards-fold{margin-top:26px}
+  details.awards-fold .hof,details.awards-fold .fold-body{margin-top:14px}
+  details.season{scroll-margin-top:62px}
+  a.card::after{content:"View full season →";display:block;margin-top:10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass)}
+    .profile-post{grid-column:2/4;text-align:left;margin-top:-2px}
+    .profile-rival{grid-template-columns:minmax(0,1fr) 54px}.profile-rival-points{grid-column:1/3;text-align:left;padding-left:31px;margin-top:-4px}
+  .profile-season-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+    display:block;margin-top:4px;font-family:var(--sans);font-size:10.5px;line-height:1.15;font-weight:600;color:#455d71
+    #record-book-fold .rb-page + .rb-page{margin-top:12px}
+    .season-capsule-hero,.season-section{width:100%}
+  .roster-activity{margin-top:0;border:1px solid var(--line);border-radius:10px;background:linear-gradient(180deg,#fff 0%,#fbf7ed 100%);padding:12px 14px}
+  .roster-activity-v{font-family:var(--serif);font-size:23px;line-height:1;font-weight:900;color:var(--navy);margin-top:3px}
+  .profile-roster-card .v{font-family:var(--serif);font-size:19px;font-weight:900;color:var(--navy);line-height:1.05;margin-top:4px;overflow-wrap:anywhere}
+  .profile-roster-card .s{font-size:8.7px;line-height:1.35;color:#496176;margin-top:4px}
+  .profile-roster-years{margin-top:8px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;align-items:end}
+  .profile-roster-y{font-family:var(--mono);font-size:6.8px;color:#657789;font-weight:800;margin-top:4px;display:block}
+    margin-top:5px;
+    margin-top:4px;
+    margin-top:5px;
+    margin-top:5px;
+    margin-top:4px;
+    margin-top:7px;
+    margin-top:2px;
+    margin-top:3px;
+    margin-top:4px;
+    margin-top:7px;
+    margin-top:2px;
+    margin-top:4px;
+  .ffn-wrap{
+  .ffn-head{
+  .ffn-title{
+  .ffn-head-right{
+  .ffn-status{
+  .ffn-live-dot{
+  .ffn-new{
+  .ffn-refresh{
+  .ffn-refresh svg{display:block;width:13px;height:13px}
+  .ffn-refresh:hover{color:var(--navy);background:rgba(20,50,79,.06)}
+  .ffn-refresh:focus-visible{outline:2px solid rgba(185,138,46,.55);outline-offset:2px}
+  .ffn-refresh:disabled{cursor:wait;opacity:.34}
+  .ffn-filters{
+  .ffn-filter-control{
+  .ffn-filter-control::placeholder{color:var(--navy-ink);opacity:.42}
+  .ffn-filter-control:hover{border-color:rgba(20,50,79,.26)}
+  .ffn-filter-control:focus{border-color:rgba(185,138,46,.68);box-shadow:0 0 0 2px rgba(185,138,46,.10)}
+  .ffn-filter-control:disabled{opacity:.48;cursor:wait;background:rgba(255,255,255,.62)}
+  select.ffn-filter-control{padding-right:3px;cursor:pointer}
+  .ffn-filter-reset{
+  .ffn-filter-reset:hover:not(:disabled){background:rgba(20,50,79,.06);color:var(--navy)}
+  .ffn-filter-reset:focus-visible{outline:2px solid rgba(185,138,46,.55);outline-offset:1px}
+  .ffn-filter-reset:disabled{opacity:.28;cursor:default}
+  .ffn-scroll{
+  .ffn-scroll::-webkit-scrollbar{height:6px}
+  .ffn-scroll::-webkit-scrollbar-track{background:var(--paper-dim);border-radius:4px}
+  .ffn-scroll::-webkit-scrollbar-thumb{background:rgba(188,137,41,.55);border-radius:4px}
+  .ffn-card{
+  .ffn-card.is-fresh{border-top:3px solid var(--brass-bright)}
+  .ffn-player{
+  .ffn-photo{
+  .ffn-photo > img.ffn-headshot{
+  .ffn-team-logo{
+  .ffn-player-copy{min-width:0}
+  .ffn-player-name{
+  .ffn-meta{
+    margin-top:5px;
+  .ffn-meta-sep{opacity:.45}
+  .ffn-game{
+  .ffn-body{
+  .ffn-news-top{
+  .ffn-age{
+  .ffn-tag{
+  .ffn-tag.injury{color:var(--verdict-red);border-color:rgba(181,78,65,.18);background:#fff4f1}
+  .ffn-tag.transaction{color:var(--brass);border-color:rgba(185,138,46,.18);background:#fff9ea}
+  .ffn-tag.role{color:var(--win-green);border-color:rgba(47,125,78,.18);background:#f3faf5}
+  .ffn-headline{
+  .ffn-text{
+  .ffn-related{
+    margin-top:8px;
+  .ffn-related-label{
+  .ffn-related-list{
+  .ffn-related-chip{
+  .ffn-related-chip img{
+  .ffn-related-empty{
+  .ffn-loading-card,
+  .ffn-empty{
+  .ffn-loading-dots{display:flex;gap:4px}
+  .ffn-loading-dots i{
+  .ffn-loading-dots i:nth-child(2){animation-delay:.15s}
+  .ffn-loading-dots i:nth-child(3){animation-delay:.30s}
+  .ffn-loading-state{
+  .ffn-loading-inner{display:grid;justify-items:center;gap:9px}
+  .ffn-loading-inner strong{
+  .ffn-loading-inner span{
+  .ffn-loading-state.is-error{border-style:solid;background:rgba(255,255,255,.58)}
+  .ffn-loading-state.is-error strong{color:var(--verdict-red)}
+    .ffn-wrap{padding-bottom:12px}
+    .ffn-head{margin-bottom:7px}
+    .ffn-title{font-size:9.2px;letter-spacing:.14em}
+    .ffn-status{font-size:6px}
+    .ffn-filters{grid-template-columns:minmax(86px,1fr) 64px 64px auto;gap:4px;margin-bottom:7px}
+    .ffn-filter-control{height:26px;padding-inline:6px;font-size:6.9px}
+    .ffn-filter-reset{height:26px;padding-inline:5px;font-size:6.1px}
+    .ffn-loading-state{min-height:215px;padding:20px}
+    .ffn-card,.ffn-loading-card,.ffn-empty{
+    .ffn-player{
+    .ffn-photo{width:44px;height:44px}
+    .ffn-player-name{font-size:11.2px}
+    .ffn-meta{font-size:7.8px;line-height:1.3}
+    .ffn-body{padding:8px}
+    .ffn-headline{font-size:12.7px}
+    .ffn-text{font-size:10.2px;line-height:1.36}
+    .ffn-new,.ffn-loading-dots i{animation:none}
+  .ffn-player{
+  .ffn-photo{
+  .ffn-player-name{
+  .ffn-meta{
+    margin-top:6px !important;
+  .ffn-game{font-weight:900}
+  .ffn-loader-status{
+  .ffn-end-sentinel{
+    .ffn-player{
+    .ffn-photo{
+    .ffn-player-name{
+    .ffn-meta{
+  .ffn-loading-card{display:none !important}
+  .ffn-end-sentinel{flex:0 0 10px;align-self:stretch;min-height:80px}
+  .ffn-player{grid-template-columns:50px minmax(0,1fr) !important;min-height:68px !important;padding:8px 9px !important}
+  .ffn-photo{width:48px !important;height:48px !important}
+  .ffn-player-name{font-size:12.5px !important}
+  .ffn-meta{font-size:8.8px !important;line-height:1.35 !important;opacity:.74 !important}
+    .ffn-player{grid-template-columns:48px minmax(0,1fr) !important;min-height:66px !important}
+    .ffn-photo{width:46px !important;height:46px !important}
+    .ffn-player-name{font-size:11.8px !important}
+    .ffn-meta{font-size:8.4px !important}
+  .ffn-loading-card{display:none !important}
+  .ffn-end-sentinel{flex:0 0 10px;align-self:stretch;min-height:80px}
+  .ffn-player{grid-template-columns:50px minmax(0,1fr) !important;min-height:68px !important;padding:8px 9px !important}
+  .ffn-photo{width:48px !important;height:48px !important}
+  .ffn-player-name{font-size:12.5px !important}
+  .ffn-meta{font-size:8.8px !important;line-height:1.35 !important;opacity:.76 !important}
+    .ffn-player{grid-template-columns:48px minmax(0,1fr) !important;min-height:66px !important}
+    .ffn-photo{width:46px !important;height:46px !important}
+    .ffn-player-name{font-size:11.8px !important}
+    .ffn-meta{font-size:8.5px !important}
+  .ffn-loading-card{display:none !important}
+  .ffn-end-sentinel{flex:0 0 12px;align-self:stretch;min-height:80px}
+  .ffn-player{grid-template-columns:50px minmax(0,1fr) !important;min-height:69px !important;padding:8px 9px !important}
+  .ffn-photo{width:48px !important;height:48px !important}
+  .ffn-player-name{font-size:12.5px !important}
+  .ffn-meta{font-size:8.9px !important;line-height:1.35 !important;opacity:.78 !important}
+    .ffn-player{grid-template-columns:48px minmax(0,1fr) !important;min-height:67px !important}
+    .ffn-photo{width:46px !important;height:46px !important}
+    .ffn-player-name{font-size:11.9px !important}
+    .ffn-meta{font-size:8.6px !important}
+      margin-top:4px;
+    margin-top:10px;
+      margin-top:9px;
+  .ffn-photo.pc-player-trigger,
+  .ffn-player-name.pc-player-trigger,
+  .ffn-related-chip.pc-player-trigger{
+  .ffn-photo.pc-player-trigger{margin:0;padding:0}
+  .ffn-player-name.pc-player-trigger{
+  .ffn-related-chip.pc-player-trigger{margin:0}
+  .ffn-photo.pc-player-trigger:hover,
+  .ffn-related-chip.pc-player-trigger:hover{border-color:rgba(188,137,41,.72);box-shadow:0 0 0 2px rgba(217,169,63,.14)}
+  .ffn-player-name.pc-player-trigger:hover{color:var(--brass)}
+  .pc-modal-meta{margin-top:4px;color:rgba(255,255,255,.68);font:700 9px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+  [data-pc-section]{scroll-margin-top:12px}
+  .pc-summary-section{margin:0;padding:0!important}
+  .pc-metric-value{display:block;margin-top:3px;color:var(--navy);font:900 22px/1.05 var(--serif)}
+  .pc-metric-sub{display:block;margin-top:4px;color:var(--navy-ink);font:650 9px/1.3 var(--sans);opacity:.6}
+  .pc-section{margin-top:16px;padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:#fff}
+  .pc-matchup-title{margin-top:4px;color:#fff;font:900 20px/1.1 var(--serif)}
+  .pc-matchup-time{margin-top:4px;color:rgba(255,255,255,.72);font:700 10px/1.35 var(--sans)}
+  .pc-team-block{margin-top:8px}
+  .pc-team-rank-card strong{margin-top:4px;color:var(--navy);font:900 17px/1 var(--serif)}
+  .pc-team-rank-card small{margin-top:4px;overflow:hidden;color:#718092;font:700 7.5px/1.15 var(--sans);text-overflow:ellipsis;white-space:nowrap}
+  .pc-dvp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:8px}
+  .pc-dvp-stat strong{display:block;margin-top:3px;color:var(--navy);font:900 18px/1.05 var(--serif)}
+  .pc-dvp-stat small{display:block;margin-top:3px;color:var(--navy-ink);font:650 8.5px/1.25 var(--sans);opacity:.58}
+  .pc-expand{margin-top:8px;border:1px solid var(--line);border-radius:8px;background:#fff;overflow:hidden}
+  .pc-week-detail{margin-top:6px;border:1px solid rgba(20,50,79,.09);border-radius:7px;background:var(--paper-dim);overflow:hidden}
+  .pc-split-fpts{display:block;margin-top:3px;color:var(--navy);font:900 22px/1 var(--serif)}
+  .pc-split-fpts-label{display:block;margin-top:3px;color:#607589;font:700 8px/1.25 var(--sans)}
+  .pc-split-volume{display:block;margin-top:7px;color:#1d4565;font:800 9px/1.3 var(--mono)}
+  .pc-split-games{display:block;margin-top:2px;color:#73879a;font:650 8px/1.25 var(--sans)}
+  .pc-next-condition strong{display:block;margin-top:3px;overflow:hidden;color:var(--navy);font:850 10px/1.2 var(--sans);text-overflow:ellipsis;white-space:nowrap}
+  .pc-next-condition small{display:block;margin-top:3px;color:var(--navy-ink);font:650 7.5px/1.25 var(--sans);opacity:.62}
+  .pc-news-item .ffn-tag{align-self:start;padding:4px 7px;font-size:7px}
+  .pc-news-time{display:block;margin-top:4px;color:var(--navy-ink);font:750 7.5px/1.2 var(--mono);letter-spacing:.07em;text-transform:uppercase;opacity:.5}
+  .pc-vegas{margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--paper-dim)}
+  .pc-vegas-line span{display:block;margin-top:3px;overflow:hidden;color:var(--navy-ink);font:700 6.8px/1.2 var(--mono);letter-spacing:.04em;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap;opacity:.55}
+  .pc-retry{margin-top:12px;padding:8px 12px;border:1px solid var(--navy);border-radius:7px;background:var(--navy);color:#fff;cursor:pointer;font:800 9px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+  .pc-source-line{margin-top:9px;text-align:right;color:#63788d;font:650 7.5px/1.2 var(--mono)}
+    .pc-section{padding:11px;margin-top:13px}.pc-dvp-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .pc-split-grid{grid-template-columns:1fr}.pc-news-item{grid-template-columns:1fr}.pc-news-item .ffn-tag{justify-self:start}.pc-depth-summary{display:grid;grid-template-columns:auto 1fr}.pc-depth-summary small{grid-column:1/-1;margin:3px 0 0}
+  .league-sync-title{margin-top:4px;font:900 22px/1.05 var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .league-sync-time{display:block;margin-top:5px;color:rgba(255,255,255,.62);font:700 8px/1.2 var(--mono);letter-spacing:.04em;white-space:nowrap}
+  .league-team-tab-copy small{margin-top:4px;font:700 7px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;opacity:.62}
+  .league-roster-record{margin-top:6px;font:750 9px/1.25 var(--mono);letter-spacing:.04em;color:rgba(255,255,255,.7)}
+  .league-matchup-team b{display:block;margin-top:5px;color:#fff;font:900 18px/1 var(--serif);letter-spacing:0;text-transform:none}
+  .league-roster-groups{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.8fr);gap:12px;margin-top:12px;align-items:start}
+  .league-player-meta{display:flex;gap:6px;align-items:center;margin-top:4px;color:#718092;font:750 7px/1.2 var(--mono);letter-spacing:.055em;text-transform:uppercase;white-space:nowrap}
+  .league-player-points small{margin-top:4px;font:800 6px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#8a97a5}
+  .league-ir-wrap{margin-top:10px}
+  .league-sync-error button{margin-top:13px;border:0;border-radius:7px;background:var(--navy);color:#fff;padding:9px 14px;font:800 9px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+  .hq-matchup{padding-top:0!important;margin-top:12px;border:1px solid var(--line);border-radius:11px;background:#fff;overflow:hidden}
+  .hq-matchup-manager{display:grid;grid-template-columns:40px minmax(0,1fr);grid-template-areas:"avatar identity" "avatar points";column-gap:9px;row-gap:3px;align-items:center;min-width:0}.hq-matchup-manager.is-away{text-align:right;grid-template-columns:minmax(0,1fr) 40px;grid-template-areas:"identity avatar" "points avatar"}.hq-matchup-manager>.av{grid-area:avatar;width:40px;height:40px;flex:0 0 40px}.hq-matchup-manager>div{grid-area:identity;min-width:0}.hq-matchup-manager-name{display:block;color:var(--navy);font:850 11px/1.2 var(--mono);white-space:nowrap;overflow:visible;text-overflow:clip}.hq-matchup-manager small{display:block;margin-top:3px;color:#8793a1;font:750 7px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase}.hq-matchup-points{grid-area:points;color:var(--navy);font:900 20px/1 var(--serif)}
+  .hq-matchup-middle{text-align:center}.hq-win-bar{height:7px;border-radius:999px;background:#dfe5e9;overflow:hidden}.hq-win-bar span{display:block;height:100%;background:var(--brass);border-radius:inherit}.hq-win-copy{display:flex;justify-content:space-between;margin-top:6px;color:#677688;font:800 7px/1.2 var(--mono);letter-spacing:.04em;text-transform:uppercase}.hq-matchup-vs{color:#8a96a5;font:900 8px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase}
+  .hq-edge-grid{display:flex;align-items:stretch;gap:6px;padding:0 13px 12px;overflow-x:auto}.hq-edge{flex:0 0 104px;min-width:0;padding:8px 5px;border:1px solid rgba(20,50,79,.1);border-radius:8px;background:#fffaf0;text-align:center}.hq-edge span,.hq-edge strong{display:block}.hq-edge span{color:#8793a1;font:800 7px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}.hq-edge strong{min-height:2.25em;margin-top:5px;color:var(--navy);font:850 9px/1.2 var(--mono);display:grid;place-items:center;white-space:normal;overflow:visible;text-overflow:clip}.hq-edge.is-even strong{color:#8793a1}
+  .hq-strength-wrap{overflow-x:auto}.hq-strength-table{width:100%;min-width:830px;border-collapse:separate;border-spacing:0;table-layout:fixed}.hq-strength-table th{padding:8px;background:var(--navy);color:#fff;font:850 8px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;text-align:center}.hq-strength-table th:first-child,.hq-strength-table td:first-child{width:170px;text-align:left}.hq-strength-table td{height:48px;padding:5px 8px;border-bottom:1px solid rgba(20,50,79,.09);text-align:center;vertical-align:middle}.hq-strength-table tbody tr:last-child td{border-bottom:0}.hq-strength-table tbody tr{cursor:pointer}.hq-strength-table tbody tr:hover td{background:#fffaf0}.hq-strength-manager{display:flex;align-items:center;gap:8px;min-width:0;text-align:left}.hq-strength-manager>.av{width:29px;height:29px;flex:0 0 29px}.hq-strength-manager b{min-width:0;overflow:hidden;text-overflow:ellipsis;font:850 10px/1.2 var(--mono);color:var(--navy);white-space:nowrap}.hq-strength-cell strong,.hq-strength-cell small{display:block}.hq-strength-cell strong{font:900 13px/1 var(--serif);color:var(--navy)}.hq-strength-cell small{margin-top:3px;color:#8995a2;font:750 7px/1 var(--mono)}.hq-strength-cell.is-top strong{color:#2d7a52}.hq-strength-cell.is-overall{background:var(--paper-dim)}
+  .hq-fa-wrap{max-height:430px;overflow:auto;overscroll-behavior:contain}.hq-fa-table{width:100%;min-width:760px;border-collapse:separate;border-spacing:0;table-layout:fixed}.hq-fa-table th{position:sticky;top:0;z-index:2;padding:8px 7px;background:var(--paper-dim);color:#7a8797;font:850 7px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;text-align:left;border-bottom:1px solid var(--line)}.hq-fa-table th:first-child{width:160px}.hq-fa-table th:nth-child(2){width:86px}.hq-fa-table th:nth-child(3){width:94px}.hq-fa-table th:nth-child(4){width:68px}.hq-fa-table th:nth-child(5){width:100px}.hq-fa-table th:nth-child(6){width:auto}.hq-fa-table th:nth-child(n+2):nth-child(-n+5){text-align:center}.hq-fa-table td{height:52px;padding:6px 7px;border-bottom:1px solid rgba(20,50,79,.08);background:#fff;color:var(--navy);font-size:11px;vertical-align:middle;overflow:hidden}.hq-fa-table tbody tr:nth-child(even) td{background:var(--paper-dim)}.hq-fa-table th:first-child,.hq-fa-table td:first-child{position:sticky;left:0}.hq-fa-table th:first-child{z-index:4}.hq-fa-table td:first-child{z-index:3}.hq-fa-table tbody tr:nth-child(odd) td:first-child{background:#fff}.hq-fa-table tbody tr:nth-child(even) td:first-child{background:var(--paper-dim)}.hq-fa-player{appearance:none;width:100%
+  .hq-recap-story{margin:0 0 10px;color:#5f7082;font-size:13px;line-height:1.5}.hq-recap-award{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:9px;align-items:center;padding:9px 0;border-top:1px solid rgba(20,50,79,.08)}.hq-recap-award>.av{width:34px;height:34px;flex:0 0 34px}.hq-recap-award span,.hq-recap-award b{display:block}.hq-recap-award span{color:#8a96a4;font:800 7px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase}.hq-recap-award b{margin-top:3px;color:var(--navy);font:850 10px/1.2 var(--mono)}.hq-recap-score{color:var(--navy);font:900 16px/1 var(--serif);text-align:right}.hq-recap-score small{display:block;margin-top:4px;color:#8a96a4;font:750 7px/1 var(--mono)}
+  .profile-live-roster{margin-top:12px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+    .hq-module-head{padding:11px 12px}.hq-module-title{font-size:17px}.hq-module-note{font-size:7px}.hq-matchup-main{grid-template-columns:minmax(0,1fr) 48px minmax(0,1fr);padding:11px 8px;gap:6px}.hq-matchup-manager{grid-template-columns:32px minmax(0,1fr);grid-template-areas:"avatar identity" "avatar points";column-gap:7px}.hq-matchup-manager.is-away{grid-template-columns:minmax(0,1fr) 32px;grid-template-areas:"identity avatar" "points avatar"}.hq-matchup-manager>.av{width:32px;height:32px}.hq-matchup-manager-name{font-size:10px}.hq-win-copy{display:none}.hq-matchup-vs{margin-top:7px}.hq-edge-grid{padding:0 8px 10px}.hq-edge{flex-basis:96px}.hq-swing{padding-left:8px;padding-right:8px}.hq-swing-player{flex-basis:174px;width:174px}.hq-fa-controls{padding:10px}.hq-fa-reset{height:38px}.hq-predraft{align-items:flex-start}
+  .wire-hint{margin-top:7px;color:#778696;font:700 7px/1.35 var(--mono);letter-spacing:.035em}
+  .wire-proj-pair{display:block;margin-top:3px;color:#758596;font:800 6.6px/1.2 var(--mono);letter-spacing:.035em;text-transform:uppercase;white-space:nowrap}
+  .league-player-points .league-proj-compare{display:flex;flex-direction:column;gap:2px;margin-top:4px;font:800 6px/1.05 var(--mono);letter-spacing:.035em;text-transform:uppercase;color:#83909e;white-space:nowrap}
+  .hq-matchup-projection-sub{display:block!important;margin-top:4px!important;color:#718294!important;font-size:6.5px!important;letter-spacing:.025em!important;text-transform:none!important;white-space:nowrap}
+  .hq-lineup-toolbar-copy small{display:block;margin-top:3px;color:#788796;font:700 6.8px/1.25 var(--mono);letter-spacing:.035em}
+  .hq-lineup-team-head small{display:block;margin-top:3px;color:#728193;font:800 6.6px/1.25 var(--mono);letter-spacing:.025em;white-space:nowrap}
+  .hq-lineup-row.is-bench-start{margin-top:6px;border-top:2px solid rgba(185,138,46,.5)}
+  .hq-lineup-player-meta{display:block;margin-top:2px;color:#83909d;font:750 5.8px/1.1 var(--mono);letter-spacing:.035em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hq-lineup-projections{display:flex;align-items:center;gap:6px;margin-top:4px;color:#7c8a98;font:800 6.3px/1 var(--mono);white-space:nowrap}
+  .league-matchup-projections{display:block!important;margin-top:5px;color:rgba(255,255,255,.72)!important;font:800 6.6px/1.25 var(--mono)!important;letter-spacing:.035em!important;text-transform:none!important}
+  .wire{width:100%;margin-top:4px}
+  .wc-foot{margin-top:1px}
+  .hq-matchup-manager small{font-size:8px;margin-top:3px}
+  .hq-matchup-projpair{display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:5px;color:#718294;font:800 8.5px/1.15 var(--mono);white-space:normal}
+  .hq-win-copy{font-size:7.5px;margin-top:6px;gap:6px}.hq-win-copy span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hq-matchup-vs{margin-top:4px;font-size:7.5px}
+  .hq-edge span{font-size:7.5px}.hq-edge strong{font-size:9px;min-height:2.35em;margin-top:5px}
+  .hq-lineup-toolbar-copy b{font-size:17px}.hq-lineup-toolbar-copy small{font-size:8.5px;line-height:1.35;margin-top:4px}
+  .hq-lineup-team-head b{font-size:13px}.hq-lineup-team-head small{font-size:8.5px;margin-top:4px}
+  .hq-lineup-row.is-bench-start{margin-top:9px;border-top-width:3px}
+  .hq-lineup-player-meta{font-size:7px;margin-top:3px}
+  .hq-lineup-projections{display:flex;gap:6px;margin-top:5px;white-space:normal}
+    .hq-matchup-projpair{display:grid;gap:2px;margin-top:4px;font-size:7.5px}.hq-matchup-manager.is-away .hq-matchup-projpair{justify-items:end}.hq-matchup-projpair b{font-size:9px}
+    .hq-lineup-player-meta{font-size:6px;margin-top:2px}
+    .hq-lineup-projections{display:grid;grid-template-columns:1fr;gap:3px;margin-top:4px}
+    margin-top:3px!important;color:#718193!important;font-size:7px!important;line-height:1.2!important;
+  .hq-lineup-projections{margin-top:5px}
+    .hq-lineup-player-meta{display:grid!important;grid-template-columns:1fr;gap:1px!important;font-size:6.4px!important;margin-top:2px!important}
+    .hq-lineup-projections{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:3px!important;margin-top:3px!important}
+    margin-top:5px!important;
+  .hq-swing-copy small{display:block;margin-top:3px;color:#7c8998;font:800 6.8px/1 var(--mono);letter-spacing:.035em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hq-fa-proj-pair b{margin-top:3px;color:var(--navy);font:900 11.5px/1 var(--serif)}
+.hq-lineup-player-copy{min-width:0!important;display:block!important}.hq-lineup-player-name{display:block!important;font-size:12px!important;line-height:1.12!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.hq-lineup-player-bio{display:block!important;margin-top:3px!important;color:#64778a!important;font:850 8px/1.1 var(--mono)!important;letter-spacing:.035em!important;text-transform:uppercase!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.hq-lineup-player-game{display:block!important;margin-top:4px!important;color:#7b8997!important;font:600 8px/1.15 var(--sans)!important;letter-spacing:0!important;text-transform:none!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.hq-lineup-player-game::before{content:none!important}
+.hq-lineup-score{min-width:66px!important;text-align:right!important}.hq-lineup-score>small,.hq-lineup-score>strong{display:block!important}.hq-lineup-score>small{color:#8794a1!important;font:850 6.5px/1 var(--mono)!important;letter-spacing:.05em!important;text-transform:uppercase!important}.hq-lineup-score>strong{margin-top:3px!important;color:var(--navy)!important;font:900 15px/1 var(--serif)!important}.hq-lineup-score.has-actual>strong{color:#83C991!important}.hq-lineup-score-sub{display:flex!important;gap:5px!important;justify-content:flex-end!important;margin-top:4px!important;color:#788796!important;font:800 6.7px/1 var(--mono)!important;white-space:nowrap!important}.hq-lineup-player.is-right .hq-lineup-score-sub{justify-content:flex-start!important}
+.hq-fa-wrap{overflow:auto!important;max-height:500px!important}.hq-fa-table{min-width:900px!important;table-layout:fixed!important}.hq-fa-table th:first-child{width:52px!important}.hq-fa-table th:nth-child(2){width:185px!important;text-align:left!important}.hq-fa-table th:nth-child(3),.hq-fa-table th:nth-child(4){width:124px!important;text-align:center!important}.hq-fa-table th:nth-child(5){width:84px!important}.hq-fa-table th:nth-child(6){width:105px!important}.hq-fa-table th:nth-child(7){width:226px!important}.hq-fa-table td{height:58px!important}.hq-fa-player.hq-fa-player-copy{display:block!important;width:100%!important;color:var(--navy)!important;opacity:1!important}.hq-fa-player.hq-fa-player-copy b{display:block!important;font-size:10.5px!important;line-height:1.15!important;color:var(--navy)!important}.hq-fa-player.hq-fa-player-copy small{display:block!important;margin-top:4px!important;font-size:7.7px!important;color:#728294!important}.hq-fa-proj-pair small{font-size:6.8px!important}.hq-fa-proj-pair b{font-size:12px!important}
+  .hq-lineup-table{padding:9px 7px 12px!important}.hq-lineup-head,.hq-lineup-row{grid-template-columns:minmax(0,1fr) 34px minmax(0,1fr)!important;gap:3px!important}.hq-lineup-row{min-height:73px!important;padding:5px 1px!important}.hq-lineup-player{grid-template-columns:25px minmax(0,1fr) auto!important;gap:4px!important;padding:4px 2px!important}.hq-lineup-player.is-right{grid-template-columns:auto minmax(0,1fr) 25px!important}.hq-lineup-player img,.hq-lineup-player .league-team-initials{width:24px!important;height:24px!important}.hq-lineup-player-name{font-size:9.5px!important}.hq-lineup-player-bio{font-size:6.6px!important;margin-top:2px!important}.hq-lineup-player-game{font-size:6.7px!important;margin-top:3px!important}.hq-lineup-score{min-width:45px!important}.hq-lineup-score>small{font-size:5.4px!important}.hq-lineup-score>strong{font-size:11.5px!important}.hq-lineup-score-sub{display:grid!important;grid-template-columns:1fr!important;gap:2px!important;font-size:5.7px!important;margin-top:3px!important}.hq-lineup-slot,.hq-lineup-slot-head{font-size:6.6px!important}.hq-lineup-bench-divider{font-size:7px!important;margin-top:8px!important}
+  .hq-matchup-projpair{display:block!important;margin-top:5px!important;white-space:nowrap!important}
+.hq-lineup-player-bio{display:block!important;margin-top:3px!important;color:#5f7387!important;font:850 8.5px/1.08 var(--mono)!important;letter-spacing:.025em!important;text-transform:uppercase!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.hq-lineup-score-sub{display:flex!important;justify-content:flex-end!important;gap:5px!important;margin-top:5px!important;color:#7a8997!important;font:800 7.4px/1 var(--mono)!important;white-space:nowrap!important}
+  .hq-matchup-projpair{display:block!important;margin-top:4px!important;font-size:8px!important;white-space:nowrap!important}
+  .hq-lineup-player-bio{font-size:7px!important;margin-top:2px!important;letter-spacing:.01em!important}
+  .hq-lineup-score-sub{display:block!important;margin-top:4px!important;font-size:6.6px!important;line-height:1.05!important}
+.wc-list{margin-top:12px!important}
+.wire-row-meta{display:block;margin-top:3px;color:#748396;font:750 8.5px/1.15 var(--mono);letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wc-draft-bookend-copy{min-width:0}.wc-draft-bookend-copy span{display:block;color:var(--brass-bright);font:900 7.5px/1.15 var(--mono);letter-spacing:.11em;text-transform:uppercase}.wc-draft-bookend-copy b{display:block;margin-top:4px;color:#fff;font:900 13px/1.15 var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wc-draft-bookend-copy small{display:block;margin-top:3px;color:rgba(247,243,232,.68);font:700 8px/1.2 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wc-draft-vs{color:rgba(247,243,232,.35);font:900 9px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.wc-lead-stats{margin-top:13px!important}
+.hq-match-team-left{display:block;margin-top:4px;color:#788797;font:800 8.5px/1.15 var(--mono);letter-spacing:.04em;text-transform:uppercase}
+.hq-match-team-score{display:block;margin-top:5px;color:var(--navy);font:900 30px/1 var(--serif);font-variant-numeric:tabular-nums}
+.hq-match-team-sub{display:flex;align-items:baseline;gap:5px;margin-top:5px;color:#6f8092;font:800 9.5px/1.2 var(--mono)}
+.hq-match-win-labels{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin-top:6px;color:#697a8b;font:850 8.5px/1.2 var(--mono);letter-spacing:.035em;text-transform:uppercase}.hq-match-win-labels span:last-child{text-align:right}.hq-match-win-labels b{color:#8995a2;font-size:7.5px;letter-spacing:.1em}
+.hq-lineup-player-bio{display:block!important;margin-top:3px;color:#66788b!important;font:900 8.5px/1.15 var(--mono)!important;letter-spacing:.025em!important;text-transform:uppercase!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.hq-lineup-score-sub{display:flex;flex-direction:column;gap:2px;margin-top:4px;color:#728295;font:800 8px/1.1 var(--mono)}
+.hq-lineup-player-game{grid-area:game!important;display:block!important;min-width:0!important;margin-top:2px;color:#778696!important;font:500 8.5px/1.2 var(--sans)!important;letter-spacing:0!important;text-transform:none!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;text-align:left!important}
+.hq-lineup-bench-divider{font-size:8.5px!important;margin-top:11px!important}
+.hq-fa-proj-pair small{font-size:7.5px!important;line-height:1!important}.hq-fa-proj-pair b{margin-top:4px;font-size:13px!important;line-height:1!important}
+  .hq-lineup-player img,.hq-lineup-player .league-team-initials{width:24px!important;height:24px!important}.hq-lineup-player-name{font-size:9.8px!important}.hq-lineup-player-bio{font-size:7.6px!important;margin-top:2px!important}.hq-lineup-score>strong{font-size:15.5px!important}.hq-lineup-score-sub{font-size:7.8px!important;gap:1px!important;margin-top:3px!important}.hq-lineup-score-sub b{font-size:9.2px!important}.hq-lineup-player-game{font-size:7.8px!important;line-height:1.2!important;margin-top:3px!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+  margin-top:4px!important;
+  margin-top:5px!important;
+.hq-match-team-left{font-size:8.5px!important;line-height:1.2!important;margin-top:4px!important}
+.hq-match-team-score{font-size:31px!important;line-height:1!important;margin-top:6px!important}
+  margin-top:6px!important;
+    margin-top:2px!important;
+.hq-player-directory .hq-module-head>div{min-width:0}.hq-module-sub{margin-top:4px;color:#718092;font:700 9px/1.35 var(--sans)}
+.hq-player-meta{display:flex;align-items:center;gap:6px;min-width:0;margin-top:5px;color:#718092;font:800 8px/1.2 var(--mono);letter-spacing:.045em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hq-player-proj-main{display:block;margin-top:5px;color:var(--navy);font:900 19px/1 var(--serif);font-variant-numeric:tabular-nums}
+.hq-player-proj-sub{display:block;margin-top:5px;color:#52687b;font:800 8px/1.15 var(--mono);font-variant-numeric:tabular-nums}
+  .hq-player-next{grid-column:1/-1;padding-left:56px;margin-top:-5px}
+  .hq-player-meta{font-size:7.5px;margin-top:4px}
+.recap-position-leaders{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}.recap-position-leaders>div{min-width:0;border-left:2px solid #dfd9c4;padding-left:9px}.recap-position-leaders small{font-size:10px;color:#937022;font-weight:700}.recap-position-leaders strong{display:block;font:800 20px/1.15 var(--sans);margin:3px 0;font-variant-numeric:tabular-nums}.recap-position-leaders b{display:block;font-size:12px;line-height:1.3;overflow-wrap:anywhere}.recap-position-leaders span{display:block;font-size:10px;color:#677781;margin-top:3px}
+    <div class="week1-wrap" aria-label="Current NFL weekly schedule">
+      <div class="week1-head">
+        <span class="week1-title" id="nfl-week-title">NFL Week 1 · Sep 9–14</span>
+        <span class="week1-hint">Swipe / scroll →</span>
+      <div class="week1-scroll" id="week1-scroll"></div>
+  <section id="league-hq">
+  </section>
+  <section id="standings">
+  </section>
+  <section id="challenges">
+  </section>
+  <section id="trophy">
+  </section>
+  <section id="history">
+  </section>
+  <section id="payouts">
+  </section>
+  <section id="dues">
+  </section>
+ return `<div class="hq-module-body hj-recap"><div class="hj-recap-head"><div><span class="recap-eyebrow">THE WEEKLY EDITION</span><h2>Week ${week} in the books</h2></div><label><span class="sr-only">Recap week</span><select data-hj-recap-week aria-label="Recap week">${[...weeks].reverse().map(w=>`<option value="${w.week}"${w.week===week?' selected':''}>Week ${w.week}</option>`).join('')}</select></label></div><div class="recap-highlights">${basic}</div>${leaders?`<section class="recap-position-sheet"><h3>Position leaders <small>Week ${week} · league scoring</small></h3><div class="recap-position-leaders">${leaders}</div></section>`:''}<section class="recap-ledger"><h3>The league, side by side</h3><table><thead><tr><th>Manager / matchup</th><th>Result</th><th>All-play</th><th>Efficiency</th></tr></thead><tbody>${allPlay}</tbody></table></section>${hjRecapStoriesHTML(chosen,weeks)}</div>`;
+  aRecord:'0-0',bRecord:'0-0',aScore:'0',bScore:'0',eventId:`week1-${i}`
+  return `<section class="depth-team"><div class="depth-team-head"><img src="${nflLogo(team[1])}" alt=""><span class="depth-team-name">${esc(team[0])}</span></div><div class="depth-list">${hjDepthWithDefense(team,rows).map(row=>playerRow(row,team[1],game)).join('')}</div></section>`;
+const week1El = $('#week1-scroll');
+const FFN_ROSTER_CACHE_KEY='hungjurors.ffn.roster.v3';
+const FFN_NEWS_CACHE_KEY='hungjurors.ffn.news.v1';
+  rail.querySelector('.ffn-end-sentinel')?.remove();
+  const card=[...rail.querySelectorAll('.ffn-card')].find(item=>item.offsetLeft+item.offsetWidth>edge);
+          ffnItems=[...fresh,...ffnItems].sort((a,b)=>new Date(b.published_at)-new Date(a.published_at));
+  ffnItems.push(...ffnDeepItems);
+    if(rail.querySelector('.ffn-empty')&&ffnCurrentItems().length){
+      const s=rail.querySelector('.ffn-end-sentinel');
+      el.textContent=ffnRelative(el.dataset.ffnTime,el.dataset.ffnPrecision||'time');
+  return `<section class="pc-section" data-pc-section="matchup"><div class="pc-section-head"><h3 class="pc-section-title">Upcoming matchup</h3></div><div class="pc-matchup"><div><div class="pc-matchup-label">${esc(player.team)} ${esc(upcoming.location)} ${esc(offense)}</div><div class="pc-matchup-title">${esc(name)}</div><div class="pc-matchup-time">${hjGameContextHTML(player,hjCurrentWeek())}${hjProfileGamePoints(player)}<span>${esc(upcoming.date||'')} · ${esc(upcoming.network||'')}</span></div></div>${logo}</div><div class="pc-vegas" data-pc-special-week><div class="pc-vegas-state">Loading weekly projection…</div></div>${context}<details class="pc-expand"><summary>${esc(name)} vs D/ST - week by week</summary><div class="pc-expand-body">${detail}</div></details></section>`;
+  const entry=pcDstFind(entries,player),stats=entry?pcDstStats(entry):[],upcoming=pcDstMatchupHTML(player,season,entries,schedule),teamSection=pcTeamHTML(player,allRows,season);if(!entry||!stats.length)return `<div class="pc-summary-section" data-pc-section="summary"><div class="pc-empty"><strong>No ${esc(season)} defense results yet</strong><span>Weekly results will appear after this defense plays.</span></div>${hjPffModuleHTML(player,season)}<div class="pc-vegas pc-vegas-summary" data-pc-special-season><div class="pc-vegas-state">Loading season projection…</div></div></div>${teamSection}${upcoming}<section class="pc-section" data-pc-section="game-log"><div class="pc-section-head"><h3 class="pc-section-title">Game Log</h3></div>${pcDstTable(pcDstTimeline(entry,player,season,schedule,entries))}</section>${pcLatestNews(player)}`;
+  return `<div class="pc-summary-section" data-pc-section="summary"><div class="pc-summary pc-dst-summary"><div class="pc-metric"><span class="pc-metric-label">D/ST rank</span><strong class="pc-metric-value">${rank?`#${rank}`:'—'}</strong><span class="pc-metric-sub">Total FPTS</span></div><div class="pc-metric"><span class="pc-metric-label">FPTS / game</span><strong class="pc-metric-value">${pcFpts(total/games)}</strong><span class="pc-metric-sub">${games} games played</span></div><div class="pc-metric"><span class="pc-metric-label">Total FPTS</span><strong class="pc-metric-value">${pcFpts(total)}</strong><span class="pc-metric-sub">${esc(season)} regular season</span></div><div class="pc-metric"><span class="pc-metric-label">Sacks</span><strong class="pc-metric-value">${esc(sacks)}</strong><span class="pc-metric-sub">#${esc(sackRank)} among D/STs</span></div><div class="pc-metric"><span class="pc-metric-label">Takeaways</span><strong class="pc-metric-value">${esc(takeaways)}</strong><span class="pc-metric-sub">${esc(interceptions)} INT · ${esc(fumbleRecoveries)} FUM · #${esc(takeawayRank)}</span></div><div class="pc-metric"><span class="pc-metric-label">Defensive TDs</span><strong class="pc-metric-value">${esc(defensiveTds)}</strong><span class="pc-metric-sub">#${esc(tdRank)} am
+  const playerSlot=position==='D/ST'?'Defense / special teams':`${position}${rank}`;return `<section class="pc-depth-card pc-team-card" data-pc-section="team" data-pc-team="${esc(team)}" data-pc-season="${esc(season)}"><div class="pc-depth-summary"><span>Team</span><strong>${esc(PC_TEAM_NAMES[team]||team)}</strong><small>${esc(player.name)} · ${esc(playerSlot)}</small></div>${positionCards?`<div class="pc-team-block"><div class="pc-team-block-head"><strong>${esc(position)} depth chart</strong><span>${esc(PC_TEAM_NAMES[team]||team)} ${esc(position)}s</span></div><div class="pc-depth-list">${positionCards}</div></div>`:''}${teamCards.length?`<div class="pc-team-block"><div class="pc-team-block-head"><strong>Team depth chart</strong><span>Top skill positions</span></div><div class="pc-depth-list">${teamCards.join('')}</div></div>`:''}<div class="pc-team-block"><div class="pc-team-block-head"><strong>Team rank</strong><span>${esc(season)} regular season</span></div><div class="pc-team-rank-list">${rankCards}</div></div></section>`;
+  return `<section class="pc-section" data-pc-section="matchup"><div class="pc-section-head"><h3 class="pc-section-title">Upcoming matchup</h3><span class="pc-section-note">${esc(NFL_WEEK1[0]?.week?`Week ${NFL_WEEK1[0].week}`:'Next game')}</span></div><div class="pc-matchup"><div><div class="pc-matchup-label">${esc(player.team)} ${esc(upcoming.location)} ${hjOpponentHTML(upcoming.abbr,entry?.rank,player.position,season)}</div><div class="pc-matchup-title">${esc(opponentName)}</div><div class="pc-matchup-time">${hjGameContextHTML(player,hjCurrentWeek())}${hjProfileGamePoints(player,allRows)}<span>${esc(upcoming.date||'')} · ${esc(upcoming.network||'')}</span></div></div>${logo}</div>${vegas}${defense}</section>`;
+  return `<section class="pc-section" data-pc-section="splits"><div class="pc-section-head"><h3 class="pc-section-title">Situational splits</h3></div><div class="pc-next-context" data-pc-next-context>${pcNextContextHTML(sets,player,null,pcUpcoming(player.team)?.game?.market)}</div><div class="pc-split-grid">${cards}</div></section>`;
+function pcLatestNews(player){if(player.position==='D/ST')return '';const updates=pcNewsForPlayer(player);return `<section class="pc-section" data-pc-section="news" data-pc-player-news><div class="pc-section-head"><h3 class="pc-section-title">Latest updates</h3></div>${pcNewsBody(updates,true)}</section>`}
+  const target=root.querySelector('[data-pc-player-news]');if(!target)return;try{const fetched=await pcLoadPlayerNews(player);if(!pcActive||token!==pcActive.token)return;const updates=pcNewsForPlayer(player,[...ffnItems,...fetched]);target.innerHTML=`<div class="pc-section-head"><h3 class="pc-section-title">Latest updates</h3></div>${pcNewsBody(updates,false)}`}catch(_){if(!pcActive||token!==pcActive.token)return;const updates=pcNewsForPlayer(player);target.innerHTML=`<div class="pc-section-head"><h3 class="pc-section-title">Latest updates</h3></div>${pcNewsBody(updates,false)}`}
+  if(!rows.length)return `<div class="pc-summary-section" data-pc-section="summary"><div class="pc-empty"><strong>No ${esc(season)} game log</strong><span>${esc(player.name)} does not have a regular-season player row in the selected season. Choose another year above.</span></div>${hjProfileCategoryRow(player,season,allRows)}<div class="pc-vegas pc-vegas-summary" data-pc-vegas-season>${pcSeasonProjectionHTML(player,null,null,{},true)}</div></div>${pcTeamHTML(player,allRows,season)}${pcMatchupHTML(player,season,allRows,weeklyRanks,snaps,rates,schedule)}<section class="pc-section" data-pc-section="game-log"><div class="pc-section-head"><h3 class="pc-section-title">Game Log</h3></div>${pcTable(pcCompleteWeeks(rows,player,season,schedule,snaps),player.position,{weeklyRanks,snaps,rates,schedule})}</section>${pcLatestNews(player)}`;
+  return `<div class="pc-summary-section" data-pc-section="summary"><div class="pc-summary"><div class="pc-metric"><span class="pc-metric-label">Position rank</span><strong class="pc-metric-value">${rank?.positionRank?`#${rank.positionRank}`:'—'}</strong><span class="pc-metric-sub">${esc(player.position)} · total FPTS</span></div><div class="pc-metric"><span class="pc-metric-label">Overall rank</span><strong class="pc-metric-value">${rank?.overallRank?`#${rank.overallRank}`:'—'}</strong><span class="pc-metric-sub">All fantasy positions</span></div><div class="pc-metric"><span class="pc-metric-label">FPTS / game</span><strong class="pc-metric-value">${pcFpts(avg)}</strong><span class="pc-metric-sub">${rows.length} games played</span></div><div class="pc-metric"><span class="pc-metric-label">Total FPTS</span><strong class="pc-metric-value">${pcFpts(total)}</strong><span class="pc-metric-sub">${esc(season)} regular season</span></div></div>${hjProfileCategoryRow(player,season,allRows)}<div class="pc-vegas pc-vegas-summary" data-pc-vegas-season>${pcSeasonProjectionHTML(player,null,null,{},true)}</div></div>${pcTeamHTML(player,allRows,season)}${pcMatchupHTML(player,season,allRows,weeklyRanks,snaps,rates,schedule)}<section class="pc-section" data-pc-section="game-log"><div class="pc-se
+  return `<section class="hq-matchup${focused?' is-focused':''}${open?' is-open':''}" data-hq-matchup data-hq-matchup-key="${esc(key)}" data-hq-team-a="${esc(teamA.id)}" data-hq-team-b="${esc(teamB.id)}"><div class="hq-matchup-head"><div class="hq-matchup-head-copy"><h4>Week ${week} matchup</h4><span class="hq-matchup-head-meta">${usePlaceholder?'2025 averages':live?'Live score':'Projected'}</span></div>${!usePlaceholder?`<button type="button" class="hq-matchup-toggle" data-hq-matchup-toggle="${esc(key)}" aria-expanded="${open}">${open?'Hide lineups':'View lineups'} <span class="chev">⌄</span></button>`:''}</div><div class="hq-matchup-main"><div class="hq-matchup-manager hq-home-side">${av(managerA)}<div><b class="hq-matchup-manager-name">${esc(managerA)}</b>${leftA?`<small>${esc(leftA)}</small>`:''}${projPair(projectionA,vegasA?.vegas)}</div><strong class="hq-matchup-points">${pcFpts(displayA)}</strong></div><div class="hq-matchup-middle"><div class="hq-win-bar" aria-label="${esc(managerA)} ${winChance}% win chance"><span style="width:${winChance}%"></span></div><div class="hq-win-copy"><span>${esc(managerA)} ${winChance}%</span><span>${100-winChance}% ${esc(managerB)}</span></div><div class="hq-matchup-vs">Win chance</div></div><div class="hq-matchup-manager is-away hq-away-sid
+  return `<section class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength Matrix</h3><span class="hq-module-note">${usingPrevious?`${HJ_LEAGUE_PREVIOUS_SEASON} final rosters`:`ESPN rank · ESPN + Vegas projections`}</span></div><div class="hq-strength-wrap"><table class="hq-strength-table"><thead><tr><th>Manager</th>${keys.map(key=>`<th>${key==='OVERALL'?'Overall':esc(key)}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>${usingPrevious?'':`<div class="hq-lineup-foot">* Vegas season totals use ESPN only for positions or players without a Vegas projection.</div>`}</section>`;
+const awardPanelHTML = (year,awards) => `<section class="award-bookcase-panel${year===2025?' is-active':''}" data-award-panel="${year}" aria-label="${year} league awards"><div class="award-bookcase-case">${awardLayoutHTML(year,awards,4,'desktop')}${awardLayoutHTML(year,awards,3,'tablet')}${awardLayoutHTML(year,awards,2,'mobile')}</div><div class="award-bookcase-glass" aria-hidden="true"></div></section>`;
+    return `<section class="season-section"><div class="season-section-head"><h3 class="season-section-title">Season Awards</h3></div><div class="season-award-list">${paid.map(a=>{
+    }).join('')}</div></section>`;
+    return `<section class="season-section"><div class="season-section-head"><h3 class="season-section-title">Draft Night</h3><div class="season-section-note">${esc(note)}</div></div><div class="season-draft-grid"><div class="season-draft-panel"><h4 class="season-draft-champ-heading"><span class="season-draft-champ-manager manager-profile-trigger" data-manager="${esc(x.champ)}" tabindex="0" role="button" aria-label="Open ${esc(x.champ)} profile">${av(x.champ,'mini')}<span>${esc(x.champ)}</span></span><span>'s first five picks${x.champSlot?` · drafted #${x.champSlot}`:''}</span></h4><div class="season-draft-list">${champPicks}</div></div><div class="season-draft-panel"><h4>First Round</h4><div class="season-first-round">${first}</div></div></div></section>`;
+    return `<section class="season-section"><div class="season-section-head"><h3 class="season-section-title">League Activity</h3><div class="season-section-note">Player adds by season</div></div><div class="roster-activity"><div class="roster-activity-head"><div><div class="roster-activity-k">${year} League Total</div><div class="roster-activity-v">${leagueAdds} player adds</div></div><div class="roster-activity-range">2019–2025</div></div><div class="roster-activity-bars">${bars}</div></div></section>`;
+      <section class="season-capsule-hero">${av(x.champ,'lg')}<div class="season-capsule-main"><div class="season-capsule-kicker">${year} League Champion</div><h3 class="season-capsule-name">${esc(x.champ)}</h3><div class="season-capsule-team">${esc(x.champRow.team||x.summary.champion_team||'')}</div><div class="season-capsule-badges">${heroBadges.map(b=>`<span class="season-capsule-badge">${esc(b)}</span>`).join('')}</div></div><div class="season-title-score"><div class="lab">Championship</div><div class="score">${seasonFmt(seasonWinnerScore(x.final))}–${seasonFmt(seasonLoserScore(x.final))}</div><div class="opp">over ${esc(x.runner)}</div></div></section>
+      <section class="season-section"><div class="season-section-head"><h3 class="season-section-title">Road to the Championship</h3>${finalNote?`<div class="season-section-note">${esc(finalNote)}</div>`:''}</div>${playoffTreeHTML(seasonTree(x.playoffs),'past')}${champSeries?`<div class="season-detail-note" style="margin-top:12px;text-transform:none;letter-spacing:0;font-family:var(--sans);font-size:11px;opacity:1;color:#52687b">${champSeries}</div>`:''}</section>
+      <section class="season-section"><div class="season-section-head"><h3 class="season-section-title">Season Leaders</h3></div><div class="season-leader-grid">
+      </div></section>
+      <section class="season-section"><div class="season-section-head"><h3 class="season-section-title">Season Superlatives</h3></div><div class="season-story-grid">
+      </div></section>
+      <section class="season-section"><div class="season-section-head"><h3 class="season-section-title">Final Standings</h3><div class="season-section-note">Regular-season record · final playoff finish</div></div><div class="season-standings-list"><div class="season-standings-head"><div>Final</div><div>Manager / Team</div><div class="season-standings-head-stats"><div>Record</div><div>PF</div><div>Finish</div></div></div>${standingsRowsHTML(x)}</div></section>
+      <section class="season-section"><div class="season-section-head"><h3 class="season-section-title">Season Settings</h3></div><div class="season-settings-grid">${rulesHTML(x)}</div></section>
+      recordOut.innerHTML=`<section class="rb-page"><div class="rb-page-head"><div class="rb-page-title">${cat.label}</div></div>${left.map(recordEntryHTML).join('')}</section><section class="rb-page ${right.length===1?'rb-page-feature':''}"><div class="rb-page-head rb-page-head-quiet" aria-hidden="true"></div>${right.map(recordEntryHTML).join('')}</section>`;
+  cards.push({section,html:wireCard({kicker:'Vegas Draft Grades',tag:vg.updated?`Vegas · ${esc(vg.updated.split(' ')[0])}`:'Vegas',cls:'is-green',body:`<div class="wc-copy">Best draft: <b>${esc(best.manager)}</b>, ${fmt(best.startPts)} projected starter pts${best.top?` · top player <b>${esc(best.top.player.name)}</b> (${fmt(best.top.vegas.points)})`:''}</div><div class="wc-copy" style="margin-top:6px">Gap first to last: <b>${fmt(best.startPts-worst.startPts)}</b> pts · Starting lineups scored with Vegas season projections in league scoring (QB/RB/WR/TE; K and D/ST excluded)</div><ul class="wc-list">${vg.ranked.map(t=>{const espn=Number(t.team?.draftDayProjectedRank)||0;return `<li class="${t.rank===1?'is-hot':''}"><span class="num">${t.rank}</span><span class="who">${wireMiniMgr(t.manager)}<small>${espn?`ESPN #${espn} · `:''}bench ${fmt(t.benchPts)}${t.top?` · ${esc(t.top.player.name)}`:''}</small></span><span class="val ${t.rank===1?'up':t.rank===vg.ranked.length?'down':''}">${fmt(t.startPts)}</span></li>`}).join('')}</ul>`})});
+  cards.push({section,html:wireCard({kicker:'Draft Recap',tag:dateText,cls:'is-lead',body:`<div class="wc-title">The ${HJ_LEAGUE_SEASON} Draft is in the books.</div><div class="wc-copy"><b>${teamCount}</b> teams · <b>${rounds}</b> rounds · <b>${rows.length}</b> picks · ${esc(dateText)}</div><div class="wc-draft-bookends">${wireDraftBookendHTML(first,'1.01 · First overall')}<span class="wc-draft-vs">Bookends</span>${wireDraftBookendHTML(last,`Pick ${last.overall} · Mr. Irrelevant`,true)}</div><div class="wc-copy">Round 1: <b>${esc(r1summary)}</b></div><div class="wc-copy" style="margin-top:6px">${firstD?`First D/ST: pick <b>${firstD.overall}</b>`:''}${firstD&&firstK?' · ':''}${firstK?`First K: pick <b>${firstK.overall}</b>`:''}</div><div class="wc-lead-stats"><div><strong>${rows.length}</strong><span>Picks</span></div><div><strong>${autos.length}</strong><span>Autopicks</span></div><div><strong>${kCount}</strong><span>Kickers</span></div></div>`})});
+  cards.push({section,html:wireCard({kicker:'1.01 · First Overall',tag:'Pick 1',body:`${wirePlayerHTML(first.player,first.player.adp?`ADP ${first.player.adp.toFixed(1)}`:'')}<div class="wc-copy" style="margin-top:10px"><b>${esc(first.manager)}</b> opened the draft with <b>${esc(first.player.name)}</b>${first.player.adp?` · ADP <b>${first.player.adp.toFixed(1)}</b>`:''}${first.player.rank?` · ESPN PPR rank <b>#${first.player.rank}</b>`:''}</div>${second&&third?`<div class="wc-copy" style="margin-top:8px">1.02: <b>${esc(second.player.name)}</b> to ${esc(second.manager)}<br>1.03: <b>${esc(third.player.name)}</b> to ${esc(third.manager)}</div>`:''}<div class="wc-spacer"></div>${wireMgrHTML(first.manager)}`})});
+  cards.push({section,html:wireCard({kicker:'Mr. Irrelevant',tag:`Pick ${last.overall}`,body:`${wirePlayerHTML(last.player,`Round ${last.round}, pick ${last.slot}`)}<div class="wc-copy" style="margin-top:10px">Pick <b>${last.overall}</b> of ${rows.length}${last.player.adp?` · ADP <b>${last.player.adp.toFixed(1)}</b> (${Math.abs(last.value).toFixed(0)} picks ${last.value>=0?'later':'earlier'})`:''}</div><div class="wc-copy" style="margin-top:8px">Round ${rounds}: <b>${esc(Object.entries(lastPos).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${v} ${k}`).join(' · '))}</b></div><div class="wc-spacer"></div>${wireMgrHTML(last.manager)}`})});
+    cards.push({section,html:wireCard({kicker:'Steal of the Draft',tag:`+${steal.value.toFixed(0)} vs ADP`,cls:'is-green',body:`${wirePlayerHTML(steal.player,`Pick ${steal.overall} · ADP ${steal.player.adp.toFixed(1)}`)}<div class="wc-copy" style="margin-top:10px"><b>${esc(steal.manager)}</b> took <b>${esc(steal.player.name)}</b> at pick ${steal.overall} (round ${steal.round}), <b>${steal.value.toFixed(0)} picks</b> after his ADP of ${steal.player.adp.toFixed(1)}.${steal.player.rank?` ESPN PPR rank <b>#${steal.player.rank}</b>.`:''}</div><div class="wc-copy" style="margin-top:8px"><b>Next-best values</b></div>${valueList(steals.slice(1,4),'up')}<div class="wc-spacer"></div>${wireMgrHTML(steal.manager)}`})});
+    cards.push({section,html:wireCard({kicker:'Biggest Reach',tag:`${reach.value.toFixed(0)} vs ADP`,cls:'is-red',body:`${wirePlayerHTML(reach.player,`Pick ${reach.overall} · ADP ${reach.player.adp.toFixed(1)}`)}<div class="wc-copy" style="margin-top:10px"><b>${esc(reach.manager)}</b> took <b>${esc(reach.player.name)}</b> at pick ${reach.overall} (round ${reach.round}), <b>${Math.abs(reach.value).toFixed(0)} picks</b> before his ADP of ${reach.player.adp.toFixed(1)}.${reach.player.rank?` ESPN PPR rank <b>#${reach.player.rank}</b>.`:''}</div><div class="wc-copy" style="margin-top:8px"><b>Other reaches</b></div>${valueList(reaches.slice(1,4),'down')}<div class="wc-spacer"></div>${wireMgrHTML(reach.manager)}`})});
+    cards.push({section,html:wireCard({kicker:'First Kicker & Defense',tag:`${rounds} rounds`,body:`<ul class="wc-list">${firstD?`<li><span class="num">${firstD.round}.${pad(firstD.slot)}</span><span class="who">${wireRowPlayerHTML(firstD.player,`first D/ST · ${firstD.manager}`)}</span><span class="val">Pk ${firstD.overall}</span></li>`:''}${firstK?`<li><span class="num">${firstK.round}.${pad(firstK.slot)}</span><span class="who">${wireRowPlayerHTML(firstK.player,`first kicker · ${firstK.manager}`)}</span><span class="val">Pk ${firstK.overall}</span></li>`:''}</ul><div class="wc-copy" style="margin-top:10px"><b>${kCount}</b> kickers · <b>${dCount}</b> defenses drafted</div>${noK.length?`<div class="wc-copy" style="margin-top:6px">No kicker drafted: <b>${esc(noK.join(', '))}</b></div>`:''}${noD.length?`<div class="wc-copy" style="margin-top:6px">No D/ST drafted: <b>${esc(noD.join(', '))}</b></div>`:''}`})});
+  cards.push({section,html:wireCard({kicker:'Autopicks',tag:`${autos.length} of ${rows.length}`,cls:autos.length?'is-red':'is-green',body:autos.length?`<div class="wc-copy"><b>${autos.length}</b> of ${rows.length} picks made by ESPN autodraft · <b>${autoRank.length}</b> manager${autoRank.length===1?'':'s'}</div><div class="wc-copy" style="margin-top:6px">First autopick: <b>${esc(autos[0].player.name)}</b>, pick ${autos[0].overall} (${esc(autos[0].manager)})</div><ul class="wc-list">${autoRank.map(([m,n])=>`<li><span class="who">${wireMiniMgr(m)}<small>${esc(autos.filter(r=>r.manager===m).map(r=>r.player.name).slice(0,3).join(', '))}${autos.filter(r=>r.manager===m).length>3?'…':''}</small></span><span class="val down">${n} auto</span></li>`).join('')}</ul>`:`<div class="wc-title">0 autopicks</div><div class="wc-copy">All <b>${rows.length}</b> picks made manually.</div>`})});
+  hauls.forEach(([team,list])=>{const manager=wireManager(team,data),best=list.filter(r=>r.value!=null&&r.round>1).sort((a,b)=>b.value-a.value)[0],worst=list.filter(r=>r.value!=null&&r.round>1).sort((a,b)=>a.value-b.value)[0],firstPick=list[0],rank=Number(team?.draftDayProjectedRank)||0,myAutos=list.filter(r=>r.auto).length;cards.push({section:'hauls',html:wireCard({kicker:`${manager}'s Draft`,tag:`Slot ${firstPick.slot}${rank?` · ESPN #${rank}`:''}`,body:`<div class="wc-copy">${Object.entries(posCount(list)).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<b>${v}</b> ${esc(k)}`).join(' · ')}</div><div class="wc-copy" style="margin-top:6px">${best&&best.value>=3?`Best value: <b>${esc(best.player.name)}</b> (+${best.value.toFixed(0)})`:''}${best&&best.value>=3&&worst&&worst.value<=-3?' · ':''}${worst&&worst.value<=-3?`Biggest reach: <b>${esc(worst.player.name)}</b> (${worst.value.toFixed(0)})`:''}</div><div class="wc-copy" style="margin-top:6px">${rank?`ESPN projected finish: <b>${rank}${rank===1?'st':rank===2?'nd':rank===3?'rd':'th'}</b>`:''}${(()=>{const g=vg?.byTeam.get(team);return g?`${rank?' · ':''}Vegas: <b>#${g.rank}</b>, ${Math.round(g.startPts).toLocaleString()} starter pts`:''})()}${myAutos?` · <b>${myAutos}</b> autopick${myAutos===1?'':'s'}`:''}</div><ul class="wc-list">${list.ma
+  cards.push({section,html:wireCard({kicker:`Week ${week} Recap`,tag:'Final',cls:'is-lead',body:`<div class="wc-title">Week ${week} is final.</div><div class="wc-copy">High: <b>${esc(high.name)}</b>, ${high.score.toFixed(2)} · Low: <b>${esc(low.name)}</b>, ${low.score.toFixed(2)}</div><div class="wc-copy" style="margin-top:6px"><b>${under10}</b> of ${results.length} games decided by under 10</div><div class="wc-copy" style="margin-top:6px">Closest: <b>${esc(close.winner.name)}</b> over ${esc(close.loser.name)} by ${close.margin.toFixed(2)} · Largest: <b>${esc(blow.winner.name)}</b> over ${esc(blow.loser.name)} by ${blow.margin.toFixed(2)}</div><div class="wc-lead-stats"><div><strong>${high.score.toFixed(0)}</strong><span>High</span></div><div><strong>${avg.toFixed(0)}</strong><span>Avg</span></div><div><strong>${low.score.toFixed(0)}</strong><span>Low</span></div></div>`})});
+  cards.push({section,html:wireCard({kicker:'High Score',tag:`Week ${week}`,cls:'is-green',body:`<div class="wc-title is-big">${high.score.toFixed(2)}<span class="unit">pts</span></div><div class="wc-copy"><b>+${(high.score-avg).toFixed(1)}</b> vs league avg${high.proj?` · proj ${high.proj.toFixed(1)} (<b>${high.score>=high.proj?'+':'−'}${Math.abs(high.score-high.proj).toFixed(1)}</b>)`:''}</div><div class="wc-copy" style="margin-top:8px"><b>Top starters</b></div>${wireStarterList(wireTopStarters(box,high.teamId),'up')}<div class="wc-spacer"></div>${wireMgrHTML(high.name)}`})});
+  cards.push({section,html:wireCard({kicker:'Low Score',tag:`Week ${week}`,cls:'is-red',body:`<div class="wc-title is-big">${low.score.toFixed(2)}<span class="unit">pts</span></div><div class="wc-copy"><b>−${(avg-low.score).toFixed(1)}</b> vs league avg${low.proj?` · proj ${low.proj.toFixed(1)} (<b>${low.score>=low.proj?'+':'−'}${Math.abs(low.score-low.proj).toFixed(1)}</b>)`:''}</div><div class="wc-copy" style="margin-top:8px"><b>Top starters</b></div>${wireStarterList(wireTopStarters(box,low.teamId),'down')}<div class="wc-spacer"></div>${wireMgrHTML(low.name)}`})});
+  cards.push({section,html:wireCard({kicker:'Closest Finish',tag:`${close.margin.toFixed(2)} pts`,body:`${wireVsHTML(close)}<div class="wc-copy" style="margin-top:10px"><b>${esc(close.winner.name)}</b> beat ${esc(close.loser.name)} by <b>${close.margin.toFixed(2)}</b>${close.winner.proj&&close.loser.proj?` · projected ${esc(close.winner.name)} ${close.winner.proj.toFixed(1)}, ${esc(close.loser.name)} ${close.loser.proj.toFixed(1)}`:''}</div>${boxReady?`<div class="wc-copy" style="margin-top:8px"><b>Top scorers</b></div>${wireStarterList([...wireTopStarters(box,close.winner.teamId,2).map(p=>({...p,team:close.winner.name})),...wireTopStarters(box,close.loser.teamId,2).map(p=>({...p,team:close.loser.name}))],'')}`:''}`})});
+  cards.push({section,html:wireCard({kicker:'Biggest Blowout',tag:`by ${blow.margin.toFixed(1)}`,body:`${wireVsHTML(blow)}<div class="wc-bar"><span style="width:${(blow.winner.score/(blow.winner.score+blow.loser.score)*100).toFixed(1)}%;background:var(--win-green)"></span><span style="flex:1;background:var(--verdict-red);opacity:.5"></span></div><div class="wc-copy" style="margin-top:10px"><b>${esc(blow.winner.name)}</b> beat ${esc(blow.loser.name)} by <b>${blow.margin.toFixed(2)}</b>${blow.winner.proj&&blow.loser.proj?` · projected margin ${Math.abs(blow.winner.proj-blow.loser.proj).toFixed(1)}`:''}</div>${boxReady?`<div class="wc-copy" style="margin-top:8px"><b>Top scorers</b></div>${wireStarterList([...wireTopStarters(box,blow.winner.teamId,2).map(p=>({...p,team:blow.winner.name})),...wireTopStarters(box,blow.loser.teamId,2).map(p=>({...p,team:blow.loser.name}))],'')}`:''}`})});
+  if(upset)cards.push({section,html:wireCard({kicker:'Upset of the Week',tag:`${(upset.loser.proj-upset.winner.proj).toFixed(1)} pt swing`,body:`${wireVsHTML(upset)}<div class="wc-copy" style="margin-top:10px"><b>${esc(upset.winner.name)}</b> was projected to lose by <b>${(upset.loser.proj-upset.winner.proj).toFixed(1)}</b> and won by <b>${upset.margin.toFixed(2)}</b></div><div class="wc-copy" style="margin-top:6px">${esc(upset.winner.name)}: <b>${upset.winner.score>=upset.winner.proj?'+':'−'}${Math.abs(upset.winner.score-upset.winner.proj).toFixed(1)}</b> vs proj · ${esc(upset.loser.name)}: <b>${upset.loser.score>=upset.loser.proj?'+':'−'}${Math.abs(upset.loser.score-upset.loser.proj).toFixed(1)}</b> vs proj</div>${boxReady?`<div class="wc-copy" style="margin-top:8px"><b>Top scorers</b></div>${wireStarterList([...wireTopStarters(box,upset.winner.teamId,2).map(p=>({...p,team:upset.winner.name})),...wireTopStarters(box,upset.loser.teamId,2).map(p=>({...p,team:upset.loser.name}))],'')}`:''}`})});
+  if(topPlayer)cards.push({section,html:wireCard({kicker:'Player of the Week',tag:`${topPlayer.points.toFixed(1)} pts`,cls:'is-green',body:`${wirePlayerHTML(topPlayer,`${topPlayer.points.toFixed(2)} pts · started`)}<div class="wc-copy" style="margin-top:10px">Started by <b>${esc(mgrOf(topPlayer.teamId))}</b> · top total by any starter this week</div><div class="wc-copy" style="margin-top:8px"><b>Next best</b></div>${wireStarterList(topStarters.slice(1,4).map(p=>({...p,team:mgrOf(p.teamId)})),'up')}<div class="wc-spacer"></div>${wireMgrHTML(mgrOf(topPlayer.teamId))}`})});
+  if(benchBomb&&benchBomb.points>=10)cards.push({section,html:wireCard({kicker:'Top Bench Score',tag:`${benchBomb.points.toFixed(1)} benched`,cls:'is-red',body:`${wirePlayerHTML(benchBomb,`${benchBomb.points.toFixed(2)} pts · benched`)}<div class="wc-copy" style="margin-top:10px">Benched by <b>${esc(mgrOf(benchBomb.teamId))}</b> · highest total by any benched player this week</div><div class="wc-copy" style="margin-top:8px"><b>Other bench scores</b></div>${wireStarterList(topBench.slice(1,4).map(p=>({...p,team:mgrOf(p.teamId)})),'')}<div class="wc-spacer"></div>${wireMgrHTML(mgrOf(benchBomb.teamId))}`})});
+  if(dud)cards.push({section,html:wireCard({kicker:'Lowest Starter',tag:`${dud.points.toFixed(1)} pts`,cls:'is-red',body:`${wirePlayerHTML(dud,`${dud.points.toFixed(2)} pts · started`)}<div class="wc-copy" style="margin-top:10px">Started by <b>${esc(mgrOf(dud.teamId))}</b> · lowest QB/RB/WR/TE starter this week</div><div class="wc-copy" style="margin-top:8px"><b>Next lowest</b></div>${wireStarterList(lowStarters.slice(1,4).map(p=>({...p,team:mgrOf(p.teamId)})),'down')}<div class="wc-spacer"></div>${wireMgrHTML(mgrOf(dud.teamId))}`})});
+  if(hot||cold)cards.push({section,html:wireCard({kicker:'Streaks',tag:`Through Week ${week}`,body:`${hot?`<div class="wc-copy"><b>${hot.streak}-game win streak</b> · ${hot.w}-${hot.l} · ${hot.pf.toFixed(1)} pf</div>${wireMgrHTML(hot.name)}`:''}${cold?`<div class="wc-copy" style="margin-top:14px"><b>${cold.streak}-game losing streak</b> · ${cold.w}-${cold.l} · ${cold.pf.toFixed(1)} pf</div>${wireMgrHTML(cold.name)}`:''}<ul class="wc-list" style="margin-top:14px">${standings.filter(s=>s.streak>=2).sort((a,b)=>b.streak-a.streak).map(s=>`<li><span class="who">${wireMiniMgr(s.name)}</span><span class="val ${/WIN/i.test(s.streakType)?'up':'down'}">${/WIN/i.test(s.streakType)?'W':'L'}${s.streak}</span></li>`).join('')}</ul>`})});
+  results.forEach(r=>{const leader=r.home.score>=r.away.score?r.home:r.away,trailer=leader===r.home?r.away:r.home,gap=Math.abs(r.home.score-r.away.score);cards.push({section,html:wireCard({kicker:'Live Matchup',tag:r.played?`${gap.toFixed(1)} pt gap`:'Pregame',body:`${wireVsHTML(r,false)}<div class="wc-bar"><span style="width:${r.home.score+r.away.score?(r.home.score/(r.home.score+r.away.score)*100).toFixed(1):50}%;background:var(--navy)"></span><span style="flex:1;background:var(--brass);opacity:.6"></span></div><div class="wc-copy" style="margin-top:10px">${r.played?(gap?`<b>${esc(leader.name)}</b> leads by <b>${gap.toFixed(2)}</b>`:`Tied at ${r.home.score.toFixed(2)}`):'No points yet'}</div>${boxReady?`<div class="wc-copy" style="margin-top:8px"><b>Top scorers</b></div>${wireStarterList([...wireTopStarters(box,r.home.teamId,2).map(p=>({...p,team:r.home.name})),...wireTopStarters(box,r.away.teamId,2).map(p=>({...p,team:r.away.name}))],'')}`:''}`})})});
+  if(topPlayer&&topPlayer.points>0)cards.push({section,html:wireCard({kicker:'Top Performer So Far',tag:`${topPlayer.points.toFixed(1)} pts`,cls:'is-green',body:`${wirePlayerHTML(topPlayer,`${topPlayer.points.toFixed(2)} pts`)}<div class="wc-copy" style="margin-top:10px">Started by <b>${esc(mgrOf(topPlayer.teamId))}</b></div><div class="wc-copy" style="margin-top:8px"><b>Next best</b></div>${wireStarterList(topStarters.slice(1,4).map(p=>({...p,team:mgrOf(p.teamId)})),'up')}<div class="wc-spacer"></div>${wireMgrHTML(mgrOf(topPlayer.teamId))}`})});
+ return `<div class="hj-kickoff-rosters" aria-label="League players in this game">${['away','home'].map((side,i)=>`<section><h4>${esc(game[i?'b':'a'][0])} · League players</h4><div class="hj-kickoff-people">${groups[side].map(wireKickoffLeaguePlayerHTML).join('')||'<span class="hj-kickoff-empty">No rostered players</span>'}</div></section>`).join('')}</div>`;
+  cards.push({section:'draft',html:wireCard({kicker:'Draft Details',tag:'Online',body:`<div class="wc-copy" style="margin-top:6px"><b>Format:</b> online snake draft, ESPN</div><div class="wc-copy" style="margin-top:6px"><b>Order:</b> randomized by ESPN one hour before</div><div class="wc-copy" style="margin-top:6px"><b>Time:</b> ${esc(DATA.draft.display)}</div><div class="wc-spacer"></div><a class="wc-mgr" href="https://fantasy.espn.com/football/editdraftstrategy?leagueId=${ESPN_FANTASY_LEAGUE_ID}" target="_blank" rel="noopener" style="text-decoration:none"><span>Edit draft strategy →</span></a>`})});
+  return `<section class="hq-matchup${focused?' is-focused':''}${open?' is-open':''}" data-hq-matchup data-hq-matchup-key="${esc(matchupKey)}" data-hq-team-a="${esc(teamA.id)}" data-hq-team-b="${esc(teamB.id)}"><div class="hq-matchup-head"><div class="hq-matchup-head-copy"><h4>Week ${week} matchup</h4><span class="hq-matchup-head-meta">${usePlaceholder?'2025 averages':live?'Live score':'Projected'}</span></div>${!usePlaceholder?`<button type="button" class="hq-matchup-toggle" data-hq-matchup-toggle="${esc(matchupKey)}" aria-expanded="${open}">${open?'Hide lineups':'View lineups'} <span class="chev">⌄</span></button>`:''}</div><div class="hq-matchup-summary">${teamBlock(managerA,leftA,displayA,projectionA,vegasA?.vegas,false)}${teamBlock(managerB,leftB,displayB,projectionB,vegasB?.vegas,true)}</div><div class="hq-match-win"><div class="hq-match-win-inner"><div class="hq-match-win-bar" data-espn-live-a="${barProjectionA}" data-espn-live-b="${barProjectionB}" aria-label="${esc(managerA)} ${winChance===null?'—':winChance+'%'} win chance"><span style="width:${winChance??0}%"></span></div><div class="hq-match-win-labels"><span>${esc(managerA)} ${winChance===null?'—':winChance+'%'}</span><b>${past?'Final':winChance===null?'Unavailable':'Est. win chance'}</b><span>${winChance===null?'—':
+  if(trigger.matches('.ffn-player-name'))return trigger.closest('.ffn-player-copy')?.querySelector('.ffn-meta');
+  margin-top:5px!important;
+  margin-top:8px!important;
+  margin-top:5px!important;
+  margin-top:12px;
+  margin-top:4px;
+  .league-matchup-projections{font-size:9px!important;margin-top:7px!important}
+  .league-roster-optimizer{display:block;padding:10px;margin-top:10px}
+  .league-roster-modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:9px}
+.hq-power-summary-card b{display:block;margin-top:5px;color:var(--navy);font:900 15px/1.1 var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hq-power-summary-card small{display:block;margin-top:4px;color:#718092;font:750 8px/1.25 var(--mono)}
+.hq-power-manager-copy small{display:block;margin-top:4px;color:#718092;font:750 8px/1.2 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hq-power-score small{display:block;margin-top:5px;color:#8b651d;font:900 6.5px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase}
+.hq-power-stat b{display:block;margin-top:4px;color:var(--navy);font:900 14px/1 var(--serif);white-space:nowrap}
+.hq-power-stat small{display:block;margin-top:4px;color:#718092;font:700 7px/1.2 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hq-power-unit-meter{height:4px;margin-top:6px;border-radius:999px;background:#e4e8eb;overflow:hidden}
+.hq-power-component b{display:block;margin-top:5px;color:var(--navy);font:900 18px/1 var(--serif)}
+.hq-power-component small{display:block;margin-top:4px;color:#8995a2;font:700 7px/1.25 var(--mono)}
+.hq-power-driver-list{display:grid;gap:6px;margin-top:8px}
+.hq-power-driver small{display:block;margin-top:3px;color:#718092;font:700 7px/1.1 var(--mono)}
+.hq-compare-person small{display:block;margin-top:4px;color:#718092;font:750 8px/1.2 var(--mono)}
+.hq-compare-power{margin-top:10px;color:var(--navy);font:900 31px/.9 var(--serif)}
+.hq-compare-power small{display:block;margin-top:6px;color:#8b651d;font:900 7px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.hq-compare-units{margin-top:10px;display:grid;gap:5px}
+  .hq-power-score{grid-area:score}.hq-power-score strong{font-size:24px}.hq-power-score small{font-size:5.8px;margin-top:4px}
+  return `<section class="hq-module hq-strength-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength Dashboard</h3><span class="hq-module-note">Power · depth · lineup upside</span></div><div class="hq-strength-toolbar"><div class="hq-strength-view-tabs" aria-label="Roster strength view">${viewTabs}</div><div class="hq-strength-models" aria-label="Projection model">${modelTabs}</div></div><div class="hq-strength-method"><b>${esc(hjStrengthModelLabel(model))}:</b> ${esc(hjStrengthModelNote(model))} Power = 55% starters + 20% depth + 15% positional balance + 10% health.</div>${content}</section>`;
+.hj3-manager-copy{min-width:0}.hj3-manager-copy b{display:block;color:var(--navy);font:950 11px/1.15 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hj3-manager-copy small{display:block;margin-top:3px;color:#788796;font:800 7.4px/1.2 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hj3-power{text-align:center}.hj3-power strong{display:block;color:var(--navy);font:950 27px/.88 var(--serif)}.hj3-power small{display:block;margin-top:4px;color:#946e22;font:900 6px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.hj3-stat{min-width:0;padding-left:8px;border-left:1px solid rgba(20,50,79,.10)}.hj3-stat span{display:block;color:#8995a2;font:900 6px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase}.hj3-stat b{display:block;margin-top:3px;color:var(--navy);font:950 13px/1 var(--serif)}.hj3-stat small{display:block;margin-top:3px;color:#788796;font:800 6.6px/1.15 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hj3-unit-total{margin-top:3px;color:#617284;font:900 7px/1 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hj3-meter{height:4px;margin-top:6px;border-radius:999px;background:#e5e9eb;overflow:hidden}.hj3-meter i{display:block;height:100%;width:var(--fill);background:linear-gradient(90deg,var(--navy),var(--brass));border-radius:inherit}
+.hj3-unit-list{display:none;margin-top:7px;padding-top:6px;border-top:1px solid rgba(20,50,79,.08)}
+.hj3-cteam{display:flex;align-items:center;gap:7px;min-width:0}.hj3-cteam.right{justify-content:flex-end;text-align:right}.hj3-cteam>.av{width:34px;height:34px;flex:0 0 34px}.hj3-cteam-copy{min-width:0}.hj3-cteam-copy b{display:block;color:var(--navy);font:950 10px/1.1 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hj3-cteam-copy small{display:block;margin-top:3px;color:#7c8a98;font:800 7px/1.1 var(--mono)}
+.hj3-cgap{text-align:center}.hj3-cgap b{display:block;color:var(--navy);font:950 21px/.9 var(--serif)}.hj3-cgap small{display:block;margin-top:4px;color:#8b651d;font:900 5.8px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+function hj3UnitHTML(row,key,count,open=false){const rank=row.unitRanks[key]||count,fill=hj3UnitFill(row,key,count),allRanks=Object.values(row.unitRanks),best=rank===Math.min(...allRanks),weak=rank===Math.max(...allRanks),total=row.values[key]||0,list=open?`<div class="hj3-unit-list">${hj3UnitPlayers(row,key)}</div>`:'';return `<section class="hj3-unit${best?' is-best':''}${weak?' is-weak':''}"><div class="hj3-unit-head"><span>${esc(key)}</span><b>#${rank}</b></div><div class="hj3-unit-total">${pcFpts(total)} pts</div><div class="hj3-meter"><i style="--fill:${fill.toFixed(1)}%"></i></div>${list}</section>`}
+function hj3ComparePosRow(a,b,pos,count,open=false){const av=a.values[pos]||0,bv=b.values[pos]||0,af=hj3UnitFill(a,pos,count),bf=hj3UnitFill(b,pos,count),d=av-bv,delta=Math.abs(d)<.005?'Even':`${d>0?esc(a.manager):esc(b.manager)} +${pcFpts(Math.abs(d))}`,lists=open?`<div class="hj3-cpos-lists">${hj3CompareList(a,pos,false)}${hj3CompareList(b,pos,true)}</div>`:'';return `<section class="hj3-cpos"><div class="hj3-cpos-main"><span class="pos">${esc(pos)}</span><b class="rk">#${a.unitRanks[pos]}</b><div><div class="hj3-dualbar"><i class="a" style="--a:${(af/2).toFixed(1)}%"></i><i class="b" style="--b:${(bf/2).toFixed(1)}%"></i></div><div class="delta">${delta}</div></div><b class="rk r">#${b.unitRanks[pos]}</b><span class="pos" style="text-align:right">${esc(pos)}</span></div>${lists}</section>`}
+hjStrengthHTML=function(data){const model=HJ_STRENGTH_STATE.model,rows=hj3BuildModel(data,model),view=HJ_STRENGTH_STATE.view==='compare'?'compare':'dashboard',viewTabs=[['dashboard','Dashboard'],['compare','Compare']].map(([id,label])=>`<button type="button" class="hj3-tab hq-strength-view${view===id?' active':''}" data-hq-strength-view="${id}" aria-pressed="${view===id}">${label}</button>`).join(''),modelTabs=[['actual','Actual'],['espn','ESPN'],['vegas','Vegas'],['combo','Combo']].map(([id,label])=>`<button type="button" class="hj3-tab hq-strength-model${model===id?' active':''}" data-hq-strength-model="${id}" aria-pressed="${model===id}" title="${esc(hjStrengthModelNote(id))}">${label}</button>`).join(''),content=view==='compare'?hj3CompareHTML(data,rows):hj3DashboardHTML(data,rows);return `<section class="hq-module hj3-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3><span class="hq-module-note">Power · depth · lineup gap</span></div><div class="hj3-toolbar"><div class="hj3-tabs">${viewTabs}</div><div class="hj3-tabs">${modelTabs}</div>${hj3SourceStatus()}</div>${content}</section>`}
+hjRenderLeagueTools=function(data){const root=$('#league-hq-tools');if(!root)return;if(!data){root.innerHTML='';hjRenderHQTabs();return}const selectedWeek=HJ_HQ_STATE.matchupWeek||hjCurrentWeek(data),strength=HJ_HQ_STATE.activeTab==='strength'?hjStrengthHTML(data):'<section class="hq-module hj3-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3><span class="hq-module-note">Open tab to calculate</span></div></section>';root.innerHTML=`<div class="hq-tab-panel" id="hq-panel-matchups" data-hq-panel="matchups" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Matchup Center</h3><span class="hq-module-note" id="hq-matchup-note">${HJ_HQ_STATE.matchupView==='matrix'?'Weeks 1–14':`Week ${selectedWeek}`}</span></div><div class="hq-module-body" id="hq-matchup-content">${hjMatchupCenterPanelHTML(data)}</div></div></div><div class="hq-tab-panel" id="hq-panel-free-agents" data-hq-panel="free-agents" role="tabpanel"><div class="hq-module"><div class="hq-module-head"><h3 class="hq-module-title">Free Agents</h3><span class="hq-module-note" id="hq-fa-count">Open tab to load projections</span></div>${hjFreeAgentControlsHTML()}<div id="hq-fa-results"><div class="hq-empty">Free-agent projections load when this tab is opened
+hj3UnitHTML=function(row,key,count,open=false){const html=hjMathUnitHTMLBase(row,key,count,open),hint=key==='FLEX'?'Selected FLEX slot season total':`Selected ${key} starting-slot season total`;return html.replace('<section class="hj3-unit','<section title="'+esc(hint)+'" class="hj3-unit')};
+  if(!hjMathStrengthReady()){queueMicrotask(()=>hj3EnsureSources(data));return `<section class="hq-module hj3-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3><span class="hq-module-note">Checking projection math</span></div><div class="hq-empty">Loading verified season projections…</div></section>`}
+.hj3-card.is-open .hj3-unit-list{margin-top:5px;padding-top:4px;gap:1px}
+.hj4-depth-note{display:block;margin-top:2px;color:#87939f;font:800 5.8px/1.15 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hj4-compare-depth{display:block;color:#87939f;font:800 5.8px/1.15 var(--mono);margin-top:2px}
+  return `<section title="${esc(key==='FLEX'?'Selected FLEX slot season total':`Selected ${key} starting-slot season total`)}" class="hj3-unit${best?' is-best':''}${weak?' is-weak':''}"><div class="hj3-unit-head"><span>${esc(key)}</span><b>#${rank}</b></div><div class="hj3-unit-total">${pcFpts(total)} pts</div>${depthNote}<div class="hj3-meter"><i style="--fill:${fill.toFixed(1)}%"></i></div>${list}</section>`;
+function hj4ComparePosRow(a,b,pos,count,open=false){const av=a.values[pos]||0,bv=b.values[pos]||0,af=hj3UnitFill(a,pos,count),bf=hj3UnitFill(b,pos,count),d=av-bv,delta=Math.abs(d)<.005?'Even':`${d>0?esc(a.manager):esc(b.manager)} +${pcFpts(Math.abs(d))}`,lists=open?`<div class="hj3-cpos-lists">${hj4CompareList(a,pos,false)}${hj4CompareList(b,pos,true)}</div>`:'';return `<section class="hj3-cpos"><div class="hj3-cpos-main"><span class="pos">${esc(pos)}</span><b class="rk">#${a.unitRanks[pos]}</b><div><div class="hj3-dualbar"><i class="a" style="--a:${(af/2).toFixed(1)}%"></i><i class="b" style="--b:${(bf/2).toFixed(1)}%"></i></div><div class="delta">${delta}</div></div><b class="rk r">#${b.unitRanks[pos]}</b><span class="pos" style="text-align:right">${esc(pos)}</span></div>${lists}</section>`}
+  if(!(HJ_MATH_SEASON.ready&&HJ_PROJECTION_STATE.loaded&&['ready','fallback'].includes(HJ3_REPLACEMENT.status))){return `<section class="hq-module hj3-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3><span class="hq-module-note">Loading season values</span></div><div class="hq-empty">Loading roster values…</div></section>`}
+  return `<section class="hq-module hj3-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3><span class="hq-module-note">Season roster value</span></div><div class="hj3-toolbar"><div class="hj3-tabs">${viewTabs}</div><div class="hj3-tabs">${modelTabs}</div>${hj3SourceStatus()}</div>${content}</section>`;
+.hj5-repl{font-size:6px;color:var(--muted);font-weight:700;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hj5-unit-flex-note{font-size:6px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+  return `<section class="hj3-unit${best?' is-best':''}${weak?' is-weak':''}"><div class="hj3-unit-head"><span>${esc(key)}</span><b>#${rank||'—'}</b></div><div class="hj3-unit-total">${key==='FLEX'&&Number.isFinite(projection)?`${pcFpts(projection)} pts · `:''}+${pcFpts(value)} value</div><div class="hj3-meter"><i style="--fill:${fill.toFixed(1)}%"></i></div>${note}${list}</section>`;
+function hj5ComparePosRow(a,b,pos,count,open=false){const av=pos==='FLEX'?a.flexValue:a.positionValues[pos],bv=pos==='FLEX'?b.flexValue:b.positionValues[pos],ar=pos==='FLEX'?a.flexRank:a.positionRanks[pos],br=pos==='FLEX'?b.flexRank:b.positionRanks[pos],max=Math.max(av||0,bv||0,1),af=Math.max(4,Math.min(100,100*(av||0)/max)),bf=Math.max(4,Math.min(100,100*(bv||0)/max)),d=av-bv,delta=Math.abs(d)<.005?'Even':`${d>0?esc(a.manager):esc(b.manager)} +${pcFpts(Math.abs(d))}`,lists=open?`<div class="hj3-cpos-lists">${hj5CompareList(a,pos,false)}${hj5CompareList(b,pos,true)}</div>`:'';return `<section class="hj3-cpos"><div class="hj3-cpos-main"><span class="pos">${esc(pos)}</span><b class="rk">#${ar}</b><div><div class="hj3-dualbar"><i class="a" style="--a:${(af/2).toFixed(1)}%"></i><i class="b" style="--b:${(bf/2).toFixed(1)}%"></i></div><div class="delta">${delta} value</div></div><b class="rk r">#${br}</b><span class="pos" style="text-align:right">${esc(pos)}</span></div>${lists}</section>`}
+  HJ_STRENGTH_STATE.model=hj5Model(HJ_STRENGTH_STATE.model);if(!hj5Ready()){queueMicrotask(()=>hj5EnsureSources(data));return `<section class="hq-module hj3-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3><span class="hq-module-note">Loading roster values</span></div><div class="hq-empty">Loading season projections and live replacement values…</div></section>`}
+  const model=HJ_STRENGTH_STATE.model,rows=hj5BuildModel(data,model),view=HJ_STRENGTH_STATE.view==='compare'?'compare':'dashboard',viewTabs=[['dashboard','Dashboard'],['compare','Compare']].map(([id,label])=>`<button type="button" class="hj3-tab hq-strength-view${view===id?' active':''}" data-hq-strength-view="${id}" aria-pressed="${view===id}">${label}</button>`).join(''),modelTabs=[['espn','ESPN'],['vegas','Vegas'],['combo','Combo']].map(([id,label])=>`<button type="button" class="hj3-tab hq-strength-model${model===id?' active':''}" data-hq-strength-model="${id}" aria-pressed="${model===id}" title="${esc(hjStrengthModelNote(id))}">${label}</button>`).join(''),content=view==='compare'?hj5CompareHTML(data,rows):hj5DashboardHTML(data,rows);return `<section class="hq-module hj3-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3><span class="hq-module-note">VORP-based roster value</span></div><div class="hj3-toolbar"><div class="hj3-tabs">${viewTabs}</div><div class="hj3-tabs">${modelTabs}</div>${hj5SourceStatus()}</div>${content}</section>`
+.hj6-overall small{display:block;font-size:6.5px;color:var(--muted);font-weight:750;margin-top:1px}
+.hj6-player-list{display:grid;gap:0;margin-top:5px;padding-top:4px;border-top:1px solid var(--line)}
+.hj6-cteam span{min-width:0}.hj6-cteam b{display:block;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hj6-cteam small{display:block;font-size:6px;color:var(--muted);font-weight:750;margin-top:1px}
+.hj6-cmid{text-align:center;white-space:nowrap}.hj6-cmid b{display:block;font-size:8px}.hj6-cmid small{display:block;font-size:5.4px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
+.hj6-cplayers{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 9px 7px}.hj6-cplayers>div{min-width:0}.hj6-cplayers .hj6-player-list{margin-top:0;padding-top:4px}.hj6-cplayers .side-title{display:block;font-size:5.5px;color:var(--muted);font-weight:900;text-transform:uppercase;letter-spacing:.06em;margin:2px 0}
+function hj6UnitHTML(row,key,count,open=false){const rank=row.unitRanks[key]||count,total=Number(row.values[key])||0,entries=hj6UnitEntries(row,key),list=open?`<div class="hj6-player-list">${entries.length?entries.map(e=>hj6PlayerRow(e,row)).join(''):'<div class="hj6-empty">None</div>'}</div>`:'';return `<section class="hj6-unit"><div class="hj6-unit-head"><span>${esc(key)}</span><b>#${rank}</b><small>${pcFpts(total)}</small></div>${list}</section>`}
+function hj6CompareRow(a,b,key,open=false){const av=key==='Overall'?a.overall:a.values[key],bv=key==='Overall'?b.overall:b.values[key],ar=key==='Overall'?a.overallRank:a.unitRanks[key],br=key==='Overall'?b.overallRank:b.unitRanks[key],w=hj6BarWidths(av,bv),players=open&&key!=='Overall'?`<div class="hj6-cplayers">${hj6CompareList(a,key)}${hj6CompareList(b,key,true)}</div>`:'';return `<section class="hj6-crow"><div class="hj6-cmain"><span class="hj6-clabel">${esc(key)}</span><span class="hj6-cvalue">#${ar} · ${pcFpts(av)}</span><div class="hj6-dual"><i class="a" style="--a:${w.a.toFixed(1)}%"></i><i class="b" style="--b:${w.b.toFixed(1)}%"></i></div><span class="hj6-cvalue right">#${br} · ${pcFpts(bv)}</span></div>${players}</section>`}
+hjStrengthHTML=function(data){if(!hj6Ready(data)){queueMicrotask(()=>hj6EnsureSources(data));return `<section class="hq-module hj6-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3></div>${hj6Toolbar(data)}<div class="hq-empty">Loading projections…</div></section>`}const rows=hj6BuildRows(data,HJ_STRENGTH_STATE.model),view=HJ_STRENGTH_STATE.view==='compare'?'compare':'dashboard',content=view==='compare'?hj6CompareHTML(data,rows):hj6DashboardHTML(data,rows),fallback=HJ_STRENGTH_STATE.model!=='espn'?'<div class="hj6-foot">Vegas uses ESPN where a Vegas projection is unavailable, including K and D/ST. Combo averages ESPN + Vegas when both exist.</div>':'';return `<section class="hq-module hj6-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3></div>${hj6Toolbar(data)}${content}${fallback}</section>`};
+.hj7-overall small{display:block;margin-top:2px;color:#7a8997;font:800 5.8px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.hj7-cteam span{min-width:0}.hj7-cteam b{display:block;color:var(--navy);font:900 9px/1.05 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hj7-cteam small{display:block;margin-top:2px;color:#7a8997;font:750 6.2px/1 var(--mono)}
+.hj7-cmid{text-align:center;white-space:nowrap}.hj7-cmid b{display:block;color:var(--navy);font:950 9px/1 var(--mono)}.hj7-cmid small{display:block;margin-top:2px;color:#7a8997;font:800 5.3px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+function hj7UnitHTML(row,key,open=false){const rank=row.unitRanks[key]||1,total=Number(row.values[key])||0,entries=hj7UnitEntries(row,key),list=open?`<div class="hj7-player-list">${entries.length?entries.map(e=>hj7PlayerRow(e,row)).join(''):'<div class="hj7-empty">None</div>'}</div>`:'';return `<section class="hj7-unit"><div class="hj7-unit-head"><span class="pos">${esc(key)}</span><span class="rk">#${rank}</span><span class="pts">${pcFpts(total)}</span></div>${list}</section>`}
+function hj7CompareRow(a,b,key,open=false){const av=key==='Overall'?a.overall:a.values[key],bv=key==='Overall'?b.overall:b.values[key],ar=key==='Overall'?a.overallRank:a.unitRanks[key],br=key==='Overall'?b.overallRank:b.unitRanks[key],w=hj7BarWidths(av,bv),players=open&&key!=='Overall'?`<div class="hj7-cplayers">${hj7CompareList(a,key)}${hj7CompareList(b,key)}</div>`:'';return `<section class="hj7-crow"><div class="hj7-cmain"><span class="hj7-clabel">${esc(key)}</span><span class="hj7-cvalue">#${ar} · ${pcFpts(av)}</span><div class="hj7-dual"><i class="a" style="--a:${w.a.toFixed(1)}%"></i><i class="b" style="--b:${w.b.toFixed(1)}%"></i></div><span class="hj7-cvalue right">#${br} · ${pcFpts(bv)}</span></div>${players}</section>`}
+hjStrengthHTML=function(data){if(!hj6Ready(data)){queueMicrotask(()=>hj6EnsureSources(data));return `<section class="hq-module hj7-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3></div>${hj7Toolbar(data)}<div class="hq-empty">Loading projections…</div></section>`}const rows=hj6BuildRows(data,HJ_STRENGTH_STATE.model),view=HJ_STRENGTH_STATE.view==='compare'?'compare':'dashboard',content=view==='compare'?hj7CompareHTML(data,rows):hj7DashboardHTML(data,rows);return `<section class="hq-module hj7-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3></div>${hj7Toolbar(data)}${content}</section>`};
+.hj8-overall small{display:block;margin-top:2px;color:#7a8997;font:800 5.8px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.hj8-unit-points{margin-top:3px;color:#617284;font:850 6.8px/1 var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.hj8-meter{height:4px;margin-top:6px;border-radius:999px;background:#e5e9eb;overflow:hidden}
+.hj8-player-list{display:grid;gap:0;margin-top:6px;padding-top:4px;border-top:1px solid rgba(20,50,79,.09)}
+.hj8-cteam span{min-width:0}.hj8-cteam b{display:block;color:var(--navy);font:900 9px/1.05 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hj8-cteam small{display:block;margin-top:2px;color:#7a8997;font:750 6.2px/1 var(--mono)}
+.hj8-cmid{text-align:center;white-space:nowrap}.hj8-cmid b{display:block;color:var(--navy);font:950 9px/1 var(--mono)}.hj8-cmid small{display:block;margin-top:2px;color:#7a8997;font:800 5.3px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+function hj8UnitHTML(row,key,count,open=false){const rank=row.unitRanks[key]||count,total=Number(row.values[key])||0,entries=hj8UnitEntries(row,key),allRanks=Object.values(row.unitRanks||{}).filter(Number.isFinite),best=allRanks.length&&rank===Math.min(...allRanks),weak=allRanks.length&&rank===Math.max(...allRanks),fill=hj8RankFill(rank,count),list=open?`<div class="hj8-player-list">${entries.length?entries.map(e=>hj8PlayerRow(e,row)).join(''):'<div class="hj8-empty">None</div>'}</div>`:'';return `<section class="hj8-unit${best?' is-best':''}${weak?' is-weak':''}"><div class="hj8-unit-top"><span class="pos">${esc(key)}</span><span class="rk">#${rank}</span></div><div class="hj8-unit-points">${pcFpts(total)} pts</div><div class="hj8-meter"><i style="--fill:${fill.toFixed(1)}%"></i></div>${list}</section>`}
+function hj8CompareRow(a,b,key,open=false){const av=key==='Overall'?a.overall:a.values[key],bv=key==='Overall'?b.overall:b.values[key],ar=key==='Overall'?a.overallRank:a.unitRanks[key],br=key==='Overall'?b.overallRank:b.unitRanks[key],w=hj8BarWidths(av,bv),players=open&&key!=='Overall'?`<div class="hj8-cplayers">${hj8CompareList(a,key)}${hj8CompareList(b,key)}</div>`:'';return `<section class="hj8-crow"><div class="hj8-cmain"><span class="hj8-clabel">${esc(key)}</span><span class="hj8-cvalue">#${ar} · ${pcFpts(av)}</span><div class="hj8-dual"><i class="a" style="--a:${w.a.toFixed(1)}%"></i><i class="b" style="--b:${w.b.toFixed(1)}%"></i></div><span class="hj8-cvalue right">#${br} · ${pcFpts(bv)}</span></div>${players}</section>`}
+hjStrengthHTML=function(data){if(!hj6Ready(data)){queueMicrotask(()=>hj6EnsureSources(data));return `<section class="hq-module hj8-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3></div>${hj8Toolbar(data)}<div class="hq-empty">Loading projections…</div></section>`}const rows=hj6BuildRows(data,HJ_STRENGTH_STATE.model),view=HJ_STRENGTH_STATE.view==='compare'?'compare':'dashboard',content=view==='compare'?hj8CompareHTML(data,rows):hj8DashboardHTML(data,rows);return `<section class="hq-module hj8-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3></div>${hj8Toolbar(data)}${content}</section>`};
+.hj8-meter{height:3px!important;margin-top:5px!important}
+.hj8-player-list{gap:0!important;margin-top:5px!important;padding-top:4px!important}
+  return `<section class="hj8-unit${best?' is-best':''}${weak?' is-weak':''}"><div class="hj9-unit-line"><span class="pos">${esc(key)}</span><span class="rk">#${rank}</span><span class="pts">${pcFpts(total)}</span></div><div class="hj8-meter"><i style="--fill:${fill.toFixed(1)}%"></i></div>${list}</section>`;
+#hq-panel-strength .hj8-meter{height:3px!important;margin-top:4px!important}
+#hq-panel-strength .hj8-player-list{gap:0!important;margin-top:4px!important;padding-top:3px!important}
+  return `<section class="hj8-unit${best?' is-best':''}${weak?' is-weak':''}"><div class="hj10-unit-line"><span class="pos">${esc(key)}</span><span class="pts">${pcFpts(total)}</span><span class="rk">#${rank}</span></div><div class="hj8-meter"><i style="--fill:${fill.toFixed(1)}%"></i></div>${list}</section>`;
+#hq-panel-strength .hj11-cteam span{min-width:0}.hj11-cteam b{display:block;color:var(--navy);font:950 8px/1.05 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hj11-cteam small{display:block;margin-top:2px;color:#748496;font:800 5.8px/1 var(--mono)}
+#hq-panel-strength .hj11-cdelta{text-align:center;white-space:nowrap}.hj11-cdelta b{display:block;color:var(--navy);font:950 9px/1 var(--mono)}.hj11-cdelta small{display:block;margin-top:2px;color:#8a96a2;font:800 5px/1 var(--mono);text-transform:uppercase}
+ #hq-panel-strength .hj11-ribbon-cell b{display:block;margin-top:2px;color:#5b6e80;font:950 7.7px/1 var(--mono)}
+  return `<section class="hj11-pos-group"><div class="hj11-pos-head"><span>${esc(key)}</span><b>${pcFpts(total)} <em>· #${rank}</em></b></div><div class="hj11-players">${entries.length?entries.map(e=>hj11PlayerHTML(e,row,key)).join(''):'<div class="hj11-player">None</div>'}</div></section>`;
+function hj11MobileDashboard(rows){const count=rows.length||1;return `<div class="hj11-mobile"><div class="hj11-mobile-list">${rows.map(row=>{const id=String(row.team.id),open=HJ_STRENGTH_STATE.open.has(id),pod=row.overallRank<=3?' is-podium':'';return `<section class="hj11-mteam${pod}${open?' is-open':''}"><div class="hj11-mtop"><div class="hj11-mrank">${row.overallRank}</div><button class="hj11-mperson" type="button" data-hq-manager="${esc(id)}">${av(row.manager)}<b>${esc(row.manager)}</b></button><div class="hj11-moverall"><strong>${pcFpts(row.overall)}</strong><small>pts</small></div><button class="hj11-mexpand" type="button" data-hj11-expand="${esc(id)}" aria-expanded="${open}" aria-label="${open?'Collapse':'Expand'} ${esc(row.manager)}">⌄</button></div><div class="hj11-ribbon">${HJ6_KEYS.map(k=>hj11MobileRibbon(row,k,count)).join('')}</div>${open?hj11MobileExpanded(row):''}</section>`}).join('')}</div></div>`}
+  return `<section class="hj11-crow"><div class="hj11-crow-main"><span class="hj11-clabel">${esc(key)}</span><span class="hj11-cvalue">${pcFpts(av)} · #${ar}</span><div class="hj11-dual"><i class="a" style="--a:${w.a.toFixed(1)}%"></i><i class="b" style="--b:${w.b.toFixed(1)}%"></i></div><span class="hj11-cvalue right">${pcFpts(bv)} · #${br}</span></div>${players}</section>`;
+  if(!hj6Ready(data)){queueMicrotask(()=>hj6EnsureSources(data));return `<section class="hq-module hj11-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3></div>${hj11Toolbar(data)}<div class="hq-empty">Loading projections…</div></section>`}
+  const rows=hj6BuildRows(data,HJ_STRENGTH_STATE.model),view=HJ_STRENGTH_STATE.view==='compare'?'compare':'dashboard',content=view==='compare'?hj11CompareHTML(rows):hj11DashboardHTML(rows);return `<section class="hq-module hj11-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3></div>${hj11Toolbar(data)}${content}</section>`;
+#hq-panel-strength .hj12-cteam span{min-width:0}.hj12-cteam b{display:block;color:var(--navy);font:950 8px/1.05 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hj12-cteam small{display:block;margin-top:2px;color:#748496;font:800 5.6px/1 var(--mono)}
+#hq-panel-strength .hj12-cdelta{text-align:center;white-space:nowrap}.hj12-cdelta b{display:block;color:var(--navy);font:950 9.2px/1 var(--mono)}.hj12-cdelta small{display:block;margin-top:2px;color:#8a96a2;font:800 4.9px/1 var(--mono);text-transform:uppercase}
+function hj12GroupHTML(row,key){const rank=row.unitRanks[key]||1,total=Number(row.values[key])||0,entries=hj12PositionEntries(row,key);return `<section class="hj12-group-block"><div class="hj12-group-head"><span>${esc(key)}</span><b>${pcFpts(total)} <em>· #${rank}</em></b></div><div class="hj12-players">${entries.length?entries.map(e=>hj12PlayerHTML(e,row,key)).join(''):'<div class="hj12-player">None</div>'}</div></section>`}
+function hj12CompareRow(a,b,key,open=false){const avv=key==='Overall'?a.overall:a.values[key],bvv=key==='Overall'?b.overall:b.values[key],ar=key==='Overall'?a.overallRank:a.unitRanks[key],br=key==='Overall'?b.overallRank:b.unitRanks[key],w=hj12BarWidths(avv,bvv),players=open&&key!=='Overall'?hj12ComparePlayers(a,b,key):'';return `<section class="hj12-crow"><div class="hj12-crow-main"><span class="hj12-clabel">${esc(key)}</span><span class="hj12-cvalue">${pcFpts(avv)} · #${ar}</span><div class="hj12-dual"><i class="a" style="--a:${w.a.toFixed(1)}%"></i><i class="b" style="--b:${w.b.toFixed(1)}%"></i></div><span class="hj12-cvalue right">${pcFpts(bvv)} · #${br}</span></div>${players}</section>`}
+hjStrengthHTML=function(data){if(!hj6Ready(data)){queueMicrotask(()=>hj6EnsureSources(data));return `<section class="hq-module hj12-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3></div>${hj12Toolbar(data)}<div class="hq-empty">Loading projections…</div></section>`}const rows=hj6BuildRows(data,HJ_STRENGTH_STATE.model),view=HJ_STRENGTH_STATE.view==='compare'?'compare':'dashboard',content=view==='compare'?hj12CompareHTML(rows):hj12DashboardHTML(rows);return `<section class="hq-module hj12-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3></div>${hj12Toolbar(data)}${content}</section>`}
+#hq-panel-strength .hj13-cteam>.av{width:28px;height:28px;flex:0 0 28px}.hj13-cteam span{min-width:0}.hj13-cteam b{display:block;color:var(--navy);font:950 8.3px/1.05 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hj13-cteam small{display:block;margin-top:2px;color:#748496;font:800 5.8px/1 var(--mono)}
+#hq-panel-strength .hj13-cdelta{text-align:center;white-space:nowrap}.hj13-cdelta b{display:block;color:var(--navy);font:950 9px/1 var(--mono)}.hj13-cdelta small{display:block;margin-top:2px;color:#8a96a2;font:800 5px/1 var(--mono);text-transform:uppercase}
+function hj13Lane(row,key){const rank=row.unitRanks[key]||1,total=Number(row.values[key])||0,entries=hj13PositionEntries(row,key);return `<section class="hj13-lane"><div class="hj13-lane-head"><span>${esc(key)}</span><b>${pcFpts(total)} · <em>#${rank}</em></b></div><div class="hj13-player-list">${entries.length?entries.map(e=>hj13PlayerHTML(e,row,key)).join(''):'<div class="hj13-player">None</div>'}</div></section>`}
+function hj13CompareRow(a,b,key,open=false){const avv=key==='Overall'?a.overall:a.values[key],bvv=key==='Overall'?b.overall:b.values[key],ar=key==='Overall'?a.overallRank:a.unitRanks[key],br=key==='Overall'?b.overallRank:b.unitRanks[key],w=hj13BarWidths(avv,bvv),players=open&&key!=='Overall'?hj13ComparePlayers(a,b,key):'';return `<section class="hj13-crow"><div class="hj13-crow-main"><span class="hj13-clabel">${esc(key)}</span><span class="hj13-cvalue">${pcFpts(avv)} · #${ar}</span><div class="hj13-dual"><i class="a" style="--a:${w.a.toFixed(1)}%"></i><i class="b" style="--b:${w.b.toFixed(1)}%"></i></div><span class="hj13-cvalue right">${pcFpts(bvv)} · #${br}</span></div>${players}</section>`}
+hjStrengthHTML=function(data){if(!hj6Ready(data)){queueMicrotask(()=>hj6EnsureSources(data));return `<section class="hq-module hj13-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3></div>${hj13Toolbar(data)}<div class="hq-empty">Loading projections…</div></section>`}const rows=hj6BuildRows(data,HJ_STRENGTH_STATE.model),view=HJ_STRENGTH_STATE.view==='compare'?'compare':'dashboard',content=view==='compare'?hj13CompareHTML(rows):hj13DashboardHTML(rows);return `<section class="hq-module hj13-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3></div>${hj13Toolbar(data)}${content}</section>`}
+#hq-panel-strength .hj14-player-list{display:grid;gap:1px;margin-top:7px;padding-top:6px;border-top:1px solid rgba(20,50,79,.08)}
+#hq-panel-strength .hj14-cteam span{min-width:0}.hj14-cteam b{display:block;color:#fff;font:950 8.3px/1.05 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hj14-cteam small{display:block;margin-top:2px;color:rgba(255,255,255,.48);font:800 5.6px/1 var(--mono)}
+#hq-panel-strength .hj14-cdelta{text-align:center;white-space:nowrap}.hj14-cdelta b{display:block;color:var(--brass-bright);font:950 10px/1 var(--serif)}.hj14-cdelta small{display:block;margin-top:2px;color:rgba(255,255,255,.42);font:800 4.7px/1 var(--mono);text-transform:uppercase}
+function hj14PosPane(row,key,count,open=false){const rank=row.unitRanks[key]||count,total=Number(row.values[key])||0,label=key==='FLEX'?'FX':key==='D/ST'?'DST':key,entries=open?hj14PositionEntries(row,key):[];return `<section class="hj14-pos ${hj14RankClass(rank,count)}"><div class="hj14-pos-head"><span class="label">${esc(label)}</span><span class="value">${pcFpts(total)}</span><span class="sep">·</span><span class="prank">#${rank}</span></div>${open?`<div class="hj14-player-list">${entries.length?entries.map(e=>hj14PlayerHTML(e,row,key)).join(''):'<div class="hj14-empty">None</div>'}</div>`:''}</section>`}
+function hj14CompareRow(a,b,key,open=false){const avv=key==='Overall'?a.overall:a.values[key],bvv=key==='Overall'?b.overall:b.values[key],ar=key==='Overall'?a.overallRank:a.unitRanks[key],br=key==='Overall'?b.overallRank:b.unitRanks[key],w=hj14BarWidths(avv,bvv),players=open&&key!=='Overall'?hj14ComparePlayers(a,b,key):'';return `<section class="hj14-crow"><div class="hj14-cmain"><span class="hj14-clabel">${esc(key)}</span><span class="hj14-cvalue">${pcFpts(avv)} · #${ar}</span><div class="hj14-dual"><i class="a" style="--a:${w.a.toFixed(1)}%"></i><i class="b" style="--b:${w.b.toFixed(1)}%"></i></div><span class="hj14-cvalue right">${pcFpts(bvv)} · #${br}</span></div>${players}</section>`}
+hjStrengthHTML=function(data){if(!hj6Ready(data)){queueMicrotask(()=>hj6EnsureSources(data));return `<section class="hq-module hj14-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3></div>${hj14Toolbar(data)}<div class="hq-empty">Loading projections…</div></section>`}const rows=hj6BuildRows(data,HJ_STRENGTH_STATE.model),view=HJ_STRENGTH_STATE.view==='compare'?'compare':'dashboard',content=view==='compare'?hj14CompareHTML(rows):hj14DashboardHTML(rows);return `<section class="hq-module hj14-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3></div>${hj14Toolbar(data)}${content}</section>`}
+#hq-panel-strength .hj15-profile{display:flex;align-items:center;gap:5px;margin-top:3px;color:#8b97a3;font:800 5.9px/1 var(--mono);text-transform:uppercase;letter-spacing:.055em;white-space:nowrap;overflow:hidden}
+#hq-panel-strength .hj15-playerflow{display:grid;grid-template-columns:minmax(0,1fr);gap:0;margin-top:7px;padding-top:6px;border-top:1px solid rgba(20,50,79,.08);line-height:1.25}
+#hq-panel-strength .hj15-cteam{display:flex;align-items:center;gap:8px;min-width:0}.hj15-cteam.right{justify-content:flex-end;text-align:right}.hj15-cteam>.av{width:31px;height:31px;flex:0 0 31px}.hj15-cteam span{min-width:0}.hj15-cteam b{display:block;font:950 9px/1.1 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hj15-cteam small{display:block;margin-top:3px;color:rgba(255,255,255,.58);font:750 6px/1 var(--mono)}
+#hq-panel-strength .hj15-cdelta{text-align:center}.hj15-cdelta b{display:block;color:var(--brass-bright);font:950 15px/1 var(--serif)}.hj15-cdelta small{display:block;margin-top:3px;color:rgba(255,255,255,.48);font:850 5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+  #hq-panel-strength .hj15-playerflow{margin-top:6px;padding-top:5px}
+  function posHTML(row,key,count,open){const rank=row.model==='pff'?row.unitRanks[key]:(row.unitRanks[key]||count),total=row.model==='pff'?row.values[key]:(Number(row.values[key])||0),entries=open?positionEntries(row,key):[],strength=scoreStrength(rank,count);return `<section class="hj15-pos ${rankClass(rank,count)}" style="--strength:${strength.toFixed(1)}%"><div class="hj15-posline"><span class="hj15-plabel">${esc(label(key))}</span><span class="hj15-pvalue">${fmt(total)}</span><span class="hj15-prank">${rank??'—'}</span></div>${open?`<div class="hj15-playerflow">${entries.length?entries.map(e=>playerHTML(e,row,key)).join(''):'<span class="hj15-empty">None</span>'}</div>`:''}</section>`}
+  function compareRow(a,b,key,open){const avv=key==='Overall'?a.overall:a.values[key],bvv=key==='Overall'?b.overall:b.values[key],ar=key==='Overall'?a.overallRank:a.unitRanks[key],br=key==='Overall'?b.overallRank:b.unitRanks[key],w=barWidths(avv,bvv),players=open&&key!=='Overall'?comparePlayers(a,b,key):'';return `<section class="hj15-crow"><div class="hj15-cmain"><span class="hj15-clabel">${esc(key)}</span><span class="hj15-cvalue">${fmt(avv)} · #${ar??'—'}</span><div class="hj15-dual"><i class="a" style="--a:${w.a.toFixed(1)}%"></i><i class="b" style="--b:${w.b.toFixed(1)}%"></i></div><span class="hj15-cvalue right">${fmt(bvv)} · #${br??'—'}</span></div>${players}</section>`}
+  hjStrengthHTML=function(data){if(!hj6Ready(data)){queueMicrotask(()=>hj6EnsureSources(data));return `<section class="hq-module hj15-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3></div>${toolbar(data)}<div class="hq-empty">Loading projections…</div></section>`}const rows=hj6BuildRows(data,HJ_STRENGTH_STATE.model),view=HJ_STRENGTH_STATE.view==='compare'?'compare':'dashboard';return `<section class="hq-module hj15-shell"><div class="hq-module-head"><h3 class="hq-module-title">Roster Strength</h3></div>${toolbar(data)}${view==='compare'?compare(rows):dashboard(rows)}${['vegas','combo'].includes(HJ_STRENGTH_STATE.model)?'<div class="hj-pff-model-note">ESPN supplies K and DST projections. Missing skill-player projections leave totals unranked.</div>':''}${HJ_STRENGTH_STATE.model==='pff'?`<div class="hj-pff-model-note">${HJ_STRENGTH_STATE.scope==='starters'?'COMBO season starters · ':''}Average published PFF grades</div>`:''}</section>`};
+#hq-panel-strength .hj15-cteam small{font-size:6.8px!important;margin-top:3px!important}
+.league-player-nextgame{display:block;margin-top:5px;color:#758596;font:600 8.6px/1.18 var(--sans);letter-spacing:0;text-transform:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wire-head{justify-content:flex-start!important;overflow:hidden!important;margin-top:7px!important}
+  .league-player-nextgame{font-size:7.9px!important;margin-top:4px!important}
+.wc-draft-bookends{margin-top:14px!important;margin-bottom:12px!important}
+.hq-player-game{display:block;margin-top:3px;color:#6f8090;font:650 8.5px/1.15 var(--sans);letter-spacing:0;text-transform:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wc-foot{margin-top:2px!important;gap:10px!important}
+  .wire-head{justify-content:flex-start!important;margin-top:4px!important}
+  .hq-player-game{font-size:8px!important;margin-top:2px!important}
+.wc-foot{margin-top:1px!important;min-height:32px!important;gap:11px!important}
+.wire-head{margin-top:3px!important}
+.wc:has(.wc-list) .wc-list{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;margin-top:8px!important;padding-right:3px!important}
+.wc-draft-bookends{max-width:860px!important;margin-top:11px!important;margin-bottom:10px!important;padding:10px 12px!important;gap:12px!important}
+.wc-lead-stats{margin-top:10px!important;gap:7px!important}
+.wc-count{max-width:720px!important;margin-top:10px!important}
+.wc-vs{max-width:720px!important;margin-top:9px!important}
+[data-manager-section]{scroll-margin-top:8px}
+.profile-roster-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.8fr);gap:10px;align-items:start;margin-top:8px}
+.profile-roster-grid .league-player-meta{font-size:7.4px!important;margin-top:2px!important;gap:5px!important}
+.profile-roster-grid .league-player-nextgame{font-size:7.5px!important;line-height:1.1!important;margin-top:2px!important}
+.profile-roster-grid .league-player-points .league-proj-compare{font-size:6.8px!important;margin-top:3px!important}
+  .wire-head{margin-top:2px!important}
+.manager-hq-roster{margin-top:8px}
+.manager-hq-roster .league-ir-wrap{margin-top:10px!important}
+.profile-draft-years-wrap{margin-top:12px;padding-top:10px;border-top:1px solid rgba(20,50,79,.09)}
+.manager-draft-title{min-width:0;text-align:center}.manager-draft-title b{display:block;font:900 17px/1.05 var(--serif)}.manager-draft-title small{display:block;margin-top:3px;color:var(--brass-bright);font:800 7px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.manager-draft-pick:first-child{border-top:0}.manager-draft-pick-no{color:var(--brass);font:900 8px/1 var(--mono)}.manager-draft-player{min-width:0}.manager-draft-player b{display:block;color:var(--navy);font:850 9.5px/1.15 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.manager-draft-player small{display:block;margin-top:2px;color:#7e8c9b;font:750 7px/1 var(--mono);letter-spacing:.04em;text-transform:uppercase}.manager-draft-pos{color:var(--navy);font:900 8px/1 var(--mono)}
+  .wire-preview-list{margin-top:8px;gap:4px}.wire-preview-game{grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr);gap:5px;padding:6px}.wire-preview-team{display:block}.wire-preview-team small{display:block;margin-top:2px}.wire-preview-team b{font-size:8.7px}.wire-preview-team small{font-size:6.8px}
+  const rounds=[...new Set(rows.map(r=>Number(r.round)))].sort((a,b)=>a-b);return rounds.map(round=>{const picks=rows.filter(r=>Number(r.round)===round);return `<section class="manager-draft-round"><div class="manager-draft-round-head"><span>Round ${round}</span><span>${picks.length} pick${picks.length===1?'':'s'}</span></div>${picks.map(r=>`<div class="manager-draft-pick"><span class="manager-draft-pick-no">#${Number(r.overall_pick)}</span><span class="manager-draft-player"><b>${esc(r.player||'Player')}</b><small>${esc([r.nfl_team,r.position].filter(Boolean).join(' · '))}</small></span><span class="manager-draft-pos">${esc(r.position||'')}</span></div>`).join('')}</section>`}).join('')
+   mobile roster. Draft history is one dense board, not padded <section>s.
+.manager-modal-back .manager-hq-roster{margin-top:8px!important}
+  margin-top:3px!important;font-size:8.4px!important;line-height:1.2!important;gap:5px!important
+  margin-top:3px!important;font-size:8px!important;line-height:1.15!important
+  margin-top:4px!important;font-size:8px!important;line-height:1.15!important
+.manager-draft-player-cell small{display:block;margin-top:3px;color:#7e8c9b;font:750 7.4px/1 var(--mono);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hq-match-team-name{font-size:11.5px!important;line-height:1.05!important;font-weight:700!important}.hq-match-team-left{margin-top:2px!important;font-size:8.5px!important;line-height:1.05!important;font-weight:550!important}.hq-match-team-score{margin-top:3px!important;font-size:22px!important;line-height:.96!important;font-weight:800!important}.hq-match-team-sub{margin-top:3px!important;gap:3px 6px!important;font-size:9px!important;line-height:1.05!important;font-weight:550!important}.hq-match-team-sub b{font-size:9.8px!important;font-weight:700!important}
+.hq-match-win{padding:0 14px 8px!important}.hq-match-win-inner{max-width:560px!important}.hq-match-win-bar{height:6px!important}.hq-match-win-labels{gap:7px!important;margin-top:4px!important;font-size:8px!important;line-height:1!important;font-weight:550!important}.hq-match-win-labels b{font-size:7.5px!important;font-weight:650!important}
+.hq-edge-grid{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:6px!important;padding:0 14px 8px!important;overflow:visible!important}.hq-edge{min-width:0!important;flex:none!important;padding:6px 4px!important;border-radius:7px!important}.hq-edge span{font-size:8px!important;line-height:1!important;font-weight:600!important}.hq-edge strong{min-height:0!important;margin-top:3px!important;font-size:9.3px!important;line-height:1.05!important;font-weight:650!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.hq-matchup.is-open .hq-lineup-toolbar-copy small{margin-top:2px!important;font-size:8.7px!important;line-height:1.15!important;font-weight:450!important;color:#667a8e!important}
+.wire-kickoff-meta{text-align:center;margin-top:3px;color:rgba(247,243,232,.68);font:750 6.5px/1.2 var(--mono);letter-spacing:.04em;flex:0 0 auto;position:relative;z-index:3}
+.wc.is-kickoff .wc-count .l{font-size:8px!important;margin-top:5px!important;letter-spacing:.20em!important}
+.wc.is-kickoff .wire-hint{margin-top:4px!important;color:rgba(247,243,232,.72)!important;opacity:1!important;font-size:7px!important;letter-spacing:.08em!important;flex:0 0 auto!important;position:relative;z-index:4}
+.hq-matchup.is-open .hq-lineup-player-meta{display:inline-flex!important;align-items:center!important;justify-content:flex-start!important;gap:2px!important;margin-top:-1px!important;min-width:0!important;font-size:8.2px!important;line-height:1!important;white-space:nowrap!important}.hq-matchup.is-open .hq-lineup-player.is-right .hq-lineup-player-meta{justify-content:flex-end!important}
+.hq-matchup.is-open .hq-lineup-player-game{grid-area:game!important;display:block!important;margin-top:1px!important;font-size:7.8px!important;line-height:1.05!important;font-weight:520!important;color:#6b7d8d!important;white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;text-align:left!important}.hq-matchup.is-open .hq-lineup-player.is-right .hq-lineup-player-game{text-align:right!important}
+.hq-matchup.is-open .hq-lineup-player-game{margin-top:1px!important}
+  .hq-matchup.is-open .hq-lineup-player-game{margin-top:1px!important}
+  margin-top:2px!important;
+  .hq-matchup.is-open .hq-lineup-player-game{margin-top:2px!important}
+.pc-modal .pc-vegas.pc-vegas-summary[data-pc-vegas-season] .pc-vegas-line span{margin-top:2px!important;font-size:6.3px!important;line-height:1!important}
+.profile-manager-activity-wrap{margin-top:14px;padding-top:11px;border-top:1px solid rgba(20,50,79,.10);min-width:0}
+.profile-manager-activity-player small{display:block;margin-top:2px;color:#7b8b99;font:700 6.8px/1.05 var(--mono);letter-spacing:.03em;text-transform:uppercase}
+  .profile-manager-activity-wrap{margin-top:12px;padding-top:9px}
+.hq-matchup{scroll-margin-top:98px}
+.hq40-card .hq-player-meta{margin-top:3px!important;font-size:7.2px!important;gap:4px!important}
+.hq40-card .hq-player-game{margin-top:2px!important;font-size:7.6px!important;line-height:1.12!important}
+.hq40-card .hq-player-proj-main{margin-top:3px!important;font-size:16px!important;line-height:1!important}
+.hq40-card .hq-player-proj-sub{display:flex!important;align-items:baseline;justify-content:center;gap:3px;flex-wrap:wrap;margin-top:3px!important;font-size:6.1px!important;line-height:1.05!important}
+.hq40-stat-btn strong{display:block;margin-top:4px;font:850 9.2px/1 var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;color:inherit}
+  margin-top:4px!important;
+  margin-top:3px!important;
+.hq40-card .hq-player-proj-main{margin-top:4px!important;font-size:18px!important;line-height:1!important}
+  margin-top:4px!important;
+  margin-top:4px!important;
+  margin-top:2px!important;
+  margin-top:3px!important;
+  margin-top:4px!important;
+  #hq-panel-strength .hj15-playerflow{margin-top:4px!important;padding-top:3px!important}
+.ffn-manager-filter{display:flex;align-items:center;gap:5px;min-height:30px;margin:-2px 2px 7px;padding:1px 0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.ffn-manager-filter::-webkit-scrollbar{display:none}
+.ffn-manager-filter:empty{display:none}
+.ffn-manager-btn{appearance:none;-webkit-appearance:none;flex:0 0 28px;width:28px;height:28px;padding:2px;border:1px solid rgba(20,50,79,.16);border-radius:50%;background:#fff;cursor:pointer;display:grid;place-items:center;transition:background .12s ease,border-color .12s ease,box-shadow .12s ease}
+.ffn-manager-btn img{display:block;width:22px;height:22px;border-radius:50%;object-fit:cover}
+.ffn-manager-btn[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);box-shadow:0 0 0 2px rgba(185,138,46,.35)}
+.ffn-manager-btn[aria-pressed="true"] img{outline:1px solid rgba(255,255,255,.72)}
+.ffn-manager-btn:focus-visible{outline:2px solid rgba(185,138,46,.6);outline-offset:2px}
+.ffn-manager-btn:disabled{opacity:.45;cursor:wait}
+  .ffn-manager-filter{gap:4px;min-height:28px;margin-bottom:6px}
+  .ffn-manager-btn{flex-basis:27px;width:27px;height:27px}.ffn-manager-btn img{width:21px;height:21px}
+.ffn-filters{
+.ffn-filter-reset{
+  .ffn-filters{
+  .ffn-filter-control{padding-left:5px!important;padding-right:2px!important}
+  .ffn-filter-reset{width:27px!important;min-width:27px!important;font-size:13px!important}
+  .ffn-filters{grid-template-columns:minmax(64px,1fr) 50px 58px 68px 25px!important;gap:2px!important}
+  .ffn-filter-control{padding-left:4px!important;font-size:6.7px!important}
+  .ffn-filter-reset{width:25px!important;min-width:25px!important}
+.hj-owner-chip.is-free,.pc-modal-owner.is-free,.hq-player-owner.is-free,.hq40-owner.is-free,.profile-chip.green,.profile-season-badge.beat,.hq-power-tag.green,.ffn-tag.role{
+.ffn-tag.role{
+#league-hq>.sec-head{margin-bottom:10px!important}
+  margin-top:3px!important;
+#hq-panel-matchups .hq-win-copy{font-size:8.5px!important;margin-top:7px!important}
+#hq-panel-matchups .hq-matchup-vs{font-size:8px!important;margin-top:5px!important}
+  #league-hq>.sec-head{margin-left:4px!important;margin-right:4px!important}
+  #hq-panel-matchups .hq-lineup-player-game{font-size:8.2px!important;line-height:1.15!important;margin-top:2px!important}
+.hj-game-stats{color:#344b60!important;margin-top:1px!important}
+.ffn-meta:has(.hj-game-context){display:block!important}
+.ffn-meta .hj-game-context{margin-top:2px}
+.hj-v3-meta{display:block;font:550 var(--lp-text,10px)/var(--lp-line,12px) var(--sans);margin-top:1px;color:#677f94}
+#hq-panel-matchups .hj-matchup-preview-body>.hq-edge-grid{margin-top:6px}
+ return `<div class="hj-activity-dashboard"><div class="hj-activity-filters"><label>Activity<select data-activity-filter="type">${options([['all','All moves'],['moves','Adds / Drops'],['trade','Trades']],v.type)}</select></label><label>Manager<select data-activity-filter="manager">${options([['all','All managers'],...managers.map(m=>[m,m])],v.manager)}</select></label><label class="hj-activity-search">Search<input data-activity-search type="search" placeholder="Player, manager or NFL team" value="${esc(v.search)}"></label><button type="button" class="hj-activity-reset" data-activity-reset>Reset</button></div><div class="hj-activity-metrics">${metrics.map(([id,n,label])=>`<button type="button" data-activity-metric="${id}" title="Filter ${label.toLowerCase()}"><strong>${n}</strong><span>${label}</span></button>`).join('')}</div><div class="hj-activity-count" aria-live="polite">${filtered.length} transaction${filtered.length===1?'':'s'} match your filters${groups.length?` · ${groups.length} loaded`:''}</div>${filtered.length?[...days].map(([day,items])=>`<section class="hj-activity-day"><h4>${esc(day)}</h4><div class="hj-transaction-grid">${items.map(hjActivityCard).join('')}</div></section>`).join(''):`<div class="hj-activity-empty">${groups.length?'No transactions match these filt
+#league-hq #league-sync-content .league-team-tab-copy small{font:600 10px/1.4 var(--sans)!important;letter-spacing:0!important;text-transform:none!important;color:#5a533d!important;opacity:1!important;margin-top:4px!important;overflow:visible!important;white-space:nowrap!important}
+#league-hq #league-sync-content .league-team-rail{padding-top:3px!important;padding-bottom:5px!important;margin-top:0!important;background:transparent!important;gap:3px!important}
+#league-hq #league-sync-content .league-team-tab-copy small{margin-top:3px!important;font-size:10px!important;white-space:nowrap!important}
+#league-hq #league-sync-content .hj-business-card .hj-business-team{font:500 12px/1.35 var(--sans);color:#60717c;margin-top:5px;overflow-wrap:anywhere}
+#league-hq #league-sync-content .hj-business-card>.hj-business-stats{grid-column:1/-1;display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:12px;border-top:1px solid #c9c4b5!important;padding-top:11px!important;margin-top:2px}
+ overflow:visible!important;background:#fffdf7!important;margin-top:0!important;box-shadow:0 3px 5px #17344d16!important;
+<style id="hj-roster-menu-spacing">#league-hq #league-sync-content .league-roster-head{margin-bottom:3px!important}#league-hq #league-sync-content .league-roster-optimizer+.league-roster-groups{margin-top:3px!important}</style>
+#league-hq #league-hq-tools>.hq-tab-panel{margin-top:0!important;padding-top:2px!important;}
+.wc.is-kickoff .wc-count .l{margin-top:2px!important;letter-spacing:.1em!important}
+.hj-kickoff-rosters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;flex:1 1 auto;min-height:0;margin-top:7px;border-top:1px solid #ffffff30;padding-top:7px;overflow:auto;scrollbar-width:thin}
+.hj-kickoff-rosters section{min-width:0}.hj-kickoff-rosters h4{margin:0 0 5px;color:#e6be60;font:700 9px/1.3 var(--sans);text-transform:uppercase;letter-spacing:.04em}
+.hj-profile-game-points{display:block;color:#f2ca70!important;font:750 12px/1.4 var(--sans)!important;margin-top:3px}
+ const html=pcSituationalHTML(playerRows,allRows,player,schedule,rates)||'<section class="pc-section" data-pc-section="splits"><div class="pc-section-head"><h3 class="pc-section-title">Situational splits</h3></div><div class="pc-next-context" data-pc-next-context></div><p>Not enough completed games for comparable splits yet.</p></section>';
+<style id="hj-layout-polish">.wc.is-kickoff .hj-kickoff-rosters{align-content:start!important;align-items:start!important;margin-top:5px!important;padding-top:6px!important;width:100%!important;max-width:520px!important;align-self:center!important}
+.wc.is-kickoff .hj-kickoff-rosters>section{padding:0!important;margin:0!important;min-height:0!important;align-self:start!important}
+.ffn-player-copy .ffn-player-name{margin:0!important;padding:0!important;line-height:1.15!important;min-height:0!important}
+.ffn-player-copy .ffn-meta{margin-top:2px!important;line-height:1.2!important;row-gap:2px!important}
+.pc-modal .pc-team-card .pc-team-rank-card strong{font-size:16px!important;line-height:17px!important;margin-top:1px!important}
+.pc-modal .pc-team-card .pc-team-rank-card span,.pc-modal .pc-team-card .pc-team-rank-card small{font-size:7px!important;line-height:8px!important;margin-top:1px!important}
+.pc-pff-strip>strong{font:800 8.6px var(--sans);color:var(--brass);flex:none}.pc-pff-strip .pc-pff-value{font:800 18px/1 var(--sans);color:var(--navy)}.pc-pff-strip .pc-pff-label{display:block;font:600 7px/1.2 var(--sans);color:#627788;margin-top:3px}.pc-pff-strip .pc-pff-note{font:600 9px/1.25 var(--sans);color:#627788;min-width:0}.pc-pff-strip a{margin-left:auto;white-space:nowrap;font:700 9px var(--sans);color:var(--navy)}
+ return `<section class="pc-metric pc-pff-summary${compact?' is-compact':''}" data-pff-id="${esc(id)}" data-pff-season="${esc(season)}" aria-label="PFF grade and rank"><span class="pc-metric-label pc-pff-grade-label">PFF GRADE <button type="button" class="hj-pff-info" popovertarget="hj-pff-explanation" aria-label="What is PFF Grade?">i</button></span>${compact?'':'<span class="pc-metric-label pc-pff-rank-label">PFF RANK</span>'}<strong class="pc-metric-value pc-pff-grade-value" data-pff-grade>${view.grade}</strong><strong class="${compact?'pc-pff-compact-rank':'pc-metric-value pc-pff-rank-value'}"><span data-pff-rank title="${esc(view.title)}">${view.rank}</span> <small class="pc-pff-rank-position">${esc(position)}</small></strong></section>`;
+.ffn-card .ffn-player-copy .ffn-player-name{text-transform:none!important}
+.wc.is-kickoff .hj-kickoff-rosters>section{display:grid;grid-template-columns:minmax(0,1fr);justify-items:center}
+.wire-preview-feature strong small{display:block;font:500 8px/1.3 var(--sans);opacity:.7;margin-top:4px}
