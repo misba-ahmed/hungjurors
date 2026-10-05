@@ -1,3 +1,22 @@
+/* External matchup links always land on the scorecard top, never the lineup center. */
+function hjScrollMatchupStart(card){
+ const key=typeof card==='string'?card:card?.dataset.hqMatchupKey;
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  if(HJ_HQ_STATE.activeTab!=='matchups')return;
+  const target=key?[...document.querySelectorAll('#hq-panel-matchups .hq-matchup[data-hq-matchup-key]')].find(el=>el.dataset.hqMatchupKey===key):card;
+  if(!target?.isConnected)return;
+  const deck=target.closest('.hq-matchup-list');
+  if(deck){
+   if(key)HJ_HQ_STATE.matchupFocusKey=key;
+   deck.scrollTo({left:deck.scrollLeft+target.getBoundingClientRect().left-deck.getBoundingClientRect().left-deck.clientLeft,behavior:'instant'});
+   deck.scrollTop=0;
+  }
+  const height=selector=>{const el=document.querySelector(selector);return el?.getClientRects().length?el.getBoundingClientRect().height:0;};
+  const inset=height('body > nav')+height('.hj-folder-dock')+height('#hq-panel-matchups .hq-matchup-switcher-shell')+8;
+  const top=Math.max(0,window.scrollY+target.getBoundingClientRect().top-inset);
+  window.scrollTo({top,behavior:'instant'});
+ }));
+}
 /* One owner for matchup paging and height; never resize the rail mid-swipe. */
 (function(){
  const root=document.querySelector('#league-hq');if(!root)return;
