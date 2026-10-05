@@ -1,14 +1,17 @@
 import fs from 'node:fs';import sharp from 'sharp';import{execFileSync}from'node:child_process';
 const base='https://raw.githubusercontent.com/misba-ahmed/hungjurors/main/';
 const raw=await sharp('.mascot-fix/source.png').ensureAlpha().raw().toBuffer({resolveWithObject:true});
-for(let p=0;p<raw.data.length;p+=4){let r=raw.data[p],g=raw.data[p+1],b=raw.data[p+2];if(g>100&&g>r*2&&g>b*2){raw.data[p+3]=0;continue;}if(g>Math.max(r,b))raw.data[p+1]=Math.max(r,b);}
-const all=await sharp(raw.data,{raw:raw.info}).png().toBuffer();const panels=[];
+for(let p=0;p<raw.data.length;p+=4){const r=raw.data[p],g=raw.data[p+1],b=raw.data[p+2];if(g>100&&g>r*2&&g>b*2){raw.data[p+3]=0;continue;}if(g>Math.max(r,b))raw.data[p+1]=Math.max(r,b);}
+const tmp=await sharp(raw.data,{raw:raw.info}).png().toBuffer(),head=await sharp(tmp).trim({background:'#00000000',threshold:8}).png().toBuffer();const panels=[];
 for(const [i,pose]of ['standing','seated'].entries()){
- const old=await sharp('assets/managers-v4/jarrett-'+pose+'.webp').ensureAlpha().raw().toBuffer({resolveWithObject:true});let l=old.info.width,t=old.info.height,r=0,b=0;for(let y=0;y<old.info.height;y++)for(let x=0;x<old.info.width;x++)if(old.data[(y*old.info.width+x)*4+3]>8){l=Math.min(l,x);r=Math.max(r,x);t=Math.min(t,y);b=Math.max(b,y);}
- const half=await sharp(all).extract({left:i*Math.floor(raw.info.width/2),top:0,width:Math.floor(raw.info.width/2),height:raw.info.height}).png().toBuffer();const crop=await sharp(half).trim({background:'#00000000',threshold:8}).png().toBuffer();
- const fit=await sharp(crop).resize({height:b-t+1}).png().toBuffer(),m=await sharp(fit).metadata();
- const out=await sharp({create:{width:old.info.width,height:old.info.height,channels:4,background:'#00000000'}}).composite([{input:fit,left:Math.round(l+(r-l+1-m.width)/2),top:b+1-m.height}]).webp({quality:96,alphaQuality:100}).toBuffer();
- fs.writeFileSync('.mascot-fix/jarrett-'+pose+'.webp',out);panels.push({input:await sharp(out).resize({height:600}).toBuffer(),left:i*340,top:0});
+const path='assets/managers-v4/jarrett-'+pose+'.webp',original=await sharp(path).ensureAlpha().raw().toBuffer({resolveWithObject:true}),data=Buffer.from(original.data);
+const top=pose==='standing'?9:99,height=pose==='standing'?230:220,cut=pose==='standing'?239:319;
+for(let y=0;y<cut;y++)for(let x=0;x<original.info.width;x++){if(y<cut-24||(x>=110&&x<=254))data[(y*original.info.width+x)*4+3]=0;}
+const fitted=await sharp(head).resize({height}).png().toBuffer(),m=await sharp(fitted).metadata();
+const out=await sharp(data,{raw:original.info}).composite([{input:fitted,left:Math.round(180-m.width/2),top}]).webp({lossless:true}).toBuffer();
+fs.writeFileSync('.mascot-fix/jarrett-'+pose+'.webp',out);
+const decoded=await sharp(out).ensureAlpha().raw().toBuffer();for(let p=(cut+1)*original.info.width*4;p<data.length;p++)if(decoded[p]!==original.data[p])throw Error('Body pixels changed '+pose+' at '+p);
+panels.push({input:await sharp(out).resize({height:600}).toBuffer(),left:i*340,top:0});
 }
 await sharp('.mascot-fix/jarrett-portrait-source.png').resize(512,512).png().toFile('.mascot-fix/jarrett-20261005.png');
 await sharp({create:{width:680,height:600,channels:3,background:'#f7f3e6'}}).composite(panels).png().toFile('.mascot-fix/jarrett-proof.png');
