@@ -22,3 +22,8 @@ The four stat challenges run through the league's final scoring period (currentl
 Validation: `node scripts/test-challenges.mjs` exercises scoring, ties, starter eligibility, flex assignments, IR, missing records, season boundaries, and repeat-refresh behavior. The publishing workflow runs it alongside the Vegas feed checks.
 
 ESPN stat identifiers follow the existing player-stat integration and the maintained mapping in https://github.com/cwendt94/espn-api/blob/master/espn_api/football/constant.py.
+
+
+## October 5, 2026 readiness check
+Last Man Standing uses the same shared lineup row, figure width, 20px side padding, and fitted/800px zoom behavior as the raffle. Do not recreate a separate flex layout for LMS. All ten eliminated poses already exist: managers-v4 seated assets, except Jarrett uses managers-v8. They remain seated, grayscale, and 58% opaque; new artwork requires approval. The Weekly Low Score table uses scoped fixed columns and wraps names/results within the available width; it must not scroll horizontally.
+Verified: no elimination before Week 5 or during unfinished Week 5; one final-week loser; eliminated managers excluded thereafter; missing weeks and ties block later eliminations; nine eliminations leave one survivor. Do not invent an elimination tiebreaker.
