@@ -6,6 +6,7 @@ export function prepareManagerAvatars(html){
   const avatars=JSON.parse(json);
   if(!avatars.MISBA)throw Error('Misba avatar missing');
   avatars.MISBA='/assets/avatars/misba-20260929-v2.png';
+  avatars.JARRETT='/assets/avatars/jarrett-20261005.png';
   return 'const AV = '+JSON.stringify(avatars)+';';
  });
  let count=0;
