@@ -40,3 +40,27 @@ assert.equal(c.hjChStandings([{...w,week:17}],names).totals.titty[0].weeks,0,'se
 const missing={...w,teams:w.teams.map(t=>({...t,titty:null}))};assert.equal(c.hjChStandings([missing],names).totals.titty[0].missing.length,1);
 assert.throws(()=>c.hjChWeek({...payload,scoringPeriodId:2},{season,week,names}),/wrong season\/week/);
 console.log('PASS: challenge scoring, source periods, return/FG double counting, MVP ownership and ties, optimal assignment, missing data, live/final isolation, season limits and idempotent refresh');
+
+
+// Full ten-manager survival ladder: only final scores for remaining teams count.
+{
+ const managers=Array.from({length:10},(_,i)=>({id:String(i),short:'Manager '+i}));
+ const round=n=>({week:n,final:true,teams:managers.map((m,i)=>({...m,score:i===n-5?0:100+i}))});
+ const rounds=Array.from({length:9},(_,i)=>round(i+5));
+ const survival=c.hjChStandings(rounds,managers);
+ assert.equal(survival.eliminations.length,9);
+ assert.equal(survival.alive.length,1);
+ assert.equal(survival.alive[0],'9');
+ assert.equal(c.hjChStandings([{...round(5),final:false}],managers).eliminations.length,0);
+ const next=round(6);next.teams[0].score=-100;
+ assert.equal(c.hjChStandings([round(5),next],managers).eliminations[1].id,'1','eliminated manager cannot lose again');
+ const incomplete=round(5);incomplete.teams[9].score=null;
+ assert.equal(c.hjChStandings([incomplete,round(6)],managers).eliminations.length,0,'incomplete Week 5 blocks later rounds');
+ const tie=round(5);tie.teams[1].score=0;
+ const blocked=c.hjChStandings([tie,round(6)],managers);
+ assert.equal(blocked.eliminations.length,0);
+ assert.match(blocked.lmsBlocked,/tied/);
+ const repeat=c.hjChStandings(rounds,managers);
+ assert.deepEqual(repeat.eliminations,survival.eliminations,'refresh never duplicates an elimination');
+ console.log('PASS: ten-manager Week 5 survival ladder, missing scores, ties, finality and repeat refresh');
+}

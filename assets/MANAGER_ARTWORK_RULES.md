@@ -26,3 +26,8 @@ The rejected October 5 regenerated bodies were too short/wide and must never be 
 Read `assets/ARTWORK_PROPORTIONS.md` and `assets/artwork-proportions.json` for measured baselines. The 215px head and v5/v6 neck repairs are rejected. Preserve the original shaded neck; do not regenerate it as a flat shape. See `assets/references/jarrett-proportions-20261005.png` for equal-scale comparison.
 
 October 5 correction: v7 was rejected for a floating head. Preserve the continuous shaded neck silhouette up both jaw sides; head-height checks alone do not validate the join. Current comparison: assets/references/jarrett-neck-comparison-20261005.png. Do not reuse the v7 proof as approved artwork.
+
+
+## Circular portrait framing (October 5)
+Jarrett's circle uses assets/avatars/jarrett-20261005-framed.svg, embedding the unchanged approved portrait PNG. The 512px canvas places a uniformly scaled 614px portrait at x=-51, y=20. This is circle framing only; never apply that transform to full-body figures. Shared prepare-manager-avatars.mjs selects the file throughout the site. Preserve full hair, visible ears, and a comparable hair-to-chin occupancy to the other managers rather than including extra chest/neck.
+Weekly Recap High Five and Free Agent Gold must use the same official player headshots and cover/top image crop as other player circles. Only D/ST logos use contain. Do not generate replacement faces to solve a CSS crop issue.
