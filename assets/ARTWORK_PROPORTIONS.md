@@ -11,7 +11,7 @@ Jarrett original standing: visually measured hair top approximately 9, chin appr
 Jarrett original seated: hair top approximately 99, chin approximately 310, shirt opening approximately 353. Hair-to-chin approximately 210 px. The seated source has its own geometry; do not force its head size to the standing source in native pixels.
 These facial landmarks are visual estimates; compare directly with the source image. Do not crop away the visible neck or move the collar upward. Preserve original neck shading. A neck silhouette drawn as a flat shape is not an acceptable replacement.
 Do not distort the approved face to hit a number: scale uniformly and retain identity. Keep heads comparable within each rendered challenge. Do not globally resize other managers.
-Canonical Jarrett current files: managers-v7/jarrett-standing.webp and jarrett-seated.webp. Original body templates remain managers-v4. The v5/v6 collar repairs were rejected for neck/head proportions.
+Canonical Jarrett current files: managers-v8/jarrett-standing.webp and jarrett-seated.webp. Original body templates remain managers-v4. The v5/v6 collar repairs were rejected for neck/head proportions.
 
 ## Players
 Canonical visual reference: team-photos/players/4047646-faces-v2.webp, 850 px native height. Use its actual image alongside the official individual headshot for every generation.
@@ -25,3 +25,5 @@ Keep existing crutch/status variants, retained color, automatic restoration, sco
 Before changing art: read these references, inspect original art, identify exactly what is changing.
 After: compare both full figures and enlarged head/neck crops on cream background; reject visible seams, exposed background wedges, flattened neck shading or altered body dimensions.
 Update the dimension snapshot only when a deliberate approved asset change occurs. Do not overwrite the reference with a rejected draft. Catalog remains the current player source of truth; snapshot is the baseline.
+
+October 5 correction: v7 was rejected for a floating head. Preserve the continuous shaded neck silhouette up both jaw sides; head-height checks alone do not validate the join. Current comparison: assets/references/jarrett-neck-comparison-20261005.png. Do not reuse the v7 proof as approved artwork.

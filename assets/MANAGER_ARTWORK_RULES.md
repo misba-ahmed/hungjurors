@@ -4,7 +4,7 @@ Read before any manager portrait or figure update. User-approved bodies are immu
 
 ## Canonical assets
 - Original approved standing/seated bodies: assets/managers-v4/{manager}-standing.webp and -seated.webp.
-- Jarrett updated head: assets/managers-v7/jarrett-standing.webp and jarrett-seated.webp.
+- Jarrett updated head: assets/managers-v8/jarrett-standing.webp and jarrett-seated.webp.
 - Approved Jarrett portrait: assets/avatars/jarrett-20261005.png.
 - All existing manager assets must be inspected visually before editing. Never use rejected generated bodies as references.
 
@@ -24,3 +24,5 @@ Compare old/new at the same rendered size AND inspect both poses enlarged agains
 The rejected October 5 regenerated bodies were too short/wide and must never be published or reused.
 
 Read `assets/ARTWORK_PROPORTIONS.md` and `assets/artwork-proportions.json` for measured baselines. The 215px head and v5/v6 neck repairs are rejected. Preserve the original shaded neck; do not regenerate it as a flat shape. See `assets/references/jarrett-proportions-20261005.png` for equal-scale comparison.
+
+October 5 correction: v7 was rejected for a floating head. Preserve the continuous shaded neck silhouette up both jaw sides; head-height checks alone do not validate the join. Current comparison: assets/references/jarrett-neck-comparison-20261005.png. Do not reuse the v7 proof as approved artwork.
