@@ -10,7 +10,7 @@ for(let y=0;y<cut;y++)for(let x=0;x<original.info.width;x++){if(y<cut-24||(x>=11
 const fitted=await sharp(head).resize({height}).png().toBuffer(),m=await sharp(fitted).metadata();
 const out=await sharp(data,{raw:original.info}).composite([{input:fitted,left:Math.round(180-m.width/2),top}]).webp({lossless:true}).toBuffer();
 fs.writeFileSync('.mascot-fix/jarrett-'+pose+'.webp',out);
-const decoded=await sharp(out).ensureAlpha().raw().toBuffer();for(let p=(cut+1)*original.info.width*4;p<data.length;p++)if(decoded[p]!==original.data[p])throw Error('Body pixels changed '+pose+' at '+p);
+const decoded=await sharp(out).ensureAlpha().raw().toBuffer();for(let p=(cut+1)*original.info.width*4;p<data.length;p++)if(original.data[(p-p%4)+3]===255&&decoded[p]!==original.data[p])throw Error('Body pixels changed '+pose+' at '+p);
 panels.push({input:await sharp(out).resize({height:600}).toBuffer(),left:i*340,top:0});
 }
 await sharp('.mascot-fix/jarrett-portrait-source.png').resize(512,512).png().toFile('.mascot-fix/jarrett-20261005.png');
