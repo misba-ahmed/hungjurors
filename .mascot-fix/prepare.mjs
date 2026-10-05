@@ -1,6 +1,8 @@
-import sharp from 'sharp';
-const orig='assets/team-photos/mascots/dst-26-mascot-v1.webp';
-const normalized=await sharp('.mascot-fix/source.png').resize(523,850,{fit:'fill'}).png().toBuffer();
-const patch=await sharp(normalized).extract({left:223,top:281,width:76,height:13}).resize(50,13,{fit:'fill'}).png().toBuffer();
-await sharp(orig).composite([{input:patch,left:238,top:281}]).webp({lossless:true}).toFile('assets/team-photos/mascots/dst-26-mascot-wordmark-v2.webp');
-await sharp('assets/team-photos/mascots/dst-26-mascot-wordmark-v2.webp').extract({left:180,top:255,width:165,height:85}).resize(660,340).png().toFile('.mascot-fix/seahawks-proof.png');
+import fs from 'node:fs';import sharp from 'sharp';
+const base='https://raw.githubusercontent.com/misba-ahmed/hungjurors/main/';
+const cat=await(await fetch(base+'assets/team-photos/catalog.json')).json();
+const data=await(await fetch('https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/2026/segments/0/leagues/1630558?view=mRoster&view=mTeam')).json();
+const week=data.scoringPeriodId||data.status?.currentMatchupPeriod;const rows=[];
+for(const t of data.teams||[])for(const e of t.roster?.entries||[]){const p=e.playerPoolEntry.player;if(p.defaultPositionId===16)continue;const stats=(p.stats||[]).filter(s=>s.statSourceId===1&&s.scoringPeriodId===week&&s.seasonId===2026);const proj=stats.find(s=>s.appliedTotal!=null)?.appliedTotal;const missing=!cat[p.id],status=p.injuryStatus;const need=['OUT','QUESTIONABLE','DOUBTFUL','INJURY_RESERVE','SUSPENSION','EXEMPT'].includes(status)||p.active===false||proj===0;
+if(missing||need||cat[p.id]?.unavailable){const row={id:p.id,name:p.fullName,manager:t.name||t.location,team:p.proTeamId,status,active:p.active,proj,missing,needsVariant:need&&!cat[p.id]?.unavailable,variant:cat[p.id]?.unavailable?.file,regular:cat[p.id]?.file};rows.push(row);if(missing||row.needsVariant){const a=await(await fetch('https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/'+p.id)).json();Object.assign(row,{height:a.height,jersey:a.jersey,headshot:a.headshot?.href});if(a.headshot?.href)await sharp(Buffer.from(await(await fetch(a.headshot.href)).arrayBuffer())).png().toFile('.mascot-fix/head-'+p.id+'.png');}}}
+fs.writeFileSync('.mascot-fix/roster-audit.json',JSON.stringify({week,totalTeams:data.teams?.length,rows},null,2));
