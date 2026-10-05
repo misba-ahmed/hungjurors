@@ -1,1 +1,4 @@
-import fs from 'node:fs';const s=await(await fetch('https://raw.githubusercontent.com/misba-ahmed/hungjurors/main/index.html')).text();fs.writeFileSync('.mascot-fix/hero-inspect.json',JSON.stringify({managers:[...s.matchAll(/.{0,150}managers-v.{0,150}/g)].map(x=>x[0]).slice(0,12),hero:[...s.matchAll(/.{0,150}(?:hero-logo|hero-brand|hero-section|logo-main).{0,250}/g)].map(x=>x[0]).slice(0,30),images:[...s.matchAll(/<img[^>]+>/g)].map(x=>x[0].slice(0,450)).slice(0,25)},null,2));
+import fs from 'node:fs';import sharp from 'sharp';
+const s=await(await fetch('https://raw.githubusercontent.com/misba-ahmed/hungjurors/main/index.html')).text();
+const logo=s.match(/<img class="logo" src="data:image\/png;base64,([^"]+)"/)[1];fs.writeFileSync('.mascot-fix/hero-logo.png',Buffer.from(logo,'base64'));
+const matches=[];for(const f of fs.readdirSync('scripts'))if(f.endsWith('.js')){const t=fs.readFileSync('scripts/'+f,'utf8');for(const m of t.matchAll(/.{0,120}managers-v.{0,180}/g))matches.push({f,line:m[0]});}fs.writeFileSync('.mascot-fix/hero-assets.json',JSON.stringify(matches));
