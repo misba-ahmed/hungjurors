@@ -413,7 +413,8 @@
 .rc .rc-five-rank{grid-column:1;grid-row:1/3;align-self:center;color:var(--brass);font:800 13px/1 var(--sans)}
 .rc .rc-five-player{grid-column:2;grid-row:1;appearance:none;border:0;border-radius:0;margin:0;padding:0;background:none;color:var(--navy);display:flex;align-items:center;gap:8px;min-width:0;text-align:left;font:inherit;cursor:pointer}
 .rc .rc-five-photo{width:36px;height:36px;flex:0 0 36px;overflow:hidden;border-radius:50%;background:#edf1f4}
-.rc .rc-five-photo img{display:block;width:100%;height:100%;object-fit:contain;margin:0}
+.rc .rc-five-photo img{display:block;width:100%;height:100%;object-fit:cover;object-position:center top;margin:0}
+.rc .rc-five-photo.is-logo img{object-fit:contain;object-position:center;padding:4px;box-sizing:border-box}
 .rc .rc-five-name{min-width:0}
 .rc .rc-five-name strong{display:block;font:800 12.5px/1.2 var(--sans);color:var(--navy);overflow-wrap:anywhere}
 .rc .rc-five-name small{display:block;margin-top:2px;font:500 10px/1.2 var(--sans);color:#536b80}
