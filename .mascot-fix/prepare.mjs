@@ -16,4 +16,4 @@ await page.goto('https://mock.hj/');await page.waitForFunction(()=>document.quer
 const box=await page.locator('[data-hero-manager="TYLER"]').boundingBox();await page.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);
 if(await page.locator('#hj-manager-hero text').textContent()!=='128.43')throw Error('Live score failed');
 if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw Error('Mobile overflow');
-await page.screenshot({path:'.mascot-fix/header-mobile-proof.png'});await page.setViewportSize({width:1440,height:800});await page.screenshot({path:'.mascot-fix/header-desktop-proof.png'});await browser.close();
+await page.screenshot({path:'.mascot-fix/header-mobile-proof.png'});await page.setViewportSize({width:1440,height:800});const bounds=await page.locator('#hj-manager-hero image').first().boundingBox();if(Math.abs(bounds.width-210)>1)throw Error('Desktop logo changed size: '+bounds.width);await page.screenshot({path:'.mascot-fix/header-desktop-proof.png'});await browser.close();
