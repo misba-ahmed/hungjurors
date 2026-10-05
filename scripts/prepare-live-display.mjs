@@ -117,5 +117,10 @@ export function prepareLiveDisplay(html){
   "previousRailLeft=previousRail?.scrollLeft||0,previousSelection=previousRail?.querySelector('.league-team-tab.active')?.dataset.leagueTeam;",'remember roster selection');
  html=once(html,/if\(!rail\)return;rail\.scrollLeft=previousRailLeft;/g,
   "if(!rail)return;if(rail===previousRail&&previousSelection===String(HJ_LEAGUE_STATE.selectedTeamId))return;rail.scrollLeft=previousRailLeft;",'preserve roster selector while refreshing');
+ // Matchup deep links must not center a tall card or omit the pinned folder tabs.
+ html=once(html,/card\\.scrollIntoView\\(\\{behavior:matchMedia\\('\\(prefers-reduced-motion: reduce\\)'\\)\\.matches\\?'auto':'smooth',block:'center',inline:'center'\\}\\)/g,'hjScrollMatchupStart(card)','wire matchup landing');
+ html=once(html,/target\\.scrollIntoView\\(\\{behavior:'smooth',block:'nearest'\\}\\)/g,'hjScrollMatchupStart(target)','focused matchup landing');
+ html=once(html,/target\\.scrollIntoView\\(\\{behavior:'smooth',block:'center'\\}\\)/g,'hjScrollMatchupStart(target)','profile matchup landing');
+ html=once(html,/function hjScrollToMatchupV32\\(key\\)\\{[^]*?\\n\\}/g,`function hjScrollToMatchupV32(key){hjCenterMatchupJumpChipV32(key);hjScrollMatchupStart(key);}`,'shared matchup landing');
  return html;
 }
