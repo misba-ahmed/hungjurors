@@ -5,10 +5,10 @@ const layers=[];
 layers.push({input:await sharp('.mascot-fix/hero-logo.png').resize(450,450).toBuffer(),left:420,top:320});
 const tiny=await sharp('.mascot-fix/hero-logo.png').resize(100,100).toBuffer();layers.push({input:tiny,left:53,top:38});layers.push({input:await sharp('.mascot-fix/hero-logo.png').resize(90,90).toBuffer(),left:52,top:195});
 const names=['misba','bryan','tyler','nathan-m','wasi','cesar','nathan-t','garrett','jarrett','kat'];
-for(let i=0;i<names.length;i++){const raw=await sharp('assets/managers-v4/'+names[i]+'-standing.webp').trim({background:'#00000000',threshold:8}).resize({height:218}).toBuffer();const m=await sharp(raw).metadata();const center=i<5?67+i*100:823+(i-5)*100;layers.push({input:raw,left:Math.round(center-m.width/2),top:383});}
+for(let i=0;i<names.length;i++){const raw=await sharp('assets/managers-v4/'+names[i]+'-standing.webp').trim({background:'#00000000',threshold:8}).resize({height:201}).toBuffer();const m=await sharp(raw).metadata();const center=i<5?67+i*100:823+(i-5)*100;layers.push({input:raw,left:Math.round(center-m.width/2),top:400});}
 let score='128.43';let isExample=true;try{const d=await(await fetch('https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/2026/segments/0/leagues/1630558?view=mMatchup&view=mTeam')).json();const week=d.scoringPeriodId||4;const game=d.schedule.find(g=>g.matchupPeriodId===week&&g.home?.totalPoints>0);if(game){score=Number(game.home.totalPoints).toFixed(2);isExample=false;}}catch{}
 const bubble=Buffer.from('<svg width="115" height="53"><rect x="1" y="1" width="113" height="44" rx="22" fill="'+navy+'" stroke="'+gold+'" stroke-width="2"/><path d="M50 45 L57 52 L64 45" fill="'+navy+'"/><text x="57" y="31" text-anchor="middle" font-family="Arial" font-size="25" font-weight="bold" fill="white">'+score+'</text></svg>');
 await sharp(svg).composite(layers).png().toFile('.mascot-fix/manager-header-default.png');
-layers.push({input:bubble,left:210,top:328});
-await sharp(svg).composite(layers).png().toFile('.mascot-fix/manager-header-preview.png');
+layers.push({input:bubble,left:210,top:345});
+await sharp(svg).composite(layers).png().toFile('.mascot-fix/manager-header-preview-v2.png');
 fs.writeFileSync('.mascot-fix/mockup-note.json',JSON.stringify({score,isExample,note:'Illustrative selected-manager bubble; manager association is not wired in static mockup.'}));
