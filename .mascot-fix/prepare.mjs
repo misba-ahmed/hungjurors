@@ -6,7 +6,7 @@ const all=await sharp(raw.data,{raw:raw.info}).png().toBuffer();const panels=[];
 for(const [i,pose]of ['standing','seated'].entries()){
  const old=await sharp('assets/managers-v4/jarrett-'+pose+'.webp').ensureAlpha().raw().toBuffer({resolveWithObject:true});let l=old.info.width,t=old.info.height,r=0,b=0;for(let y=0;y<old.info.height;y++)for(let x=0;x<old.info.width;x++)if(old.data[(y*old.info.width+x)*4+3]>8){l=Math.min(l,x);r=Math.max(r,x);t=Math.min(t,y);b=Math.max(b,y);}
  const half=await sharp(all).extract({left:i*Math.floor(raw.info.width/2),top:0,width:Math.floor(raw.info.width/2),height:raw.info.height}).png().toBuffer();const crop=await sharp(half).trim({background:'#00000000',threshold:8}).png().toBuffer();
- const fit=await sharp(crop).resize({width:r-l+1,height:b-t+1,fit:'inside'}).png().toBuffer(),m=await sharp(fit).metadata();
+ const fit=await sharp(crop).resize({height:b-t+1}).png().toBuffer(),m=await sharp(fit).metadata();
  const out=await sharp({create:{width:old.info.width,height:old.info.height,channels:4,background:'#00000000'}}).composite([{input:fit,left:Math.round(l+(r-l+1-m.width)/2),top:b+1-m.height}]).webp({quality:96,alphaQuality:100}).toBuffer();
  fs.writeFileSync('.mascot-fix/jarrett-'+pose+'.webp',out);panels.push({input:await sharp(out).resize({height:600}).toBuffer(),left:i*340,top:0});
 }
