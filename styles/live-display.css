@@ -115,3 +115,20 @@ html .profile-schedule-compact .profile-schedule-h2h{
 
 /* Preview rails retain horizontal gestures at their boundaries. */
 #hq-panel-matchups :is(.hq-edge-grid,.hq-swing-rail){overscroll-behavior-x:contain}
+
+/* Hide only the pictured rail tracks; retain native overflow and all gestures. */
+html body .week1-scroll,
+html body .ffn-scroll,
+html body #league-hq #league-sync-content .league-team-rail,
+html body .mvp-week .mvp-cards{
+ scrollbar-width:none!important;
+ -ms-overflow-style:none!important;
+}
+html body .week1-scroll::-webkit-scrollbar,
+html body .ffn-scroll::-webkit-scrollbar,
+html body #league-hq #league-sync-content .league-team-rail::-webkit-scrollbar,
+html body .mvp-week .mvp-cards::-webkit-scrollbar{
+ display:none!important;width:0!important;height:0!important;
+}
+/* Tighten the news-to-HQ gap; keep section contents and sticky behavior intact. */
+html body #league-hq{padding-top:24px!important}
