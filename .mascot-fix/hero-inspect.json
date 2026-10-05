@@ -1,0 +1,31 @@
+{
+  "managers": [],
+  "hero": [],
+  "images": [
+    "<img src=\"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJQAlAMBEQACEQEDEQH/xAAcAAEAAgIDAQAAAAAAAAAAAAAABgcFCAEDBAL/xABHEAABAwICBAgKCAQFBQAAAAABAAIDBAUGEQcSITEXQVFhcYGR0hMUIjJTVZOUocFCUlSCkrHC0SNDYnIWM7Lh8BUkJWSi/8QAHAEBAAEFAQEAAAAAAAAAAAAAAAQBAgMGBwUI/8QAPBEAA",
+    "<img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAYAAAA5ZDbSAAAlO0lEQVR42u19e5xkVXXut/Y59ezXPHqGnhkQUBkRCKLi+wUXjYgKJjqgIb6iN5proomaGPHqMHrNNTHmaTQxwagYMQPXRxI1akyPV8BBh4c6BB2VgWG6q6qrqrvqnDrvs/eXP86p7uqeHpjh5QC1fr/6dfWpffZr7bX2Wt/ee21gSEMa0pCGNKQhDWlIQxrSkIY0pCENaUhDGtKQhvRgEklF7rSGPfHwZK619H2nRVKGvfKwkVoqAPA6s2fHXuvpg4we9tBDl7FC0u7/H7r1dyTRPGlcBl7jg9PT03aezh5K80ONsTnzACAI6o+O/LkvkWTg1uPArTskGQWt73id2lMH3hsy+thXxUuMnZmZqYZ+851x0F",
+    "<img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAABACAYAAABGHBTIAAAOtklEQVR4nMWbebTd0xXHP3dKYoxUDEVMFcdU1NTG0J82SAwVJe2hirasmkWXiqmGGopFtVWtFqFRxc88LbNyFlKJKVXEoSiCJGKIJCR5d+gfe593z/u9333vvuSFs9Zv3Xd/9wx777P3dw/nPPgSmk+Tok+T0pex9hfeYkZ9mpR8mhS+THqWWtNdLerf2/g0+Vb02xe220tdurqDJWNdVb+fAFysP/8GONNYV/VpUgZqxrrG0qRnqTGcw+j6wCXAGKADWACsADwBnGCsm6L9lirj/c6wqm0xYnRZ4CjgNGAl4FXgMOADYAKwPdAAfgdcZKyboePKQN1YV+9P+vqF4cAkEYE+TZYHfgQcD2ysXS8FzjLWfa",
+    "<img class=\"logo\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAjAAAAIwCAYAAACY8VFvAAEAAElEQVR42uydd4AlVZX/v+fcqvc6TQRmGLIEgQFJAwgIDipJFiToGwMgKgqGxbjuur8NTW9eXXVdIyggCoo8FUVFFBFaEEkDklqQODAwuXs6vVBV95zfH7fqvXrdPXmmhxnvZ/c5TfcL9apu3fu9JwIej8fj8Xg8Ho/H4/F4PB6Px+PxeDwej8fj8Xg8Ho/H4/F4PB6Px+PxeDwej8fj8Xg8Ho/H4/F4PB6Px+PxeDwej8fj8Xg8Ho/H4/F4PB6Px+PxeDwej8fj8Xg8Ho/H4/F4PB6Px+PxeDwej8fj8Xg8Ho/H4/F4PB6Px+PxeDwej8fj8Xg8Ho/H4/F4PB6Px+PxeDwej8fj8Xg8H",
+    "<img class=\"av ${cls} manager-profile-avatar\" data-manager=\"${esc(s)}\" src=\"data:image/png;base64,${AV[s] || AV_DEFAULT}\" alt=\"\" title=\"Open ${esc(s)} profile\">",
+    "<img class=\"paid-logo\" src=\"data:image/png;base64,${VENMO_V}\" alt=\"\" title=\"Paid by Venmo\">",
+    "<img class=\"depth-headshot\" src=\"${esc(p.headshot)}\" alt=\"\" loading=\"lazy\">",
+    "<img src=\"${nflLogo(team[1])}\" alt=\"\">",
+    "<img src=\"${nflLogo(team[1])}\" alt=\"\">",
+    "<img src=\"${nflLogo(team[1])}\" alt=\"\" loading=\"lazy\">",
+    "<img src=\"${esc(photo)}\" alt=\"\" loading=\"lazy\" onerror=\"ffnImageFallback(this)\">",
+    "<img class=\"ffn-headshot\" src=\"${esc(photo)}\" alt=\"\" loading=\"lazy\" onerror=\"ffnImageFallback(this)\">",
+    "<img class=\"ffn-team-logo\" src=\"${esc(logo)}\" alt=\"\" onerror=\"ffnImageFallback(this)\">",
+    "<img class=\"pc-matchup-logo\" src=\"${esc(upcoming.logo)}\" alt=\"\">",
+    "<img src=\"${esc(photo)}\" alt=\"\" loading=\"lazy\">",
+    "<img class=\"pc-matchup-logo\" src=\"${esc(upcoming.logo)}\" alt=\"\">",
+    "<img class=\"pc-headshot${isDefense?' pc-dst-logo':''}\" src=\"${esc(photo)}\" alt=\"\">",
+    "<img class=\"pc-team-badge\" src=\"${esc(teamLogo)}\" alt=\"\">",
+    "<img src=\"${esc(photo)}\" alt=\"\" loading=\"lazy\" onerror=\"ffnImageFallback(this)\">",
+    "<img class=\"league-player-photo${position==='D/ST'?' is-defense':''}\" src=\"${esc(photo)}\" alt=\"\" loading=\"lazy\" onerror=\"ffnImageFallback(this)\">",
+    "<img class=\"hj-business-logo\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAjAAAAIwCAYAAACY8VFvAAEAAElEQVR42uydd4AlVZX/v+fcqvc6TQRmGLIEgQFJAwgIDipJFiToGwMgKgqGxbjuur8NTW9eXXVdIyggCoo8FUVFFBFaEEkDklqQODAwuXs6vVBV95zfH7fqvXrdPXmmhxnvZ/c5TfcL9apu3fu9JwIej8fj8Xg8Ho/H4/F4PB6Px+PxeDwej8fj8Xg8Ho/H4/F4PB6Px+PxeDwej8fj8Xg8Ho/H4/F4PB6Px+PxeDwej8fj8Xg8Ho/H4/F4PB6Px+PxeDwej8fj8Xg8Ho/H4/F4PB6Px+PxeDwej8fj8Xg8Ho/H4/F4PB6Px+PxeDwej8fj8Xg8Ho/H4/F4PB6Px+Pxe",
+    "<img src=\"${esc(photo)}\" alt=\"\" loading=\"lazy\" onerror=\"ffnImageFallback(this)\">",
+    "<img class=\"${player.position==='D/ST'?'is-defense':''}\" src=\"${esc(player.photo)}\" alt=\"\" loading=\"lazy\" onerror=\"ffnImageFallback(this)\">",
+    "<img src=\"${esc(player.photo)}\" alt=\"\" loading=\"lazy\" onerror=\"ffnImageFallback(this)\">",
+    "<img class=\"dues-payment-logo\" src=\"data:image/png;base64,${VENMO_V}\" alt=\"\" title=\"Paid by Venmo\">"
+  ]
+}
