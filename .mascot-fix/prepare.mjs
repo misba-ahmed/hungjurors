@@ -1,3 +1,3 @@
-import fs from'node:fs';
-const rows=JSON.parse(fs.readFileSync('.mascot-fix/roster-diagnostic.json','utf8'));
-fs.writeFileSync('.mascot-fix/roster-summary.json',JSON.stringify(rows.map(d=>({view:d.view,status:d.status,period:d.period,teams:d.teams?.map(t=>({id:t.id,entries:t.entries,firstId:t.first?.playerId,slot:t.first?.lineupSlotId})),games:d.games?.map(g=>({id:g.id,homeKeys:Object.keys(g.home),awayKeys:Object.keys(g.away),homeRosters:Object.fromEntries(Object.entries(g.home).filter(([k])=>/roster/i.test(k)).map(([k,v])=>[k,{keys:Object.keys(v||{}),entries:v?.entries?.length}])),awayRosters:Object.fromEntries(Object.entries(g.away).filter(([k])=>/roster/i.test(k)).map(([k,v])=>[k,{keys:Object.keys(v||{}),entries:v?.entries?.length}]))}))}))));
+import fs from'node:fs';import{execFileSync}from'node:child_process';
+execFileSync('git',['fetch','origin','main']);execFileSync('git',['worktree','add','--detach','/tmp/roster-fix','origin/main']);
+fs.copyFileSync('.mascot-fix/refresh-matchup-history.mjs','/tmp/roster-fix/refresh.mjs');execFileSync('node',['refresh.mjs'],{cwd:'/tmp/roster-fix',stdio:'inherit'});fs.copyFileSync('/tmp/roster-fix/data/matchup-history.json','.mascot-fix/verified-matchup-history.json');
