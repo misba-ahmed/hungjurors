@@ -18,9 +18,9 @@ Read this before changing any top-carousel card. Derived from the existing Wire 
 ## Explicitly approved This Week exceptions
 - One carousel slide can contain three independent banners, with thin page-background gaps. No shared white outer container and no internal separators.
 - Desktop panels are side by side; mobile panels stack. All panels within the group are equal-sized, and the WHOLE group must occupy exactly the same viewport height as an ordinary carousel card. Content scrolls within the cards instead of expanding the group. This supersedes the initial tall mobile stack.
-- BYE title: “Teams on BYE this week”. Horizontal team logos first. All owned players in a scrollable compact list; manager name directly below player name. No owner column.
+- BYE title: “Teams on BYE this week”. Horizontal team logos first. Keep team names visible on mobile beside their logos; retain the existing desktop logo/name arrangement. All owned players in a scrollable compact list; manager name directly below player name. No owner column.
 - LMS headline: “Eliminations start this week!” No explanatory paragraph beneath it.
-- All card category labels stay at the top left with identical padding. Titles, date, logos and action text share a left edge. Countdown numbers remain centered within their units.
+- All card category labels stay at the top left with identical padding. Titles, date and logos share a left edge. On mobile, the waiver and LMS footer text links are centered, per the annotated screenshot; desktop action alignment remains unchanged. Countdown numbers remain centered within their units.
 - Priority actions are plain text links with arrows, never large pill buttons. Compact waiver title-to-date gap is 3px; countdown and action gaps are 3–4px. Mobile BYE players use one column per NFL team, directly beneath the matching team logo, with manager subtext, scrolling within the card. Avoid split-column waiver and LMS layouts.
 - Existing automatic waiver deadline, validated season schedule and Week 5 milestone control visibility.
 

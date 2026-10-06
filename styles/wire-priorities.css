@@ -58,14 +58,15 @@
  #wire-scroll .wp-panel .wc-title{font-size:14px!important;line-height:1.1!important;margin:0 24px 3px 0!important;text-align:left!important}
  #wire-scroll .wp-panel p{font-size:9px;line-height:1.2;margin:0}
  #wire-scroll .wp-panel .wc-expand{width:24px;height:24px;top:6px;right:6px;font-size:11px}
- #wire-scroll .wp-action{margin-top:3px;line-height:1}
+ #wire-scroll .wp-action{margin-top:3px;line-height:1;text-align:center}
  #wire-scroll .wp-button{font-size:8px;line-height:1.2;min-height:0;padding:1px 0;border:0;background:none}
  #wire-scroll .wp-panel .wc-count{margin:4px 0 0;gap:4px;max-width:240px}
  #wire-scroll .wp-panel .wc-count .n{font-size:16px!important;line-height:1.1!important;min-height:0!important;height:auto!important;padding:1px 0!important;border-bottom-width:2px}
  #wire-scroll .wp-panel .wc-count .l{font-size:5.5px!important;letter-spacing:0!important;line-height:1.2!important;margin-top:1px}
  #wire-scroll .wp-bye-logos{margin:0 0 3px;gap:8px;justify-content:stretch}
  #wire-scroll .wp-bye-logos img{width:22px;height:16px}
- #wire-scroll .wp-bye-logos span{display:none}
+ #wire-scroll .wp-bye-logos>div{flex-direction:row;align-items:center;gap:5px}
+ #wire-scroll .wp-bye-logos span{display:block;font-size:10px}
  #wire-scroll .wp-byes .wp-action{display:none}
  #wire-scroll .wp-bye-list{display:grid;grid-template-columns:repeat(var(--wp-teams,2),minmax(0,1fr));align-content:start;gap:3px 8px;min-height:25px}
  #wire-scroll .wp-person{padding:0 0 3px;min-width:0}
