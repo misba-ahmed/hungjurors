@@ -1,0 +1,181 @@
+import {prepareCardGestures} from './prepare-card-gestures.mjs';
+import {prepareManagerAvatars} from './prepare-manager-avatars.mjs';
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {dirname,join} from 'node:path';
+import {extractSiteArtwork} from './site-artwork.mjs';
+import {readFileSync} from 'node:fs';
+import {prepareDefenseFantasyRanks} from './prepare-defense-fantasy-ranks.mjs';
+import {preparePlayerStatBars} from './prepare-player-stat-bars.mjs';
+import {prepareLiveDisplay} from './prepare-live-display.mjs';
+const playerSearch=readFileSync(new URL('./player-search.js',import.meta.url),'utf8');
+const playerNews=readFileSync(new URL('./player-news.js',import.meta.url),'utf8');
+const recapLoader=readFileSync(new URL('./recap-loader.js',import.meta.url),'utf8');
+const wireInteraction=readFileSync(new URL('./wire-interaction.js',import.meta.url),'utf8');
+const newsSpin=readFileSync(new URL('./news-spin.js',import.meta.url),'utf8');
+const recordEngine=readFileSync(new URL('./record-book-engine.js',import.meta.url),'utf8');
+const recordLive=readFileSync(new URL('./record-book-live.js',import.meta.url),'utf8');
+const directLinks=readFileSync(new URL('./direct-links.js',import.meta.url),'utf8');
+const bannerRenderers=readFileSync(new URL('./banner-renderers.js',import.meta.url),'utf8');
+const projectionSummary=readFileSync(new URL('./projection-summary.js',import.meta.url),'utf8');
+const matchupHistorySeed=readFileSync(new URL('../data/matchup-history.json',import.meta.url),'utf8').replaceAll('<','\\u003c');
+const matchupHistory=readFileSync(new URL('./matchup-history.js',import.meta.url),'utf8');
+const matchupWeek=readFileSync(new URL('./matchup-week.js',import.meta.url),'utf8');
+const wirePriorities=readFileSync(new URL('./wire-priorities.js',import.meta.url),'utf8');
+const wireLive=readFileSync(new URL('./wire-live.js',import.meta.url),'utf8');
+const layoutGuard=readFileSync(new URL('./layout-guard.js',import.meta.url),'utf8');
+const recapScript=readFileSync(new URL('./recap-live.js',import.meta.url),'utf8');
+const standingsScript=readFileSync(new URL('./standings-live.js',import.meta.url),'utf8');
+const playerValue=readFileSync(new URL('./player-value.js',import.meta.url),'utf8');
+const tradeDesk=readFileSync(new URL('./trade-desk.js',import.meta.url),'utf8');
+const byeStatus=readFileSync(new URL('./bye-status.js',import.meta.url),'utf8');
+const teamPhotoScript=readFileSync(new URL('./team-photos.js',import.meta.url),'utf8');
+const teamPhotoAssets=readFileSync(new URL('../assets/team-photos/catalog.json',import.meta.url),'utf8');
+const dstMascots=readFileSync(new URL('../assets/team-photos/mascots.json',import.meta.url),'utf8');
+const sideBets=readFileSync(new URL('./side-bets.js',import.meta.url),'utf8');
+const challengeScripts=['challenge-engine.js','challenge-live.js'].map(file=>readFileSync(new URL(file,import.meta.url),'utf8')).join('\n');
+function replaceOnce(html,pattern,replacement){
+ if([...html.matchAll(pattern)].length!==1)throw Error('Source markup changed; review site preparation');
+ return html.replace(pattern,()=>replacement);
+}
+const folderArtwork=readFileSync(new URL('./folder-artwork.js',import.meta.url),'utf8');
+export function prepareSite(html){
+ html=replaceOnce(html,/<script id="hj-folder-stack-script">[^]*?<\/script>/g,
+  '<script id="hj-folder-stack-script">'+folderArtwork+'</script>');
+ html=html.replace("ctx.putImageData(pixels,0,0);folderURL=canvas.toDataURL('image/png');",
+  "ctx.putImageData(pixels,0,0);folderURL=canvas.toDataURL('image/png');canvas.width=canvas.height=0;");
+ html=prepareCardGestures(html);
+ html=preparePlayerStatBars(html);
+ html=prepareDefenseFantasyRanks(html);
+ html=extractSiteArtwork(html).html;
+ // Use real PNG files, with fresh URLs so failed icon requests are not reused.
+ html=replaceOnce(html,/<link rel="apple-touch-icon"[^>]*>/g,'<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-hung-jurors-v2.png">');
+ html=replaceOnce(html,/<link rel="icon" type="image\/png" sizes="192x192"[^>]*>/g,'<link rel="icon" type="image/png" sizes="192x192" href="/hung-jurors-icon-192-v2.png">');
+ html=replaceOnce(html,/<link rel="icon" type="image\/png" sizes="512x512"[^>]*>/g,'<link rel="icon" type="image/png" sizes="512x512" href="/hung-jurors-icon-512-v2.png">');
+ html=replaceOnce(html,/<link rel="manifest"[^>]*>/g,'<link rel="manifest" href="/site.webmanifest?v=hung-jurors-logo-v2">');
+
+ // Completed postseason matchups (including weeks with byes) can also carry record announcements.
+ html=replaceOnce(html,/for\(const game of data\?\.schedule\|\|\[\]\)\{if\(!hjGameFinal\(game,data\)\)continue;/g,'for(const game of data?.schedule||[]){if(!hjRcGameFinal(game,data))continue;');
+ html=replaceOnce(html,/if\(games\.length<Math\.floor\(teamNames\.size\/2\)\)return \[\];const rows=\[\];/g,'const scheduled=(data.schedule||[]).filter(g=>Number(g.matchupPeriodId)===week&&g.home?.teamId&&g.away?.teamId);if(games.length!==scheduled.length)return [];const rows=[];');
+ // Stable destinations for every entry in the record book.
+ html=replaceOnce(html,/\{title:'Most Championships',/g,"{id:'most-championships',title:'Most Championships',");
+ html=replaceOnce(html,/\{title:'Most Regular-Season Wins',/g,"{id:'most-regular-season-wins',title:'Most Regular-Season Wins',");
+ html=replaceOnce(html,/\{title:'Most Playoff Appearances',/g,"{id:'most-playoff-appearances',title:'Most Playoff Appearances',");
+ html=replaceOnce(html,/\{title:'Most Podium Finishes',/g,"{id:'most-podium-finishes',title:'Most Podium Finishes',");
+ html=replaceOnce(html,/\{title:'Best Regular Season',/g,"{id:'best-regular-season',title:'Best Regular Season',");
+ html=replaceOnce(html,/\{title:'Best Weekly Scoring Season',/g,"{id:'best-weekly-scoring-season',title:'Best Weekly Scoring Season',");
+ html=replaceOnce(html,/\{title:'Longest Winning Streak',/g,"{id:'longest-winning-streak',title:'Longest Winning Streak',");
+ html=replaceOnce(html,/\{title:'Longest Losing Streak',/g,"{id:'longest-losing-streak',title:'Longest Losing Streak',");
+ html=replaceOnce(html,/\{title:'Highest Score',/g,"{id:'highest-score',title:'Highest Score',");
+ html=replaceOnce(html,/\{title:'Highest Score in a Loss',/g,"{id:'highest-score-in-a-loss',title:'Highest Score in a Loss',");
+ html=replaceOnce(html,/\{title:'Lowest Score in a Win',/g,"{id:'lowest-score-in-a-win',title:'Lowest Score in a Win',");
+ html=replaceOnce(html,/\{title:'Closest Game',/g,"{id:'closest-game',title:'Closest Game',");
+ html=replaceOnce(html,/\{title:'Biggest Blowout',/g,"{id:'biggest-blowout',title:'Biggest Blowout',");
+ html=replaceOnce(html,/\{title:'Highest Combined Score',/g,"{id:'highest-combined-score',title:'Highest Combined Score',");
+ html=replaceOnce(html,/\{title:'Highest Playoff Score',/g,"{id:'highest-playoff-score',title:'Highest Playoff Score',");
+ html=replaceOnce(html,/\{title:'Highest Combined Playoff Game',/g,"{id:'highest-combined-playoff-game',title:'Highest Combined Playoff Game',");
+ html=replaceOnce(html,/\{title:'Closest Championship',/g,"{id:'closest-championship',title:'Closest Championship',");
+ html=replaceOnce(html,/\{title:'Biggest Championship Win',/g,"{id:'biggest-championship-win',title:'Biggest Championship Win',");
+ html=replaceOnce(html,/<article class="rb-entry">/g,'<article class="rb-entry" id="record-${r.id}" tabindex="-1">');
+ // Every version of the Players toolbar shares the same search control.
+ const searchInputs=/<input class="hq-fa-control" id="hq-fa-search"[^>]*>/g;
+ if([...html.matchAll(searchInputs)].length!==3)throw Error('Player search markup changed');
+ html=html.replace(searchInputs,input=>'<span class="hj-player-search">'+input+'<button type="button" class="hj-player-search-clear" data-hj-search-clear aria-label="Clear player search"${HJ_HQ_STATE.query?\'\':\' hidden\'}>×</button></span>');
+ html=replaceOnce(html,/function pcOpen\(trigger\)\{/g,'function pcOpen(trigger){\n  window.hjFinishPlayerSearch?.();');
+
+ html=replaceOnce(html,/function wireBuild\(data\)\{/g,"function wireBuild(data){\n  if(!data)return {cards:[{section:'loading',html:'<div class=\"wire-loading\" role=\"status\">Loading league updates…</div>'}],headline:{eyebrow:'',title:'',sub:'',kicker:'The Wire',live:false}};");
+ html=replaceOnce(html,/function wireCloseExpanded\(\)\{/g,wireInteraction+"\nfunction wireCloseExpanded(){");
+ html=replaceOnce(html,/  stage.append\(clone,close\);overlay.append\(stage\);/g,"  wireBindCollapse(clone);\n  stage.append(clone,close);overlay.append(stage);");
+
+ html=replaceOnce(html,/function ffnFeedToItem\(feed,player,nextGame\){/g,newsSpin+'\nfunction ffnFeedToItem(feed,player,nextGame){');
+ html=replaceOnce(html,/    text:body,\n    category:ffnClassify\(body\),/g,'    text:body,\n    spin:ffnSpinFromFeed(feed),\n    category:ffnClassify(body),');
+ html=replaceOnce(html,/      <p class="ffn-text">\$\{esc\(item.text\|\|''\)\}<\/p>/g,"      <p class=\"ffn-text\">${esc(item.text||'')}</p>\n      ${ffnSpinHTML(item)}");
+ html=replaceOnce(html,/        const existingIds=new Set\(ffnItems.map/g,'        ffnMergeSpin(fetched);\n        const existingIds=new Set(ffnItems.map');
+
+ // Profile news uses the same parsed Spin and disclosure as the news rail.
+ html=replaceOnce(html,/function pcNewsBody\(updates,loading=false\)\{[^]*?(?=function pcLatestNews)/g,playerNews);
+ html=replaceOnce(html,/pcNewsForPlayer\(player,\[\.\.\.ffnItems,\.\.\.fetched\]\)/g,'pcNewsForPlayer(player,[...fetched,...ffnItems])');
+
+ // Reuse the record book's existing markup with recalculated categories.
+ const recordPattern=/  \/\* League Record Book \*\/[^]*?(?=  let activeRecordCategory=)/g;
+ const originalRecord=html.match(recordPattern);
+ if(originalRecord?.length!==1)throw Error('Record book source changed');
+ const source=originalRecord[0],helperStart=source.indexOf('  const rbPersonHTML='),categoryStart=source.indexOf('  const categories=');
+ if(helperStart<0||categoryStart<0)throw Error('Record helpers changed');
+ const helpers=source.slice(helperStart,categoryStart);
+ let calculation=source.slice(0,helperStart)+source.slice(categoryStart);
+ calculation=calculation.replace('  const categories={','  return {')
+  .replace('const R=HIST.record_book;','const R=HIST.record_book;\n  const careerByName=Object.fromEntries(HIST.career_profiles.map(c=>[c.manager,c]));')
+  .replace("round:'Semifinal'","round:g.round||'Semifinal'")
+  .replace(/  const txAllRows=[^\n]+\n/,'')
+  .replace('    const g=p.championship;','    const g=p.championship;if(!g)return false;')
+  .replace('${playoffHigh.year} Championship','${playoffHigh.year} ${playoffHigh.round?playoffHigh.round[0].toUpperCase()+playoffHigh.round.slice(1):\'Championship\'}')
+  .replace('${R.regular_season.best_single_season_win_pct.losses}','${R.regular_season.best_single_season_win_pct.losses}${R.regular_season.best_single_season_win_pct.ties?\'–\'+R.regular_season.best_single_season_win_pct.ties:\'\'}');
+ html=replaceOnce(html,recordPattern,helpers+'  const recordCategories=HIST=>{\n'+calculation+'  };\n  let categories=recordCategories(HIST);\n');
+ html=replaceOnce(html,/  renderRecords\(\);\n  tabs\?\.addEventListener/g,
+  "  renderRecords();\n  document.addEventListener('hj:records',event=>{categories=recordCategories(event.detail);renderRecords();});\n  tabs?.addEventListener");
+ // Season Challenges header: sticky two-line tab rail, then the challenge title, prize stamp and rules card.
+ html=replaceOnce(html,/    <div class="sec-head"><h3>Season Challenges<\/h3><span class="pot" id="challenge-prize-badge">\$30<\/span><\/div>\n    <div class="tabs" id="challenge-strip" role="tablist" aria-label="Season Challenges"><\/div>\n    <div class="rules" id="challenge-rule"><\/div>\n/g,
+  '    <div class="sec-head"><h3>Season Challenges</h3></div>\n    <div class="ch-top" id="challenge-top"><div class="ch-rail" id="challenge-strip" role="tablist" aria-label="Season Challenges"></div></div>\n    <div class="ch-card" id="challenge-card"><div class="ch-card-head"><h4 class="ch-title" id="challenge-title"></h4><span class="ch-stamp" id="challenge-prize-badge" aria-label="Prize">$30</span></div><p class="ch-rules" id="challenge-rule"></p><button type="button" class="ch-rules-toggle" id="challenge-rules-toggle" aria-expanded="false" aria-controls="challenge-rule">Full rules</button></div>\n');
+ // Top bar: "Side Challenges" with the six menu items in the requested order and wording.
+ html=replaceOnce(html,/Season Challenges <span class="nav-caret">▼<\/span>/g,'Side Challenges <span class="nav-caret">▼</span>');
+ html=replaceOnce(html,/<div id="challenge-menu" class="challenge-menu" role="menu" aria-label="Season Challenges" hidden>[^]*?<\/div>\n/g,
+  `<div id="challenge-menu" class="challenge-menu" role="menu" aria-label="Side Challenges" hidden>
+  <button type="button" role="menuitem" data-challenge="raffle"><span>High Score Raffle</span><span class="menu-prize">$30</span></button>
+  <button type="button" role="menuitem" data-challenge="lms"><span>Last Man Standing</span><span class="menu-prize">$30</span></button>
+  <button type="button" role="menuitem" data-challenge="titty"><span>Titty Special</span><span class="menu-prize">$10</span></button>
+  <button type="button" role="menuitem" data-challenge="mvp"><span>MVP Special</span><span class="menu-prize">$10</span></button>
+  <button type="button" role="menuitem" data-challenge="overachiever"><span>Overachiever Special</span><span class="menu-prize">$10</span></button>
+  <button type="button" role="menuitem" data-challenge="optimizer"><span>Optimizer Special</span><span class="menu-prize">$10</span></button>
+</div>
+`);
+ // League HQ · Weekly Recap: graphic week review with play-by-play win-chance and elimination factoids.
+ html=replaceOnce(html,/function hjRecapHTML\(data\)\{[^]*?\n\}\n(?=async function hjRecapLoadExtra)/g,recapScript+'\n');
+ // Inject loader helpers after the legacy recap block has been replaced.
+ html=replaceOnce(html,/async function hjRecapLoadExtra\(chosen\)\{[^]*?(?=function hjRecapTransactionTime)/g,recapLoader);
+ // 2026 Standings: the compact light table replaces the old dark lane dashboard (same buildStandingsAnalytics inputs).
+ html=replaceOnce(html,/function standingsModeMetric\(p,mode\)\{[^]*?(?=\/\* ---- 2026 interactive league schedule ---- \*\/)/g,standingsScript+'\n');
+ html=replaceOnce(html,/function renderRaffleChallenge\(out\)\{[^]*?(?=\/\* ---- Season Challenges nav dropdown ---- \*\/)/g,challengeScripts+'\n');
+ const old='Date.now()-at<60*60*1000&&data.updated';
+ if(html.split(old).length!==2)throw Error('Projection freshness setting changed; review site preparation');
+ html=replaceOnce(html,/^  cards\.push\(\{section,html:wireCard\(\{kicker:`Week \$\{week\} Recap`[^\n]+$/gm,
+  '  cards.push({section,html:wireCard({kicker:`Week ${week} Recap`,tag:\'Final\',cls:\'is-lead is-week-recap\',body:wireRecapSummary(week,results,high,low,close,blow,avg,under10)})});');
+ html=replaceOnce(html,/^ const sideHTML=\(side,right=false\)=>[^\n]+$/gm,
+  ' const sideHTML=(side,right=false)=>wireSummarySide(side,right);');
+ html=replaceOnce(html,/function wireRecapCards\(data,week\)\{/g,bannerRenderers+'\nfunction wireRecapCards(data,week){');
+ html=replaceOnce(html,/function pcSeasonProjectionHTML\([^]*?\n}\n(?=async function pcRenderVegas)/g,projectionSummary+'\n');
+ html=replaceOnce(html,/  const label=`Week \$\{week\}`,panel=pcVegasPanel[^]*?(?=\n };\n for\(const kind of \['weekly','season'\])/g,
+  "  target.classList.add('pc-weekly-summary');\n  target.innerHTML=pcProjectionSummaryHTML(player,data,row,state.espn,!state.done.has(kind),'week',week);");
+ // Game status lines read FINAL in caps everywhere.
+ html=replaceOnce(html,/`Final \$\{result\}`/g,'`FINAL ${result}`');
+ html=replaceOnce(html,/<b>\$\{past\?'Final':winChance===null\?'Unavailable':'Est\. win chance'\}<\/b>/g,"<b>${past?'FINAL':winChance===null?'Unavailable':'Est. win chance'}</b>");
+ // The roster manager rail follows the same live standings rank shown on each note.
+ const oldManagerOrder="const teams=[...(data.teams||[])].sort((a,b)=>(Number(a.draftDayProjectedRank)||99)-(Number(b.draftDayProjectedRank)||99)||Number(a.id)-Number(b.id));";
+ if(html.split(oldManagerOrder).length!==2)throw Error('Manager order source changed');
+ html=html.replace(oldManagerOrder,"const teams=[...(data.teams||[])].sort((a,b)=>(hjCurrentStandingRank(a,data)||Infinity)-(hjCurrentStandingRank(b,data)||Infinity)||Number(a.id)-Number(b.id));");
+ html=replaceOnce(html,/if\(!upcoming\)return \{game:'Schedule unavailable',stats:'',title\};/g,"if(!upcoming)return {game:hjTeamOnBye(player.team,week)?'BYE':'Schedule unavailable',stats:'',title:hjTeamOnBye(player.team,week)?'Bye week':title};");
+ html=replaceOnce(html,/const upcoming=pcUpcoming\(team\);if\(!upcoming\)return 'Next game TBD';/g,"const upcoming=pcUpcoming(team);if(!upcoming)return hjTeamOnBye(team)?'BYE':'Next game TBD';");
+ html=replaceOnce(html,/function hjScheduleWeekSource\(data,week\)\{[^]*?\n\}\n(?=function hjScheduleManagerName)/g,'');
+ html=replaceOnce(html,/async function hjEnsureCompletedHistory\(data\)\{[^]*?(?=function hjOpponentHTML)/g,'const HJ_MATCHUP_HISTORY_SEED='+matchupHistorySeed+';\n'+matchupHistory+'\n');
+ // Only Matchups' default selection rolls over on Wednesday; explicit week links retain their destination.
+ html=replaceOnce(html,/function hjCurrentWeek\(data=HJ_LEAGUE_STATE.data\)/g,matchupWeek+'\nfunction hjCurrentWeek(data=HJ_LEAGUE_STATE.data)');
+ html=html.replaceAll('HJ_HQ_STATE.matchupWeek||hjCurrentWeek(', 'HJ_HQ_STATE.matchupWeek||hjDefaultMatchupWeek(');
+ html=replaceOnce(html,/if\(!HJ_HQ_STATE.matchupWeek\|\|Number\(HJ_HQ_STATE.matchupWeek\)===old\)HJ_HQ_STATE.matchupWeek=week;/g,'if(!HJ_HQ_STATE.matchupWeek||Number(HJ_HQ_STATE.matchupWeek)===old)HJ_HQ_STATE.matchupWeek=0;');
+ html=replaceOnce(html,/if\(tab==='matchups'&&focusTeamId\)\{HJ_HQ_STATE.matchupWeek=hjCurrentWeek\(HJ_LEAGUE_STATE.data\);/g,"if(tab==='matchups'&&focusTeamId){HJ_HQ_STATE.matchupWeek=0;");
+ html=prepareLiveDisplay(html);
+ html=replaceOnce(html,/function hjTeamViewHTML\(team,data\)\{/g,'const HJ_DST_MASCOTS='+dstMascots+';\nconst HJ_TEAM_PHOTO_ASSETS='+teamPhotoAssets+';\n'+byeStatus+'\n'+teamPhotoScript+'\nfunction hjTeamViewHTML(team,data){');
+ const rosterHead='<div class="league-roster-head">${identity}${matchupHTML}</div>';
+ if(!html.includes(rosterHead))throw Error('Roster header changed');
+ html=html.split(rosterHead).join('<div class="league-roster-head">${identity}${hjTeamPhotoHTML(team)}${matchupHTML}</div>');
+
+ // Hosted Vegas projections stay visible for 36 hours after the last verified retrieval so a collector hiccup never blanks the site.
+ if(!/<\/body>\s*<\/html>\s*$/.test(html))throw Error('Page end changed; review layout guard injection');
+ return prepareManagerAvatars(html.replace(old,'Date.now()-at<36*60*60*1000&&data.updated')
+  .replace('</head>','<link rel="stylesheet" href="/styles/wire-priorities.css?v=20261006c">\n<link rel="stylesheet" href="/styles/player-stat-bars.css?v=20260929-stable2">\n<link rel="stylesheet" href="/styles/team-photos.css?v=20260929-gold7">\n<link rel="stylesheet" href="/styles/player-search.css?v=20260924a">\n<link rel="stylesheet" href="/styles/wire-interaction.css?v=20260923b">\n<link rel="stylesheet" href="/styles/news-spin.css?v=20260924a">\n<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20261005-lms-layout">\n<link rel="stylesheet" href="/styles/standings.css?v=20260918-a1">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20261005-avatar-crop">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3"><link rel="stylesheet" href="/styles/player-value.css?v=20260923-a3">\n<link rel="stylesheet" href="/styles/trade-desk.css?v=20260929-lineup-spacing4">\n<link rel="stylesheet" href="/styles/side-bets.css?v=20260924f">\n<link rel="stylesheet" href="/styles/live-display.css?v=20260930a">\n</head>')
+  .replace(/<\/body>\s*<\/html>\s*$/,()=>'<script id="hj-player-search">'+playerSearch+'</script>\n<script>ffnInstallSpin();</script>\n<script id="hj-record-engine">'+recordEngine+'</script>\n<script id="hj-record-live">'+recordLive+'</script>\n<script id="hj-direct-links">'+directLinks+'</script>\n<script id="hj-wire-live">'+wireLive+'</script>\n<script id="hj-wire-priorities">'+wirePriorities+'</script>\n<script id="hj-player-value">'+playerValue+'</script>\n<script id="hj-trade-desk">'+tradeDesk+'</script>\n<script id="hj-side-bets">'+sideBets+'</script>\n<script id="hj-layout-guard">'+layoutGuard+'</script>\n</body>\n</html>\n'));
+}
+if(process.argv[2]){
+ const path=process.argv[2],source=await readFile(path,'utf8'),artwork=extractSiteArtwork(source);
+ if(artwork.assets.size)await mkdir(join(dirname(path),'assets/site-art'),{recursive:true});
+ await Promise.all([...artwork.assets].map(([name,bytes])=>writeFile(join(dirname(path),name),bytes)));
+ await writeFile(path,prepareSite(source));
+}
