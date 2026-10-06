@@ -22,8 +22,8 @@
    const name=typeof PC_TEAM_NAMES!=='undefined'?(PC_TEAM_NAMES[g.team]||g.team):g.team;
    return '<div><img src="'+esc(nflLogo(g.team))+'" alt="'+esc(name)+'"><span>'+esc(name)+'</span></div>';
   }).join('')+'</div>';
-  const rows=groups.flatMap(g=>g.players).map(item=>'<div class="wp-person">'+wirePlayerHTML(item.player).replace('wc-player','wp-player').replace(/<small>[\s\S]*?<\/small>/,'<small>'+esc(item.manager)+'</small>')+'</div>').join('');
-  return logos+'<div class="wp-bye-list" tabindex="0" role="region" aria-label="Owned players on bye; scroll for all players">'+(rows||'<p>No owned players on BYE.</p>')+'</div>';
+  const columns=groups.map(g=>'<div class="wp-team-list" role="group" aria-label="'+esc(g.team)+' players">'+g.players.map(item=>'<div class="wp-person">'+wirePlayerHTML(item.player).replace('wc-player','wp-player').replace(/<small>[\s\S]*?<\/small>/,'<small>'+esc(item.manager)+'</small>')+'</div>').join('')+'</div>').join('');
+  return logos+'<div class="wp-bye-list" tabindex="0" role="region" aria-label="Owned players on bye; scroll for all players" style="--wp-teams:'+Math.max(1,groups.length)+'">'+(columns||'<p>No owned players on BYE.</p>')+'</div>';
  }
  function figures(data){
   const slugs={'NATHAN M':'nathan-m','NATHAN T':'nathan-t'};
@@ -56,7 +56,7 @@
    detail.byes=panel('byes','Week '+week+' · Lineup check','Teams on BYE this week',groupHTML(groups),'');
   }
   if(lms){
-   const body=figures(data)+'<p>The lowest-scoring remaining team is eliminated after Week 5.</p>';
+   const body=figures(data);
    const action='<button type="button" class="wp-button" data-wp-lms>View challenge →</button>';
    panels.push(panel('lms','Last Man Standing','Eliminations start this week!',body,action));
    detail.lms=panel('lms','Last Man Standing','Eliminations start this week!',body,action);
