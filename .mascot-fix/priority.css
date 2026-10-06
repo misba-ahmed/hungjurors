@@ -15,7 +15,7 @@
 #wire-scroll .wp-panel .wc-kicker,.wp-detail .wp-panel .wc-kicker{position:static!important;text-align:left!important;margin:0 32px 5px 0!important;align-self:stretch}
 #wire-scroll .wp-panel .wc-title,.wp-detail .wp-panel .wc-title{text-align:left!important;margin:0 0 3px!important}
 .wp-panel .wp-eyebrow{text-align:left!important}
-.wp-panel .wp-action{text-align:center}
+.wp-panel .wp-action{text-align:left}
 .wp-panel .wp-bye-logos{justify-content:stretch}
 .wp-panel .wc-count{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;gap:5px;margin:10px 0;flex:none}
 .wp-panel .wc-count .unit{min-width:0}
@@ -25,7 +25,7 @@
 .wp-button{display:inline-flex;align-items:center;max-width:100%;min-height:0;padding:3px 0;border:0;border-radius:0;background:transparent;color:var(--navy);text-decoration:none;font:800 11px/1.2 var(--sans);cursor:pointer}
 .wp-text-button{background:transparent;border:0;padding:3px 0;min-height:0}
 .wp-bye-logos{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px;margin:5px 0;flex:none}
-.wp-bye-logos>div{display:flex;flex-direction:row;align-items:center;gap:5px}
+.wp-bye-logos>div{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
 .wp-bye-logos img{width:34px;height:29px;object-fit:contain}
 .wp-bye-logos span{font:700 9px/1.2 var(--sans)}
 .wp-team-list{min-width:0}
@@ -58,13 +58,14 @@
  #wire-scroll .wp-panel .wc-title{font-size:14px!important;line-height:1.1!important;margin:0 24px 3px 0!important;text-align:left!important}
  #wire-scroll .wp-panel p{font-size:9px;line-height:1.2;margin:0}
  #wire-scroll .wp-panel .wc-expand{width:24px;height:24px;top:6px;right:6px;font-size:11px}
- #wire-scroll .wp-action{margin-top:3px;line-height:1}
+ #wire-scroll .wp-action{margin-top:3px;line-height:1;text-align:center}
  #wire-scroll .wp-button{font-size:8px;line-height:1.2;min-height:0;padding:1px 0;border:0;background:none}
  #wire-scroll .wp-panel .wc-count{margin:4px 0 0;gap:4px;max-width:240px}
  #wire-scroll .wp-panel .wc-count .n{font-size:16px!important;line-height:1.1!important;min-height:0!important;height:auto!important;padding:1px 0!important;border-bottom-width:2px}
  #wire-scroll .wp-panel .wc-count .l{font-size:5.5px!important;letter-spacing:0!important;line-height:1.2!important;margin-top:1px}
  #wire-scroll .wp-bye-logos{margin:0 0 3px;gap:8px;justify-content:stretch}
  #wire-scroll .wp-bye-logos img{width:22px;height:16px}
+ #wire-scroll .wp-bye-logos>div{flex-direction:row;align-items:center;gap:5px}
  #wire-scroll .wp-bye-logos span{display:block;font-size:10px}
  #wire-scroll .wp-byes .wp-action{display:none}
  #wire-scroll .wp-bye-list{display:grid;grid-template-columns:repeat(var(--wp-teams,2),minmax(0,1fr));align-content:start;gap:3px 8px;min-height:25px}
