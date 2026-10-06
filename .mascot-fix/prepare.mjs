@@ -1,5 +1,6 @@
+import ffmpeg from 'ffmpeg-static';
 import fs from 'node:fs/promises';import {execFileSync} from 'node:child_process';import sharp from 'sharp';
-execFileSync('ffmpeg',['-y','-ss','2','-i','.mascot-fix/trophy.mp4','-frames:v','1','.mascot-fix/trophy-reference.png'],{stdio:'inherit'});
+execFileSync(ffmpeg,['-y','-ss','2','-i','.mascot-fix/trophy.mp4','-frames:v','1','.mascot-fix/trophy-reference.png'],{stdio:'inherit'});
 const h=await fs.readFile('index.html','utf8'),s=h.indexOf('<div class="hero-in">'),p=h.indexOf('src="',s)+5,logo=h.slice(p,h.indexOf('"',p));
 const names=['misba','bryan','tyler','nathan-m','wasi','cesar','nathan-t','garrett','jarrett','kat'],centers=[67,167,267,367,467,823,923,1023,1123,1223];
 const layers=[{input:await sharp(Buffer.from(logo.split(',')[1],'base64')).resize(450,450).png().toBuffer(),left:420,top:0}];
