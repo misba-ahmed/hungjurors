@@ -1,6 +1,9 @@
 import fs from 'node:fs';import path from 'node:path';import {execFileSync} from 'node:child_process';
 execFileSync('git',['fetch','origin','main']);
 execFileSync('git',['worktree','add','--detach','/tmp/banner-mock','origin/main']);
+fs.copyFileSync('.mascot-fix/ship-priorities.js','/tmp/banner-mock/scripts/wire-priorities.js');
+fs.copyFileSync('.mascot-fix/ship-priorities.css','/tmp/banner-mock/styles/wire-priorities.css');
+execFileSync('node',['--test','scripts/test-wire-priorities.mjs'],{cwd:'/tmp/banner-mock',stdio:'inherit'});
 execFileSync('node',['scripts/prepare-site.mjs','index.html'],{cwd:'/tmp/banner-mock',stdio:'inherit'});
 execFileSync('npm',['install','--no-save','--package-lock=false','playwright'],{stdio:'inherit'});
 execFileSync('npx',['playwright','install','--with-deps','chromium'],{stdio:'inherit'});
@@ -13,14 +16,6 @@ await page.route('https://hungjurors.com/**',async route=>{
 });
 await page.goto('https://hungjurors.com/',{waitUntil:'domcontentloaded'});
 await page.waitForSelector('.wp-group');await page.waitForTimeout(2000);
-await page.addStyleTag({content:fs.readFileSync('.mascot-fix/two-column.css','utf8')});
-await page.evaluate(()=>{
- const card=document.querySelector('.wp-byes');
- const headers=[...card.querySelectorAll('.wp-bye-logos>div')];
- const lists=[...card.querySelectorAll('.wp-team-list')];
- headers.forEach((h,i)=>{h.classList.add('mock-team-header');lists[i]?.prepend(h)});
- card.querySelector('.wp-bye-logos')?.remove();
-});
 for(const [name,width] of [['desktop',1440],['mobile',390]]){
  await page.setViewportSize({width,height:1100});await page.evaluate(()=>{wireScrollTo(0);window.scrollTo(0,0)});await page.waitForTimeout(600);
  const bounds=await page.locator('.wp-group').boundingBox();
@@ -29,9 +24,11 @@ for(const [name,width] of [['desktop',1440],['mobile',390]]){
  fs.writeFileSync('.mascot-fix/two-column-layout-'+name+'.json',JSON.stringify(await page.locator('.wp-group .wp-panel').evaluateAll(nodes=>nodes.map(n=>({kind:n.dataset.wpCard,height:n.clientHeight,scrollHeight:n.scrollHeight,width:n.clientWidth,scrollWidth:n.scrollWidth})))));
 }
 await browser.close();
+execFileSync('npx',['playwright','install','--with-deps','webkit'],{stdio:'inherit'});
+execFileSync('ln',['-s',process.cwd()+'/node_modules','/tmp/banner-mock/node_modules']);
+execFileSync('xvfb-run',['-a','node','scripts/test-card-gestures.mjs'],{cwd:'/tmp/banner-mock',stdio:'inherit'});
+
 
 // Mirrored right roster preview.
 
 // Mobile structured preview.
-
-// Navy inset palette mockups.
