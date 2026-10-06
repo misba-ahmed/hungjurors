@@ -1,1 +1,9 @@
-import {execFileSync} from 'node:child_process';execFileSync('ffmpeg',['-y','-ss','2','-i','.mascot-fix/trophy.mp4','-frames:v','1','.mascot-fix/trophy-reference.png'],{stdio:'inherit'});
+import fs from 'node:fs/promises';import {execFileSync} from 'node:child_process';import sharp from 'sharp';
+execFileSync('ffmpeg',['-y','-ss','2','-i','.mascot-fix/trophy.mp4','-frames:v','1','.mascot-fix/trophy-reference.png'],{stdio:'inherit'});
+const h=await fs.readFile('index.html','utf8'),s=h.indexOf('<div class="hero-in">'),p=h.indexOf('src="',s)+5,logo=h.slice(p,h.indexOf('"',p));
+const names=['misba','bryan','tyler','nathan-m','wasi','cesar','nathan-t','garrett','jarrett','kat'],centers=[67,167,267,367,467,823,923,1023,1123,1223];
+const layers=[{input:await sharp(Buffer.from(logo.split(',')[1],'base64')).resize(450,450).png().toBuffer(),left:420,top:0}];
+const shadows='<svg width="1290" height="450"><defs><radialGradient id="s"><stop stop-color="#17344f" stop-opacity=".28"/><stop offset="48%" stop-color="#17344f" stop-opacity=".14"/><stop offset="100%" stop-color="#17344f" stop-opacity="0"/></radialGradient></defs>'+centers.map(cx=>'<ellipse cx="'+cx+'" cy="281" rx="48" ry="9" fill="url(#s)"/>').join('')+'</svg>';
+layers.push({input:Buffer.from(shadows),left:0,top:0});
+for(let i=0;i<10;i++)layers.push({input:await sharp('assets/managers-'+(names[i]==='jarrett'?'v8':'v4')+'/'+names[i]+'-standing.webp').resize(110,219).png().toBuffer(),left:Math.round(centers[i]-55),top:77});
+await sharp({create:{width:1290,height:450,channels:4,background:'#f8f4e8'}}).composite(layers).png().toFile('.mascot-fix/current-header-reference.png');
