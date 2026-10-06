@@ -26,7 +26,11 @@ for(const [name,width] of [['desktop',1440],['mobile',390]]){
 await browser.close();
 execFileSync('npx',['playwright','install','--with-deps','webkit'],{stdio:'inherit'});
 execFileSync('ln',['-s',process.cwd()+'/node_modules','/tmp/banner-mock/node_modules']);
-execFileSync('xvfb-run',['-a','node','scripts/test-card-gestures.mjs'],{cwd:'/tmp/banner-mock',stdio:'inherit'});
+try{
+ const logs=execFileSync('xvfb-run',['-a','node','scripts/test-card-gestures.mjs'],{cwd:'/tmp/banner-mock',timeout:120000,maxBuffer:30*1024*1024,encoding:'utf8'});
+ fs.writeFileSync('.mascot-fix/gesture-result.json',JSON.stringify({passed:logs.includes('CARD_GESTURES_PASSED'),tail:logs.slice(-6000)}));
+}catch(error){fs.writeFileSync('.mascot-fix/gesture-result.json',JSON.stringify({passed:false,message:error.message,tail:String(error.stdout||'').slice(-6000),stderr:String(error.stderr||'').slice(-2000)}));}
+
 
 
 // Mirrored right roster preview.
