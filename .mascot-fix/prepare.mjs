@@ -14,6 +14,13 @@ await page.route('https://hungjurors.com/**',async route=>{
 await page.goto('https://hungjurors.com/',{waitUntil:'domcontentloaded'});
 await page.waitForSelector('.wp-group');await page.waitForTimeout(2000);
 await page.addStyleTag({content:fs.readFileSync('.mascot-fix/two-column.css','utf8')});
+await page.evaluate(()=>{
+ const card=document.querySelector('.wp-byes');
+ const headers=[...card.querySelectorAll('.wp-bye-logos>div')];
+ const lists=[...card.querySelectorAll('.wp-team-list')];
+ headers.forEach((h,i)=>{h.classList.add('mock-team-header');lists[i]?.prepend(h)});
+ card.querySelector('.wp-bye-logos')?.remove();
+});
 for(const [name,width] of [['desktop',1440],['narrow',900]]){
  await page.setViewportSize({width,height:1100});await page.evaluate(()=>{wireScrollTo(0);window.scrollTo(0,0)});await page.waitForTimeout(600);
  const bounds=await page.locator('.wp-group').boundingBox();
@@ -22,5 +29,3 @@ for(const [name,width] of [['desktop',1440],['narrow',900]]){
  fs.writeFileSync('.mascot-fix/two-column-layout-'+name+'.json',JSON.stringify(await page.locator('.wp-group .wp-panel').evaluateAll(nodes=>nodes.map(n=>({kind:n.dataset.wpCard,height:n.clientHeight,scrollHeight:n.scrollHeight,width:n.clientWidth,scrollWidth:n.scrollWidth})))));
 }
 await browser.close();
-
-// Revised team hierarchy preview.

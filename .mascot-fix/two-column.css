@@ -34,3 +34,22 @@
  #wire-scroll .wp-player small{font-size:9px;line-height:1.2;margin-top:2px}
  #wire-scroll .wp-team-list{gap:2px}
 }
+
+@media(min-width:761px){
+ #wire-scroll .wp-bye-list{margin-top:10px!important;gap:10px!important;align-items:stretch}
+ #wire-scroll .wp-team-list{background:#f7f4e9;border:1px solid #ddd7c6;border-radius:10px;overflow:hidden;gap:0!important;padding:0 7px 5px!important}
+ #wire-scroll .mock-team-header{display:flex;align-items:center;gap:8px;background:#eee8d6;margin:0 -7px 4px;padding:8px 10px;min-height:42px;box-sizing:border-box}
+ #wire-scroll .mock-team-header img{width:36px;height:28px;object-fit:contain}
+ #wire-scroll .mock-team-header span{font-size:16px;font-weight:800;line-height:1.1}
+ #wire-scroll .wp-person{border-bottom:1px solid #e2ddce;min-height:29px!important;padding:2px 0!important}
+ #wire-scroll .wp-person:last-child{border-bottom:0}
+ #wire-scroll .wp-player{min-height:29px!important}
+ #wire-scroll .wp-player img{width:26px!important;height:26px!important;min-width:26px!important}
+ #wire-scroll .wp-player b{font-size:11px!important}
+ #wire-scroll .wp-player small{font-size:8px!important}
+ #wire-scroll .wp-byes .wp-action{margin-top:6px!important}
+ #wire-scroll .wp-waivers .wc-count{background:#f7f4e9;border:1px solid #ddd7c6;border-radius:9px;padding:7px!important;gap:7px!important}
+ #wire-scroll .wp-waivers .wc-count .n{background:white!important}
+ #wire-scroll .wp-managers{background:#f7f4e9;border:1px solid #ddd7c6;border-radius:9px;padding:7px 5px;height:77px!important;box-sizing:border-box}
+ #wire-scroll .wp-managers img{height:61px!important}
+}
