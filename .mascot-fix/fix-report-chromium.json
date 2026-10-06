@@ -62,6 +62,32 @@
       }
     ]
   },
+  "horizontal": [
+    {
+      "overflowX": "hidden",
+      "overscrollX": "none",
+      "width": 324,
+      "scrollWidth": 349,
+      "right": 25,
+      "left": 0
+    },
+    {
+      "overflowX": "hidden",
+      "overscrollX": "none",
+      "width": 324,
+      "scrollWidth": 349,
+      "right": 25,
+      "left": 0
+    },
+    {
+      "overflowX": "hidden",
+      "overscrollX": "none",
+      "width": 324,
+      "scrollWidth": 349,
+      "right": 25,
+      "left": 0
+    }
+  ],
   "byeScroll": {
     "count": 13,
     "top": 120,
