@@ -56,7 +56,7 @@
    detail.byes=panel('byes','Week '+week+' · Lineup check','Teams on BYE this week',groupHTML(groups),'');
   }
   if(lms){
-   const body=figures(data)+'<p>The lowest-scoring remaining team is eliminated after Week 5.</p>';
+   const body=figures(data);
    const action='<button type="button" class="wp-button" data-wp-lms>View challenge →</button>';
    panels.push(panel('lms','Last Man Standing','Eliminations start this week!',body,action));
    detail.lms=panel('lms','Last Man Standing','Eliminations start this week!',body,action);
