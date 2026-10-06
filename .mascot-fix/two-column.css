@@ -22,3 +22,15 @@
  #wire-scroll .wp-player small{font-size:10px}
  #wire-scroll .wp-panel .wc-expand{width:26px;height:26px;top:9px;right:9px;font-size:13px}
 }
+@media(min-width:761px){
+ #wire-scroll .wp-bye-logos{margin:12px 0 8px}
+ #wire-scroll .wp-bye-logos>div{gap:10px;justify-content:flex-start}
+ #wire-scroll .wp-bye-logos img{width:42px;height:34px;object-fit:contain}
+ #wire-scroll .wp-bye-logos span{font-size:17px;font-weight:800;line-height:1.15}
+ #wire-scroll .wp-person{min-height:32px;padding:1px 0}
+ #wire-scroll .wp-player{min-height:32px;gap:8px}
+ #wire-scroll .wp-player img{width:29px;height:29px;min-width:29px}
+ #wire-scroll .wp-player b{font-size:12px;line-height:1.2}
+ #wire-scroll .wp-player small{font-size:9px;line-height:1.2;margin-top:2px}
+ #wire-scroll .wp-team-list{gap:2px}
+}

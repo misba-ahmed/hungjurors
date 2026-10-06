@@ -22,3 +22,5 @@ for(const [name,width] of [['desktop',1440],['narrow',900]]){
  fs.writeFileSync('.mascot-fix/two-column-layout-'+name+'.json',JSON.stringify(await page.locator('.wp-group .wp-panel').evaluateAll(nodes=>nodes.map(n=>({kind:n.dataset.wpCard,height:n.clientHeight,scrollHeight:n.scrollHeight,width:n.clientWidth,scrollWidth:n.scrollWidth})))));
 }
 await browser.close();
+
+// Revised team hierarchy preview.
