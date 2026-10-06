@@ -33,6 +33,8 @@ await page.evaluate(()=>window.scrollTo(0,240));
 fs.writeFileSync('.mascot-fix/priority-mobile-bottom.json',JSON.stringify({image:(await page.screenshot({type:'jpeg',quality:80})).toString('base64')}));
 report.mobile=await page.evaluate(()=>({groupHeight:document.querySelector('.wp-group').getBoundingClientRect().height,standardHeight:wireCardNodes().find(n=>!n.classList.contains('wp-group')).getBoundingClientRect().height,overflow:document.documentElement.scrollWidth>innerWidth,panels:[...document.querySelectorAll('.wp-group .wp-panel')].map(e=>({rect:e.getBoundingClientRect().toJSON(),overflow:e.scrollHeight>e.clientHeight+1}))}));
 
+if(Math.abs(report.mobile.groupHeight-report.mobile.standardHeight)>1)throw Error('Priority viewport differs from ordinary cards');
+if(Math.max(...report.mobile.panels.map(p=>p.rect.height))-Math.min(...report.mobile.panels.map(p=>p.rect.height))>1)throw Error('Unequal mobile panels');
 report.byeScroll=await page.locator('.wp-group .wp-bye-list').evaluate(el=>{el.scrollTop=120;return {count:el.querySelectorAll('.wp-person').length,top:el.scrollTop,overflow:el.scrollHeight>el.clientHeight};});
 if(!report.byeScroll.overflow||report.byeScroll.top<100||report.byeScroll.count<5)throw Error('Compact full roster must scroll');
 await page.locator('.wp-group [data-wp-expand="byes"]').first().click();
