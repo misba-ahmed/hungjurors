@@ -8,9 +8,10 @@ fs.copyFileSync('.mascot-fix/priority-test.mjs','/tmp/priority-preview/scripts/t
 execFileSync('node',['--test','scripts/test-wire-priorities.mjs'],{cwd:'/tmp/priority-preview',stdio:'inherit'});
 execFileSync('node',['scripts/prepare-site.mjs','index.html'],{cwd:'/tmp/priority-preview',stdio:'inherit'});
 execFileSync('npm',['install','--no-save','--package-lock=false','playwright'],{stdio:'inherit'});
-execFileSync('npx',['playwright','install','--with-deps','chromium'],{stdio:'inherit'});
-const {chromium}=await import('playwright');
-const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+execFileSync('npx',['playwright','install','--with-deps','chromium','webkit'],{stdio:'inherit'});
+const {chromium,webkit}=await import('playwright');
+for(const engine of [chromium,webkit]){
+const browser=await engine.launch({headless:true});
 const page=await browser.newPage({viewport:{width:1440,height:1100}});
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
 await page.route('https://hungjurors.com/**',async route=>{
@@ -31,15 +32,24 @@ fs.writeFileSync('.mascot-fix/priority-mobile.json',JSON.stringify({image:(await
 await page.evaluate(()=>window.scrollTo(0,450));
 fs.writeFileSync('.mascot-fix/priority-mobile-bottom.json',JSON.stringify({image:(await page.screenshot({type:'jpeg',quality:80})).toString('base64')}));
 report.mobile=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,panels:[...document.querySelectorAll('.wp-group .wp-panel')].map(e=>({rect:e.getBoundingClientRect().toJSON(),overflow:e.scrollHeight>e.clientHeight+1}))}));
+
+report.byeScroll=await page.locator('.wp-group .wp-bye-list').evaluate(el=>{el.scrollTop=120;return {count:el.querySelectorAll('.wp-person').length,top:el.scrollTop,overflow:el.scrollHeight>el.clientHeight};});
+if(!report.byeScroll.overflow||report.byeScroll.top<100||report.byeScroll.count<5)throw Error('Compact full roster must scroll');
 await page.locator('.wp-group [data-wp-expand="byes"]').first().click();
 await page.waitForSelector('.wire-expanded-overlay.is-open');
 report.expanded=await page.locator('.wire-expanded-overlay').innerText();
 await page.keyboard.press('Escape');await page.waitForTimeout(300);
 await page.locator('[data-wire-section-jump="recap"]').click();
 await page.waitForTimeout(900);
-report.navigation=await page.evaluate(()=>({section:WIRE.activeSection,index:WIRE.index}));
+
+report.navigation=await page.evaluate(()=>({section:WIRE.activeSection,index:WIRE.index,rail:document.querySelector('#wire-scroll').getBoundingClientRect().height,card:wireCardNodes()[WIRE.index].getBoundingClientRect().height}));
+if(report.navigation.rail-report.navigation.card>20)throw Error('Empty rail space remains');
+await page.locator('#wire-scroll').screenshot({path:'.mascot-fix/recap-height.png'});
+
 await page.locator('[data-wire-section-jump="this-week"]').click();await page.waitForTimeout(700);
 await page.locator('.wp-group [data-wp-lms]').click();await page.waitForTimeout(700);
 report.challenge=await page.evaluate(()=>({title:document.querySelector('#challenge-title')?.textContent}));
 fs.writeFileSync('.mascot-fix/priority-report.json',JSON.stringify(report,null,2));
+fs.writeFileSync('.mascot-fix/fix-report-'+engine.name()+'.json',JSON.stringify(report,null,2));
 await browser.close();
+}
