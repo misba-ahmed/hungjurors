@@ -16,6 +16,23 @@
     "bye": "↗Lineup checkTeams on BYE this weekPanthersChiefsBryce YoungNATHAN TChuba HubbardCESARDarren WallerBRYANJalen CokerMISBAJonathon BrooksJARRETTTetairoa McMillanNATHAN TChiefs DSTKATHarrison ButkerKATKenneth Walker IIITYLERPatrick MahomesJARRETTRashee RiceKATTravis KelceBRYANXavier WorthyTYLERExpand list ↗",
     "chip": "This WeekWk 4 RecapWk 5 PreviewDraft RecapDraft Hauls"
   },
+  "trackpad": [
+    {
+      "selector": ".wp-waivers .wc-title",
+      "before": 0,
+      "after": 972
+    },
+    {
+      "selector": ".wp-byes .wp-bye-list",
+      "before": 0,
+      "after": 972
+    },
+    {
+      "selector": ".wp-lms .wp-managers",
+      "before": 0,
+      "after": 972
+    }
+  ],
   "mobile": {
     "groupHeight": 395,
     "standardHeight": 395,
@@ -62,32 +79,6 @@
       }
     ]
   },
-  "horizontal": [
-    {
-      "overflowX": "hidden",
-      "overscrollX": "none",
-      "width": 324,
-      "scrollWidth": 324,
-      "right": 0,
-      "left": 0
-    },
-    {
-      "overflowX": "hidden",
-      "overscrollX": "none",
-      "width": 324,
-      "scrollWidth": 324,
-      "right": 0,
-      "left": 0
-    },
-    {
-      "overflowX": "hidden",
-      "overscrollX": "none",
-      "width": 324,
-      "scrollWidth": 324,
-      "right": 0,
-      "left": 0
-    }
-  ],
   "byeScroll": {
     "count": 13,
     "top": 120,
