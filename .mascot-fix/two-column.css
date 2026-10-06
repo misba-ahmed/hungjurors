@@ -53,3 +53,9 @@
  #wire-scroll .wp-managers{background:#f7f4e9;border:1px solid #ddd7c6;border-radius:9px;padding:7px 5px;height:77px!important;box-sizing:border-box}
  #wire-scroll .wp-managers img{height:61px!important}
 }
+
+@media(min-width:761px){
+ #wire-scroll .wp-team-list:nth-child(2) .mock-team-header{flex-direction:row-reverse;text-align:right}
+ #wire-scroll .wp-team-list:nth-child(2) .wp-player{flex-direction:row-reverse;text-align:right;justify-content:flex-start}
+ #wire-scroll .wp-team-list:nth-child(2) .wp-player>span{text-align:right}
+}
