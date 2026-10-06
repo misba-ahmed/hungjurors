@@ -53,3 +53,5 @@ fs.writeFileSync('.mascot-fix/priority-report.json',JSON.stringify(report,null,2
 fs.writeFileSync('.mascot-fix/fix-report-'+engine.name()+'.json',JSON.stringify(report,null,2));
 await browser.close();
 }
+
+// Validate real player markup for manager subtext.

@@ -9,7 +9,7 @@ function setup(week,bye,waiver){
   hjWireNavLabel:s=>s,HJ_WIRE_ORDER:['waivers','recap'],
   HJ_BYE_STATE:{season:2026,teams:new Map([['KC',new Set()]])},NFL_SEASON:2026,
   hjTeamOnBye:()=>bye,hjRosterEntries:t=>t.entries,wirePlayerObj:p=>p,hjPlayer:p=>p,pcTeam:t=>t,hjPlayerTeam:p=>p.team,
-  wireManager:t=>t.name,esc:String,nflLogo:t=>'/'+t,wirePlayerHTML:p=>p.name,wireMgrHTML:n=>n,
+  wireManager:t=>t.name,esc:String,nflLogo:t=>'/'+t,wirePlayerHTML:p=>'<button class="wc-player"><b>'+p.name+'</b><small>Team</small></button>',wireMgrHTML:n=>n,
   AV:{KAT:'x'},hjCurrentWeek:()=>week,wireWaiverCard:()=>waiver?{}:null,
   wireNextWaiver:()=>({start:Date.now()+100000}),wireCountdownHTML:()=>'<countdown>',
   ESPN_FANTASY_LEAGUE_ID:123,document:{addEventListener(){}},wireRender(){},wireScrollTo(){},wireUpdateDots(){},window:{addEventListener(){}},requestAnimationFrame:()=>0,
