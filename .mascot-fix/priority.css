@@ -8,7 +8,6 @@
 .wp-panel p{font:400 14px/1.4 var(--sans);margin:0 0 12px;color:var(--navy-ink)}
 .wp-eyebrow{font:700 10px/1.3 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--brass);padding-right:30px}
 .wp-waivers .wp-eyebrow{color:var(--verdict-red)}
-.wp-expand{position:absolute;right:12px;top:12px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:white;color:var(--navy);font:700 22px/1 var(--sans);cursor:pointer;box-shadow:0 2px 5px #14324f12}
 .wp-panel .wc-count{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;width:100%;margin:24px 0}
 .wp-panel .wc-count .unit{min-width:0}
 .wp-panel .wc-count .n{font:800 clamp(22px,2.2vw,32px)/1.4 var(--sans);padding:7px 0;background:var(--paper);color:var(--navy);border:1px solid var(--line);border-bottom:3px solid var(--brass);border-radius:7px;text-align:center}
@@ -30,7 +29,6 @@
 .wp-panel .wp-muted{font-size:11px;margin:4px 0}
 .wp-managers{display:flex;align-items:flex-end;justify-content:center;width:100%;margin:24px 0 16px;min-width:0}
 .wp-managers img{width:10%;min-width:0;height:auto;object-fit:contain}
-.wp-detail{height:auto!important;max-height:none!important;padding:0!important;border:0!important;overflow:visible!important}
 .wp-detail .wp-panel{width:100%}
 .wp-detail .wp-expand{display:none}
 .wp-detail .wp-person{margin:12px 0}
@@ -74,8 +72,6 @@
 .wp-panel .wp-bye-list .wp-player b{font:700 13px/1.25 var(--sans)}
 .wp-panel .wp-bye-list .wp-player small{font:500 10px/1.25 var(--sans);margin-top:2px;color:#748391}
 .wp-panel .wp-bye-list .wp-player img{width:34px!important;height:34px!important;flex:0 0 34px}
-.wire-expanded-stage:has(>.wp-detail){height:auto!important;max-height:calc(100dvh - 40px)}
-.wire-expanded-stage>.wc.wp-detail{height:auto!important;min-height:0!important;align-self:flex-start;background:transparent!important;box-shadow:none!important}
 .wp-detail .wp-bye-list{height:auto;max-height:65dvh;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}
 .wp-detail .wp-bye-list .wp-person{margin:0;padding:5px 0}
 @media(max-width:760px){
@@ -83,4 +79,25 @@
  .wp-panel.wp-byes h3{font-size:20px}
  .wp-bye-logos{margin:5px 0 8px}
  .wp-detail .wp-bye-list{grid-template-columns:1fr;max-height:65dvh}
+}
+
+/* Inherit the Wire's expand controls, headings, dialog viewport and scroll owner. */
+.wp-panel[data-wp-card]{cursor:zoom-in}
+.wp-panel[data-wp-card]:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.wp-panel .wp-player,.wp-panel .wp-button{cursor:pointer}
+.wp-panel .wp-bye-list{cursor:auto}
+.wp-panel .wp-eyebrow{display:block}
+.wp-panel .wc-title{padding-right:0}
+.wire-expanded-stage>.wc.wp-detail{overflow-y:auto!important;overflow-x:hidden!important;padding:0!important;border:0!important}
+.wp-detail>.wp-panel{min-height:100%;border:0;border-radius:0;box-shadow:none;padding:clamp(24px,3vw,38px) clamp(22px,4vw,52px);cursor:zoom-out}
+.wp-detail .wp-bye-list{height:auto;max-height:none;overflow:visible;flex:none}
+.wp-detail .wp-panel .wc-title{font-size:clamp(30px,4vw,46px)!important}
+.wp-detail .wp-panel p{font-size:clamp(15px,1.55vw,18px)}
+.wp-detail .wp-panel .wp-player b{font-size:16px}
+.wp-detail .wp-panel .wp-player small{font-size:12px}
+.wp-detail .wp-panel .wp-bye-list .wp-player img{width:44px!important;height:44px!important;flex-basis:44px}
+@media(min-width:761px){
+ #wire-scroll .wp-grid{height:420px;min-height:0}
+ #wire-scroll .wp-panel{min-height:0;overflow:auto}
+ #wire-scroll .wp-bye-list{flex:1 1 auto;height:auto;min-height:80px}
 }

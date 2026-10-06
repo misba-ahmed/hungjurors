@@ -47,11 +47,37 @@ if(report.navigation.rail-report.navigation.card>20)throw Error('Empty rail spac
 await page.locator('#wire-scroll').screenshot({path:'.mascot-fix/recap-height.png'});
 
 await page.locator('[data-wire-section-jump="this-week"]').click();await page.waitForTimeout(700);
+
+const title=page.locator('.wp-group .wp-lms .wc-title');
+await title.click();
+await page.waitForSelector('.wire-expanded-overlay.is-open');
+await page.keyboard.press('Escape');await page.waitForTimeout(300);
+const panel=page.locator('.wp-group [data-wp-card="lms"]');
+await panel.focus();await page.keyboard.press('Enter');
+await page.waitForSelector('.wire-expanded-overlay.is-open');
+const header=page.locator('.wire-expanded-overlay .wc-title');
+const rect=await header.boundingBox();
+await page.mouse.move(rect.x+rect.width/2,rect.y+rect.height/2);await page.mouse.down();
+await page.mouse.move(rect.x+rect.width/2,rect.y+rect.height/2+210,{steps:12});await page.mouse.up();
+await page.waitForSelector('.wire-expanded-overlay',{state:'detached',timeout:5000});
+await page.locator('[data-wire-section-jump="this-week"]').click();await page.waitForTimeout(600);
+await page.locator('.wp-group .wp-lms .wc-title').evaluate(el=>{
+ const point={identifier:1,target:el,clientX:250,clientY:300};
+ for(const [type,x]of [['touchstart',250],['touchmove',130],['touchend',100]]){
+  const p={...point,clientX:x},ev=new Event(type,{bubbles:true,cancelable:true});
+  Object.defineProperties(ev,{touches:{value:type==='touchend'?[]:[p]},changedTouches:{value:[p]}});
+  el.dispatchEvent(ev);
+ }
+ el.click();
+});
+if(await page.locator('.wire-expanded-overlay').count())throw Error('Swipe opened a priority card');
+await page.waitForTimeout(650);
+await page.locator('[data-wire-section-jump="this-week"]').click();await page.waitForTimeout(600);
+report.cardRules={backgroundExpand:true,keyboardExpand:true,headerDragDismiss:true,swipeClickSuppressed:true};
+
 await page.locator('.wp-group [data-wp-lms]').click();await page.waitForTimeout(700);
 report.challenge=await page.evaluate(()=>({title:document.querySelector('#challenge-title')?.textContent}));
 fs.writeFileSync('.mascot-fix/priority-report.json',JSON.stringify(report,null,2));
 fs.writeFileSync('.mascot-fix/fix-report-'+engine.name()+'.json',JSON.stringify(report,null,2));
 await browser.close();
 }
-
-// Validate real player markup for manager subtext.
