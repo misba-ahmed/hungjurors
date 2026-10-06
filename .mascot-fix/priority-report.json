@@ -1,0 +1,71 @@
+{
+  "errors": [],
+  "desktop": {
+    "panels": 3,
+    "heading": "Eliminations start this week!",
+    "group": {
+      "x": 234,
+      "y": 336.8125,
+      "width": 972,
+      "height": 575.671875,
+      "top": 336.8125,
+      "right": 1206,
+      "bottom": 912.484375,
+      "left": 234
+    },
+    "bye": "↗Lineup checkCheck your BYEsOwned players and their managersCAR BYE · 6 ownedBryce YoungCAR · QBNATHAN TChuba HubbardCAR · RBCESARDarren WallerCAR · TEBRYANKC BYE · 7 ownedView all affected players →",
+    "chip": "This WeekWk 4 RecapWk 5 PreviewDraft RecapDraft Hauls"
+  },
+  "mobile": {
+    "overflow": false,
+    "panels": [
+      {
+        "rect": {
+          "x": 32,
+          "y": 289.65625,
+          "width": 326,
+          "height": 224.234375,
+          "top": 289.65625,
+          "right": 358,
+          "bottom": 513.890625,
+          "left": 32
+        },
+        "overflow": false
+      },
+      {
+        "rect": {
+          "x": 32,
+          "y": 523.890625,
+          "width": 326,
+          "height": 489.796875,
+          "top": 523.890625,
+          "right": 358,
+          "bottom": 1013.6875,
+          "left": 32
+        },
+        "overflow": false
+      },
+      {
+        "rect": {
+          "x": 32,
+          "y": 1023.6875,
+          "width": 326,
+          "height": 231.59375,
+          "top": 1023.6875,
+          "right": 358,
+          "bottom": 1255.28125,
+          "left": 32
+        },
+        "overflow": false
+      }
+    ]
+  },
+  "expanded": "WEEK 5 · LINEUP CHECK\nTeams on BYE\nCAR\nBYE · 6 owned\nBryce Young\nCAR · QB\nNATHAN T\nChuba Hubbard\nCAR · RB\nCESAR\nDarren Waller\nCAR · TE\nBRYAN\nJalen Coker\nCAR · WR\nMISBA\nJonathon Brooks\nCAR · RB\nJARRETT\nTetairoa McMillan\nCAR · WR\nNATHAN T\nKC\nBYE · 7 owned\nChiefs DST\nKC · DST\nKAT\nHarrison Butker\nKC · K\nKAT\nKenneth Walker III\nKC · RB\nTYLER\nPatrick Mahomes\nKC · QB\nJARRETT\nRashee Rice\nKC · WR\nKAT\nTravis Kelce\nKC · TE\nBRYAN\nXavier Worthy\nKC · WR\nTYLER\n×",
+  "navigation": {
+    "section": "recap",
+    "index": 1
+  },
+  "challenge": {
+    "title": "Last Man Standing"
+  }
+}
