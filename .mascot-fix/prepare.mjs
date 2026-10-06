@@ -4,6 +4,8 @@ import path from 'node:path';
 execFileSync('git',['fetch','origin','main'],{stdio:'inherit'});
 execFileSync('git',['worktree','add','--detach','/tmp/priority-preview','origin/main'],{stdio:'inherit'});
 for(const [from,to] of [['priority.js','scripts/wire-priorities.js'],['priority.css','styles/wire-priorities.css'],['priority-prep.mjs','scripts/prepare-site.mjs']])fs.copyFileSync('.mascot-fix/'+from,'/tmp/priority-preview/'+to);
+fs.copyFileSync('.mascot-fix/priority-test.mjs','/tmp/priority-preview/scripts/test-wire-priorities.mjs');
+execFileSync('node',['--test','scripts/test-wire-priorities.mjs'],{cwd:'/tmp/priority-preview',stdio:'inherit'});
 execFileSync('node',['scripts/prepare-site.mjs','index.html'],{cwd:'/tmp/priority-preview',stdio:'inherit'});
 execFileSync('npm',['install','--no-save','--package-lock=false','playwright'],{stdio:'inherit'});
 execFileSync('npx',['playwright','install','--with-deps','chromium'],{stdio:'inherit'});
@@ -21,11 +23,11 @@ await page.waitForSelector('.wp-group',{timeout:120000});
 await page.waitForTimeout(4000);
 await page.evaluate(()=>{wireScrollTo(0);window.scrollTo(0,0)});
 await page.waitForTimeout(800);
-await page.screenshot({path:'.mascot-fix/priority-desktop.png'});
+fs.writeFileSync('.mascot-fix/priority-desktop.json',JSON.stringify({image:(await page.screenshot({type:'jpeg',quality:70})).toString('base64')}));
 const report={errors,desktop:await page.evaluate(()=>({panels:document.querySelectorAll('.wp-group .wp-panel').length,heading:document.querySelector('.wp-lms h3')?.textContent,group:document.querySelector('.wp-group')?.getBoundingClientRect().toJSON(),bye:document.querySelector('.wp-byes')?.textContent,chip:document.querySelector('#wire-chips')?.textContent}))};
 await page.setViewportSize({width:390,height:844});
 await page.evaluate(()=>wireScrollTo(0));await page.waitForTimeout(500);
-await page.screenshot({path:'.mascot-fix/priority-mobile.png',fullPage:false});
+fs.writeFileSync('.mascot-fix/priority-mobile.json',JSON.stringify({image:(await page.screenshot({type:'jpeg',quality:80,clip:{x:0,y:0,width:390,height:1500}})).toString('base64')}));
 report.mobile=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,panels:[...document.querySelectorAll('.wp-group .wp-panel')].map(e=>({rect:e.getBoundingClientRect().toJSON(),overflow:e.scrollHeight>e.clientHeight+1}))}));
 await page.locator('.wp-group [data-wp-expand="byes"]').first().click();
 await page.waitForSelector('.wire-expanded-overlay.is-open');
@@ -37,10 +39,5 @@ report.navigation=await page.evaluate(()=>({section:WIRE.activeSection,index:WIR
 await page.locator('[data-wire-section-jump="this-week"]').click();await page.waitForTimeout(700);
 await page.locator('.wp-group [data-wp-lms]').click();await page.waitForTimeout(700);
 report.challenge=await page.evaluate(()=>({title:document.querySelector('#challenge-title')?.textContent}));
-const sharp=(await import('sharp')).default;
-for(const size of ['desktop','mobile']){
- const b=await sharp('.mascot-fix/priority-'+size+'.png').resize({width:size==='desktop'?1200:390}).jpeg({quality:80}).toBuffer();
- fs.writeFileSync('.mascot-fix/priority-'+size+'.json',JSON.stringify({image:b.toString('base64')}));
-}
 fs.writeFileSync('.mascot-fix/priority-report.json',JSON.stringify(report,null,2));
 await browser.close();
