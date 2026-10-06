@@ -35,6 +35,11 @@ report.mobile=await page.evaluate(()=>({groupHeight:document.querySelector('.wp-
 
 if(Math.abs(report.mobile.groupHeight-report.mobile.standardHeight)>1)throw Error('Priority viewport differs from ordinary cards');
 if(Math.max(...report.mobile.panels.map(p=>p.rect.height))-Math.min(...report.mobile.panels.map(p=>p.rect.height))>1)throw Error('Unequal mobile panels');
+report.horizontal=await page.locator('.wp-group .wp-panel').evaluateAll(nodes=>nodes.map(el=>{
+ const style=getComputedStyle(el);el.scrollLeft=100;const right=el.scrollLeft;el.scrollLeft=-100;const left=el.scrollLeft;el.scrollLeft=0;
+ return {overflowX:style.overflowX,overscrollX:style.overscrollBehaviorX,width:el.clientWidth,scrollWidth:el.scrollWidth,right,left};
+}));
+if(report.horizontal.some(p=>p.overflowX!=='hidden'||p.overscrollX!=='none'||p.right!==0||p.left!==0))throw Error('Priority panel can scroll horizontally');
 report.byeScroll=await page.locator('.wp-group .wp-bye-list').evaluate(el=>{el.scrollTop=120;return {count:el.querySelectorAll('.wp-person').length,top:el.scrollTop,overflow:el.scrollHeight>el.clientHeight};});
 if(!report.byeScroll.overflow||report.byeScroll.top<100||report.byeScroll.count<5)throw Error('Compact full roster must scroll');
 await page.locator('.wp-group [data-wp-expand="byes"]').first().click();
@@ -83,5 +88,3 @@ fs.writeFileSync('.mascot-fix/priority-report.json',JSON.stringify(report,null,2
 fs.writeFileSync('.mascot-fix/fix-report-'+engine.name()+'.json',JSON.stringify(report,null,2));
 await browser.close();
 }
-
-// Verify mobile-only annotations; preserve desktop CSS.
