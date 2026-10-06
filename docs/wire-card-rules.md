@@ -37,3 +37,7 @@ Use Chromium AND WebKit on the prepared actual page:
 6. Switching to recap reduces the rail to the selected card plus normal padding.
 7. Existing card-key preservation and action navigation remain intact.
 Run scripts/test-wire-priorities.mjs and the existing card gesture checks. Do not claim a full test-suite pass if unrelated checks fail.
+
+- Priority panel containers must use overflow-x:hidden and overscroll-behavior-x:none. Only the outer carousel owns horizontal scrolling; BYE roster scrolling remains vertical. Verify internal scrollLeft stays zero in both directions.
+
+- Header widths must account for their right margins. Do not combine width:100% with extra horizontal margins; that created 25px of hidden horizontal overflow.
