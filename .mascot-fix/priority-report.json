@@ -13,7 +13,7 @@
       "bottom": 756.8125,
       "left": 234
     },
-    "bye": "↗Lineup checkTeams on BYE this weekPanthersChiefsBryce YoungNATHAN TChuba HubbardCESARDarren WallerBRYANJalen CokerMISBAJonathon BrooksJARRETTTetairoa McMillanNATHAN TChiefs D/STKATHarrison ButkerKATKenneth Walker IIITYLERPatrick MahomesJARRETTRashee RiceKATTravis KelceBRYANXavier WorthyTYLERExpand list ↗",
+    "bye": "↗Lineup checkTeams on BYE this weekPanthersChiefsBryce YoungNATHAN TChuba HubbardCESARDarren WallerBRYANJalen CokerOMISBAJonathon BrooksJARRETTTetairoa McMillanNATHAN TChiefs DSTKATHarrison ButkerKATKenneth Walker IIITYLERPatrick MahomesJARRETTRashee RiceQKATTravis KelceBRYANXavier WorthyTYLERExpand list ↗",
     "chip": "This WeekWk 4 RecapWk 5 PreviewDraft RecapDraft Hauls"
   },
   "mobile": {
@@ -67,24 +67,24 @@
       "overflowX": "hidden",
       "overscrollX": "none",
       "width": 324,
-      "scrollWidth": 349,
-      "right": 25,
+      "scrollWidth": 324,
+      "right": 0,
       "left": 0
     },
     {
       "overflowX": "hidden",
       "overscrollX": "none",
       "width": 324,
-      "scrollWidth": 349,
-      "right": 25,
+      "scrollWidth": 324,
+      "right": 0,
       "left": 0
     },
     {
       "overflowX": "hidden",
       "overscrollX": "none",
       "width": 324,
-      "scrollWidth": 349,
-      "right": 25,
+      "scrollWidth": 324,
+      "right": 0,
       "left": 0
     }
   ],

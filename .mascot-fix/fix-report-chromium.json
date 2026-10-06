@@ -67,24 +67,24 @@
       "overflowX": "hidden",
       "overscrollX": "none",
       "width": 324,
-      "scrollWidth": 349,
-      "right": 25,
+      "scrollWidth": 324,
+      "right": 0,
       "left": 0
     },
     {
       "overflowX": "hidden",
       "overscrollX": "none",
       "width": 324,
-      "scrollWidth": 349,
-      "right": 25,
+      "scrollWidth": 324,
+      "right": 0,
       "left": 0
     },
     {
       "overflowX": "hidden",
       "overscrollX": "none",
       "width": 324,
-      "scrollWidth": 349,
-      "right": 25,
+      "scrollWidth": 324,
+      "right": 0,
       "left": 0
     }
   ],
