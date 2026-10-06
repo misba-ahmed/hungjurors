@@ -26,6 +26,7 @@ for(const [name,width] of [['desktop',1440],['mobile',390]]){
 await browser.close();
 execFileSync('npx',['playwright','install','--with-deps','webkit'],{stdio:'inherit'});
 execFileSync('ln',['-s',process.cwd()+'/node_modules','/tmp/banner-mock/node_modules']);
+execFileSync('git',['checkout','--','index.html'],{cwd:'/tmp/banner-mock'});
 try{
  const logs=execFileSync('xvfb-run',['-a','node','scripts/test-card-gestures.mjs'],{cwd:'/tmp/banner-mock',timeout:120000,maxBuffer:30*1024*1024,encoding:'utf8'});
  fs.writeFileSync('.mascot-fix/gesture-result.json',JSON.stringify({passed:logs.includes('CARD_GESTURES_PASSED'),tail:logs.slice(-6000)}));
