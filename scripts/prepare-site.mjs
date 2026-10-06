@@ -17,6 +17,7 @@ const recordLive=readFileSync(new URL('./record-book-live.js',import.meta.url),'
 const directLinks=readFileSync(new URL('./direct-links.js',import.meta.url),'utf8');
 const bannerRenderers=readFileSync(new URL('./banner-renderers.js',import.meta.url),'utf8');
 const projectionSummary=readFileSync(new URL('./projection-summary.js',import.meta.url),'utf8');
+const matchupWeek=readFileSync(new URL('./matchup-week.js',import.meta.url),'utf8');
 const wirePriorities=readFileSync(new URL('./wire-priorities.js',import.meta.url),'utf8');
 const wireLive=readFileSync(new URL('./wire-live.js',import.meta.url),'utf8');
 const layoutGuard=readFileSync(new URL('./layout-guard.js',import.meta.url),'utf8');
@@ -151,6 +152,11 @@ export function prepareSite(html){
  html=html.replace(oldManagerOrder,"const teams=[...(data.teams||[])].sort((a,b)=>(hjCurrentStandingRank(a,data)||Infinity)-(hjCurrentStandingRank(b,data)||Infinity)||Number(a.id)-Number(b.id));");
  html=replaceOnce(html,/if\(!upcoming\)return \{game:'Schedule unavailable',stats:'',title\};/g,"if(!upcoming)return {game:hjTeamOnBye(player.team,week)?'BYE':'Schedule unavailable',stats:'',title:hjTeamOnBye(player.team,week)?'Bye week':title};");
  html=replaceOnce(html,/const upcoming=pcUpcoming\(team\);if\(!upcoming\)return 'Next game TBD';/g,"const upcoming=pcUpcoming(team);if(!upcoming)return hjTeamOnBye(team)?'BYE':'Next game TBD';");
+ // Only Matchups' default selection rolls over on Wednesday; explicit week links retain their destination.
+ html=replaceOnce(html,/function hjCurrentWeek\(data=HJ_LEAGUE_STATE.data\)/g,matchupWeek+'\nfunction hjCurrentWeek(data=HJ_LEAGUE_STATE.data)');
+ html=html.replaceAll('HJ_HQ_STATE.matchupWeek||hjCurrentWeek(', 'HJ_HQ_STATE.matchupWeek||hjDefaultMatchupWeek(');
+ html=replaceOnce(html,/if\(!HJ_HQ_STATE.matchupWeek\|\|Number\(HJ_HQ_STATE.matchupWeek\)===old\)HJ_HQ_STATE.matchupWeek=week;/g,'if(!HJ_HQ_STATE.matchupWeek||Number(HJ_HQ_STATE.matchupWeek)===old)HJ_HQ_STATE.matchupWeek=0;');
+ html=replaceOnce(html,/if\(tab==='matchups'&&focusTeamId\)\{HJ_HQ_STATE.matchupWeek=hjCurrentWeek\(HJ_LEAGUE_STATE.data\);/g,"if(tab==='matchups'&&focusTeamId){HJ_HQ_STATE.matchupWeek=0;");
  html=prepareLiveDisplay(html);
  html=replaceOnce(html,/function hjTeamViewHTML\(team,data\)\{/g,'const HJ_DST_MASCOTS='+dstMascots+';\nconst HJ_TEAM_PHOTO_ASSETS='+teamPhotoAssets+';\n'+byeStatus+'\n'+teamPhotoScript+'\nfunction hjTeamViewHTML(team,data){');
  const rosterHead='<div class="league-roster-head">${identity}${matchupHTML}</div>';

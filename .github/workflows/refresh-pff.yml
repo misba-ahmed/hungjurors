@@ -28,7 +28,7 @@ jobs:
         run: |
           node scripts/test-manager-hero-scores.mjs
           node scripts/test-bye-status.mjs
-          node --test scripts/test-wire-priorities.mjs
+          node --test scripts/test-wire-priorities.mjs scripts/test-matchup-week.mjs
           node scripts/test-manager-hero-dismiss.mjs
           node scripts/test-vegas-feed.mjs
           node scripts/test-challenges.mjs
