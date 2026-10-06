@@ -72,20 +72,20 @@ function hjTeamPhotoName(player){
 // Alternate poses are roster-only and resolve from the latest ESPN player status.
 // Missing status does not falsely signal a recovery; the regular asset is kept intact.
 function hjTeamPhotoAsset(entry){
- const p=hjPlayer(entry);
- if(Number(p.defaultPositionId)===16||Number(entry.lineupSlotId)===16)return HJ_DST_MASCOTS[String(p.proTeamId)]||HJ_DST_MASCOTS[String(-Number(p.id||entry.playerId)-16000)];
+ const p=hjPlayer(entry),isBye=typeof hjTeamOnBye==='function'&&hjTeamOnBye(hjPlayerTeam(entry));
+ if(Number(p.defaultPositionId)===16||Number(entry.lineupSlotId)===16){const mascot=HJ_DST_MASCOTS[String(p.proTeamId)]||HJ_DST_MASCOTS[String(-Number(p.id||entry.playerId)-16000)];return mascot?{...mascot,isBye}:mascot;}
  const base=HJ_TEAM_PHOTO_ASSETS[String(p.id||entry.playerId||'')];
- if(!base?.unavailable)return base;
+ if(!base?.unavailable)return base?{...base,isBye}:base;
  const status=String(p.injuryStatus||'').trim().toUpperCase().replace(/[ -]+/g,'_');
  const rosterStatus=String(typeof p.status==='object'?p.status?.type||p.status?.name||'':p.status||'').toUpperCase().replace(/[ -]+/g,'_');
  const blocked=new Set(['OUT','DOUBTFUL','QUESTIONABLE','INJURY_RESERVE','INJURED_RESERVE','IR','SUSPENSION','SUSPENDED','EXEMPT','COMMISSIONER_EXEMPT','NON_FOOTBALL_INJURY','PHYSICALLY_UNABLE_TO_PERFORM','PUP','INACTIVE']);
  // Only an explicit current-week ESPN projection of zero triggers this rule.
  // Missing projections and actual game scores are not zero projections.
  const week=typeof hjCurrentWeek==='function'&&typeof HJ_LEAGUE_STATE!=='undefined'?hjCurrentWeek(HJ_LEAGUE_STATE.data):null;
- const zeroProjection=Number.isFinite(week)&&(p.stats||[]).some(s=>s.statSourceId===1&&s.scoringPeriodId===week&&typeof s.appliedTotal==='number'&&s.appliedTotal===0&&(typeof NFL_SEASON==='undefined'||s.seasonId===Number(NFL_SEASON)));
+ const zeroProjection=!isBye&&Number.isFinite(week)&&(p.stats||[]).some(s=>s.statSourceId===1&&s.scoringPeriodId===week&&typeof s.appliedTotal==='number'&&s.appliedTotal===0&&(typeof NFL_SEASON==='undefined'||s.seasonId===Number(NFL_SEASON)));
  const unavailable=zeroProjection||p.injured===true||p.active===false||blocked.has(status)||blocked.has(rosterStatus);
  const healthy=['ACTIVE','HEALTHY','NORMAL'].includes(status)||(!status&&p.injured===false&&p.active===true);
- return healthy&&!unavailable?base:{...base,...base.unavailable,isUnavailable:true};
+ return healthy&&!unavailable?{...base,isBye}:{...base,...base.unavailable,isUnavailable:true,isBye};
 }
 
 function hjTeamPhotoHTML(team){
@@ -105,7 +105,7 @@ function hjTeamPhotoHTML(team){
   const active=selected?.id===r.id,left=(positions[i]+2)/width*100,bodyHeight=r.height/height*100,bodyWidth=r.width/width*100;
   const src=r.asset?'/assets/team-photos/'+(r.asset.mascot?'mascots/':'players/')+r.asset.file:hjPlayerPhoto(entries[i]);
   const label=r.name.full+', '+r.position+(r.score===null?'':', fantasy score '+r.score);
-  return '<div role="group" class="hj-team-photo-player'+(r.starter?' is-starter':'')+(r.asset?.isUnavailable?' is-unavailable':'')+(!r.asset?' is-portrait':'')+(active?' is-active':'')+'" data-team-photo-player="'+esc(r.id)+'" aria-label="'+esc(label)+'" tabindex="'+(selected?active?0:-1:i===0?0:-1)+'" style="left:'+left.toFixed(4)+'%;width:'+bodyWidth.toFixed(4)+'%;height:'+bodyHeight.toFixed(4)+'%;--player-layer:'+(100-Math.round(Math.abs(i-(rows.length-1)/2)))+';--showcase-shift:'+(active?HJ_TEAM_PHOTO_UI.shift:0)+'px;--showcase-height:'+HJ_TEAM_PHOTO_UI.figureHeight+'px;--showcase-width:'+HJ_TEAM_PHOTO_UI.figureWidth+'px;--showcase-scale:'+HJ_TEAM_PHOTO_UI.scale+'"><span class="hj-team-photo-figure"><img src="'+esc(src)+'" alt="" width="'+(r.asset?.width||350)+'" height="'+(r.asset?.height||800)+'" decoding="async" draggable="false"></span><span class="hj-team-photo-score" aria-hidden="true"'+(r.score===null?' hidden':'')+'>'+esc(r.score??'')+'</span><span class="hj-team-photo-caption"><span class="hj-team-photo-position">'+esc(r.position)+'</span><button type="button" class="hj-team-photo-name" data-pc-id="'+esc(r.id)+'" data-pc-name="'+esc(r.name.full)+'" data-pc-team="'+esc(hjPlayerTeam(entries[i]))+'" data-pc-position="'+esc(r.position)+'" data-pc-photo="'+esc(hjPlayerPhoto(entries[i]))+'" aria-label="Open '+esc(r.name.full)+' player card" tabindex="'+(active?0:-1)+'"><span>'+esc(r.name.first)+'</span>'+(r.name.last?'<span>'+esc(r.name.last)+'</span>':'')+'</button></span></div>';
+  return '<div role="group" class="hj-team-photo-player'+(r.starter?' is-starter':'')+(r.asset?.isUnavailable||r.asset?.isBye?' is-unavailable':'')+(r.asset?.isBye?' is-bye':'')+(!r.asset?' is-portrait':'')+(active?' is-active':'')+'" data-team-photo-player="'+esc(r.id)+'" aria-label="'+esc(label)+'" tabindex="'+(selected?active?0:-1:i===0?0:-1)+'" style="left:'+left.toFixed(4)+'%;width:'+bodyWidth.toFixed(4)+'%;height:'+bodyHeight.toFixed(4)+'%;--player-layer:'+(100-Math.round(Math.abs(i-(rows.length-1)/2)))+';--showcase-shift:'+(active?HJ_TEAM_PHOTO_UI.shift:0)+'px;--showcase-height:'+HJ_TEAM_PHOTO_UI.figureHeight+'px;--showcase-width:'+HJ_TEAM_PHOTO_UI.figureWidth+'px;--showcase-scale:'+HJ_TEAM_PHOTO_UI.scale+'"><span class="hj-team-photo-figure"><img src="'+esc(src)+'" alt="" width="'+(r.asset?.width||350)+'" height="'+(r.asset?.height||800)+'" decoding="async" draggable="false"></span><span class="hj-team-photo-score" aria-hidden="true"'+(r.score===null?' hidden':'')+'>'+esc(r.score??'')+'</span><span class="hj-team-photo-caption"><span class="hj-team-photo-position">'+esc(r.position)+'</span><button type="button" class="hj-team-photo-name" data-pc-id="'+esc(r.id)+'" data-pc-name="'+esc(r.name.full)+'" data-pc-team="'+esc(hjPlayerTeam(entries[i]))+'" data-pc-position="'+esc(r.position)+'" data-pc-photo="'+esc(hjPlayerPhoto(entries[i]))+'" aria-label="Open '+esc(r.name.full)+' player card" tabindex="'+(active?0:-1)+'"><span>'+esc(r.name.first)+'</span>'+(r.name.last?'<span>'+esc(r.name.last)+'</span>':'')+'</button></span></div>';
  }).join('')+'</div></div>';
 }
 (function(){
@@ -151,6 +151,9 @@ function hjTeamPhotoHTML(team){
   const group=groupOf(button),data=HJ_LEAGUE_STATE.data,team=(data?.teams||[]).find(t=>String(t.id)===group.dataset.teamPhotoTeam);
   const entry=hjRosterEntries(team).find(e=>String(hjPlayer(e).id||e.playerId)===button.dataset.teamPhotoPlayer);
   if(!entry)return;
+  const asset=hjTeamPhotoAsset(entry),img=button.querySelector('.hj-team-photo-figure img');
+  button.classList.toggle('is-unavailable',!!(asset?.isUnavailable||asset?.isBye));button.classList.toggle('is-bye',!!asset?.isBye);
+  if(asset&&img){const src='/assets/team-photos/'+(asset.mascot?'mascots/':'players/')+asset.file;if(img.getAttribute('src')!==src)img.setAttribute('src',src);}
   const score=hjTeamPhotoFinalScore(entry,data),badge=button.querySelector('.hj-team-photo-score'),name=hjTeamPhotoName(hjPlayer(entry));
   badge.hidden=score===null;badge.textContent=score??'';
   button.setAttribute('aria-label',name.full+', '+hjPlayerPosition(entry)+(score===null?'':', fantasy score '+score));

@@ -23,6 +23,7 @@ const recapScript=readFileSync(new URL('./recap-live.js',import.meta.url),'utf8'
 const standingsScript=readFileSync(new URL('./standings-live.js',import.meta.url),'utf8');
 const playerValue=readFileSync(new URL('./player-value.js',import.meta.url),'utf8');
 const tradeDesk=readFileSync(new URL('./trade-desk.js',import.meta.url),'utf8');
+const byeStatus=readFileSync(new URL('./bye-status.js',import.meta.url),'utf8');
 const teamPhotoScript=readFileSync(new URL('./team-photos.js',import.meta.url),'utf8');
 const teamPhotoAssets=readFileSync(new URL('../assets/team-photos/catalog.json',import.meta.url),'utf8');
 const dstMascots=readFileSync(new URL('../assets/team-photos/mascots.json',import.meta.url),'utf8');
@@ -147,8 +148,10 @@ export function prepareSite(html){
  const oldManagerOrder="const teams=[...(data.teams||[])].sort((a,b)=>(Number(a.draftDayProjectedRank)||99)-(Number(b.draftDayProjectedRank)||99)||Number(a.id)-Number(b.id));";
  if(html.split(oldManagerOrder).length!==2)throw Error('Manager order source changed');
  html=html.replace(oldManagerOrder,"const teams=[...(data.teams||[])].sort((a,b)=>(hjCurrentStandingRank(a,data)||Infinity)-(hjCurrentStandingRank(b,data)||Infinity)||Number(a.id)-Number(b.id));");
+ html=replaceOnce(html,/if\(!upcoming\)return \{game:'Schedule unavailable',stats:'',title\};/g,"if(!upcoming)return {game:hjTeamOnBye(player.team,week)?'BYE':'Schedule unavailable',stats:'',title:hjTeamOnBye(player.team,week)?'Bye week':title};");
+ html=replaceOnce(html,/const upcoming=pcUpcoming\(team\);if\(!upcoming\)return 'Next game TBD';/g,"const upcoming=pcUpcoming(team);if(!upcoming)return hjTeamOnBye(team)?'BYE':'Next game TBD';");
  html=prepareLiveDisplay(html);
- html=replaceOnce(html,/function hjTeamViewHTML\(team,data\)\{/g,'const HJ_DST_MASCOTS='+dstMascots+';\nconst HJ_TEAM_PHOTO_ASSETS='+teamPhotoAssets+';\n'+teamPhotoScript+'\nfunction hjTeamViewHTML(team,data){');
+ html=replaceOnce(html,/function hjTeamViewHTML\(team,data\)\{/g,'const HJ_DST_MASCOTS='+dstMascots+';\nconst HJ_TEAM_PHOTO_ASSETS='+teamPhotoAssets+';\n'+byeStatus+'\n'+teamPhotoScript+'\nfunction hjTeamViewHTML(team,data){');
  const rosterHead='<div class="league-roster-head">${identity}${matchupHTML}</div>';
  if(!html.includes(rosterHead))throw Error('Roster header changed');
  html=html.split(rosterHead).join('<div class="league-roster-head">${identity}${hjTeamPhotoHTML(team)}${matchupHTML}</div>');

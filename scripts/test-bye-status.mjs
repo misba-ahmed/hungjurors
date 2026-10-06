@@ -1,0 +1,18 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+const ctx=vm.createContext({pcTeam:x=>String(x||'').toUpperCase(),NFL_SEASON:2026,hjCurrentWeek:()=>5,document:{addEventListener(){}},console});
+vm.runInContext(fs.readFileSync('scripts/bye-status.js','utf8')+';this.state=HJ_BYE_STATE;this.onBye=hjTeamOnBye;this.index=hjByeScheduleIndex;',ctx);
+assert.equal(ctx.onBye('KC'),false,'Unknown schedule is not a bye');
+ctx.state.season=2026;ctx.state.teams=new Map([['KC',new Set([1,2,3,4,6,7,8,9,10,11,12,13,14,15,16,17,18])]]);
+assert.equal(ctx.onBye('KC',5),true);assert.equal(ctx.onBye('KC',6),false);assert.equal(ctx.onBye('FA',5),false);assert.equal(ctx.onBye('KC',19),false);
+assert.equal(ctx.index({schema:1,source:'ESPN',season:2026,games:[]},2026),null,'Incomplete schedule cannot mark byes');
+ctx.hjPlayer=e=>e.player;ctx.hjPlayerTeam=e=>e.player.team;ctx.HJ_LEAGUE_STATE={data:{}};
+ctx.HJ_TEAM_PHOTO_ASSETS={a:{file:'normal.webp',unavailable:{file:'injured.webp'}},b:{file:'normal-b.webp'}};ctx.HJ_DST_MASCOTS={12:{file:'mascot.webp',mascot:true}};
+const source=fs.readFileSync('scripts/team-photos.js','utf8');
+vm.runInContext(source.slice(source.indexOf('function hjTeamPhotoAsset('),source.indexOf('function hjTeamPhotoHTML('))+';this.choose=hjTeamPhotoAsset;',ctx);
+const e={player:{id:'a',team:'KC',injuryStatus:'ACTIVE',injured:false,active:true,stats:[{statSourceId:1,scoringPeriodId:5,seasonId:2026,appliedTotal:0}]}};
+assert.equal(ctx.choose(e).isBye,true);assert.equal(ctx.choose(e).file,'normal.webp','Bye zero projection does not add crutches');
+e.player.injuryStatus='OUT';assert.equal(ctx.choose(e).file,'injured.webp','Existing injury retained');
+e.player={id:'b',team:'KC'};assert.equal(ctx.choose(e).isBye,true,'Players without alternate art tinted');
+e.player={id:'dst',team:'KC',defaultPositionId:16,proTeamId:12};assert.equal(ctx.choose(e).isBye,true,'DST also on bye');
+ctx.hjCurrentWeek=()=>6;e.player={id:'a',team:'KC',injuryStatus:'ACTIVE',active:true,injured:false};assert.equal(ctx.choose(e).isBye,false);assert.equal(ctx.choose(e).isUnavailable,undefined);assert.equal(ctx.choose(e).file,'normal.webp');
+console.log('BYE source validation, labels source, normal art, injuries, DST and rollover pass');

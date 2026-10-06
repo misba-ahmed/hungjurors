@@ -27,6 +27,8 @@ jobs:
       - name: Verify projection feed contracts
         run: |
           node scripts/test-manager-hero-scores.mjs
+          node scripts/test-bye-status.mjs
+          node scripts/test-manager-hero-dismiss.mjs
           node scripts/test-vegas-feed.mjs
           node scripts/test-challenges.mjs
           node scripts/test-record-book.mjs
