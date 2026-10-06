@@ -28,6 +28,8 @@ const report={errors,desktop:await page.evaluate(()=>({panels:document.querySele
 await page.setViewportSize({width:390,height:844});
 await page.evaluate(()=>wireScrollTo(0));await page.waitForTimeout(500);
 fs.writeFileSync('.mascot-fix/priority-mobile.json',JSON.stringify({image:(await page.screenshot({type:'jpeg',quality:80,clip:{x:0,y:0,width:390,height:1500}})).toString('base64')}));
+await page.evaluate(()=>window.scrollTo(0,450));
+fs.writeFileSync('.mascot-fix/priority-mobile-bottom.json',JSON.stringify({image:(await page.screenshot({type:'jpeg',quality:80})).toString('base64')}));
 report.mobile=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,panels:[...document.querySelectorAll('.wp-group .wp-panel')].map(e=>({rect:e.getBoundingClientRect().toJSON(),overflow:e.scrollHeight>e.clientHeight+1}))}));
 await page.locator('.wp-group [data-wp-expand="byes"]').first().click();
 await page.waitForSelector('.wire-expanded-overlay.is-open');

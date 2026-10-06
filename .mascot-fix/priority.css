@@ -58,3 +58,5 @@
 .wp-panel .wp-owner img.av{width:20px!important;height:20px!important;min-width:20px}
 .wp-panel .wp-player img{width:32px!important;height:32px!important;border-radius:50%;background:var(--paper-dim);object-fit:cover}
 .wp-panel .wp-player img.is-defense{object-fit:contain}
+
+.wp-panel .wp-bye-team{padding:0!important;min-height:0!important;border:0!important;scroll-margin:0!important;margin:9px 0 0!important}

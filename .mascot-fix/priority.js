@@ -18,10 +18,10 @@
   return groups;
  }
  function groupHTML(groups,preview=false){
-  let remaining=3;
+  let remaining=4;
   return groups.map(g=>{
-   const list=preview?g.players.slice(0,Math.max(0,remaining)):g.players;remaining-=list.length;
-   return '<section class="wp-bye-team"><h4><img src="'+esc(nflLogo(g.team))+'" alt="">'+esc(g.team)+' <small>BYE · '+g.players.length+' owned</small></h4>'+
+   const list=preview?g.players.slice(0,Math.min(2,Math.max(0,remaining))):g.players;remaining-=list.length;
+   return '<section class="wp-bye-team"><h4><img src="'+esc(nflLogo(g.team))+'" alt="">'+esc(typeof PC_TEAM_NAMES!=='undefined'?(PC_TEAM_NAMES[g.team]||g.team):g.team)+' <small>BYE · '+g.players.length+' owned</small></h4>'+
     list.map(item=>'<div class="wp-person">'+wirePlayerHTML(item.player).replace('wc-player','wp-player')+wireMgrHTML(item.manager).replace('wc-mgr','wp-owner')+'</div>').join('')+
     (!g.players.length?'<p class="wp-muted">No owned players</p>':'')+'</section>';
   }).join('');
