@@ -12,8 +12,8 @@
 .wp-panel h3{font-family:var(--sans);font-weight:800;color:var(--navy);letter-spacing:-.025em;flex:none}
 .wp-panel p{font:400 12px/1.4 var(--sans);margin:0;color:var(--navy-ink)}
 .wp-panel{justify-content:flex-start}
-#wire-scroll .wp-panel .wc-kicker,.wp-detail .wp-panel .wc-kicker{position:static!important;text-align:left!important;margin:0 32px 5px 0!important;align-self:stretch}
-#wire-scroll .wp-panel .wc-title,.wp-detail .wp-panel .wc-title{text-align:left!important;margin:0 0 3px!important}
+#wire-scroll .wp-panel .wc-kicker,.wp-detail .wp-panel .wc-kicker{position:static!important;width:auto!important;min-width:0;max-width:100%;box-sizing:border-box;text-align:left!important;margin:0 32px 5px 0!important;align-self:stretch}
+#wire-scroll .wp-panel .wc-title,.wp-detail .wp-panel .wc-title{width:auto!important;min-width:0;max-width:100%;box-sizing:border-box;text-align:left!important;margin:0 0 3px!important}
 .wp-panel .wp-eyebrow{text-align:left!important}
 .wp-panel .wp-action{text-align:left}
 .wp-panel .wp-bye-logos{justify-content:stretch}
