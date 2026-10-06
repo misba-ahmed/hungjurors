@@ -17,14 +17,13 @@
   groups.forEach(g=>g.players.sort((a,b)=>a.player.name.localeCompare(b.player.name)));
   return groups;
  }
- function groupHTML(groups,preview=false){
-  let remaining=4;
-  return groups.map(g=>{
-   const list=preview?g.players.slice(0,Math.min(2,Math.max(0,remaining))):g.players;remaining-=list.length;
-   return '<section class="wp-bye-team"><h4><img src="'+esc(nflLogo(g.team))+'" alt="">'+esc(typeof PC_TEAM_NAMES!=='undefined'?(PC_TEAM_NAMES[g.team]||g.team):g.team)+' <small>BYE · '+g.players.length+' owned</small></h4>'+
-    list.map(item=>'<div class="wp-person">'+wirePlayerHTML(item.player).replace('wc-player','wp-player')+wireMgrHTML(item.manager).replace('wc-mgr','wp-owner')+'</div>').join('')+
-    (!g.players.length?'<p class="wp-muted">No owned players</p>':'')+'</section>';
-  }).join('');
+ function groupHTML(groups){
+  const logos='<div class="wp-bye-logos" aria-label="Teams on bye">'+groups.map(g=>{
+   const name=typeof PC_TEAM_NAMES!=='undefined'?(PC_TEAM_NAMES[g.team]||g.team):g.team;
+   return '<div><img src="'+esc(nflLogo(g.team))+'" alt="'+esc(name)+'"><span>'+esc(name)+'</span></div>';
+  }).join('')+'</div>';
+  const rows=groups.flatMap(g=>g.players).map(item=>'<div class="wp-person">'+wirePlayerHTML(item.player).replace('wc-player','wp-player').replace(/<small>[\s\S]*?<\/small>/,'<small>'+esc(item.manager)+'</small>')+'</div>').join('');
+  return logos+'<div class="wp-bye-list" tabindex="0" role="region" aria-label="Owned players on bye; scroll for all players">'+(rows||'<p>No owned players on BYE.</p>')+'</div>';
  }
  function figures(data){
   const slugs={'NATHAN M':'nathan-m','NATHAN T':'nathan-t'};
@@ -52,9 +51,9 @@
    }
   }
   if(groups.length){
-   const action='<button class="wp-button wp-text-button" type="button" data-wp-expand="byes">View all affected players →</button>';
-   panels.push(panel('byes','Lineup check','Check your BYEs','<p>Owned players and their managers</p>'+groupHTML(groups,true),action));
-   detail.byes=panel('byes','Week '+week+' · Lineup check','Teams on BYE',groupHTML(groups,false),'');
+   const action='<button class="wp-button wp-text-button" type="button" data-wp-expand="byes">Expand list ↗</button>';
+   panels.push(panel('byes','Lineup check','Teams on BYE this week',groupHTML(groups),action));
+   detail.byes=panel('byes','Week '+week+' · Lineup check','Teams on BYE this week',groupHTML(groups),'');
   }
   if(lms){
    const body=figures(data)+'<p>The lowest-scoring remaining team is eliminated after Week 5.</p>';
@@ -83,5 +82,21 @@
   const key=HJ_BYE_STATE.season+':'+HJ_BYE_STATE.teams.size+':'+hjCurrentWeek();
   if(key===byeKey)return;byeKey=key;wireRender(true);
  });
+ // A tall priority slide must not leave a tall empty rail beneath ordinary cards.
+ const heightScroll=wireScrollTo,heightDots=wireUpdateDots,heightRender=wireRender;
+ let heightFrame=0,observed=null;
+ const sizeObserver=typeof ResizeObserver==='function'?new ResizeObserver(()=>queueHeight()):null;
+ function syncHeight(){
+  heightFrame=0;
+  const rail=document.querySelector('#wire-scroll'),active=wireCardNodes()[WIRE.index||0];if(!rail||!active)return;
+  if(observed!==active){sizeObserver?.disconnect();sizeObserver?.observe(active);observed=active;}
+  const style=getComputedStyle(rail),height=Math.ceil(active.getBoundingClientRect().height+parseFloat(style.paddingTop||0)+parseFloat(style.paddingBottom||0));
+  const value=height+'px';if(rail.style.height!==value)rail.style.setProperty('height',value,'important');
+ }
+ function queueHeight(){if(!heightFrame)heightFrame=requestAnimationFrame(syncHeight);}
+ wireScrollTo=function(){const result=heightScroll.apply(this,arguments);queueHeight();return result;};
+ wireUpdateDots=function(){const result=heightDots.apply(this,arguments);queueHeight();return result;};
+ wireRender=function(){const result=heightRender.apply(this,arguments);queueHeight();return result;};
+ window.addEventListener('resize',queueHeight,{passive:true});
  wireRender(true);
 })();

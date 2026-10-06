@@ -60,3 +60,27 @@
 .wp-panel .wp-player img.is-defense{object-fit:contain}
 
 .wp-panel .wp-bye-team{padding:0!important;min-height:0!important;border:0!important;scroll-margin:0!important;margin:9px 0 0!important}
+
+/* Compact full BYE roster: logos first, manager directly under each player's name. */
+.wp-bye-logos{display:flex;align-items:flex-start;justify-content:center;flex-wrap:wrap;gap:10px 20px;margin:8px 0 12px}
+.wp-bye-logos>div{display:flex;flex-direction:column;align-items:center;gap:3px}
+.wp-bye-logos img{width:40px;height:34px;object-fit:contain}
+.wp-bye-logos span{font:700 10px/1.2 var(--sans);color:var(--navy)}
+.wp-bye-list{height:224px;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x pan-y}
+.wp-bye-list::-webkit-scrollbar{display:none}
+.wp-bye-list:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.wp-panel .wp-bye-list .wp-person{display:block;margin:0;padding:4px 0}
+.wp-panel .wp-bye-list .wp-player{display:flex;width:100%;gap:8px;min-height:38px}
+.wp-panel .wp-bye-list .wp-player b{font:700 13px/1.25 var(--sans)}
+.wp-panel .wp-bye-list .wp-player small{font:500 10px/1.25 var(--sans);margin-top:2px;color:#748391}
+.wp-panel .wp-bye-list .wp-player img{width:34px!important;height:34px!important;flex:0 0 34px}
+.wire-expanded-stage:has(>.wp-detail){height:auto!important;max-height:calc(100dvh - 40px)}
+.wire-expanded-stage>.wc.wp-detail{height:auto!important;min-height:0!important;align-self:flex-start;background:transparent!important;box-shadow:none!important}
+.wp-detail .wp-bye-list{height:auto;max-height:65dvh;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}
+.wp-detail .wp-bye-list .wp-person{margin:0;padding:5px 0}
+@media(max-width:760px){
+ .wp-bye-list{height:190px}
+ .wp-panel.wp-byes h3{font-size:20px}
+ .wp-bye-logos{margin:5px 0 8px}
+ .wp-detail .wp-bye-list{grid-template-columns:1fr;max-height:65dvh}
+}
