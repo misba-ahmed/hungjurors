@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+const source=await (await import('node:fs/promises')).readFile(new URL('./manager-hero.js',import.meta.url),'utf8');
+const heroScoreWeek=new Function(source.slice(source.indexOf('function heroScoreWeek'),source.indexOf('function actual'))+';return heroScoreWeek')();
+const data={"status":{"currentMatchupPeriod":5},"teams":[{},{}],"schedule":[{"matchupPeriodId":4,"home":{"teamId":1,"totalPoints":135},"away":{"teamId":2,"totalPoints":116.62},"winner":"HOME"},{"matchupPeriodId":5,"home":{"teamId":1,"totalPoints":0},"away":{"teamId":2,"totalPoints":0},"winner":"UNDECIDED"}]};
+const games=[{"week":5,"state":"pre","kickoff":"2026-10-09T00:15:00Z"}];
+assert.equal(heroScoreWeek(data,games,Date.parse('2026-10-06T12:00Z')),4);
+assert.equal(heroScoreWeek(data,games,Date.parse('2026-10-09T00:14:59Z')),4);
+assert.equal(heroScoreWeek(data,games,Date.parse('2026-10-09T00:15:00Z')),5);
+assert.equal(heroScoreWeek(data,[]),4);
+console.log('Header scores retain completed week until kickoff');

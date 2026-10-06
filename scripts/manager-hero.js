@@ -1,5 +1,22 @@
 (()=>{"use strict";const figures=[{"name":"MISBA","slug":"misba","cx":67,"x":12.029545454545453,"y":77.25909090909092,"width":109.63636363636364,"height":219.27272727272728},{"name":"BRYAN","slug":"bryan","cx":167,"x":112.02954545454544,"y":77.25909090909092,"width":109.63636363636364,"height":219.27272727272728},{"name":"TYLER","slug":"tyler","cx":267,"x":212.02954545454546,"y":77.25909090909092,"width":109.63636363636364,"height":219.27272727272728},{"name":"NATHAN M","slug":"nathan-m","cx":367,"x":312.0295454545455,"y":77.25909090909092,"width":109.63636363636364,"height":219.27272727272728},{"name":"WASI","slug":"wasi","cx":467,"x":411.8772727272727,"y":77.25909090909092,"width":109.63636363636364,"height":219.27272727272728},{"name":"CESAR","slug":"cesar","cx":823,"x":768.1818181818182,"y":77.25909090909092,"width":109.63636363636364,"height":219.27272727272728},{"name":"NATHAN T","slug":"nathan-t","cx":923,"x":868.1818181818181,"y":77.25909090909092,"width":109.63636363636364,"height":219.27272727272728},{"name":"GARRETT","slug":"garrett","cx":1023,"x":968.1818181818181,"y":77.25909090909092,"width":109.63636363636364,"height":219.27272727272728},{"name":"JARRETT","slug":"jarrett","cx":1123,"x":1068.1818181818182,"y":77.25909090909092,"width":109.63636363636364,"height":219.27272727272728},{"name":"KAT","slug":"kat","cx":1223,"x":1168.0295454545453,"y":77.25909090909092,"width":109.63636363636364,"height":219.27272727272728}];
-function actual(data,id){const m=hjCurrentMatchup(id,data);if(!m?.side)return null;const s=m.side,w=Number(data.scoringPeriodId||m.week);for(const v of [s.totalPointsLive,s.pointsByScoringPeriod?.[w],s.totalPoints])if(v!=null&&v!==''&&Number.isFinite(Number(v)))return Number(v);return null;}
+function heroScoreWeek(data,games=[],now=Date.now()){
+ const current=Number(data?.status?.currentMatchupPeriod||data?.scoringPeriodId||1);
+ const weekGames=games.filter(g=>Number(g.week)===current);
+ const started=weekGames.some(g=>g.state==='in'||g.state==='post'||(Number.isFinite(Date.parse(g.kickoff))&&Date.parse(g.kickoff)<=now));
+ if(started)return current;
+ const schedule=data?.schedule||[],weeks=[...new Set(schedule.map(g=>Number(g.matchupPeriodId)))].filter(w=>w<=current).sort((a,b)=>b-a);
+ for(const w of weeks){const matches=schedule.filter(g=>Number(g.matchupPeriodId)===w&&g.home&&g.away);
+ if(matches.length>=Math.floor((data.teams||[]).length/2)&&matches.length&&matches.every(g=>['HOME','AWAY','TIE'].includes(g.winner)))return w;}
+ return current===1?1:null;
+}
+function actual(data,id){
+ let games=[];try{games=NFL_WEEK1;}catch{}
+ const w=heroScoreWeek(data,games);if(w===null)return null;
+ const m=(data.schedule||[]).find(g=>Number(g.matchupPeriodId)===w&&(Number(g.home?.teamId)===Number(id)||Number(g.away?.teamId)===Number(id)));
+ if(!m)return null;const s=Number(m.home?.teamId)===Number(id)?m.home:m.away;
+ for(const v of [s?.pointsByScoringPeriod?.[w],s?.totalPointsLive,s?.totalPoints])if(v!=null&&v!==''&&Number.isFinite(Number(v)))return Number(v);
+ return null;
+}
 function boot(){const logo=document.querySelector('.hero-in > img.logo');if(!logo||document.getElementById('hj-manager-hero'))return;const ns='http://www.w3.org/2000/svg',el=(tag,attrs,parent)=>{const n=document.createElementNS(ns,tag);for(const[k,v]of Object.entries(attrs||{}))n.setAttribute(k,v);parent?.append(n);return n;};
 const host=document.createElement('div');host.id='hj-manager-hero';host.className='hj-manager-hero';const svg=el('svg',{viewBox:'0 0 1290 450',role:'group','aria-label':'League managers: touch or hover for current fantasy scores'},host);
 el('image',{href:logo.src,x:420,y:0,width:450,height:450,'aria-hidden':'true'},svg);
