@@ -5,3 +5,5 @@ Before ANY roster lineup code, styling or player artwork update, read `assets/te
 Before ANY manager avatar or figure update, read `assets/MANAGER_ARTWORK_RULES.md`. Preserve the approved original bodies and exact geometry; an avatar change updates the head only, never regenerates the body.
 
 Before ANY manager or player image update, read `assets/ARTWORK_PROPORTIONS.md` and `assets/artwork-proportions.json`. Use the named original image templates and saved comparison proof; do not guess proportions from prose. Facial landmark estimates are explicitly approximate; canvas/alpha dimensions are measured. Preserve visible shaded necks and inspect enlarged joins before publishing.
+
+Before ANY top-carousel / Wire card update, read `docs/wire-card-rules.md` and `docs/wire-live.md`. Preserve shared sizing, expansion, scrolling, gestures and refresh behavior. An approved card design does not waive those rules. Compare desktop and mobile cards against an existing ordinary card before publishing.

@@ -34,7 +34,7 @@
   }).join('')+'</div>';
  }
  function panel(kind,label,title,body,action){
-  return '<section class="wp-panel wp-'+kind+'"><button type="button" class="wp-expand" data-wp-expand="'+kind+'" aria-label="Expand '+esc(title)+'">↗</button><div class="wp-eyebrow">'+label+'</div><h3>'+title+'</h3>'+body+'<div class="wp-action">'+action+'</div></section>';
+  return '<section class="wp-panel wp-'+kind+'" data-wp-card="'+kind+'" tabindex="0" aria-label="'+esc(title)+'. Click to expand."><button type="button" class="wc-expand wp-expand" data-wp-expand="'+kind+'" aria-label="Expand '+esc(title)+'">↗</button><div class="wc-kicker wp-eyebrow">'+label+'</div><h3 class="wc-title">'+title+'</h3>'+body+'<div class="wp-action">'+action+'</div></section>';
  }
  let detail={};
  wireBuild=function(data){
@@ -67,15 +67,35 @@
   built.cards.unshift({section:'this-week',html:'<div class="wc wp-group" data-wire-key="this-week" aria-label="This Week"><div class="wp-heading">This Week <span>· Week '+week+'</span></div><div class="wp-grid" style="--wp-count:'+panels.length+'">'+panels.join('')+'</div></div>'});
   return built;
  };
+ const interactive='a,button,input,select,textarea,label,summary,[role="button"],[role="link"],[contenteditable="true"],.pc-player-trigger,.manager-profile-trigger';
+ function expandPanel(panel){
+  if(!panel)return;
+  const card=document.createElement('div');card.className='wc wp-detail';
+  const clone=panel.cloneNode(true);clone.removeAttribute('tabindex');clone.removeAttribute('data-wp-card');
+  clone.querySelectorAll('[data-wp-expand]').forEach(el=>el.remove());
+  card.append(clone);wireOpenExpanded(card);
+ }
+ let pointer=null,moved=false;
+ const rail=document.querySelector('#wire-scroll');
+ rail?.addEventListener('pointerdown',event=>{pointer={x:event.clientX,y:event.clientY};moved=false;},{passive:true});
+ rail?.addEventListener('pointermove',event=>{if(pointer&&Math.hypot(event.clientX-pointer.x,event.clientY-pointer.y)>8)moved=true;},{passive:true});
+ rail?.addEventListener('pointercancel',()=>{moved=true;pointer=null;},{passive:true});
+ // Bubble after the carousel's native swipe/click guard, not before it.
  document.addEventListener('click',event=>{
+  if(event.defaultPrevented)return;
   const expand=event.target.closest('[data-wp-expand]'),lms=event.target.closest('[data-wp-lms]');
-  if(!expand&&!lms)return;
-  event.preventDefault();event.stopPropagation();
-  if(lms){wireCloseExpanded();document.querySelector('#challenge-menu [data-challenge="lms"]')?.click();return;}
-  const html=detail[expand.dataset.wpExpand];if(!html)return;
-  const card=document.createElement('div');card.className='wc wp-detail';card.innerHTML=html;
-  wireOpenExpanded(card);
- },true);
+  const panel=event.target.closest('#wire-scroll [data-wp-card]');
+  if(!expand&&!lms&&!panel)return;
+  if(panel&&moved&&event.detail>0)return;
+  if(lms){event.preventDefault();wireCloseExpanded();document.querySelector('#challenge-menu [data-challenge="lms"]')?.click();return;}
+  if(!expand&&(event.target.closest(interactive)||String(window.getSelection()||'').trim()))return;
+  event.preventDefault();expandPanel(panel);
+ });
+ rail?.addEventListener('keydown',event=>{
+  if((event.key==='Enter'||event.key===' ')&&event.target.matches('[data-wp-card]')){
+   event.preventDefault();expandPanel(event.target);
+  }
+ });
  // The validated schedule may arrive after league data. Rebuild without resetting selection.
  let byeKey='';
  document.addEventListener('hj:team-photo-scores',()=>{
@@ -90,6 +110,8 @@
   heightFrame=0;
   const rail=document.querySelector('#wire-scroll'),active=wireCardNodes()[WIRE.index||0];if(!rail||!active)return;
   if(observed!==active){sizeObserver?.disconnect();sizeObserver?.observe(active);observed=active;}
+  const standard=wireCardNodes().find(node=>!node.classList.contains('wp-group')),group=rail.querySelector('.wp-group');
+  if(standard&&group){const normalHeight=standard.getBoundingClientRect().height+'px';if(group.style.getPropertyValue('--wp-standard-height')!==normalHeight)group.style.setProperty('--wp-standard-height',normalHeight);}
   const style=getComputedStyle(rail),height=Math.ceil(active.getBoundingClientRect().height+parseFloat(style.paddingTop||0)+parseFloat(style.paddingBottom||0));
   const value=height+'px';if(rail.style.height!==value)rail.style.setProperty('height',value,'important');
  }

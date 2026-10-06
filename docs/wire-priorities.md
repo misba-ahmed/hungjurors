@@ -3,7 +3,7 @@
 Approved 2026-10-06:
 - Extend the existing Wire carousel; do not introduce a separate briefing or replace the other feed sections.
 - The priority slide contains independent white, rounded banners with thin gold borders and narrow page-background gaps. Never use internal divider lines or one shared white container.
-- Desktop: side-by-side banners. Mobile: compact vertical stack. One shared set of carousel arrows, dots, and section chips.
+- Desktop: equal-sized side-by-side banners. Mobile: equal-sized compact stack. The complete group must match the original carousel window height at every breakpoint. One shared set of carousel arrows, dots, and section chips. Follow docs/wire-card-rules.md for the full interaction and sizing contract.
 - The section chip reads “This Week”. Existing recap, preview, draft recap and draft hauls remain accessible.
 - Last Man Standing headline: “Eliminations start this week!”
 - Reuse original manager figures and site avatar helpers. Do not regenerate or resize artwork assets.
