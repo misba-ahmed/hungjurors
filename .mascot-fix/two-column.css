@@ -1,0 +1,24 @@
+@media(min-width:761px){
+ #wire-scroll .wp-grid{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);grid-template-rows:repeat(2,minmax(0,1fr));gap:10px}
+ #wire-scroll .wp-waivers{grid-column:1;grid-row:1}
+ #wire-scroll .wp-lms{grid-column:1;grid-row:2}
+ #wire-scroll .wp-byes{grid-column:2;grid-row:1 / 3}
+ #wire-scroll .wp-panel{padding:12px 14px}
+ #wire-scroll .wp-panel .wp-eyebrow{font-size:10px!important;line-height:1.2!important;margin-bottom:4px!important}
+ #wire-scroll .wp-panel .wc-title{font-size:20px!important;line-height:1.15!important;margin-right:25px!important}
+ #wire-scroll .wp-waivers .wc-count{margin:7px 0 0!important;gap:6px}
+ #wire-scroll .wp-waivers .wc-count .n{font-size:25px!important;line-height:1.15!important;padding:4px 0!important;min-height:0!important;height:auto!important}
+ #wire-scroll .wp-waivers .wc-count .l{font-size:7px!important;margin-top:2px}
+ #wire-scroll .wp-action{margin-top:7px!important;text-align:center}
+ #wire-scroll .wp-button{font-size:10px}
+ #wire-scroll .wp-managers{margin:6px 0 0;height:65px}
+ #wire-scroll .wp-managers img{height:65px;object-fit:contain}
+ #wire-scroll .wp-bye-logos{margin:8px 0 6px}
+ #wire-scroll .wp-bye-logos>div{flex-direction:row;align-items:center;gap:6px}
+ #wire-scroll .wp-bye-logos img{width:27px;height:25px}
+ #wire-scroll .wp-bye-logos span{font-size:11px}
+ #wire-scroll .wp-person{padding:3px 0}
+ #wire-scroll .wp-player b{font-size:12px}
+ #wire-scroll .wp-player small{font-size:10px}
+ #wire-scroll .wp-panel .wc-expand{width:26px;height:26px;top:9px;right:9px;font-size:13px}
+}
