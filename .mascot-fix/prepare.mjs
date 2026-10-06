@@ -84,4 +84,4 @@ fs.writeFileSync('.mascot-fix/fix-report-'+engine.name()+'.json',JSON.stringify(
 await browser.close();
 }
 
-// Verify the tightened left-aligned layout.
+// Verify team-grouped priority roster layout.

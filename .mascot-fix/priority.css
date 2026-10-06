@@ -16,7 +16,7 @@
 #wire-scroll .wp-panel .wc-title,.wp-detail .wp-panel .wc-title{text-align:left!important;margin:0 0 8px!important}
 .wp-panel .wp-eyebrow{text-align:left!important}
 .wp-panel .wp-action{text-align:left}
-.wp-panel .wp-bye-logos{justify-content:flex-start}
+.wp-panel .wp-bye-logos{justify-content:stretch}
 .wp-panel .wc-count{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;gap:5px;margin:10px 0;flex:none}
 .wp-panel .wc-count .unit{min-width:0}
 .wp-panel .wc-count .n{font:800 clamp(20px,2vw,28px)/1.4 var(--sans);padding:5px 0;background:var(--paper);color:var(--navy);border:1px solid var(--line);border-bottom:3px solid var(--brass);border-radius:6px;text-align:center}
@@ -24,11 +24,12 @@
 .wp-action{flex:none;margin-top:7px;text-align:left}
 .wp-button{display:inline-flex;align-items:center;max-width:100%;min-height:0;padding:3px 0;border:0;border-radius:0;background:transparent;color:var(--navy);text-decoration:none;font:800 11px/1.2 var(--sans);cursor:pointer}
 .wp-text-button{background:transparent;border:0;padding:3px 0;min-height:0}
-.wp-bye-logos{display:flex;align-items:flex-start;justify-content:center;flex-wrap:wrap;gap:10px 18px;margin:8px 0;flex:none}
-.wp-bye-logos>div{display:flex;flex-direction:column;align-items:center;gap:3px}
+.wp-bye-logos{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px;margin:5px 0;flex:none}
+.wp-bye-logos>div{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
 .wp-bye-logos img{width:34px;height:29px;object-fit:contain}
 .wp-bye-logos span{font:700 9px/1.2 var(--sans)}
-.wp-bye-list{flex:1 1 0;min-height:40px;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x pan-y;cursor:auto}
+.wp-team-list{min-width:0}
+.wp-bye-list{display:grid;grid-template-columns:repeat(var(--wp-teams,2),minmax(0,1fr));gap:8px;align-content:start;flex:1 1 0;min-height:40px;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x pan-y;cursor:auto}
 .wp-person{margin:0;padding:4px 0}
 .wp-player{appearance:none;display:flex;align-items:center;width:100%;min-width:0;min-height:36px;gap:8px;border:0;padding:0;background:none;color:var(--navy);text-align:left;cursor:pointer}
 .wp-player>span{min-width:0}
@@ -62,17 +63,20 @@
  #wire-scroll .wp-panel .wc-count{margin:4px 0 0;gap:4px;max-width:240px}
  #wire-scroll .wp-panel .wc-count .n{font-size:16px!important;line-height:1.1!important;min-height:0!important;height:auto!important;padding:1px 0!important;border-bottom-width:2px}
  #wire-scroll .wp-panel .wc-count .l{font-size:5.5px!important;letter-spacing:0!important;line-height:1.2!important;margin-top:1px}
- #wire-scroll .wp-bye-logos{margin:0 0 3px;gap:8px;justify-content:flex-start}
+ #wire-scroll .wp-bye-logos{margin:0 0 3px;gap:8px;justify-content:stretch}
  #wire-scroll .wp-bye-logos img{width:22px;height:16px}
  #wire-scroll .wp-bye-logos span{display:none}
  #wire-scroll .wp-byes .wp-action{display:none}
- #wire-scroll .wp-bye-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:3px 8px;min-height:25px}
- #wire-scroll .wp-person{padding:0;min-width:0}
+ #wire-scroll .wp-bye-list{display:grid;grid-template-columns:repeat(var(--wp-teams,2),minmax(0,1fr));align-content:start;gap:3px 8px;min-height:25px}
+ #wire-scroll .wp-person{padding:0 0 3px;min-width:0}
  #wire-scroll .wp-player{min-height:26px;gap:5px}
  #wire-scroll .wp-player b{font-size:10px;line-height:1.15}
  #wire-scroll .wp-player small{font-size:8px;line-height:1.15;margin-top:1px}
  #wire-scroll .wp-panel .wp-player img{width:23px!important;height:23px!important;flex-basis:23px}
  #wire-scroll .wp-managers{margin:3px 0;justify-content:flex-start;height:43px}
  #wire-scroll .wp-managers img{height:43px;max-width:10%;object-fit:contain}
- .wp-detail .wp-bye-list{grid-template-columns:1fr}
+ .wp-detail .wp-bye-list{grid-template-columns:repeat(var(--wp-teams,2),minmax(0,1fr))}
+ .wp-detail .wp-player b{font-size:12px}
+ .wp-detail .wp-player small{font-size:10px}
+ .wp-detail .wp-panel .wp-player img{width:28px!important;height:28px!important;flex-basis:28px}
 }
