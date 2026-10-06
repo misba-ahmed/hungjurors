@@ -7,27 +7,42 @@
       "x": 234,
       "y": 336.8125,
       "width": 972,
-      "height": 446.890625,
+      "height": 420,
       "top": 336.8125,
       "right": 1206,
-      "bottom": 783.703125,
+      "bottom": 756.8125,
       "left": 234
     },
     "bye": "↗Lineup checkTeams on BYE this weekPanthersChiefsBryce YoungNATHAN TChuba HubbardCESARDarren WallerBRYANJalen CokerOMISBAJonathon BrooksJARRETTTetairoa McMillanNATHAN TChiefs DSTKATHarrison ButkerKATKenneth Walker IIITYLERPatrick MahomesJARRETTRashee RiceQKATTravis KelceBRYANXavier WorthyTYLERExpand list ↗",
     "chip": "This WeekWk 4 RecapWk 5 PreviewDraft RecapDraft Hauls"
   },
   "mobile": {
+    "groupHeight": 395,
+    "standardHeight": 395,
     "overflow": false,
     "panels": [
       {
         "rect": {
           "x": 32,
-          "y": -160.34375,
+          "y": 45.359375,
           "width": 326,
-          "height": 223.296875,
-          "top": -160.34375,
+          "height": 121.328125,
+          "top": 45.359375,
           "right": 358,
-          "bottom": 62.953125,
+          "bottom": 166.6875,
+          "left": 32
+        },
+        "overflow": true
+      },
+      {
+        "rect": {
+          "x": 32,
+          "y": 173.6875,
+          "width": 326,
+          "height": 121.328125,
+          "top": 173.6875,
+          "right": 358,
+          "bottom": 295.015625,
           "left": 32
         },
         "overflow": false
@@ -35,25 +50,12 @@
       {
         "rect": {
           "x": 32,
-          "y": 72.953125,
+          "y": 302.015625,
           "width": 326,
-          "height": 374.0625,
-          "top": 72.953125,
+          "height": 121.328125,
+          "top": 302.015625,
           "right": 358,
-          "bottom": 447.015625,
-          "left": 32
-        },
-        "overflow": false
-      },
-      {
-        "rect": {
-          "x": 32,
-          "y": 457.015625,
-          "width": 326,
-          "height": 230.65625,
-          "top": 457.015625,
-          "right": 358,
-          "bottom": 687.671875,
+          "bottom": 423.34375,
           "left": 32
         },
         "overflow": false
