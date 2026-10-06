@@ -37,5 +37,10 @@ report.navigation=await page.evaluate(()=>({section:WIRE.activeSection,index:WIR
 await page.locator('[data-wire-section-jump="this-week"]').click();await page.waitForTimeout(700);
 await page.locator('.wp-group [data-wp-lms]').click();await page.waitForTimeout(700);
 report.challenge=await page.evaluate(()=>({title:document.querySelector('#challenge-title')?.textContent}));
+const sharp=(await import('sharp')).default;
+for(const size of ['desktop','mobile']){
+ const b=await sharp('.mascot-fix/priority-'+size+'.png').resize({width:size==='desktop'?1200:390}).jpeg({quality:80}).toBuffer();
+ fs.writeFileSync('.mascot-fix/priority-'+size+'.json',JSON.stringify({image:b.toString('base64')}));
+}
 fs.writeFileSync('.mascot-fix/priority-report.json',JSON.stringify(report,null,2));
 await browser.close();
