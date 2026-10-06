@@ -1,0 +1,204 @@
+12152: let HJ_HQ_STATE={activeTab:'rosters',focusTeamId:null,matchupWeek:0,matchupView:'week',query:'',position:'ALL',sort:'week',freeAgents:[],freeAgentToken:0,openMatchups:new Set(),lineupModes:new Map()};
+12153: let HJ_ESPN_HQ_POOL={key:'',promise:null,byId:new Map(),rankById:new Map(),rerenderedKey:''};
+12154: 
+12155: function hjLeagueUrl(season=HJ_LEAGUE_SEASON){
+12156:   const url=new URL(`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}`),current=Number(season)===HJ_LEAGUE_SEASON,views=['mTeam','mRoster','mSettings','mMatchup','mStandings','mStatus','mDraftDetail','mMatchupScore'];
+12157:   if(current)views.push('mLiveScoring','mBoxscore','mScoreboard');views.forEach(view=>url.searchParams.append('view',view));
+12158:   // Let ESPN select the current scoring period; a cached week must not pin live requests.
+12159:   return url.toString();
+12160: }
+12161: function hjNorm(value=''){return String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
+12162: function hjInitials(value=''){return String(value).split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'HJ'}
+12163: function hjMembers(data=HJ_LEAGUE_STATE.data){return new Map((data?.members||[]).map(member=>[String(member.id),member]))}
+12164: function hjOwner(team,data=HJ_LEAGUE_STATE.data){
+12165:   const members=hjMembers(data),ownerIds=[team?.primaryOwner,...(team?.owners||[])].filter(Boolean).map(String);
+12166:   return ownerIds.map(id=>members.get(id)).filter(Boolean)[0]||null;
+12167: }
+12168: function hjOwnerName(team,data=HJ_LEAGUE_STATE.data){
+12169:   const owner=hjOwner(team,data);
+12170:   return owner?.displayName||[owner?.firstName,owner?.lastName].filter(Boolean).join(' ')||owner?.name||'';
+12171: }
+12172: function hjTeamName(team){return team?.name||[team?.location,team?.nickname].filter(Boolean).join(' ')||team?.nickname||team?.abbrev||`Team ${team?.id||''}`}
+12173: function hjTeamLogo(team){
+12174:   const raw=Array.isArray(team?.logo)?team.logo[0]:team?.logo;
+12175:   return /^https?:\/\//i.test(String(raw||''))?String(raw):'';
+12176: }
+12177: function hjMatchManager(team,data=HJ_LEAGUE_STATE.data){
+12178:   const owner=hjOwner(team,data),ownerName=hjOwnerName(team,data),candidateText=hjNorm([ownerName,owner?.firstName,owner?.lastName,hjTeamName(team),team?.abbrev].filter(Boolean).join(' '));
+12179:   if(!candidateText)return '';
+12180:   const managers=DATA.managers.map(manager=>manager.short);
+12181:   const historical=(HIST.manager_seasons||[]).filter(row=>Number(row.year)===2025).find(row=>hjNorm(row.team)===hjNorm(hjTeamName(team))&&managers.includes(row.manager));
+12182:   if(historical)return historical.manager;
+12183:   const direct=managers.find(name=>candidateText.includes(hjNorm(name)));
+12184:   if(direct)return direct;
+12185:   const first=hjNorm(owner?.firstName||ownerName).split(' ')[0];
+12186:   if(!first)return '';
+12187:   const matches=managers.filter(name=>hjNorm(name).split(' ')[0]===first);
+12188:   if(matches.length===1)return matches[0];
+12189:   const lastInitial=hjNorm(owner?.lastName||'')[0]||'';
+12190:   return matches.find(name=>hjNorm(name).split(' ')[1]?.[0]===lastInitial)||'';
+12191: }
+12192: function hjTeamRecord(team){
+12193:   const record=team?.record?.overall||team?.record||{};
+12194:   const wins=Number(record.wins)||0,losses=Number(record.losses)||0,ties=Number(record.ties)||0;
+12195:   return `${wins}-${losses}${ties?`-${ties}`:''}`;
+12196: }
+12197: function hjTeamRecordIfPlayed(team){
+12198:   const record=team?.record?.overall||team?.record||{};
+12199:   return (Number(record.wins)||0)+(Number(record.losses)||0)+(Number(record.ties)||0)>0?hjTeamRecord(team):'';
+12200: }
+12201: function hjRosterEntries(team){return Array.isArray(team?.roster?.entries)?team.roster.entries:[]}
+12202: function hjPlayer(entry){return entry?.playerPoolEntry?.player||entry?.player||{}}
+12203: function hjPlayerPosition(entry){const player=hjPlayer(entry);return HJ_POSITION_IDS[player?.defaultPositionId]||player?.defaultPositionId||''}
+12204: function hjPlayerTeam(entry){return HJ_PRO_TEAM_BY_ID[String(hjPlayer(entry)?.proTeamId||'')]||'FA'}
+12205: function hjPlayerPhoto(entry){const player=hjPlayer(entry),id=player?.id||entry?.playerId;return hjPlayerPosition(entry)==='D/ST'?ffnTeamLogo(hjPlayerTeam(entry)):(player?.headshot?.href||(id&&!String(id).startsWith('-')?nflHeadshot(id):''))}
+12206: function hjPlayerSlot(entry){return HJ_LINEUP_SLOTS[Number(entry?.lineupSlotId)]||`Slot ${entry?.lineupSlotId??'—'}`}
+12207: function hjPlayerRank(entry){
+12208:   const ratings=entry?.playerPoolEntry?.ratings||entry?.ratings||hjPlayer(entry)?.ratings||{},week=hjCurrentWeek(HJ_LEAGUE_STATE.data),preferred=[ratings?.[String(week)],ratings?.[week],ratings?.['0'],ratings?.[0],...Object.values(ratings||{})];
+12209:   for(const rating of preferred){const direct=Number(rating?.positionalRanking);if(Number.isFinite(direct)&&direct>0)return direct}
+12210:   const id=String(hjPlayer(entry)?.id||entry?.playerId||''),pooled=HJ_ESPN_HQ_POOL.rankById.get(id);if(Number.isFinite(pooled)&&pooled>0)return pooled;
+12211:   /* Immediate fallback while the ESPN player-pool request is still resolving: rank the
+12212:      current league's players by ESPN weekly projection. The full ESPN pool replaces this
+12213:      as soon as it arrives, so the UI never sits there showing a naked QB/RB/WR label. */
+12214:   const position=hjPlayerPosition(entry),targetId=id,peers=[];
+12215:   (HJ_LEAGUE_STATE.data?.teams||[]).forEach(team=>hjRosterEntries(team).forEach(item=>{if(hjPlayerPosition(item)!==position)return;const value=hjEspnProjection(item,week);if(Number.isFinite(value))peers.push({id:String(hjPlayer(item)?.id||item?.playerId||''),value})}));
+12216:   peers.sort((a,b)=>b.value-a.value);const found=peers.findIndex(item=>item.id===targetId);return found>=0?found+1:null;
+12217: }
+12218: function hjLineupCompare(a,b){const aSlot=Number(a?.lineupSlotId),bSlot=Number(b?.lineupSlotId),aOrder=HJ_STARTER_ORDER[aSlot]??90,bOrder=HJ_STARTER_ORDER[bSlot]??90;return aOrder-bOrder||(HJ_POSITION_ORDER[hjPlayerPosition(a)]??90)-(HJ_POSITION_ORDER[hjPlayerPosition(b)]??90)||String(hjPlayer(a)?.fullName||'').localeCompare(String(hjPlayer(b)?.fullName||''))}
+12219: function hjBenchCompare(a,b){return (HJ_POSITION_ORDER[hjPlayerPosition(a)]??90)-(HJ_POSITION_ORDER[hjPlayerPosition(b)]??90)||String(hjPlayer(a)?.fullName||'').localeCompare(String(hjPlayer(b)?.fullName||''))}
+12589: function hjReadLeagueCache(){try{const cached=JSON.parse(localStorage.getItem(HJ_LEAGUE_CACHE_KEY)||'null');if(cached?.data?.id&&Array.isArray(cached.data.teams))return cached}catch(_){return null}}
+12590: function hjWriteLeagueCache(){try{localStorage.setItem(HJ_LEAGUE_CACHE_KEY,JSON.stringify({data:HJ_LEAGUE_STATE.data,previousData:HJ_LEAGUE_STATE.previousData,syncedAt:HJ_LEAGUE_STATE.syncedAt,serverTime:HJ_LEAGUE_STATE.serverTime}))}catch(_){}}
+12591: function hjSyncTime(value){if(!value)return 'League data ready';const date=new Date(value);return Number.isFinite(date.getTime())?`Updated ${date.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`:'League data ready'}
+12592: async function hjFetchLeagueSeason(season,force=false){
+12593:   const response=await fetch(hjLeagueUrl(season),{method:'GET',mode:'cors',credentials:'omit',cache:force?'reload':'no-store'});if(!response.ok)throw new Error(`ESPN ${season}: ${response.status}`);
+12594:   const data=await response.json();if(String(data?.id)!==String(ESPN_FANTASY_LEAGUE_ID)||!Array.isArray(data?.teams))throw new Error(`ESPN returned incomplete ${season} league data`);
+12595:   return {data,serverTime:response.headers.get('X-Fantasy-Server-Time')||new Date().toISOString()};
+12596: }
+12597: async function hjSyncLeague(force=false,silent=false){
+12598:   if(HJ_LEAGUE_STATE.syncing)return;HJ_LEAGUE_STATE.syncing=true;HJ_LEAGUE_STATE.error='';if(!silent)hjSetSyncState('syncing','Syncing league',HJ_LEAGUE_STATE.syncedAt?'Checking ESPN for changes…':'Loading teams and rosters…');
+12599:   try{
+12600:     
+12601:     const current=await hjFetchLeagueSeason(HJ_LEAGUE_SEASON,force),previous=null;
+12602:     const prior=HJ_LEAGUE_STATE.data;if(prior)hjTrackActivity(prior,current.data);HJ_LEAGUE_STATE.data=current.data;if(previous?.data)HJ_LEAGUE_STATE.previousData=previous.data;HJ_LEAGUE_STATE.syncedAt=Date.now();HJ_LEAGUE_STATE.serverTime=current.serverTime;HJ_LEAGUE_STATE.syncing=false;hjWriteLeagueCache();hjApplyLiveSeason(current.data);hjRenderLeague();hjSetSyncState('ready','ESPN connected',hjSyncTime(HJ_LEAGUE_STATE.serverTime));
+12603:   }catch(error){
+12604:     console.warn('League sync failed',error);HJ_LEAGUE_STATE.syncing=false;HJ_LEAGUE_STATE.error=String(error?.message||error);
+12605:     if(HJ_LEAGUE_STATE.data){hjRenderLeague();hjSetSyncState('error','Saved league snapshot',`${hjSyncTime(HJ_LEAGUE_STATE.serverTime)} · tap to retry`)}else{hjRenderLeague();hjSetSyncState('error','Sync unavailable','Tap refresh to try again')}
+12606:   }
+12607: }
+12608: function hjLeagueRefreshDelay(){
+12609:   const games=Array.isArray(NFL_WEEK1)?NFL_WEEK1:[],now=Date.now();
+12610:   if(games.some(game=>game?.state==='in'))return HJ_LEAGUE_LIVE_REFRESH_MS;
+12611:   const nearKickoff=games.some(game=>{
+12612:     if(game?.state!=='pre')return false;
+12613:     const kickoff=new Date(game?.kickoff||'').getTime(),delta=kickoff-now;
+12614:     return Number.isFinite(kickoff)&&delta<=30*60*1000&&delta>=-4*60*60*1000;
+12615:   });
+12616:   return nearKickoff?HJ_LEAGUE_NEAR_REFRESH_MS:HJ_LEAGUE_REFRESH_MS;
+12617: }
+12618: function hjQueueLeagueRefresh(delay=hjLeagueRefreshDelay()){
+12619:   clearTimeout(hjLeagueRefreshTimer);
+12620:   hjLeagueRefreshTimer=setTimeout(async()=>{
+12621:     if(!document.hidden)await hjSyncLeague(false,true);
+12622:     hjQueueLeagueRefresh();
+12623:   },Math.max(1000,Number(delay)||HJ_LEAGUE_REFRESH_MS));
+12624: }
+12625: function hjManagerRosterHTML(name){
+12626:   const data=HJ_LEAGUE_STATE.data;if(!data)return '';
+12627:   const team=(data.teams||[]).find(item=>hjMatchManager(item,data)===name);if(!team)return '';
+12628:   const currentEntries=hjRosterEntries(team),previousData=HJ_LEAGUE_STATE.previousData,previousTeam=(previousData?.teams||[]).find(item=>hjMatchManager(item,previousData)===name),previousEntries=hjRosterEntries(previousTeam),usingPrevious=false,entries=usingPrevious?previousEntries:currentEntries,season=usingPrevious?HJ_LEAGUE_PREVIOUS_SEASON:HJ_LEAGUE_SEASON,week=hjCurrentWeek(data),record=hjTeamRecordIfPlayed(team);if(!entries.length)return '';
+12629:   return `<div class="profile-section"><div class="profile-section-title">${usingPrevious?`${HJ_LEAGUE_PREVIOUS_SEASON} Final Roster`:`${HJ_LEAGUE_SEASON} Roster`}</div><div class="profile-live-roster"><div class="profile-live-roster-head"><div class="profile-live-roster-person">${av(name)}<b>${esc(name)}</b></div>${record?`<span>${esc(record)}</span>`:''}</div><div class="league-player-list">${[...entries].sort(hjAllRosterCompare).map(entry=>hjPlayerHTML(entry,week,season)).join('')}</div></div></div>`;
+12630: }
+12631: function hjInitLeague(){
+12632:   try{HJ_LEAGUE_STATE.selectedTeamId=localStorage.getItem(HJ_LEAGUE_TEAM_KEY)||null}catch(_){}
+12633:   const cached=hjReadLeagueCache();if(cached){HJ_LEAGUE_STATE.data=cached.data;HJ_LEAGUE_STATE.previousData=cached.previousData||null;HJ_LEAGUE_STATE.syncedAt=Number(cached.syncedAt)||0;HJ_LEAGUE_STATE.serverTime=cached.serverTime||'';queueMicrotask(()=>{hjApplyLiveSeason(cached.data);hjRenderLeague()});hjSetSyncState('ready','ESPN connected',`${hjSyncTime(HJ_LEAGUE_STATE.serverTime)} · refreshing…`)}
+12634:   hjSyncLeague(false).finally(()=>hjQueueLeagueRefresh());
+12635: }
+12636: $('#league-sync-button')?.addEventListener('click',()=>hjSyncLeague(true));
+12637: $('#league-sync-content')?.addEventListener('click',event=>{
+12638:   const retry=event.target.closest('[data-league-retry]');if(retry){hjSyncLeague(true);return}
+12639:   const matchup=event.target.closest('[data-hq-open-matchup]');if(matchup){hjSetHQTab('matchups',matchup.dataset.hqOpenMatchup);return}
+12640:   const tab=event.target.closest('[data-league-team]');if(!tab)return;HJ_LEAGUE_STATE.selectedTeamId=tab.dataset.leagueTeam;try{localStorage.setItem(HJ_LEAGUE_TEAM_KEY,String(HJ_LEAGUE_STATE.selectedTeamId))}catch(_){}hjRenderLeague();
+12641: });
+12642: $('#league-hq-tabs')?.addEventListener('click',event=>{const tab=event.target.closest('[data-hq-tab]');if(tab)hjSetHQTab(tab.dataset.hqTab)});
+12643: $('#league-hq-tools')?.addEventListener('click',event=>{
+12644:   const lineupMode=event.target.closest('[data-hq-lineup-mode]');if(lineupMode){const key=lineupMode.dataset.hqMatchupKey,mode=lineupMode.dataset.hqLineupMode;if(key&&['actual','espn','vegas','combo'].includes(mode)){HJ_HQ_STATE.lineupModes.set(key,mode);HJ_HQ_STATE.openMatchups.add(key);hjRenderMatchupCenter()}return}
+12645:   const matchupToggle=event.target.closest('[data-hq-matchup-toggle]');if(matchupToggle){const key=matchupToggle.dataset.hqMatchupToggle;if(HJ_HQ_STATE.openMatchups.has(key))HJ_HQ_STATE.openMatchups.delete(key);else HJ_HQ_STATE.openMatchups.add(key);hjRenderMatchupCenter();return}
+12646:   const scheduleView=event.target.closest('[data-hq-schedule-view]');if(scheduleView){HJ_HQ_STATE.matchupView=scheduleView.dataset.hqScheduleView;hjRenderMatchupCenter();return}
+12647:   const scheduleWeek=event.target.closest('[data-hq-schedule-week]');if(scheduleWeek){HJ_HQ_STATE.matchupWeek=Number(scheduleWeek.dataset.hqScheduleWeek)||hjCurrentWeek(HJ_LEAGUE_STATE.data);HJ_HQ_STATE.matchupView='week';hjRenderMatchupCenter();return}
+12648:   const manager=event.target.closest('[data-hq-manager]');if(manager&&!event.target.closest('.manager-profile-avatar')){HJ_LEAGUE_STATE.selectedTeamId=manager.dataset.hqManager;HJ_HQ_STATE.activeTab='rosters';try{localStorage.setItem(HJ_LEAGUE_TEAM_KEY,String(HJ_LEAGUE_STATE.selectedTeamId))}catch(_){}hjRenderLeague();$('#league-sync-shell')?.scrollIntoView({behavior:'smooth',block:'start'});return}
+12649:   if(event.target.closest('#hq-fa-reset')){HJ_HQ_STATE.query='';HJ_HQ_STATE.position='ALL';HJ_HQ_STATE.sort='week';const search=$('#hq-fa-search'),position=$('#hq-fa-position'),sort=$('#hq-fa-sort');if(search)search.value='';if(position)position.value='ALL';if(sort)sort.value='week';hjRenderFreeAgentResults()}
+12650: });
+12651: let hjFaSearchTimer=0;
+12652: $('#league-hq-tools')?.addEventListener('input',event=>{if(event.target.id!=='hq-fa-search')return;HJ_HQ_STATE.query=event.target.value;clearTimeout(hjFaSearchTimer);hjFaSearchTimer=setTimeout(hjRenderFreeAgentResults,120)});
+12653: $('#league-hq-tools')?.addEventListener('change',event=>{if(event.target.id==='hq-fa-position')HJ_HQ_STATE.position=event.target.value;else if(event.target.id==='hq-fa-sort')HJ_HQ_STATE.sort=event.target.value;else return;hjRenderFreeAgentResults()});
+12654: $('#league-hq-tools')?.addEventListener('keydown',event=>{const row=event.target.closest('[data-hq-manager]');if(row&&(event.key==='Enter'||event.key===' ')){event.preventDefault();row.click()}});
+12655: document.addEventListener('visibilitychange',()=>{
+12656:   if(document.hidden){clearTimeout(hjLeagueRefreshTimer);return}
+15388: 
+15389: /* Matchup card redesigned around two clear team panels and a separate
+15390:    probability rail. Nothing is allowed to occupy the same coordinates. */
+15391: hjMatchupCardHTML=function(game,sourceData,data,placeholder){
+15392:   const sourceHome=(sourceData?.teams||[]).find(team=>Number(team.id)===Number(game?.home?.teamId));
+15393:   const sourceAway=(sourceData?.teams||[]).find(team=>Number(team.id)===Number(game?.away?.teamId));
+15394:   if(!sourceHome||!sourceAway)return '';
+15395:   const managerA=hjMatchManager(sourceHome,sourceData)||hjOwnerName(sourceHome,sourceData)||`Manager ${sourceHome.id}`;
+15396:   const managerB=hjMatchManager(sourceAway,sourceData)||hjOwnerName(sourceAway,sourceData)||`Manager ${sourceAway.id}`;
+15397:   const findCurrent=(name,fallback)=>((data?.teams||[]).find(team=>hjMatchManager(team,data)===name)||(data?.teams||[]).find(team=>Number(team.id)===Number(fallback.id))||fallback);
+15398:   const teamA=findCurrent(managerA,sourceHome),teamB=findCurrent(managerB,sourceAway);
+15399:   const week=Number(game?.matchupPeriodId)||hjCurrentWeek(data),past=week<hjCurrentWeek(data);
+15400:   const rosterA=past?{entries:hjHistoricalEntries(game,'home',week),season:HJ_LEAGUE_SEASON,usingPrevious:false}:hjEffectiveRoster(teamA,data),rosterB=past?{entries:hjHistoricalEntries(game,'away',week),season:HJ_LEAGUE_SEASON,usingPrevious:false}:hjEffectiveRoster(teamB,data);
+15401:   const usePlaceholder=placeholder||rosterA.usingPrevious||rosterB.usingPrevious;
+15402:   const unitsA=usePlaceholder?hjPlaceholderUnits(rosterA):hjMatchupUnits(rosterA.entries,week,rosterA.season);
+15403:   const unitsB=usePlaceholder?hjPlaceholderUnits(rosterB):hjMatchupUnits(rosterB.entries,week,rosterB.season);
+15404:   /* The redesigned card is the authoritative matchup renderer. Use the same
+15405:      player-level live scoring source as the expanded lineup instead of waiting
+15406:      for ESPN's matchup-level totalPoints field, which can lag behind live rows. */
+15407:   const liveActualA=usePlaceholder?{total:0,hasActual:false}:hjMatchupLiveActual(rosterA.entries,week,data);
+15408:   const liveActualB=usePlaceholder?{total:0,hasActual:false}:hjMatchupLiveActual(rosterB.entries,week,data);
+15409:   const scoreboardActualA=hjSideScore(game.home,week),scoreboardActualB=hjSideScore(game.away,week);
+15410:   const live=!usePlaceholder&&(liveActualA.hasActual||liveActualB.hasActual||(scoreboardActualA!==null&&scoreboardActualA!==0)||(scoreboardActualB!==null&&scoreboardActualB!==0)||past||hjEntriesHaveLiveGame(rosterA.entries)||hjEntriesHaveLiveGame(rosterB.entries));
+15411:   const actualA=scoreboardActualA??(liveActualA.hasActual?liveActualA.total:null);
+15412:   const actualB=scoreboardActualB??(liveActualB.hasActual?liveActualB.total:null);
+15413:   const projectionA=usePlaceholder?unitsA.total:(hjNumber(game?.home?.totalProjectedPoints)??unitsA.total);
+15414:   const projectionB=usePlaceholder?unitsB.total:(hjNumber(game?.away?.totalProjectedPoints)??unitsB.total);
+15415:   const displayA=live?actualA:projectionA,displayB=live?actualB:projectionB;
+15416:   const barProjectionA=live?(hjAdjustedEspnProjection(game.home)??projectionA):projectionA;
+15417:   const barProjectionB=live?(hjAdjustedEspnProjection(game.away)??projectionB):projectionB;
+15418:   const winChance=past&&Number.isFinite(actualA)&&Number.isFinite(actualB)?(actualA>actualB?100:actualA<actualB?0:50):Number.isFinite(barProjectionA)&&Number.isFinite(barProjectionB)?Math.max(1,Math.min(99,Math.round(100/(1+Math.exp(-(barProjectionA-barProjectionB)/15))))):null;
+15419:   const leftA=usePlaceholder?'':past?'Final':`${hjPlayersLeft(rosterA.entries,week,data)} players left`,leftB=usePlaceholder?'':past?'Final':`${hjPlayersLeft(rosterB.entries,week,data)} players left`;
+15420:   const edges=['QB','RB','WR','TE','FLEX','D/ST','K'].map(pos=>{const known=Number.isFinite(unitsA.values[pos])&&Number.isFinite(unitsB.values[pos]),delta=known?unitsA.values[pos]-unitsB.values[pos]:null,winner=!known?'Projection unavailable':Math.abs(delta)<.005?'Even':`${delta>0?managerA:managerB} +${pcFpts(Math.abs(delta))}`;return `<div class="hq-edge${Math.abs(delta)<.005?' is-even':''}"><span>${esc(pos)}</span><strong title="${esc(winner)}">${esc(winner)}</strong></div>`}).join('');
+15421:   const focused=String(HJ_HQ_STATE.focusTeamId||'')===String(teamA.id)||String(HJ_HQ_STATE.focusTeamId||'')===String(teamB.id);
+15422:   const matchupKey=`${week}:${teamA.id}:${teamB.id}`,open=HJ_HQ_STATE.openMatchups.has(matchupKey);
+15423:   const vegasA=usePlaceholder||past?null:hjTeamVegasProjection(teamA,week,data),vegasB=usePlaceholder||past?null:hjTeamVegasProjection(teamB,week,data);
+15424:   const fmt=value=>Number.isFinite(value)?pcFpts(value):'—';
+15425:   const sub=(espn,vegas,away)=>usePlaceholder||!live?'':`<span class="hq-match-team-sub">${hjProjectionFlipHTML(espn,vegas,`matchup:${matchupKey}:${away?'away':'home'}:original`)}</span>`;
+15426:   const teamBlock=(manager,left,score,espn,vegas,away=false)=>{
+15427:     const adjusted=live?hjAdjustedEspnProjection(away?game.away:game.home):null;
+15428:     const adjustment=Number.isFinite(adjusted)?`<small class="hq-adjusted-projection" title="Live adjusted ESPN projection" aria-label="Adjusted ESPN projection ${fmt(adjusted)}">${fmt(adjusted)}</small>`:'';
+15429:     return `<div class="hq-match-team${away?' is-away':''}">${av(manager)}<div class="hq-match-team-copy"><b class="hq-match-team-name">${esc(manager)}</b>${left?`<small class="hq-match-team-left">${esc(left)}</small>`:''}<span class="hq-live-score-pair">${away?adjustment:''}<strong class="hq-match-team-score${live?' is-actual':''}">${live||usePlaceholder?pcFpts(score):hjProjectionFlipHTML(espn,vegas,`matchup:${matchupKey}:${away?'away':'home'}:original`)}</strong>${away?'':adjustment}</span>${sub(espn,vegas,away)}</div></div>`;
+15430:   };
+15431:   const details=!usePlaceholder?hjMatchupLineupHTML(teamA,teamB,managerA,managerB,rosterA,rosterB,week,matchupKey):'';
+15432:   return `<section class="hq-matchup${focused?' is-focused':''}${open?' is-open':''}" data-hq-matchup data-hq-matchup-key="${esc(matchupKey)}" data-hq-team-a="${esc(teamA.id)}" data-hq-team-b="${esc(teamB.id)}"><div class="hq-matchup-head"><div class="hq-matchup-head-copy"><h4>Week ${week} matchup</h4><span class="hq-matchup-head-meta">${usePlaceholder?'2025 averages':live?'Live score':'Projected'}</span></div>${!usePlaceholder?`<button type="button" class="hq-matchup-toggle" data-hq-matchup-toggle="${esc(matchupKey)}" aria-expanded="${open}">${open?'Hide lineups':'View lineups'} <span class="chev">⌄</span></button>`:''}</div><div class="hq-matchup-summary">${teamBlock(managerA,leftA,displayA,projectionA,vegasA?.vegas,false)}${teamBlock(managerB,leftB,displayB,projectionB,vegasB?.vegas,true)}</div><div class="hq-match-win"><div class="hq-match-win-inner"><div class="hq-match-win-bar" data-espn-live-a="${barProjectionA}" data-espn-live-b="${barProjectionB}" aria-label="${esc(managerA)} ${winChance===null?'—':winChance+'%'} win chance"><span style="width:${winChance??0}%"></span></div><div class="hq-match-win-labels"><span>${esc(managerA)} ${winChance===null?'—':winChance+'%'}</span><b>${past?'Final':winChance===null?'Unavailable':'Est. win chance'}</b><span>${winChance===null?'—':(100-winChance)+'%'} ${esc(managerB)}</span></div></div></div><div class="hq-edge-grid">${edges}</div>${details}</section>`;
+15433: };
+15434: /* v16: removed legacy hjLineupPlayerHTML runtime override. The canonical renderer above is authoritative. */
+15435: 
+15436: /* Free Agents use the same direct ESPN projection lookup the player profile
+15437:    uses. Hydrate only visible rows, in small batches, then cache them. */
+15438: const HJ_FA_ESPN_LOADING=new Set();
+15439: async function hjHydrateVisibleFreeAgentEspn(){
+15440:   const week=hjCurrentWeek(HJ_LEAGUE_STATE.data),visibleIds=[...document.querySelectorAll('#hq-fa-results [data-hq-fa-id]')].map(row=>String(row.dataset.hqFaId||'')).filter(Boolean),players=visibleIds.map(id=>HJ_HQ_STATE.freeAgents.find(player=>String(player.id)===id)).filter(player=>player&&!player._espnTried);
+15441:   if(!players.length)return;
+15442:   players.forEach(player=>HJ_FA_ESPN_LOADING.add(String(player.id)));
+15443:   let entries=[];
+15444:   try{entries=await hjFetchEspnHqIds(players.map(player=>player.id),week)}catch(error){console.warn('Free-agent ESPN batch unavailable',error)}
+15445:   const map=new Map((entries||[]).map(entry=>[hjEspnPoolEntryId(entry),entry]));
+15446:   players.forEach(player=>{const hit=HJ_HQ_STATE.freeAgents.find(item=>String(item.id)===String(player.id));if(!hit)return;const entry=map.get(String(player.id));hit._espnTried=true;HJ_FA_ESPN_LOADING.delete(String(player.id));if(entry){const w=pcEspnProjectionStat(entry,'week',week),s=pcEspnProjectionStat(entry,'season',week);hit.espnWeekFpts=Number.isFinite(w)?w:null;hit.espnSeasonFpts=Number.isFinite(s)?s:null;const actual=Number(hit._actualFpts)||0;hit.espnRosFpts=Number.isFinite(s)?Math.max(0,s-actual):null;}});
+15447:   if(document.querySelector('#hq-fa-results'))hjRenderFreeAgentResults(false);
+15448: }
+15449: 
+15450: hjFreeAgentRowsHTML=function(){
+15451:   const query=hjNorm(HJ_HQ_STATE.query),positionMatch=player=>HJ_HQ_STATE.position==='ALL'||player.position===HJ_HQ_STATE.position||(HJ_HQ_STATE.position==='FLEX'&&['RB','WR','TE'].includes(player.position)),projectionMean=(a,b)=>{const values=[a,b].filter(Number.isFinite);return values.length?values.reduce((sum,value)=>sum+value,0)/values.length:-1},weekScore=player=>projectionMean(player.espnWeekFpts,player.weekFpts),rosScore=player=>projectionMean(player.espnRosFpts,player.rosFpts),filtered=HJ_HQ_STATE.freeAgents.filter(player=>positionMatch(player)&&(!query||hjNorm(player.name).includes(query)||hjNorm(player.team).includes(query))).sort((a,b)=>{if(HJ_HQ_STATE.sort==='season')return rosScore(b)-rosScore(a)||a.depthTier-b.depthTier;if(HJ_HQ_STATE.sort==='depth')return a.depthTier-b.depthTier||weekScore(b)-weekScore(a);return weekScore(b)-weekScore(a)||rosScore(b)-rosScore(a)||a.depthTier-b.depthTier}).slice(0,30);
+15452:   if(!filtered.length)return `<div class="hq-empty">No available players match that search.</div>`;
+15453:   const projCell=(espn,vegas,tried)=>`<div class="hq-fa-proj-pair"><span class="${!tried&&!Number.isFinite(espn)?'is-loading':''}"><small>ESPN</small><b>${Number.isFinite(espn)?pcFpts(espn):tried?'—':'…'}</b></span><span><small>Vegas</small><b>${Number.isFinite(vegas)?pcFpts(vegas):'—'}</b></span></div>`;
+15454:   const rows=filtered.map(player=>{const upcoming=pcUpcoming(player.team),next=upcoming?`${upcoming.location==='at'?'@':'vs'} ${upcoming.abbr}`:'—',rankValue=player.fantasyPositionRank||hjFantasyRankForPlayer(player),rank=rankValue?`${player.position}${rankValue}`:player.position,news=player.news,fit=player.bestFit,attrs=ffnPlayerDataAttrs(player),photo=player.photo?`<img class="${player.position==='D/ST'?'is-defense':''}" src="${esc(player.photo)}" alt="" loading="lazy" onerror="ffnImageFallback(this)">`:`<span class="league-team-initials">${esc(hjInitials(player.name))}</span>`;return `<tr data-hq-fa-id="${esc(player.id)}"><td class="hq-fa-avatar-cell"><button class="hq-fa-avatar-btn pc-player-trigger" type="button" ${attrs} aria-label="Open ${esc(player.name)} player profile">${photo}</button></td><td><button class="hq-fa-player hq-fa-player-copy pc-player-trigger" type="button" ${attrs} aria-label="Open ${esc(player.name)} player profile"><span><b>${esc(player.name)}</b><small>${esc(player.team)} · ${esc(rank)}</small></span></button></td><td class="hq-fa-center">${projCell(player.espnWeekFpts,player.weekFpts,player._espnTried)}</td><td class="hq-fa-center">${projCell(player.espnRosFpts,player.rosFpts,player._espnTried)}</td><td class="hq-fa-center">${hjGameContextHTML(player,hjCurrentWeek())}</td><td class="hq-fa-center">${fit?`<span class="hq-fa-fit">${av(fit)}<b>${esc(fit)}</b></span>`:'—'}</td><td class="hq-fa-news">${news?`<span class="hq-fa-news-copy"><span class="hq-fa-tag">${esc(news.category||'Update')}</span> ${esc(news.headline||news.text||'')}</span>`:'—'}</td></tr>`}).join('');
+15455:   return `<div class="hq-fa-wrap"><table class="hq-fa-table"><thead><tr><th class="hq-fa-avatar-head" aria-label="Player avatar"></th><th>Player</th><th>This week</th><th>ROS proj</th><th>Next</th><th>Best fit</th><th>Latest</th></tr></thead><tbody>${rows}</tbody></table></div>`;
