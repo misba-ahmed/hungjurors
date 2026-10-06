@@ -110,6 +110,8 @@
   heightFrame=0;
   const rail=document.querySelector('#wire-scroll'),active=wireCardNodes()[WIRE.index||0];if(!rail||!active)return;
   if(observed!==active){sizeObserver?.disconnect();sizeObserver?.observe(active);observed=active;}
+  const standard=wireCardNodes().find(node=>!node.classList.contains('wp-group')),group=rail.querySelector('.wp-group');
+  if(standard&&group){const normalHeight=standard.getBoundingClientRect().height+'px';if(group.style.getPropertyValue('--wp-standard-height')!==normalHeight)group.style.setProperty('--wp-standard-height',normalHeight);}
   const style=getComputedStyle(rail),height=Math.ceil(active.getBoundingClientRect().height+parseFloat(style.paddingTop||0)+parseFloat(style.paddingBottom||0));
   const value=height+'px';if(rail.style.height!==value)rail.style.setProperty('height',value,'important');
  }
