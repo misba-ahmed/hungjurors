@@ -29,9 +29,9 @@ const report={errors,desktop:await page.evaluate(()=>({panels:document.querySele
 await page.setViewportSize({width:390,height:844});
 await page.evaluate(()=>wireScrollTo(0));await page.waitForTimeout(500);
 fs.writeFileSync('.mascot-fix/priority-mobile.json',JSON.stringify({image:(await page.screenshot({type:'jpeg',quality:80,clip:{x:0,y:0,width:390,height:1500}})).toString('base64')}));
-await page.evaluate(()=>window.scrollTo(0,450));
+await page.evaluate(()=>window.scrollTo(0,240));
 fs.writeFileSync('.mascot-fix/priority-mobile-bottom.json',JSON.stringify({image:(await page.screenshot({type:'jpeg',quality:80})).toString('base64')}));
-report.mobile=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,panels:[...document.querySelectorAll('.wp-group .wp-panel')].map(e=>({rect:e.getBoundingClientRect().toJSON(),overflow:e.scrollHeight>e.clientHeight+1}))}));
+report.mobile=await page.evaluate(()=>({groupHeight:document.querySelector('.wp-group').getBoundingClientRect().height,standardHeight:wireCardNodes().find(n=>!n.classList.contains('wp-group')).getBoundingClientRect().height,overflow:document.documentElement.scrollWidth>innerWidth,panels:[...document.querySelectorAll('.wp-group .wp-panel')].map(e=>({rect:e.getBoundingClientRect().toJSON(),overflow:e.scrollHeight>e.clientHeight+1}))}));
 
 report.byeScroll=await page.locator('.wp-group .wp-bye-list').evaluate(el=>{el.scrollTop=120;return {count:el.querySelectorAll('.wp-person').length,top:el.scrollTop,overflow:el.scrollHeight>el.clientHeight};});
 if(!report.byeScroll.overflow||report.byeScroll.top<100||report.byeScroll.count<5)throw Error('Compact full roster must scroll');
@@ -81,5 +81,3 @@ fs.writeFileSync('.mascot-fix/priority-report.json',JSON.stringify(report,null,2
 fs.writeFileSync('.mascot-fix/fix-report-'+engine.name()+'.json',JSON.stringify(report,null,2));
 await browser.close();
 }
-
-// Compare against shared card contract.
