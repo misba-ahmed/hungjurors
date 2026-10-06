@@ -1,10 +1,10 @@
-import ffmpeg from 'ffmpeg-static';
-import fs from 'node:fs/promises';import {execFileSync} from 'node:child_process';import sharp from 'sharp';
-execFileSync(ffmpeg,['-y','-ss','2','-i','.mascot-fix/trophy.mp4','-frames:v','1','.mascot-fix/trophy-reference.png'],{stdio:'inherit'});
-const h=await fs.readFile('index.html','utf8'),s=h.indexOf('<div class="hero-in">'),p=h.indexOf('src="',s)+5,logo=h.slice(p,h.indexOf('"',p));
-const names=['misba','bryan','tyler','nathan-m','wasi','cesar','nathan-t','garrett','jarrett','kat'],centers=[67,167,267,367,467,823,923,1023,1123,1223];
-const layers=[{input:await sharp(Buffer.from(logo.split(',')[1],'base64')).resize(450,450).png().toBuffer(),left:420,top:0}];
-const shadows='<svg width="1290" height="450"><defs><radialGradient id="s"><stop stop-color="#17344f" stop-opacity=".28"/><stop offset="48%" stop-color="#17344f" stop-opacity=".14"/><stop offset="100%" stop-color="#17344f" stop-opacity="0"/></radialGradient></defs>'+centers.map(cx=>'<ellipse cx="'+cx+'" cy="281" rx="48" ry="9" fill="url(#s)"/>').join('')+'</svg>';
-layers.push({input:Buffer.from(shadows),left:0,top:0});
-for(let i=0;i<10;i++)layers.push({input:await sharp(names[i]==='jarrett'?Buffer.from(await (await fetch('https://raw.githubusercontent.com/misba-ahmed/hungjurors/main/assets/managers-v8/jarrett-standing.webp')).arrayBuffer()):'assets/managers-v4/'+names[i]+'-standing.webp').resize(110,219).png().toBuffer(),left:Math.round(centers[i]-55),top:77});
-await sharp({create:{width:1290,height:450,channels:4,background:'#f8f4e8'}}).composite(layers).png().toFile('.mascot-fix/current-header-reference.png');
+import fs from 'node:fs/promises';import sharp from 'sharp';
+const input='.mascot-fix/source.png';
+const {data,info}=await sharp(input).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+let l=info.width,t=info.height,r=0,b=0;for(let y=0;y<info.height;y++)for(let x=0;x<info.width;x++)if(data[(y*info.width+x)*4+3]>=128){l=Math.min(l,x);r=Math.max(r,x);t=Math.min(t,y);b=Math.max(b,y);}
+console.log({l,t,r,b});
+const cut=await sharp(input).extract({left:l,top:t,width:r-l+1,height:b-t+1}).resize({height:660}).png().toBuffer();
+const meta=await sharp(cut).metadata();
+await sharp({create:{width:360,height:720,channels:4,background:'#00000000'}}).composite([{input:cut,left:Math.round((360-meta.width)/2),top:9}]).webp({lossless:true}).toFile('.mascot-fix/kat-champion.webp');
+const layers=[];for(const [i,p]of ['assets/managers-v4/kat-standing.webp','.mascot-fix/kat-champion.webp','assets/managers-v4/tyler-standing.webp'].entries())layers.push({input:await sharp(p).png().toBuffer(),left:i*360,top:0});
+await sharp({create:{width:1080,height:720,channels:4,background:'#f8f4e8'}}).composite(layers).png().toFile('.mascot-fix/kat-champion-proof.png');
