@@ -21,7 +21,7 @@ await page.evaluate(()=>{
  headers.forEach((h,i)=>{h.classList.add('mock-team-header');lists[i]?.prepend(h)});
  card.querySelector('.wp-bye-logos')?.remove();
 });
-for(const [name,width] of [['mobile',390]]){
+for(const [name,width] of [['desktop',1440],['mobile',390]]){
  await page.setViewportSize({width,height:1100});await page.evaluate(()=>{wireScrollTo(0);window.scrollTo(0,0)});await page.waitForTimeout(600);
  const bounds=await page.locator('.wp-group').boundingBox();
  const clip={x:Math.max(0,bounds.x-16),y:Math.max(0,bounds.y-175),width:bounds.width+32,height:bounds.height+270};
@@ -33,3 +33,5 @@ await browser.close();
 // Mirrored right roster preview.
 
 // Mobile structured preview.
+
+// Navy inset palette mockups.

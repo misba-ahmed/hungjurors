@@ -86,3 +86,15 @@
  #wire-scroll .wp-action{margin-top:4px!important;text-align:center}
  #wire-scroll .wp-button{font-size:8px!important}
 }
+
+/* Navy inset color exploration; layout unchanged. */
+#wire-scroll .wp-team-list{background:#233f59!important;border-color:#456078!important}
+#wire-scroll .mock-team-header{background:#102d46!important;color:#fff!important}
+#wire-scroll .mock-team-header span{color:#fff!important}
+#wire-scroll .wp-person{border-bottom-color:#425b72!important}
+#wire-scroll .wp-player b{color:#fff!important}
+#wire-scroll .wp-player small{color:#bbcad7!important}
+#wire-scroll .wp-waivers .wc-count{background:#17354f!important;border-color:#456078!important}
+#wire-scroll .wp-waivers .wc-count .n{background:#294961!important;color:#fff!important;border-color:#597084!important;border-bottom-color:#bd902d!important}
+#wire-scroll .wp-waivers .wc-count .l{color:#e1bb60!important}
+#wire-scroll .wp-managers{background:#294961!important;border-color:#456078!important}
