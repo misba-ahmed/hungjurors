@@ -1,5 +1,17 @@
+/* A verified deployment snapshot supplies completed lineups before network refresh. */
+function hjSeedMatchupHistory(){
+ const saved=typeof HJ_MATCHUP_HISTORY_SEED==='undefined'?null:HJ_MATCHUP_HISTORY_SEED;
+ if(!saved||Number(saved.season)!==Number(NFL_SEASON)||String(saved.leagueId)!==String(ESPN_FANTASY_LEAGUE_ID)||Number(saved.payload?.scoringPeriodId)!==Number(saved.week)||!Array.isArray(saved.payload?.schedule))return;
+ const week=Number(saved.week);
+ if(!HJ_DATA.history.has(week)){
+  HJ_DATA.history.set(week,saved.payload);
+  const key=`history:${NFL_SEASON}:${week}`;
+  if(!HJ_DATA.requests.has(key))HJ_DATA.requests.set(key,{value:saved.payload,at:Number(saved.checkedAt)||0});
+ }
+}
 /* Load the requested matchup week without waiting for the season-history queue. */
 function hjLoadMatchupHistory(data,week){
+ hjSeedMatchupHistory();
  week=Number(week);
  if(HJ_DATA.historyJobs.has(week))return HJ_DATA.historyJobs.get(week);
  const key=`history:${NFL_SEASON}:${week}`,record=HJ_DATA.requests.get(key);
@@ -23,6 +35,7 @@ async function hjEnsureCompletedHistory(data){
  for(const week of weeks)await hjLoadMatchupHistory(data,week);
 }
 function hjScheduleWeekSource(data,week){
+ hjSeedMatchupHistory();
  week=Number(week);
  const past=week<hjCurrentWeek(data);
  const source=(past?HJ_DATA.history.get(week):null)||data;

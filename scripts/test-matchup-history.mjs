@@ -32,3 +32,13 @@ test('wrong-week payload cannot replace selected history, and switching week pre
  const {ctx,data,resolve}=setup();const job=ctx.hjLoadMatchupHistory(data,4);resolve(4,{scoringPeriodId:3,schedule:[]});await job;assert.equal(ctx.HJ_DATA.history.has(4),false);assert.equal(ctx.renders,0);
  const next=ctx.hjLoadMatchupHistory(data,4);ctx.HJ_HQ_STATE.matchupWeek=5;resolve(4);await next;assert.equal(ctx.renders,0);assert.ok(ctx.HJ_DATA.history.has(4));
 });
+
+test('verified snapshot populates historical roster before any network response',()=>{
+ const {ctx,data,calls}=setup();
+ const saved={scoringPeriodId:4,schedule:[{...data.schedule[0],home:{teamId:1,rosterForCurrentScoringPeriod:{entries:[{playerId:7,lineupSlotId:0}]}},away:{teamId:2,rosterForCurrentScoringPeriod:{entries:[{playerId:8,lineupSlotId:0}]}}}]};
+ ctx.HJ_MATCHUP_HISTORY_SEED={season:2026,leagueId:'123',week:4,checkedAt:Date.now(),payload:saved};
+ const out=ctx.hjScheduleWeekSource(data,4);assert.equal(out.games[0].home.rosterForCurrentScoringPeriod.entries[0].playerId,7);assert.equal(out.games[0].away.rosterForCurrentScoringPeriod.entries[0].playerId,8);assert.equal(calls.length,0);
+});
+test('snapshot from a different league cannot supply lineups',()=>{
+ const {ctx,data}=setup();ctx.HJ_MATCHUP_HISTORY_SEED={season:2026,leagueId:'other',week:4,payload:{scoringPeriodId:4,schedule:[]}};assert.equal(ctx.hjScheduleWeekSource(data,4).sourceData,data);
+});
