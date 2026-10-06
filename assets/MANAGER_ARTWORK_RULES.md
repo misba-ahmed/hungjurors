@@ -46,3 +46,5 @@ Kat is reigning champion. Only the homepage header uses assets/managers-champion
 October 6 follow-up: User removed the homepage trophy. Restore canonical assets/managers-v4/kat-standing.webp in the header; champion variant is retired and must not be reintroduced without a new request. Automatic standings order remains enabled.
 
 October 6 circle refinement: current Jarrett circular portrait is avatars/jarrett-20261006-circle-v3.svg. Same 552px image width/height and x=-20; y=28 (8px lower than v2). This is a tiny placement change only. Do not resize his head or change full-body artwork.
+
+October 6 subtle circle enlargement: v4 is now avatars/jarrett-20261006-circle-v4.svg. Unchanged approved portrait embedded on 512x512 white canvas, uniform image570x570 at x=-29,y=22. Selected after equal-size visual comparison with Tyler, Nathan M, Wasi, Cesar and Bryan; slight increase from552, not the rejected614 crop. This supersedes v3 framing only. Full-body artwork and circle element sizes remain unchanged.
