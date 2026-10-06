@@ -7,10 +7,10 @@
       "x": 234,
       "y": 336.8125,
       "width": 972,
-      "height": 518.265625,
+      "height": 446.890625,
       "top": 336.8125,
       "right": 1206,
-      "bottom": 855.078125,
+      "bottom": 783.703125,
       "left": 234
     },
     "bye": "↗Lineup checkTeams on BYE this weekPanthersChiefsBryce YoungNATHAN TChuba HubbardCESARDarren WallerBRYANJalen CokerMISBAJonathon BrooksJARRETTTetairoa McMillanNATHAN TChiefs DSTKATHarrison ButkerKATKenneth Walker IIITYLERPatrick MahomesJARRETTRashee RiceKATTravis KelceBRYANXavier WorthyTYLERExpand list ↗",
@@ -24,10 +24,10 @@
           "x": 32,
           "y": -160.34375,
           "width": 326,
-          "height": 224.234375,
+          "height": 223.296875,
           "top": -160.34375,
           "right": 358,
-          "bottom": 63.890625,
+          "bottom": 62.953125,
           "left": 32
         },
         "overflow": false
@@ -35,12 +35,12 @@
       {
         "rect": {
           "x": 32,
-          "y": 73.890625,
+          "y": 72.953125,
           "width": 326,
-          "height": 375,
-          "top": 73.890625,
+          "height": 374.0625,
+          "top": 72.953125,
           "right": 358,
-          "bottom": 448.890625,
+          "bottom": 447.015625,
           "left": 32
         },
         "overflow": false
@@ -48,12 +48,12 @@
       {
         "rect": {
           "x": 32,
-          "y": 458.890625,
+          "y": 457.015625,
           "width": 326,
-          "height": 231.59375,
-          "top": 458.890625,
+          "height": 230.65625,
+          "top": 457.015625,
           "right": 358,
-          "bottom": 690.484375,
+          "bottom": 687.671875,
           "left": 32
         },
         "overflow": false
@@ -65,12 +65,18 @@
     "top": 120,
     "overflow": true
   },
-  "expanded": "WEEK 5 · LINEUP CHECK\nTeams on BYE this week\nPanthers\nChiefs\nBryce Young\nNATHAN T\nChuba Hubbard\nCESAR\nDarren Waller\nBRYAN\nJalen Coker\nMISBA\nJonathon Brooks\nJARRETT\nTetairoa McMillan\nNATHAN T\nChiefs DST\nKAT\nHarrison Butker\nKAT\nKenneth Walker III\nTYLER\nPatrick Mahomes\nJARRETT\nRashee Rice\nKAT\nTravis Kelce\nBRYAN\nXavier Worthy\nTYLER\n×",
+  "expanded": "LINEUP CHECK\nTeams on BYE this week\nPanthers\nChiefs\nBryce Young\nNATHAN T\nChuba Hubbard\nCESAR\nDarren Waller\nBRYAN\nJalen Coker\nMISBA\nJonathon Brooks\nJARRETT\nTetairoa McMillan\nNATHAN T\nChiefs DST\nKAT\nHarrison Butker\nKAT\nKenneth Walker III\nTYLER\nPatrick Mahomes\nJARRETT\nRashee Rice\nKAT\nTravis Kelce\nBRYAN\nXavier Worthy\nTYLER\n×",
   "navigation": {
     "section": "recap",
     "index": 1,
     "rail": 404,
     "card": 395
+  },
+  "cardRules": {
+    "backgroundExpand": true,
+    "keyboardExpand": true,
+    "headerDragDismiss": true,
+    "swipeClickSuppressed": true
   },
   "challenge": {
     "title": "Last Man Standing"
