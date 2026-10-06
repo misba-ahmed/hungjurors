@@ -84,4 +84,4 @@ fs.writeFileSync('.mascot-fix/fix-report-'+engine.name()+'.json',JSON.stringify(
 await browser.close();
 }
 
-// Verify team-grouped priority roster layout.
+// Check centered footer links and visible inline team names.
