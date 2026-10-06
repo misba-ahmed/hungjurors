@@ -18,12 +18,13 @@
   return groups;
  }
  function groupHTML(groups){
-  const logos='<div class="wp-bye-logos" aria-label="Teams on bye">'+groups.map(g=>{
+  const columns=groups.map(g=>{
    const name=typeof PC_TEAM_NAMES!=='undefined'?(PC_TEAM_NAMES[g.team]||g.team):g.team;
-   return '<div><img src="'+esc(nflLogo(g.team))+'" alt="'+esc(name)+'"><span>'+esc(name)+'</span></div>';
-  }).join('')+'</div>';
-  const columns=groups.map(g=>'<div class="wp-team-list" role="group" aria-label="'+esc(g.team)+' players">'+g.players.map(item=>'<div class="wp-person">'+wirePlayerHTML(item.player).replace('wc-player','wp-player').replace(/<small>[\s\S]*?<\/small>/,'<small>'+esc(item.manager)+'</small>')+'</div>').join('')+'</div>').join('');
-  return logos+'<div class="wp-bye-list" tabindex="0" role="region" aria-label="Owned players on bye; scroll for all players" style="--wp-teams:'+Math.max(1,groups.length)+'">'+(columns||'<p>No owned players on BYE.</p>')+'</div>';
+   const header='<div class="wp-team-header"><img src="'+esc(nflLogo(g.team))+'" alt=""><span>'+esc(name)+'</span></div>';
+   const players=g.players.map(item=>'<div class="wp-person">'+wirePlayerHTML(item.player).replace('wc-player','wp-player').replace(/<small>[\s\S]*?<\/small>/,'<small>'+esc(item.manager)+'</small>')+'</div>').join('');
+   return '<div class="wp-team-list" role="group" aria-label="'+esc(name)+' players">'+header+players+'</div>';
+  }).join('');
+  return '<div class="wp-bye-list" tabindex="0" role="region" aria-label="Owned players on bye; scroll for all players" style="--wp-teams:'+Math.max(1,groups.length)+'">'+(columns||'<p>No owned players on BYE.</p>')+'</div>';
  }
  function figures(data){
   const slugs={'NATHAN M':'nathan-m','NATHAN T':'nathan-t'};
@@ -64,7 +65,7 @@
   // Leave ordinary weeks' single-feature banners alone; BYEs/LMS can stand alone.
   if(!groups.length&&!lms)return built;
   built.cards=built.cards.filter(c=>c.section!=='waivers');
-  built.cards.unshift({section:'this-week',html:'<div class="wc wp-group" data-wire-key="this-week" aria-label="This Week"><div class="wp-heading">This Week <span>· Week '+week+'</span></div><div class="wp-grid" style="--wp-count:'+panels.length+'">'+panels.join('')+'</div></div>'});
+  built.cards.unshift({section:'this-week',html:'<div class="wc wp-group" data-wire-key="this-week" aria-label="This Week"><div class="wp-heading">This Week <span>· Week '+week+'</span></div><div class="wp-grid" data-panel-count="'+panels.length+'" style="--wp-count:'+panels.length+'">'+panels.join('')+'</div></div>'});
   return built;
  };
  const interactive='a,button,input,select,textarea,label,summary,[role="button"],[role="link"],[contenteditable="true"],.pc-player-trigger,.manager-profile-trigger';

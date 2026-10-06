@@ -17,10 +17,10 @@ Read this before changing any top-carousel card. Derived from the existing Wire 
 
 ## Explicitly approved This Week exceptions
 - One carousel slide can contain three independent banners, with thin page-background gaps. No shared white outer container and no internal separators.
-- Desktop panels are side by side; mobile panels stack. All panels within the group are equal-sized, and the WHOLE group must occupy exactly the same viewport height as an ordinary carousel card. Content scrolls within the cards instead of expanding the group. This supersedes the initial tall mobile stack.
-- BYE title: “Teams on BYE this week”. Horizontal team logos first. Keep team names visible on mobile beside their logos; retain the existing desktop logo/name arrangement. All owned players in a scrollable compact list; manager name directly below player name. No owner column.
+- Approved cream inset layout (2026-10-06): with three announcements, desktop widths above 760px use two columns, waiver above LMS on the left and BYEs spanning both rows on the right. Mobile uses three equal stacked cards. One/two announcements use the natural available grid; never reserve missing-panel slots. The WHOLE group retains exactly the ordinary carousel viewport height. Content scrolls inside, never stretches the group.
+- BYE title: “Teams on BYE this week”. Each team has a cream inset box with a darker cream header containing its logo and name, followed by consistent separated player rows. Mirror the right-hand team: avatar on right, player/manager names right-aligned, header mirrored too. Manager name directly below player; no separate owner column. Compact lists scroll vertically with mobile team headers sticky. No navy backgrounds; user rejected that variant.
 - LMS headline: “Eliminations start this week!” No explanatory paragraph beneath it.
-- All card category labels stay at the top left with identical padding. Titles, date and logos share a left edge. On mobile, the waiver and LMS footer text links are centered, per the annotated screenshot; desktop action alignment remains unchanged. Countdown numbers remain centered within their units.
+- All card category labels stay at the top left with identical padding. Titles, date and logos share a left edge. On mobile, the waiver and LMS footer text links are centered, per the annotated screenshot; desktop footer actions are also centered in the approved inset layout. Countdown numbers remain centered within their units.
 - Priority actions are plain text links with arrows, never large pill buttons. Compact waiver title-to-date gap is 3px; countdown and action gaps are 3–4px. Mobile BYE players use one column per NFL team, directly beneath the matching team logo, with manager subtext, scrolling within the card. Avoid split-column waiver and LMS layouts.
 - Existing automatic waiver deadline, validated season schedule and Week 5 milestone control visibility.
 
@@ -41,3 +41,5 @@ Run scripts/test-wire-priorities.mjs and the existing card gesture checks. Do no
 - Priority panel containers must use overflow-x:hidden and overscroll-behavior-x:auto. Only the outer carousel owns horizontal scrolling; BYE roster scrolling remains vertical. Verify internal scrollLeft stays zero in both directions. Never suppress horizontal scroll chaining: trackpad wheel gestures over each panel and the BYE list must advance the outer carousel.
 
 - Header widths must account for their right margins. Do not combine width:100% with extra horizontal margins; that created 25px of hidden horizontal overflow.
+
+- Cream inset boxes also contain the waiver countdown and LMS manager lineup. White outer cards retain brass borders, top-left labels, original expand controls and thin cream page gaps. Do not replace approved artwork or resize avatar crops as part of banner styling.
