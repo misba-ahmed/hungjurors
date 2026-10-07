@@ -25,6 +25,7 @@ for(const engine of [chromium,webkit]){
  const active='.hj-roster-rail .hj-section-page:not([inert])';
  await page.locator(active+' .hj-team-photo').scrollIntoViewIfNeeded();
  const players=page.locator(active+' .hj-team-photo-player');
+ await page.waitForFunction(()=>[...document.querySelectorAll('.hj-roster-rail .hj-section-page:not([inert]) .hj-team-photo-figure img')].every(img=>img.complete&&img.naturalWidth>0),{},{timeout:60000});
  for(let i=0;i<Math.min(8,await players.count());i++){await players.nth(i).tap();await page.waitForTimeout(60);}
  assert.equal(await page.locator('[data-league-team].active').getAttribute('data-league-team'),selected);
  if(engine===chromium){
