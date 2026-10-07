@@ -1,11 +1,13 @@
 name: Verify section gestures
 on:
   push:
-    branches: [main, fix-desktop-section-wheel]
+    branches: [main, fix-desktop-section-wheel, fix-continuous-trackpad-scroll]
     paths:
       - scripts/matchup-navigation.js
       - scripts/challenge-live.js
+      - styles/season-challenges.css
       - scripts/test-desktop-section-wheel.mjs
+      - scripts/test-trackpad-site.mjs
       - scripts/test-roster-swipe.mjs
       - scripts/test-challenge-swipe.mjs
       - .github/workflows/test-section-gestures.yml
@@ -34,3 +36,10 @@ jobs:
           node scripts/test-roster-swipe.mjs
           node scripts/test-challenge-swipe.mjs
           node scripts/test-desktop-section-wheel.mjs
+      - name: Verify built site scrolling
+        run: node scripts/test-trackpad-site.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gesture-proof
+          path: gesture-proof/

@@ -320,11 +320,12 @@ function hjChIntro(out,id){
 
  });
 }
+function hjChBodyHTML(ch,model){return !model?'<div class="empty">Loading scores and historical lineups…</div>':ch.id==='raffle'?hjChRaffle(model):ch.id==='lms'?hjChLms(model):ch.id==='titty'?hjChTitty(model):ch.id==='mvp'?hjChMvp(model):ch.id==='overachiever'?hjChOver(model):ch.id==='optimizer'?hjChOpt(model):hjChSpecial(ch,model);}
 function hjRenderChallenge(){
  const state=HJ_CHALLENGE_STATE,ch=CHALLENGES.find(c=>c.id===state.active)||CHALLENGES[0],out=$('#challenge-out');if(!out)return;
  const model=state.model,time=state.checkedAt?new Date(state.checkedAt).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
  const status=state.error||HJ_LEAGUE_STATE.error||(!model?'Loading ESPN season results…':`${model.liveWeek?`Week ${model.liveWeek} in progress`:model.finalWeek?`Final through Week ${model.finalWeek}`:'Season has not started'} · ${time?`ESPN checked ${time} · `:''}Updates automatically`);
- const body=!model?'<div class="empty">Loading scores and historical lineups…</div>':ch.id==='raffle'?hjChRaffle(model):ch.id==='lms'?hjChLms(model):ch.id==='titty'?hjChTitty(model):ch.id==='mvp'?hjChMvp(model):ch.id==='overachiever'?hjChOver(model):ch.id==='optimizer'?hjChOpt(model):hjChSpecial(ch,model);
+ const body=hjChBodyHTML(ch,model);
  // No routine status line; a sync delay still surfaces so stale numbers are never silent.
  const delayed=!!(state.error||HJ_LEAGUE_STATE.error),showStatus=ch.id==='lms'?false:delayed;
  const html=`${showStatus?`<div class="challenge-live-status${delayed?' is-delayed':''}" role="status">${esc(status)}</div>`:''}${body}`;
@@ -471,26 +472,37 @@ function selectChallenge(id){
   settle(dx<0?1:-1,dx);
  },{passive:true});
 
- // Trackpads emit wheel events, not touch events. Latch one page per gesture,
- // including its momentum tail, and leave vertical scrolling/pinch/nested rails alone.
- let challengeWheel=null;
+ // Desktop trackpads scroll real content continuously; no next-page threshold.
+ let challengeWheel=null,challengeScroll=null;
+ const cancelChallengeScroll=()=>{challengeScroll?.cancel();challengeScroll=null;challengeWheel=null;};
  root.addEventListener('wheel',e=>{
-  const now=Date.now(),fresh=!challengeWheel||now-challengeWheel.last>200;
-  if(fresh)challengeWheel={last:now,total:0,axis:'',done:false,blocked:!!touch||moving||ownsGesture(e.target)||!e.target.closest('#challenge-out,.ch-card')};
-  const gesture=challengeWheel;gesture.last=now;
-  if(e.ctrlKey||zoomed()){gesture.blocked=true;return;}
-  if(gesture.blocked)return;
-  const scale=e.deltaMode===1?16:e.deltaMode===2?root.clientWidth:1;
+  if(e.ctrlKey||zoomed()){cancelChallengeScroll();return;}
+  const now=Date.now(),fresh=!challengeWheel||now-challengeWheel.last>220;
+  if(fresh)challengeWheel={last:now,axis:'',blocked:!!touch||moving||ownsGesture(e.target)||!e.target.closest('#challenge-out,.ch-card')};
+  const gesture=challengeWheel;gesture.last=now;if(gesture.blocked)return;
+  const scale=e.deltaMode===1?16:e.deltaMode===2?out.clientWidth:1;
   const dx=e.deltaX*scale,dy=e.deltaY*scale;
   if(!gesture.axis&&Math.hypot(dx,dy)>2)gesture.axis=Math.abs(dx)>Math.abs(dy)*1.15?'x':'y';
-  if(gesture.axis!=='x')return;
-  if(e.cancelable)e.preventDefault();
-  if(gesture.done)return;
-  gesture.total+=dx;
-  if(Math.abs(gesture.total)<40)return;
-  gesture.done=true;
-  settle(gesture.total>0?1:-1,0);
+  if(gesture.axis!=='x'||typeof hjTrackpadScroll!=='function')return;
+  if(!challengeScroll?.active){
+   const index=CHALLENGES.findIndex(ch=>ch.id===HJ_CHALLENGE_STATE.active);
+   if(index<0)return;
+   challengeScroll=hjTrackpadScroll({root,nodes:nodes(),index,count:CHALLENGES.length,
+    render:i=>{
+     const ch=CHALLENGES[i],page=document.createElement('div'),card=root.querySelector('.ch-card').cloneNode(true);
+     card.querySelector('.ch-title').textContent=ch.label;card.querySelector('.ch-rules').textContent=ch.rule;
+     card.querySelector('.ch-stamp').textContent=ch.prize;
+     const body=document.createElement('div');body.className='hj-wheel-challenge-out';body.innerHTML=hjChBodyHTML(ch,HJ_CHALLENGE_STATE.model);
+     body.style.marginTop=(out.getBoundingClientRect().top-root.querySelector('.ch-card').getBoundingClientRect().bottom)+'px';
+     page.append(card,body);return page;
+    },
+    commit:i=>{out.dataset.renderedChallenge=CHALLENGES[i].id;selectChallenge(CHALLENGES[i].id);}});
+  }
+  if(challengeScroll){if(e.cancelable)e.preventDefault();challengeScroll.move(dx);}
  },{passive:false});
+ root.addEventListener('touchstart',cancelChallengeScroll,{passive:true});
+ root.addEventListener('click',cancelChallengeScroll,true);
+ window.addEventListener('resize',cancelChallengeScroll);
 
  root.addEventListener('touchcancel',()=>{if(touch)root.style.overflowX=touch.overflow;stop();},{passive:true});
  root.addEventListener('click',e=>{
