@@ -1,3 +1,67 @@
+/* A temporary native scroll rail for views that normally render one page.
+ * Trackpad deltas move scrollLeft pixel-for-pixel; only idle scrolls settle.
+ * The live DOM stays in place until selection commits, preserving its controls.
+ */
+function hjTrackpadScroll({root,nodes,index,count,render,commit}){
+ const first=nodes[0],last=nodes[nodes.length-1];
+ if(!first||!last||count<2)return null;
+ const box=first.getBoundingClientRect(),end=last.getBoundingClientRect(),bounds=root.getBoundingClientRect();
+ const width=box.width;if(!width)return null;
+ const position=root.style.position;if(getComputedStyle(root).position==='static')root.style.position='relative';
+ const rail=document.createElement('div');rail.dataset.hjWheelScroll='';rail.setAttribute('aria-hidden','true');rail.inert=true;
+ rail.style.cssText=`position:absolute;left:${box.left-bounds.left+root.scrollLeft-root.clientLeft}px;top:${box.top-bounds.top+root.scrollTop-root.clientTop}px;width:${width}px;height:${end.bottom-box.top}px;display:flex;align-items:flex-start;overflow-x:scroll;overflow-y:hidden;scrollbar-width:none;scroll-behavior:auto;overscroll-behavior-x:contain;pointer-events:none;z-index:5;`;
+ const original=index,opacity=nodes.map(n=>n.style.opacity),pages=new Map();
+ let current=index,timer=0,frame=0,closed=false;
+ const wrap=n=>(n%count+count)%count;
+ function clean(node){
+  if(node.id==='challenge-out')node.classList.add('hj-wheel-challenge-out');
+  node.removeAttribute('id');node.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
+  node.querySelectorAll('img').forEach(n=>{n.loading='eager';});
+  node.style.removeProperty('opacity');return node;
+ }
+ const saved=document.createElement('div');
+ nodes.forEach((node,i)=>{const copy=clean(node.cloneNode(true));if(i)copy.style.marginTop=(node.getBoundingClientRect().top-nodes[i-1].getBoundingClientRect().bottom)+'px';saved.append(copy);});
+ pages.set(original,saved);
+ function page(i){
+  if(!pages.has(i))pages.set(i,render(i));
+  const source=pages.get(i),p=document.createElement('div');
+  p.dataset.hjWheelPage=String(i);p.style.cssText=`flex:0 0 ${width}px;width:${width}px;min-width:0;box-sizing:border-box;overflow:clip;`;
+  p.append(clean(source.cloneNode(true)));return p;
+ }
+ function refill(){rail.replaceChildren(page(wrap(current-1)),page(current),page(wrap(current+1)));}
+ refill();root.append(rail);rail.scrollLeft=width;nodes.forEach(n=>n.style.opacity='0');
+ function cleanup(){
+  if(closed)return;closed=true;clearTimeout(timer);cancelAnimationFrame(frame);
+  nodes.forEach((n,i)=>{if(n.style.opacity==='0')n.style.opacity=opacity[i];});
+  rail.remove();root.style.position=position;
+ }
+ function finish(){const selected=current;cleanup();if(selected!==original)commit(selected);}
+ function settle(){
+  if(closed)return;
+  const target=Math.round(rail.scrollLeft/width)*width,start=rail.scrollLeft;
+  const direction=Math.round(target/width)-1;
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches||Math.abs(target-start)<.5){current=wrap(current+direction);finish();return;}
+  const time=performance.now();
+  const tick=now=>{
+   const t=Math.min(1,(now-time)/220),ease=1-Math.pow(1-t,3);rail.scrollLeft=start+(target-start)*ease;
+   if(t<1)frame=requestAnimationFrame(tick);else{current=wrap(current+direction);finish();}
+  };frame=requestAnimationFrame(tick);
+ }
+ return {
+  move(dx){
+   if(closed||!root.isConnected||!first.isConnected||!rail.isConnected){cleanup();return false;}
+   clearTimeout(timer);cancelAnimationFrame(frame);
+   let left=rail.scrollLeft+dx;
+   // Recycle only at whole-page boundaries, preserving the exact residual offset.
+   while(left>=width*2){current=wrap(current+1);left-=width;refill();}
+   while(left<0){current=wrap(current-1);left+=width;refill();}
+   rail.scrollLeft=left;timer=setTimeout(settle,180);return true;
+  },
+  cancel:cleanup,
+  get active(){return !closed;}
+ };
+}
+
 /* External matchup links always land on the scorecard top, never the lineup center. */
 function hjScrollMatchupStart(card){
  const key=typeof card==='string'?card:card?.dataset.hqMatchupKey;
@@ -79,12 +143,13 @@ function hjScrollMatchupStart(card){
   if(deck.style.getPropertyValue('--hj-matchup-height')!==height)deck.style.setProperty('--hj-matchup-height',height);
  }
  function settle(deck){
-  const s=states.get(deck);if(!s||s.touch||s.sliding||!deck.isConnected)return;
+  const s=states.get(deck);if(!s||s.touch||s.sliding||s.wheeling||!deck.isConnected)return;
   clearTimeout(s.timer);
   const index=clamp(deck,s.target??nearest(deck)),card=cards(deck)[index];if(!card)return;
   const left=offset(deck,card);
   s.moving=false;s.target=null;
-  if(Math.abs(deck.scrollLeft-left)>.5)deck.scrollTo({left,behavior:'instant'});
+  // Native scrolling/snap owns user scroll position; only explicit navigation
+  // has a target. Never jump the rail to a rounded page in a scroll callback.
   choose(deck,index);fit(deck,index);
  }
  function later(deck){
@@ -115,6 +180,13 @@ function hjScrollMatchupStart(card){
    deck.tabIndex=0;deck.setAttribute('aria-label','Matchups. Swipe left or right.');
    deck.addEventListener('scroll',()=>{s.moving=true;later(deck)},{passive:true});
    deck.addEventListener('scrollend',()=>settle(deck));
+   deck.addEventListener('wheel',event=>{
+    if(event.ctrlKey||zoomed()||nestedRail(event.target,deck))return;
+    if(Math.abs(event.deltaX)<=Math.abs(event.deltaY)*1.15)return;
+    // Clear stale button/touch targets but let the browser perform the scroll.
+    s.target=null;s.wheeling=true;clearTimeout(s.wheelTimer);clearTimeout(s.timer);
+    s.wheelTimer=setTimeout(()=>{s.wheeling=false;later(deck);},220);
+   },{passive:true});
    deck.addEventListener('touchstart',event=>{
     finishSlide();if(s.touch)cards(deck)[s.touch.index]?.style.removeProperty('translate');
     const nested=nestedRail(event.target,deck);
@@ -203,32 +275,36 @@ function hjScrollMatchupStart(card){
   void slideSwap(start.view,start.panel,()=>tabs[next].click(),()=>start.panel.querySelector('.league-team-view'),dx<0?1:-1,start.dx||0);rosterClickUntil=Date.now()+500;
  },{passive:true});
 
- let rosterWheelMoving=false;
- // Trackpads emit wheel events, not touch events. Latch one page per gesture,
- // including its momentum tail, and leave vertical scrolling/pinch/nested rails alone.
- let rosterWheel=null;
+ // A desktop gesture physically scrolls a three-page rail, including reversals
+ // and momentum. It selects a manager only after the rail settles.
+ let rosterWheel=null,rosterScroll=null;
+ const cancelRosterScroll=()=>{rosterScroll?.cancel();rosterScroll=null;rosterWheel=null;};
  root.addEventListener('wheel',event=>{
-  const now=Date.now(),fresh=!rosterWheel||now-rosterWheel.last>200;
-  if(fresh)rosterWheel={last:now,total:0,axis:'',done:false,blocked:!rosterPanel(event.target)||!!rosterTouch||rosterWheelMoving||!!event.target.closest('input,select,textarea,[contenteditable],.hj-team-photo,[data-league-team]')||!!nestedRail(event.target,rosterPanel(event.target))};
-  const gesture=rosterWheel;gesture.last=now;
-  if(event.ctrlKey||zoomed()){gesture.blocked=true;return;}
-  if(gesture.blocked)return;
-  const scale=event.deltaMode===1?16:event.deltaMode===2?root.clientWidth:1;
+  const now=Date.now(),panel=rosterPanel(event.target);
+  if(!panel)return;
+  if(event.ctrlKey||zoomed()){cancelRosterScroll();return;}
+  const fresh=!rosterWheel||now-rosterWheel.last>220;
+  if(fresh)rosterWheel={last:now,axis:'',blocked:!!rosterTouch||!!event.target.closest('input,select,textarea,[contenteditable],.hj-team-photo,[data-league-team]')||!!nestedRail(event.target,panel)};
+  const gesture=rosterWheel;gesture.last=now;if(gesture.blocked)return;
+  const scale=event.deltaMode===1?16:event.deltaMode===2?panel.clientWidth:1;
   const dx=event.deltaX*scale,dy=event.deltaY*scale;
   if(!gesture.axis&&Math.hypot(dx,dy)>2)gesture.axis=Math.abs(dx)>Math.abs(dy)*1.15?'x':'y';
   if(gesture.axis!=='x')return;
-  if(event.cancelable)event.preventDefault();
-  if(gesture.done)return;
-  gesture.total+=dx;
-  if(Math.abs(gesture.total)<40)return;
-  gesture.done=true;
-  const panel=rosterPanel(event.target),tabs=rosterTabs(panel);
-  const index=tabs.findIndex(b=>b.classList.contains('active')||b.getAttribute('aria-selected')==='true');
-  if(index<0||tabs.length<2)return;
-  const direction=gesture.total>0?1:-1,next=(index+direction+tabs.length)%tabs.length;
-  rosterWheelMoving=true;
-  void slideSwap(panel.querySelector('.league-team-view'),panel,()=>tabs[next].click(),()=>panel.querySelector('.league-team-view'),direction).finally(()=>{rosterWheelMoving=false;});
+  if(!rosterScroll?.active){
+   const tabs=rosterTabs(panel),index=tabs.findIndex(b=>b.classList.contains('active')||b.getAttribute('aria-selected')==='true');
+   if(index<0||tabs.length<2||typeof hjTeamViewHTML!=='function')return;
+   const data=HJ_LEAGUE_STATE.data,teams=tabs.map(b=>data.teams.find(t=>String(t.id)===b.dataset.leagueTeam));
+   if(teams.some(t=>!t))return;
+   finishSlide();
+   rosterScroll=hjTrackpadScroll({root:panel,nodes:[panel.querySelector('.league-team-view')],index,count:tabs.length,
+    render:i=>{const view=document.createElement('div');view.className='league-team-view';view.innerHTML=hjTeamViewHTML(teams[i],data);return view;},
+    commit:i=>{rosterTabs(panel).find(b=>b.dataset.leagueTeam===String(teams[i].id))?.click();}});
+  }
+  if(rosterScroll){if(event.cancelable)event.preventDefault();rosterScroll.move(dx);}
  },{passive:false});
+ root.addEventListener('touchstart',cancelRosterScroll,{passive:true});
+ root.addEventListener('click',cancelRosterScroll,true);
+ window.addEventListener('resize',cancelRosterScroll);
 
  root.addEventListener('touchcancel',()=>{rosterTouch?.view?.style.removeProperty('translate');rosterTouch=null;},{passive:true});
  root.addEventListener('click',event=>{
@@ -242,4 +318,3 @@ function hjScrollMatchupStart(card){
  root.addEventListener('toggle',schedule,true);
  window.addEventListener('resize',schedule);install();
 })();
-
