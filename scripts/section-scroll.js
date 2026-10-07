@@ -46,6 +46,7 @@ function hjSectionRail(deck,options){
   const distance=Math.abs(offset(deck,card)-deck.scrollLeft);return distance<best.distance?{index,distance}:best;
  },{index:0,distance:Infinity}).index;
  function choose(deck,index){
+  const state=states.get(deck);if(state)state.selected=index;
   options.choose(index);
   if(options.inert)cards(deck).forEach((card,i)=>{card.inert=i!==index;card.setAttribute('aria-hidden',String(i!==index));});
  }
@@ -159,18 +160,19 @@ function hjSectionRail(deck,options){
     if(event.target!==deck||!['ArrowLeft','ArrowRight'].includes(event.key))return;
     event.preventDefault();go(deck,nearest(deck)+(event.key==='ArrowRight'?1:-1),true);
    });
-   const observer=new ResizeObserver(()=>{
+   let resizeFrame=0;
+   const observer=new ResizeObserver(()=>{cancelAnimationFrame(resizeFrame);resizeFrame=requestAnimationFrame(()=>{
     if(!deck.isConnected){observer.disconnect();stopWheel(deck,s);clearTimeout(s.timer);finishSlide();return}
     if(!deck.clientWidth)return;
     if(Math.abs(s.width-deck.clientWidth)>1){
      s.width=deck.clientWidth;if(s.touch)cards(deck)[s.touch.index]?.style.removeProperty('translate');s.touch=null;finishSlide();go(deck,options.selected());
     }else if(!s.moving&&!s.touch)fit(deck,nearest(deck));
-   });
+   });});
    observer.observe(deck);cards(deck).forEach(card=>observer.observe(card));
    go(deck,options.selected());
   }
  }
  install();
- return {go:(index,animate=true)=>go(deck,index,animate),fit:()=>{const s=states.get(deck);if(s&&!s.moving&&!s.touch&&!s.wheeling)fit(deck,options.selected());},
+ return {go:(index,animate=true)=>go(deck,index,animate),fit:()=>{const s=states.get(deck);if(s&&!s.moving&&!s.touch&&!s.wheeling){if(s.selected!==options.selected())go(deck,options.selected());else fit(deck,options.selected());}},
   get busy(){const s=states.get(deck);return !!(s?.touch||s?.moving||s?.wheeling||s?.sliding);}};
 }

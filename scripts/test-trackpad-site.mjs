@@ -32,7 +32,12 @@ for(const engine of [chromium,webkit]){
  await page.evaluate(()=>hjRenderChallenge());await page.waitForTimeout(400);
  assert.equal(await page.locator('#challenge-out').count(),1);
  assert.equal(await page.locator('[data-hj-wheel-scroll]').count(),0);
+ await page.locator('#challenge-title').scrollIntoViewIfNeeded();
  await page.screenshot({path:`gesture-proof/${engine.name()}-native-challenges.jpg`});
+ for(const [label,selector] of [['challenges','#challenge-title'],['rosters','.hj-roster-rail']]){
+  await page.setViewportSize({width:390,height:844});await page.locator(selector).scrollIntoViewIfNeeded();await page.waitForTimeout(500);
+  const shot=await page.screenshot({type:'jpeg',quality:65});console.log('SCROLL_IMAGE '+engine.name()+'-'+label+' '+shot.toString('base64'));
+ }
  assert(!errors.some(e=>/hjSectionRail|Cannot read properties|is not defined/.test(e)),errors.join('\n'));
  console.log(`PASS ${engine.name()}: actual prepared site, rotation, native containers, exact scroll distance, active page heights, real data refresh and unique active controls`);
  }finally{await browser.close();}
