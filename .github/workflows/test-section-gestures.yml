@@ -37,12 +37,12 @@ jobs:
           node scripts/test-lineup-status.mjs
           node scripts/test-lineup-live-scores.mjs
           node scripts/test-lineup-spotlight.mjs
+      - name: Verify built site scrolling
+        run: node scripts/test-trackpad-site.mjs
       - name: Verify touch and desktop trackpad navigation
         run: |
           node scripts/test-roster-swipe.mjs
           node scripts/test-challenge-swipe.mjs
-      - name: Verify built site scrolling
-        run: node scripts/test-trackpad-site.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

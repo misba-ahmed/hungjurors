@@ -78,6 +78,7 @@ function hjScrollMatchupStart(card){
  },true);
  let queued=false;const schedule=()=>{if(!queued){queued=true;requestAnimationFrame(()=>{queued=false;install()})}};
  new MutationObserver(schedule).observe(root,{childList:true,subtree:true});
+ new ResizeObserver(schedule).observe(root);
  window.addEventListener('resize',schedule);install();
 })();
 
