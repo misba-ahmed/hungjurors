@@ -22,7 +22,7 @@ for(const engine of [chromium,webkit])for(const mobile of [false,true]){
  await page.evaluate(()=>document.getElementById('league-sync-content').hidden=false);await page.waitForTimeout(400);
  const rails=['.hq-matchup-list','.hj-roster-rail','.hj-challenge-rail'];
  async function wheel(selector,dx){await page.locator(selector).evaluate((el,dx)=>el.dispatchEvent(new WheelEvent('wheel',{deltaX:dx,bubbles:true,cancelable:true})),dx);}
- async function atPage(selector,left){await page.waitForFunction(({selector,left})=>Math.abs(document.querySelector(selector).scrollLeft-left)<2,{selector,left},{timeout:2500});}
+ async function atPage(selector,left){await page.waitForFunction(({selector,left})=>{const el=document.querySelector(selector);return Math.abs(el.scrollLeft-left)<2&&el.style.getPropertyValue('scroll-snap-type')!=='none';},{selector,left},{timeout:2500});}
  async function height(selector){const r=await page.locator(selector).evaluate(el=>{const pages=[...el.children],p=pages.reduce((a,b)=>Math.abs(a.getBoundingClientRect().left-el.getBoundingClientRect().left)<Math.abs(b.getBoundingClientRect().left-el.getBoundingClientRect().left)?a:b);return {rail:el.clientHeight,page:p.getBoundingClientRect().height,padding:getComputedStyle(el).padding};});assert(Math.abs(r.rail-r.page)<2,selector+' only selected height '+JSON.stringify(r));assert.equal(r.padding,'0px');}
  for(const selector of rails){
   const rail=page.locator(selector),width=await rail.evaluate(e=>e.clientWidth);
