@@ -20,6 +20,18 @@ for(const engine of [chromium,webkit]){
  // No-op live refreshes must not tear down inactive previews and restart observers.
  const churn=await page.evaluate(async()=>{let mutations=0;const observer=new MutationObserver(rs=>mutations+=rs.filter(r=>r.type==='childList').length);observer.observe(document.querySelector('.hj-challenge-rail'),{childList:true,subtree:true});for(let i=0;i<10;i++)hjRenderChallenge();await new Promise(r=>setTimeout(r,500));observer.disconnect();return mutations;});
  console.log('NOOP_REFRESH_MUTATIONS',engine.name(),churn);assert(churn<20,'unchanged challenge refresh must stay quiet');
+ const decorators=await page.evaluate(async()=>{
+  let redundantKeys=0,fontWalks=0;const closest=Element.prototype.closest;
+  Element.prototype.closest=function(selector){if(selector.startsWith('.hq-match-team-score.is-actual,'))fontWalks++;return closest.call(this,selector);};
+  const observer=new MutationObserver(rs=>{for(const r of rs)if(r.oldValue===r.target.getAttribute('data-proj-key'))redundantKeys++;});
+  observer.observe(document.body,{attributes:true,attributeFilter:['data-proj-key'],attributeOldValue:true,subtree:true});
+  const probe=document.createElement('span');document.querySelector('#challenge-out').append(probe);
+  await new Promise(r=>setTimeout(r,300));probe.remove();await new Promise(r=>setTimeout(r,300));
+  observer.disconnect();Element.prototype.closest=closest;return {redundantKeys,fontWalks};
+ });
+ console.log('DECORATOR_PROOF',engine.name(),JSON.stringify(decorators));
+ assert.equal(decorators.redundantKeys,0,'unchanged projection keys must not be written on unrelated DOM updates');
+ assert(decorators.fontWalks<100,'already-correct fonts must not repeat whole-page ancestor walks');
  // Walk the player figures with real touch, keeping the same roster selected.
  const selected=await page.locator('[data-league-team].active').getAttribute('data-league-team');
  const active='.hj-roster-rail .hj-section-page:not([inert])';

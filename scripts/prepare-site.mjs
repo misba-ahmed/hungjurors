@@ -39,6 +39,12 @@ function replaceOnce(html,pattern,replacement){
 }
 const folderArtwork=readFileSync(new URL('./folder-artwork.js',import.meta.url),'utf8');
 export function prepareSite(html){
+ // Shared decorators run after live DOM updates. Unchanged projection keys and
+ // already-correct fonts must not churn hundreds of nodes during interaction.
+ html=replaceOnce(html,/;chip\.dataset\.projKey=key;/g,';if(chip.dataset.projKey!==key)chip.dataset.projKey=key;');
+ const fontPass=html.match(/function fonts\(\)\{[^]*?\n \}/g);
+ if(fontPass?.length!==1)throw Error('Font decorator source changed');
+ html=html.replace(fontPass[0],fontPass[0].replace("if(el.closest(","if(el.style.getPropertyValue('font-family')==='var(--sans)')return;\n   if(el.closest("));
  html=replaceOnce(html,/<script id="hj-folder-stack-script">[^]*?<\/script>/g,
   '<script id="hj-folder-stack-script">'+folderArtwork+'</script>');
  html=html.replace("ctx.putImageData(pixels,0,0);folderURL=canvas.toDataURL('image/png');",
