@@ -210,7 +210,7 @@ function hjTeamPhotoHTML(team){
   const group=groupOf(event.target);if(!group||HJ_TEAM_PHOTO_UI.mode==='touch'||event.target.closest('.hj-team-photo-caption'))return;
   const stage=group.querySelector('.hj-team-photo-stage').getBoundingClientRect();
   // Retain the current spotlight in the label/score margins; only the player row switches it.
-  if(event.clientY>=stage.top&&event.clientY<=stage.bottom)queueShow(nearest(group,event.clientX),'hover');
+  if(event.clientY>=stage.top&&event.clientY<=stage.bottom)show(nearest(group,event.clientX),'hover');
  },{passive:false});
  document.addEventListener('pointerout',event=>{
   const group=groupOf(event.target);
