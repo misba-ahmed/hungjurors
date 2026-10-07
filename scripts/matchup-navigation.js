@@ -59,7 +59,7 @@ function hjScrollMatchupStart(card){
   const pages=()=>[...deck.children];
   function prepare(index,prune=false){
    const list=pages(),selected=String(HJ_LEAGUE_STATE.selectedTeamId),count=list.length;
-   const keep=new Set([index,(index+count-1)%count,(index+1)%count]);
+   const keep=new Set(prune?[index]:[index,(index+count-1)%count,(index+1)%count]);
    if(!prune)keep.add(list.findIndex(p=>p.dataset.hjRosterTeam===selected));
    list.forEach((page,i)=>{
     if(keep.has(i)&&!page.firstElementChild){
@@ -120,7 +120,7 @@ function hjScrollMatchupStart(card){
   pages[index].replaceChildren(head,body);
  }
  function prepare(index,prune=false){
-  const count=pages.length,keep=new Set([index,(index+count-1)%count,(index+1)%count,active]);
+  const count=pages.length,keep=new Set(prune?[active]:[index,(index+count-1)%count,(index+1)%count,active]);
   pages.forEach((page,i)=>{if(keep.has(i))preview(i);else if(prune&&page.firstElementChild){page.replaceChildren();previewHTML.delete(i);}});
  }
  function refresh(){prepare(active,!api?.busy);api?.fit();}

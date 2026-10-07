@@ -47,7 +47,7 @@ function hjSectionRail(deck,options){
  },{index:0,distance:Infinity}).index;
  function choose(deck,index){
   const state=states.get(deck),changed=state?.selected!==index;if(state)state.selected=index;
-  if(changed)options.choose(index);
+  if(changed){options.choose(index);if(state?.observer){state.observer.disconnect();state.observer.observe(deck);state.observer.observe(cards()[index]);}}
   if(options.inert)cards(deck).forEach((card,i)=>{const hidden=i!==index;if(card.inert!==hidden)card.inert=hidden;if(card.getAttribute('aria-hidden')!==String(hidden))card.setAttribute('aria-hidden',String(hidden));});
  }
  function fit(deck,index){
@@ -111,6 +111,7 @@ function hjSectionRail(deck,options){
     if(event.ctrlKey||zoomed()||nestedRail(event.target,deck))return;
     if(Math.abs(event.deltaX)<=Math.abs(event.deltaY)*1.15)return;
     if(event.cancelable)event.preventDefault();
+    options.prepare?.(nearest(deck));
     s.target=null;clearTimeout(s.wheelTimer);clearTimeout(s.timer);cancelAnimationFrame(s.wheelFrame);
     if(!s.wheeling){
      s.wheelSnap=[deck.style.getPropertyValue('scroll-snap-type'),deck.style.getPropertyPriority('scroll-snap-type')];
@@ -137,6 +138,7 @@ function hjSectionRail(deck,options){
      if(nested)nested.style.overscrollBehaviorX='contain';
      s.touch=null;s.target=null;return;
     }
+    options.prepare?.(nearest(deck));
     const t=event.touches[0];s.touch={x:t.clientX,y:t.clientY,index:nearest(deck),axis:'',dx:0};s.target=null;
    },{passive:true});
    deck.addEventListener('touchmove',event=>{
@@ -168,9 +170,9 @@ function hjSectionRail(deck,options){
     if(!deck.clientWidth||zoomed())return;
     if(Math.abs(s.width-deck.clientWidth)>1){
      s.width=deck.clientWidth;if(s.touch)cards(deck)[s.touch.index]?.style.removeProperty('translate');s.touch=null;finishSlide();go(deck,options.selected());
-    }else if(!s.moving&&!s.touch)fit(deck,nearest(deck));
+    }else if(!s.moving&&!s.touch)fit(deck,options.selected());
    });});
-   observer.observe(deck);cards(deck).forEach(card=>observer.observe(card));
+   s.observer=observer;observer.observe(deck);
    go(deck,options.selected());
   }
  }
