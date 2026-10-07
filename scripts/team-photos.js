@@ -168,6 +168,8 @@ function hjTeamPhotoHTML(team){
   if(!button?.isConnected)return;
   const group=groupOf(button);
   const same=HJ_TEAM_PHOTO_UI.player===button.dataset.teamPhotoPlayer&&HJ_TEAM_PHOTO_UI.team===group.dataset.teamPhotoTeam;
+  // Pointer movement within one figure must not rewrite scores or refit the rail.
+  if(same&&button.classList.contains('is-active')){HJ_TEAM_PHOTO_UI.mode=mode;return;}
   if(!same)clear();
   Object.assign(HJ_TEAM_PHOTO_UI,{team:group.dataset.teamPhotoTeam,player:button.dataset.teamPhotoPlayer,mode});
   group.classList.add('has-spotlight');
@@ -263,4 +265,5 @@ function hjTeamPhotoHTML(team){
  document.addEventListener('scroll',()=>{if(gesture)gesture.moved=true;},{capture:true,passive:true});
  document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});
 })();
+
 
