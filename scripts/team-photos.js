@@ -116,16 +116,23 @@ function hjTeamPhotoHTML(team){
 }
 (function(){
  const selector='.hj-team-photo-player',groupSelector='.hj-team-photo';
- let gesture=null,ignoreClickUntil=0,lastTouchAt=0,layoutFrame=0;
+ let gesture=null,ignoreClickUntil=0,lastTouchAt=0,layoutFrame=0,showFrame=0,pendingShow=null;
+ function queueShow(button,mode){
+  pendingShow={button,mode};
+  if(!showFrame)showFrame=requestAnimationFrame(()=>{showFrame=0;const next=pendingShow;pendingShow=null;if(next)show(next.button,next.mode);});
+ }
+ function cancelShow(){cancelAnimationFrame(showFrame);showFrame=0;pendingShow=null;}
  const groupOf=target=>target instanceof Element?target.closest(groupSelector):null;
  const players=group=>Array.from(group.querySelectorAll(selector));
  function clear(){
+  cancelShow();
   document.querySelectorAll(groupSelector+'.has-spotlight').forEach(group=>{
    group.classList.remove('has-spotlight');
-   players(group).forEach((button,i)=>{
+   group.querySelectorAll(selector+'.is-active').forEach(button=>{
     button.classList.remove('is-active');button.querySelector('.hj-team-photo-name').tabIndex=-1;
-    button.tabIndex=i===0?0:-1;button.style.setProperty('--showcase-shift','0px');
+    button.tabIndex=-1;button.style.setProperty('--showcase-shift','0px');
    });
+   const first=group.querySelector(selector);if(first)first.tabIndex=0;
   });
   Object.assign(HJ_TEAM_PHOTO_UI,{team:'',player:'',mode:'',shift:0});
  }
@@ -161,8 +168,9 @@ function hjTeamPhotoHTML(team){
   button.classList.toggle('is-unavailable',!!(asset?.isUnavailable||asset?.isBye||asset?.isFreeAgent));button.classList.toggle('is-bye',!!asset?.isBye);
   if(asset&&img){const src='/assets/team-photos/'+(asset.mascot?'mascots/':'players/')+asset.file;if(img.getAttribute('src')!==src)img.setAttribute('src',src);}
   const score=hjTeamPhotoFinalScore(entry,data),badge=button.querySelector('.hj-team-photo-score'),name=hjTeamPhotoName(hjPlayer(entry));
-  badge.hidden=score===null;badge.textContent=score??'';
-  button.setAttribute('aria-label',name.full+', '+hjPlayerPosition(entry)+(score===null?'':', fantasy score '+score));
+  badge.hidden=score===null;if(badge.textContent!==String(score??''))badge.textContent=score??'';
+  const label=name.full+', '+hjPlayerPosition(entry)+(score===null?'':', fantasy score '+score);
+  if(button.getAttribute('aria-label')!==label)button.setAttribute('aria-label',label);
  }
  function show(button,mode){
   if(!button?.isConnected)return;
@@ -170,13 +178,18 @@ function hjTeamPhotoHTML(team){
   const same=HJ_TEAM_PHOTO_UI.player===button.dataset.teamPhotoPlayer&&HJ_TEAM_PHOTO_UI.team===group.dataset.teamPhotoTeam;
   // Pointer movement within one figure must not rewrite scores or refit the rail.
   if(same&&button.classList.contains('is-active')){HJ_TEAM_PHOTO_UI.mode=mode;return;}
+  // Measure before changing selection styles. Scores already come from the
+  // renderer/live score event; selecting artwork must not trigger body observers.
+  fit(button);
   if(!same)clear();
   Object.assign(HJ_TEAM_PHOTO_UI,{team:group.dataset.teamPhotoTeam,player:button.dataset.teamPhotoPlayer,mode});
   group.classList.add('has-spotlight');
   players(group).forEach(b=>{const selected=b===button;b.classList.toggle('is-active',selected);b.querySelector('.hj-team-photo-name').tabIndex=selected?0:-1;b.tabIndex=selected?0:-1;});
-  fit(button);refreshScore(button);
+  // clear() resets the model's shift; retain the measured value for live refresh.
+  HJ_TEAM_PHOTO_UI.shift=parseFloat(button.style.getPropertyValue('--showcase-shift'))||0;
  }
  function nearest(group,x){
+  if(gesture?.group===group&&gesture.targets)return gesture.targets.reduce((best,item)=>{const d=Math.abs(x-item.x);return !best||d<best.d?{b:item.b,d}:best},null)?.b;
   return players(group).reduce((best,b)=>{const r=b.getBoundingClientRect(),d=Math.abs(x-r.left-r.width/2);return !best||d<best.d?{b,d}:best},null)?.b;
  }
  document.addEventListener('pointermove',event=>{
@@ -190,7 +203,7 @@ function hjTeamPhotoHTML(team){
    }
    if(gesture.axis==='x'){
     if(event.cancelable)event.preventDefault();
-    show(nearest(gesture.group,event.clientX),'touch');
+    queueShow(nearest(gesture.group,event.clientX),'touch');
    }
   }
   if(event.pointerType!=='mouse'||event.buttons||Date.now()-lastTouchAt<700)return;
@@ -211,7 +224,7 @@ function hjTeamPhotoHTML(team){
   lastTouchAt=Date.now();
   if(event.isPrimary===false){gesture=null;clear();return;}
   const button=nearest(group,event.clientX);
-  gesture={id:event.pointerId,group,button,x:event.clientX,y:event.clientY,moved:false,axis:''};
+  gesture={id:event.pointerId,group,button,x:event.clientX,y:event.clientY,moved:false,axis:'',targets:players(group).map(b=>{const r=b.getBoundingClientRect();return {b,x:r.left+r.width/2};})};
  },{passive:true});
  document.addEventListener('pointerup',event=>{
   if(!gesture||event.pointerId!==gesture.id)return;
@@ -221,7 +234,7 @@ function hjTeamPhotoHTML(team){
   if(HJ_TEAM_PHOTO_UI.mode==='touch'&&g.button.classList.contains('is-active'))clear();
   else show(g.button,'touch');
  },{passive:true});
- document.addEventListener('pointercancel',()=>{gesture=null;ignoreClickUntil=Date.now()+700;},{passive:true});
+ document.addEventListener('pointercancel',()=>{cancelShow();gesture=null;ignoreClickUntil=Date.now()+700;},{passive:true});
  document.addEventListener('click',event=>{
   const group=groupOf(event.target);if(!group)return;
   event.preventDefault();event.stopPropagation();
@@ -256,6 +269,8 @@ function hjTeamPhotoHTML(team){
  document.addEventListener('hj:team-photo-scores',()=>document.querySelectorAll(selector).forEach(refreshScore));
  setInterval(()=>{if(!document.hidden&&document.querySelector(groupSelector))hjTeamPhotoLoadScores();},60000);
  function refit(){
+  cancelShow();gesture=null;
+  if(window.visualViewport?.scale>1.01)return;
   cancelAnimationFrame(layoutFrame);layoutFrame=requestAnimationFrame(()=>{
    const active=document.querySelector(groupSelector+' .is-active');
    if(active)fit(active);
@@ -265,5 +280,6 @@ function hjTeamPhotoHTML(team){
  document.addEventListener('scroll',()=>{if(gesture)gesture.moved=true;},{capture:true,passive:true});
  document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});
 })();
+
 
 

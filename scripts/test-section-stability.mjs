@@ -7,7 +7,7 @@ await fs.mkdir('gesture-proof',{recursive:true});
 for(const engine of [chromium,webkit]){
  const browser=await engine.launch();
  try{
- const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),errors=[];
+ const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true}),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  await page.route('https://hungjurors.com/',r=>r.fulfill({contentType:'text/html',body:html}));
  await page.route('https://hungjurors.com/styles/**',async r=>{try{await r.fulfill({contentType:'text/css',body:await fs.readFile(new URL(r.request().url()).pathname.slice(1),'utf8')});}catch{await r.continue();}});
@@ -20,24 +20,61 @@ for(const engine of [chromium,webkit]){
  // No-op live refreshes must not tear down inactive previews and restart observers.
  const churn=await page.evaluate(async()=>{let mutations=0;const observer=new MutationObserver(rs=>mutations+=rs.filter(r=>r.type==='childList').length);observer.observe(document.querySelector('.hj-challenge-rail'),{childList:true,subtree:true});for(let i=0;i<10;i++)hjRenderChallenge();await new Promise(r=>setTimeout(r,500));observer.disconnect();return mutations;});
  console.log('NOOP_REFRESH_MUTATIONS',engine.name(),churn);assert(churn<20,'unchanged challenge refresh must stay quiet');
+ const decorators=await page.evaluate(async()=>{
+  let redundantKeys=0,fontWalks=0;const closest=Element.prototype.closest;
+  Element.prototype.closest=function(selector){if(selector.startsWith('.hq-match-team-score.is-actual,'))fontWalks++;return closest.call(this,selector);};
+  const observer=new MutationObserver(rs=>{for(const r of rs)if(r.oldValue===r.target.getAttribute('data-proj-key'))redundantKeys++;});
+  observer.observe(document.body,{attributes:true,attributeFilter:['data-proj-key'],attributeOldValue:true,subtree:true});
+  const probe=document.createElement('span');document.querySelector('#challenge-out').append(probe);
+  await new Promise(r=>setTimeout(r,300));probe.remove();await new Promise(r=>setTimeout(r,300));
+  observer.disconnect();Element.prototype.closest=closest;return {redundantKeys,fontWalks};
+ });
+ console.log('DECORATOR_PROOF',engine.name(),JSON.stringify(decorators));
+ assert.equal(decorators.redundantKeys,0,'unchanged projection keys must not be written on unrelated DOM updates');
+ assert(decorators.fontWalks<100,'already-correct fonts must not repeat whole-page ancestor walks');
  // Walk the player figures with real touch, keeping the same roster selected.
  const selected=await page.locator('[data-league-team].active').getAttribute('data-league-team');
  const active='.hj-roster-rail .hj-section-page:not([inert])';
  await page.locator(active+' .hj-team-photo').scrollIntoViewIfNeeded();
  const players=page.locator(active+' .hj-team-photo-player');
+ await page.waitForFunction(()=>[...document.querySelectorAll('.hj-roster-rail .hj-section-page:not([inert]) .hj-team-photo-figure img')].every(img=>img.complete&&img.naturalWidth>0),{},{timeout:60000});
  for(let i=0;i<Math.min(8,await players.count());i++){await players.nth(i).tap();await page.waitForTimeout(60);}
  assert.equal(await page.locator('[data-league-team].active').getAttribute('data-league-team'),selected);
  if(engine===chromium){
+  await page.evaluate(()=>{
+   window.cascadeProof={players:new Set(),textWrites:0};
+   window.cascadeObserver=new MutationObserver(records=>{
+    for(const record of records){if(record.type==='childList')window.cascadeProof.textWrites++;}
+    const selected=document.querySelector('.hj-team-photo-player.is-active');if(selected)window.cascadeProof.players.add(selected.dataset.teamPhotoPlayer);
+   });
+   window.cascadeObserver.observe(document.querySelector('.hj-roster-rail .hj-section-page:not([inert]) .hj-team-photo'),{attributes:true,childList:true,subtree:true});
+  });
   const cdp=await page.context().newCDPSession(page);const b=await page.locator(active+' .hj-team-photo-stage').boundingBox();
   const y=Math.max(100,Math.min(730,b.y+b.height/2)),x=b.x+20;
   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
   for(let i=1;i<=18;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+i*(b.width-40)/18,y}]});await page.waitForTimeout(16);}
   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
-  // Real browser pinch. The page must remain responsive at each scale.
-  for(let i=0;i<3;i++){
-   await cdp.send('Input.synthesizePinchGesture',{x:190,y:430,scaleFactor:1.35,relativeSpeed:400,gestureSourceType:'touch'});
-   await page.waitForTimeout(250);assert(await page.locator('#league-hq').count());
-   await cdp.send('Input.synthesizePinchGesture',{x:190,y:430,scaleFactor:1/1.35,relativeSpeed:400,gestureSourceType:'touch'});
+  await page.waitForTimeout(250);
+  const cascade=await page.evaluate(()=>{window.cascadeObserver.disconnect();return {players:window.cascadeProof.players.size,textWrites:window.cascadeProof.textWrites};});
+  console.log('CASCADE_PROOF',JSON.stringify(cascade));
+  assert(cascade.players>=4,'a finger sweep must actually select successive players, not just keep the tab alive');
+  assert.equal(cascade.textWrites,0,'artwork selection must not wake global child-list observers');
+  // Exercise two-finger ownership separately from browser rendering scale.
+  // Headless synthetic pinch can be a no-op; never count that as zoom coverage.
+  await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:5});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:150,y:430,id:1},{x:230,y:430,id:2}]});
+  for(let i=1;i<=8;i++)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:150-i*7,y:430,id:1},{x:230+i*7,y:430,id:2}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  assert.equal(await page.locator('[data-league-team].active').getAttribute('data-league-team'),selected);
+  let layers=[];await cdp.send('LayerTree.enable');cdp.on('LayerTree.layerTreeDidChange',event=>{layers=event.layers||[];});
+  for(const scale of [1.35,2,3]){
+   await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:scale});
+   await page.waitForTimeout(300);
+   const zoomScale=await page.evaluate(()=>visualViewport.scale);console.log('BROWSER_ZOOM_SCALE',zoomScale);assert(Math.abs(zoomScale-scale)<.05,'browser rendering must actually reach the requested zoom scale');
+   assert(await page.locator('#league-hq').count());
+   console.log('ZOOM_LAYER_BOUNDS',scale,JSON.stringify(layers.filter(l=>l.drawsContent).map(l=>({width:l.width,height:l.height})).sort((a,b)=>b.width*b.height-a.width*a.height).slice(0,5)));
+   await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});
+   await page.waitForTimeout(150);
   }
   await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});
  }
@@ -70,6 +107,7 @@ for(const engine of [chromium,webkit]){
  await page.locator('#hq-tab-rosters').click();await page.locator(active+' .league-matchup-score').scrollIntoViewIfNeeded();await page.waitForTimeout(400);
  const shot=await page.screenshot({type:'jpeg',quality:65});console.log('STABILITY_IMAGE '+engine.name()+' '+shot.toString('base64'));
  assert(!errors.some(e=>!/ResizeObserver/.test(e)),errors.join('\n'));
- console.log('PASS '+engine.name()+': bounded artwork, quiet refreshes, lineup taps, pinch, challenge zoom and double tap, stable frame loop, paper note blending');
+ console.log('PASS '+engine.name()+': bounded artwork, quiet refreshes, lineup taps, challenge zoom and double tap, stable frame loop, paper note blending; Chromium also verifies browser zoom scales and multi-touch ownership');
  }finally{await browser.close();}
 }
+
