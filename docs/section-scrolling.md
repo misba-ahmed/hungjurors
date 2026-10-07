@@ -15,4 +15,4 @@ The all-pages-rendered version caused severe mobile resource pressure. Keep the 
 
 Run `test-section-stability.mjs` on the complete prepared site in Chromium and WebKit. It exercises player taps/cascades, repeated browser pinch, challenge zoom controls and double tap, unchanged refresh churn, bounded mounted pages and selected-page-only resize observation, and idle frame responsiveness. Functional swipe tests alone are insufficient.
 
-Game context HTML must compare against the browser-serialized output of the last write as well as its raw source. WebKit serializes generated status markup differently; raw-string comparison caused an idle mutation loop across status, projection and layout observers. Keep the whole-site idle mutation regression.
+Game context HTML must cache the last renderer input per status node. Font/layout decorators alter serialized HTML after rendering; comparing decorated DOM to raw source caused an idle loop across status, projection and layout observers, especially in WebKit. A changed status input must still update immediately. Keep the whole-site idle mutation regression.

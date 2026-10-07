@@ -145,14 +145,13 @@ export function prepareSite(html){
  html=replaceOnce(html,/function pcSeasonProjectionHTML\([^]*?\n}\n(?=async function pcRenderVegas)/g,projectionSummary+'\n');
  html=replaceOnce(html,/  const label=`Week \$\{week\}`,panel=pcVegasPanel[^]*?(?=\n };\n for\(const kind of \['weekly','season'\])/g,
   "  target.classList.add('pc-weekly-summary');\n  target.innerHTML=pcProjectionSummaryHTML(player,data,row,state.espn,!state.done.has(kind),'week',week);");
- // WebKit serializes generated HTML differently; comparing it with raw source
- // can keep the body mutation observers running forever on unchanged statuses.
+ // Font/layout decorators change serialized HTML after a status is rendered.
+ // Compare renderer input, not decorated DOM, to avoid a body-observer loop.
  html=replaceOnce(html,/function hjRefreshGameContexts\(\)\{/g,`const HJ_CONTEXT_MARKUP_CACHE=new WeakMap();
 function hjSetGameContextMarkup(node,markup){
- const previous=HJ_CONTEXT_MARKUP_CACHE.get(node),current=node.innerHTML;
- if(current===markup||(previous?.markup===markup&&previous.rendered===current))return;
- node.innerHTML=markup;
- HJ_CONTEXT_MARKUP_CACHE.set(node,{markup,rendered:node.innerHTML});
+ if(HJ_CONTEXT_MARKUP_CACHE.get(node)===markup)return;
+ if(node.innerHTML!==markup)node.innerHTML=markup;
+ HJ_CONTEXT_MARKUP_CACHE.set(node,markup);
 }
 function hjRefreshGameContexts(){`);
  html=replaceOnce(html,/const markup=hjContextStatusHTML\(c\);if\(status.innerHTML!==markup\)status.innerHTML=markup;/g,
