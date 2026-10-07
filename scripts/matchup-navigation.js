@@ -155,10 +155,19 @@ function hjScrollMatchupStart(card){
  function later(deck){
   const s=states.get(deck);clearTimeout(s.timer);s.timer=setTimeout(()=>settle(deck),180);
  }
+ function stopWheel(deck,s){
+  clearTimeout(s.wheelTimer);cancelAnimationFrame(s.wheelFrame);
+  if(s.wheeling){
+   for(const [name,value] of [['scroll-snap-type',s.wheelSnap],['scroll-behavior',s.wheelBehavior]]){
+    if(value?.[0])deck.style.setProperty(name,value[0],value[1]);else deck.style.removeProperty(name);
+   }
+  }
+  s.wheeling=false;
+ }
  function go(deck,index,animate=false,startX=0){
   const count=cards(deck).length;if(!count)return;
   const wrapped=((index%count)+count)%count,wraps=wrapped!==index;
-  const s=states.get(deck),card=cards(deck)[wrapped];if(!s||!card)return;
+  const s=states.get(deck),card=cards(deck)[wrapped];if(!s||!card)return;stopWheel(deck,s);
   const previous=cards(deck)[nearest(deck)];
   s.target=wrapped;s.moving=true;choose(deck,wrapped);
   if(wraps&&animate){
@@ -183,12 +192,28 @@ function hjScrollMatchupStart(card){
    deck.addEventListener('wheel',event=>{
     if(event.ctrlKey||zoomed()||nestedRail(event.target,deck))return;
     if(Math.abs(event.deltaX)<=Math.abs(event.deltaY)*1.15)return;
-    // Clear stale button/touch targets but let the browser perform the scroll.
-    s.target=null;s.wheeling=true;clearTimeout(s.wheelTimer);clearTimeout(s.timer);
-    s.wheelTimer=setTimeout(()=>{s.wheeling=false;later(deck);},220);
-   },{passive:true});
+    if(event.cancelable)event.preventDefault();
+    s.target=null;clearTimeout(s.wheelTimer);clearTimeout(s.timer);cancelAnimationFrame(s.wheelFrame);
+    if(!s.wheeling){
+     s.wheelSnap=[deck.style.getPropertyValue('scroll-snap-type'),deck.style.getPropertyPriority('scroll-snap-type')];
+     s.wheelBehavior=[deck.style.getPropertyValue('scroll-behavior'),deck.style.getPropertyPriority('scroll-behavior')];
+     deck.style.setProperty('scroll-snap-type','none','important');deck.style.setProperty('scroll-behavior','auto','important');
+    }
+    s.wheeling=true;s.moving=true;
+    const scale=event.deltaMode===1?16:event.deltaMode===2?deck.clientWidth:1;
+    deck.scrollLeft+=event.deltaX*scale;
+    s.wheelTimer=setTimeout(()=>{
+     const index=nearest(deck),start=deck.scrollLeft,left=offset(deck,cards(deck)[index]),time=performance.now();
+     const done=()=>{stopWheel(deck,s);choose(deck,index);fit(deck,index);s.moving=false;};
+     if(matchMedia('(prefers-reduced-motion: reduce)').matches){deck.scrollLeft=left;done();return;}
+     const tick=now=>{
+      const t=Math.min(1,(now-time)/220);deck.scrollLeft=start+(left-start)*(1-Math.pow(1-t,3));
+      if(t<1)s.wheelFrame=requestAnimationFrame(tick);else done();
+     };s.wheelFrame=requestAnimationFrame(tick);
+    },180);
+   },{passive:false});
    deck.addEventListener('touchstart',event=>{
-    finishSlide();if(s.touch)cards(deck)[s.touch.index]?.style.removeProperty('translate');
+    stopWheel(deck,s);finishSlide();if(s.touch)cards(deck)[s.touch.index]?.style.removeProperty('translate');
     const nested=nestedRail(event.target,deck);
     if(event.touches.length!==1||zoomed()||nested){
      if(nested)nested.style.overscrollBehaviorX='contain';
