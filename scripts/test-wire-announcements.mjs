@@ -22,6 +22,7 @@ try{for(const [engineName,engine] of [['chromium',chromium],['webkit',webkit]]){
    const names=['MISBA','BRYAN','TYLER','NATHAN M','WASI','CESAR','NATHAN T','GARRETT','JARRETT','KAT'];
    const players=[['Patrick Mahomes','KC',3139477],['Rashee Rice','KC',4428331],['Travis Kelce','KC',15847],['Xavier Worthy','KC',4683062],['Bryce Young','CAR',4685720],['Chuba Hubbard','CAR',4241416],['Jalen Coker','CAR',4695883],['Jonathon Brooks','CAR',4678008],['Tetairoa McMillan','CAR',4685472],['Harrison Butker','KC',3055899]];
    window.bannerFixture={teams:names.map((name,i)=>({id:i+1,name,entries:[{id:String(players[i][2]),name:players[i][0],team:players[i][1]}]}))};
+   bannerFixture.teams[0].entries.push({id:'4567048',name:'Kenneth Walker III',team:'KC'},{id:'-16012',name:'Chiefs DST',team:'KC'},{id:'4699999',name:'Reserve player',team:'KC'});
    HJ_LEAGUE_STATE.data=bannerFixture;hjCurrentWeek=()=>5;
    HJ_BYE_STATE.season=Number(NFL_SEASON);HJ_BYE_STATE.teams=new Map([['KC',new Set([5])],['CAR',new Set([5])]]);
    hjTeamOnBye=t=>['KC','CAR'].includes(t);hjRosterEntries=t=>t.entries;hjPlayer=p=>p;wirePlayerObj=p=>p;hjPlayerTeam=p=>p.team;wireManager=t=>t.name;
@@ -45,7 +46,7 @@ try{for(const [engineName,engine] of [['chromium',chromium],['webkit',webkit]]){
    emit(engineName+'-'+width+'-'+section,await page.screenshot({type:'jpeg',quality:65}));
    await card.locator('.wc-title').click();await page.waitForSelector('.wire-expanded-overlay.is-open');
    assert.equal(await page.locator('.wp-detail .wp-panel').count(),1);
-   if(section==='byes')assert.equal(await page.locator('.wp-detail .wp-person').count(),10);
+   if(section==='byes')assert.equal(await page.locator('.wp-detail .wp-person').count(),13);
    await page.keyboard.press('Escape');await page.waitForSelector('.wire-expanded-overlay',{state:'detached'});
   }
   await choose('byes');
