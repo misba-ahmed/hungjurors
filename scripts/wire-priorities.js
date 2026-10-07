@@ -56,7 +56,7 @@
    panels.push(announcement('byes',panel('byes','Week '+week+' · Lineup check','Teams on BYE this week',groupHTML(groups),action)));
   }
   if(lms){
-   const body='<div class="wp-lms-stakes"><span>WEEK '+week+'</span><p>Lowest score this week will be eliminated.</p></div>'+figures(data)+'<div class="wp-lms-meta"><span><strong>'+data.teams.length+'</strong> managers</span><span><strong>1</strong> elimination</span></div>';
+   const body='<div class="wp-lms-stakes"><span>WEEK '+week+'</span><p>Lowest score this week will be eliminated.</p></div>'+figures(data);
    const action='<button type="button" class="wp-button" data-wp-lms>View challenge →</button>';
    panels.push(announcement('lms',panel('lms','Last Man Standing','Eliminations start this week!',body,action)));
   }
