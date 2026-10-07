@@ -145,6 +145,18 @@ export function prepareSite(html){
  html=replaceOnce(html,/function pcSeasonProjectionHTML\([^]*?\n}\n(?=async function pcRenderVegas)/g,projectionSummary+'\n');
  html=replaceOnce(html,/  const label=`Week \$\{week\}`,panel=pcVegasPanel[^]*?(?=\n };\n for\(const kind of \['weekly','season'\])/g,
   "  target.classList.add('pc-weekly-summary');\n  target.innerHTML=pcProjectionSummaryHTML(player,data,row,state.espn,!state.done.has(kind),'week',week);");
+ // WebKit serializes generated HTML differently; comparing it with raw source
+ // can keep the body mutation observers running forever on unchanged statuses.
+ html=replaceOnce(html,/function hjRefreshGameContexts\(\)\{/g,`const HJ_CONTEXT_MARKUP_CACHE=new WeakMap();
+function hjSetGameContextMarkup(node,markup){
+ const previous=HJ_CONTEXT_MARKUP_CACHE.get(node),current=node.innerHTML;
+ if(current===markup||(previous?.markup===markup&&previous.rendered===current))return;
+ node.innerHTML=markup;
+ HJ_CONTEXT_MARKUP_CACHE.set(node,{markup,rendered:node.innerHTML});
+}
+function hjRefreshGameContexts(){`);
+ html=replaceOnce(html,/const markup=hjContextStatusHTML\(c\);if\(status.innerHTML!==markup\)status.innerHTML=markup;/g,
+  'const markup=hjContextStatusHTML(c);hjSetGameContextMarkup(status,markup);');
  // Game status lines read FINAL in caps everywhere.
  html=replaceOnce(html,/`Final \$\{result\}`/g,'`FINAL ${result}`');
  html=replaceOnce(html,/<b>\$\{past\?'Final':winChance===null\?'Unavailable':'Est\. win chance'\}<\/b>/g,"<b>${past?'FINAL':winChance===null?'Unavailable':'Est. win chance'}</b>");
