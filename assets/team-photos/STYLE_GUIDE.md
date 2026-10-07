@@ -51,3 +51,6 @@ A finite positive ESPN projection for the current scoring week and current NFL s
 
 
 Free-agent correction (October 7): Tyreek Hill wears beach shorts with no shirt and no crutches. Free agents (explicit ESPN proTeamId 0) use 28% saturation without injury variants. The free-agent condition overrides injury/zero-projection poses and clears when ESPN assigns a team. Missing team IDs are not confirmed free agents.
+
+## Head proportion correction (October 7)
+The initial October 7 additions (Shipley/Cousins faces-v1, Hill free-agent-v1, and Barkley/Jackson/Rice crutches-v1) had undersized heads. Do not use these as proportion references. Compare revised art at equal full-figure height against the approved A.J. Brown reference, and compare enlarged head/neck crops. The 850px output size and catalog height checks cannot validate head scale. Keep the natural shaded neck continuous and preserve clothing, status behavior and physical-height metadata. Saved comparison: assets/references/player-head-proportions-20261007.webp.
