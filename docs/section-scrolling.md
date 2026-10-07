@@ -9,3 +9,10 @@ The extra containers add no padding, margins or gap. Measure only the selected p
 Roster pages retain their manager-specific data and the selected manager persists through live updates. Challenges retain the original active controls and their listeners; inactive previews use the same rendering functions and become inert until selected. The active challenge IDs occur only once.
 
 Run the required lineup tests and `scripts/test-roster-swipe.mjs` (the shared section regression suite), `scripts/test-challenge-swipe.mjs`, and `scripts/test-trackpad-site.mjs`. Test portrait-landscape-portrait cycles, continuous movement before settling, reversal, circular touch navigation, nested rails, disclosures, refreshes, and exact selected-page heights in Chromium and WebKit.
+
+## Stability correction
+The all-pages-rendered version caused severe mobile resource pressure. Keep the native page shells and shared gesture behavior, but mount only the selected page at rest and prepare its immediate neighbors during navigation. Release distant roster artwork and challenge graphics. Cache inactive previews until their data changes; unchanged live refreshes must not recreate them. Ignore layout refits during browser pinch zoom and avoid redundant DOM attribute writes. The matchup note blends its raster artwork against its own #f9edd7 paper background, so scroll compositing cannot expose a white matte.
+
+Run `test-section-stability.mjs` on the complete prepared site in Chromium and WebKit. It exercises player taps/cascades, repeated browser pinch, challenge zoom controls and double tap, unchanged refresh churn, bounded mounted pages and selected-page-only resize observation, and idle frame responsiveness. Functional swipe tests alone are insufficient.
+
+Game context HTML must cache the last renderer input per status node. Font/layout decorators alter serialized HTML after rendering; comparing decorated DOM to raw source caused an idle loop across status, projection and layout observers, especially in WebKit. A changed status input must still update immediately. Keep the whole-site idle mutation regression.

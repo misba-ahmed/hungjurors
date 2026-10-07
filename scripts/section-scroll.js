@@ -46,16 +46,17 @@ function hjSectionRail(deck,options){
   const distance=Math.abs(offset(deck,card)-deck.scrollLeft);return distance<best.distance?{index,distance}:best;
  },{index:0,distance:Infinity}).index;
  function choose(deck,index){
-  const state=states.get(deck);if(state)state.selected=index;
-  options.choose(index);
-  if(options.inert)cards(deck).forEach((card,i)=>{card.inert=i!==index;card.setAttribute('aria-hidden',String(i!==index));});
+  const state=states.get(deck),changed=state?.selected!==index;if(state)state.selected=index;
+  if(changed){options.choose(index);if(state?.observer){state.observer.disconnect();state.observer.observe(deck);state.observer.observe(cards()[index]);}}
+  if(options.inert)cards(deck).forEach((card,i)=>{const hidden=i!==index;if(card.inert!==hidden)card.inert=hidden;if(card.getAttribute('aria-hidden')!==String(hidden))card.setAttribute('aria-hidden',String(hidden));});
  }
  function fit(deck,index){
+  if(zoomed())return;
   options.beforeFit?.();
   const card=cards(deck)[index];if(!card||!deck.clientWidth)return;
   const style=getComputedStyle(deck),height=Math.ceil(card.getBoundingClientRect().height+
    (parseFloat(style.paddingTop)||0)+(parseFloat(style.paddingBottom)||0)+deck.offsetHeight-deck.clientHeight)+'px';
-  deck.setAttribute('data-hj-fit-height','');
+  if(!deck.hasAttribute('data-hj-fit-height'))deck.setAttribute('data-hj-fit-height','');
   if(deck.style.getPropertyValue(options.heightProperty||'--hj-section-height')!==height)deck.style.setProperty(options.heightProperty||'--hj-section-height',height);
  }
  function settle(deck){
@@ -66,7 +67,7 @@ function hjSectionRail(deck,options){
   s.moving=false;s.target=null;
   // Native scrolling/snap owns user scroll position; only explicit navigation
   // has a target. Never jump the rail to a rounded page in a scroll callback.
-  choose(deck,index);fit(deck,index);
+  choose(deck,index);options.settled?.(index);fit(deck,index);
  }
  function later(deck){
   const s=states.get(deck);clearTimeout(s.timer);s.timer=setTimeout(()=>settle(deck),180);
@@ -84,6 +85,7 @@ function hjSectionRail(deck,options){
   const count=cards(deck).length;if(!count)return;
   const wrapped=((index%count)+count)%count,wraps=wrapped!==index;
   const s=states.get(deck),card=cards(deck)[wrapped];if(!s||!card)return;stopWheel(deck,s);
+  options.prepare?.(wrapped);
   const previous=cards(deck)[nearest(deck)];
   s.target=wrapped;s.moving=true;choose(deck,wrapped);
   if(wraps&&animate){
@@ -103,12 +105,13 @@ function hjSectionRail(deck,options){
    if(s){if(!s.moving&&!s.touch&&!s.sliding)fit(deck,nearest(deck));return}
    s={width:deck.clientWidth,timer:0,moving:false,touch:null,target:null,observed:new Set()};states.set(deck,s);
    deck.tabIndex=0;deck.setAttribute('aria-label',options.label+' Swipe left or right.');
-   deck.addEventListener('scroll',()=>{s.moving=true;later(deck)},{passive:true});
+   deck.addEventListener('scroll',()=>{s.moving=true;options.prepare?.(nearest(deck));later(deck)},{passive:true});
    deck.addEventListener('scrollend',()=>settle(deck));
    deck.addEventListener('wheel',event=>{
     if(event.ctrlKey||zoomed()||nestedRail(event.target,deck))return;
     if(Math.abs(event.deltaX)<=Math.abs(event.deltaY)*1.15)return;
     if(event.cancelable)event.preventDefault();
+    options.prepare?.(nearest(deck));
     s.target=null;clearTimeout(s.wheelTimer);clearTimeout(s.timer);cancelAnimationFrame(s.wheelFrame);
     if(!s.wheeling){
      s.wheelSnap=[deck.style.getPropertyValue('scroll-snap-type'),deck.style.getPropertyPriority('scroll-snap-type')];
@@ -120,7 +123,7 @@ function hjSectionRail(deck,options){
     deck.scrollLeft+=event.deltaX*scale;
     s.wheelTimer=setTimeout(()=>{
      const index=nearest(deck),start=deck.scrollLeft,left=offset(deck,cards(deck)[index]),time=performance.now();
-     const done=()=>{stopWheel(deck,s);choose(deck,index);fit(deck,index);s.moving=false;};
+     const done=()=>{stopWheel(deck,s);choose(deck,index);options.settled?.(index);fit(deck,index);s.moving=false;};
      if(matchMedia('(prefers-reduced-motion: reduce)').matches){deck.scrollLeft=left;done();return;}
      const tick=now=>{
       const t=Math.min(1,(now-time)/220);deck.scrollLeft=start+(left-start)*(1-Math.pow(1-t,3));
@@ -141,7 +144,7 @@ function hjSectionRail(deck,options){
     const start=s.touch;if(!start)return;
     if(event.touches.length!==1||zoomed()){cards(deck)[start.index]?.style.removeProperty('translate');s.touch=null;return;}
     const t=event.touches[0],dx=t.clientX-start.x,dy=t.clientY-start.y;
-    if(!start.axis&&Math.hypot(dx,dy)>10)start.axis=Math.abs(dx)>Math.abs(dy)*1.15?'x':'y';
+    if(!start.axis&&Math.hypot(dx,dy)>10){start.axis=Math.abs(dx)>Math.abs(dy)*1.15?'x':'y';if(start.axis==='x')options.prepare?.(start.index);}
     const edge=start.index===0&&dx>0||start.index===cards(deck).length-1&&dx<0;
     if(start.axis==='x'&&edge){
      if(event.cancelable)event.preventDefault();
@@ -163,12 +166,12 @@ function hjSectionRail(deck,options){
    let resizeFrame=0;
    const observer=new ResizeObserver(()=>{cancelAnimationFrame(resizeFrame);resizeFrame=requestAnimationFrame(()=>{
     if(!deck.isConnected){observer.disconnect();stopWheel(deck,s);clearTimeout(s.timer);finishSlide();return}
-    if(!deck.clientWidth)return;
+    if(!deck.clientWidth||zoomed())return;
     if(Math.abs(s.width-deck.clientWidth)>1){
      s.width=deck.clientWidth;if(s.touch)cards(deck)[s.touch.index]?.style.removeProperty('translate');s.touch=null;finishSlide();go(deck,options.selected());
-    }else if(!s.moving&&!s.touch)fit(deck,nearest(deck));
+    }else if(!s.moving&&!s.touch)fit(deck,options.selected());
    });});
-   observer.observe(deck);cards(deck).forEach(card=>observer.observe(card));
+   s.observer=observer;observer.observe(deck);
    go(deck,options.selected());
   }
  }

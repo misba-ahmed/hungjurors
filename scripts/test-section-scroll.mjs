@@ -10,7 +10,7 @@ for(const engine of [chromium,webkit])for(const mobile of [false,true]){
  await page.setContent(`<meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;padding:12px;font:16px sans-serif}main,section{min-width:0}.hq-matchup-list{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;align-items:flex-start;height:var(--hj-matchup-height,auto)}.hq-matchup{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always}.league-team-view{padding:14px 0 0}.content{height:150px;background:#eee}.tall{height:340px}.nested{width:150px;overflow:auto}.nested>div{width:500px;height:30px}.ch-card{margin:0 0 16px;padding:0}.hj-team-photo{height:40px}button{min-height:30px}${css}</style><main id="league-hq"><section id="league-sync-content"><div class="league-team-rail">${[0,1,2].map(i=>`<button data-league-team="${i}" class="${i===0?'active':''}">Manager ${i}</button>`).join('')}</div><div class="hj-section-rail hj-roster-rail">${[0,1,2].map(i=>`<div class="league-team-view hj-section-page" data-hj-roster-team="${i}"><div class="content ${i===1?'tall':''}">Roster ${i}</div><div class="hj-team-photo">Player showcase</div><div class="nested"><div>Nested roster</div></div></div>`).join('')}</div></section><section id="hq-panel-matchups">${[0,1,2].map(i=>`<button data-hq-matchup-jump="${i}">Matchup ${i}</button>`).join('')}<div class="hq-matchup-list">${[0,1,2].map(i=>`<article class="hq-matchup" data-hq-matchup-key="${i}"><div class="content ${i===1?'tall':''}">Matchup ${i}</div><div class="nested"><div>Nested matchup</div></div></article>`).join('')}</div></section></main><section id="challenges"><div id="challenge-strip">${['raffle','lms','mvp'].map(id=>`<button data-challenge="${id}">${id}</button>`).join('')}</div><div class="ch-card" id="challenge-card"><h4 class="ch-title" id="challenge-title">raffle</h4><p class="ch-rules">Rules</p><span class="ch-stamp">30</span><button class="ch-rules-toggle">Full rules</button></div><div id="challenge-out"></div></section>`);
  await page.evaluate(()=>{
   window.HJ_HQ_STATE={matchupFocusKey:'0'};window.hjCenterMatchupJumpChipV32=()=>{};
-  window.HJ_LEAGUE_STATE={selectedTeamId:'0'};window.HJ_LEAGUE_TEAM_KEY='test';
+  window.HJ_LEAGUE_STATE={selectedTeamId:'0',data:{teams:[0,1,2].map(id=>({id}))}};window.hjTeamViewHTML=team=>`<div class="content ${team.id===1?'tall':''}">Roster ${team.id}</div><div class="hj-team-photo">Player showcase</div><div class="nested"><div>Nested roster</div></div>`;window.HJ_LEAGUE_TEAM_KEY='test';
   window.CHALLENGES=['raffle','lms','mvp'].map(id=>({id,label:id,rule:'Rules',prize:'30'}));window.HJ_CHALLENGE_STATE={active:'raffle'};
   window.hjChBodyHTML=ch=>`<div class="content ${ch.id==='lms'?'tall':''}">${ch.id}</div><details><summary>Week detail</summary><div style="height:150px">Scores</div></details><div class="nested"><div>Nested challenge</div></div>`;
   window.hjRenderChallenge=()=>{document.querySelector('#challenge-out').innerHTML=hjChBodyHTML({id:HJ_CHALLENGE_STATE.active});};
@@ -22,17 +22,18 @@ for(const engine of [chromium,webkit])for(const mobile of [false,true]){
  await page.evaluate(()=>document.getElementById('league-sync-content').hidden=false);await page.waitForTimeout(400);
  const rails=['.hq-matchup-list','.hj-roster-rail','.hj-challenge-rail'];
  async function wheel(selector,dx){await page.locator(selector).evaluate((el,dx)=>el.dispatchEvent(new WheelEvent('wheel',{deltaX:dx,bubbles:true,cancelable:true})),dx);}
+ async function atPage(selector,left){await page.waitForFunction(({selector,left})=>{const el=document.querySelector(selector);return Math.abs(el.scrollLeft-left)<2&&el.style.getPropertyValue('scroll-snap-type')!=='none';},{selector,left},{timeout:2500});}
  async function height(selector){const r=await page.locator(selector).evaluate(el=>{const pages=[...el.children],p=pages.reduce((a,b)=>Math.abs(a.getBoundingClientRect().left-el.getBoundingClientRect().left)<Math.abs(b.getBoundingClientRect().left-el.getBoundingClientRect().left)?a:b);return {rail:el.clientHeight,page:p.getBoundingClientRect().height,padding:getComputedStyle(el).padding};});assert(Math.abs(r.rail-r.page)<2,selector+' only selected height '+JSON.stringify(r));assert.equal(r.padding,'0px');}
  for(const selector of rails){
   const rail=page.locator(selector),width=await rail.evaluate(e=>e.clientWidth);
   await wheel(selector,80);assert(Math.abs(await rail.evaluate(e=>e.scrollLeft)-80)<2,selector+' pixel follow');
   await wheel(selector,-50);assert(Math.abs(await rail.evaluate(e=>e.scrollLeft)-30)<2,selector+' reversal');
-  await page.waitForTimeout(650);assert(await rail.evaluate(e=>e.scrollLeft)<2);
-  await wheel(selector,width*.8);await page.waitForTimeout(650);await height(selector);
+  await atPage(selector,0);assert(await rail.evaluate(e=>e.scrollLeft)<2,selector+' reversal returns to first page');
+  await wheel(selector,width*.8);await atPage(selector,width);await height(selector);
   assert(Math.abs(await rail.evaluate(e=>e.scrollLeft)-width)<3,selector+' next');
-  await wheel(selector,width*.8);await page.waitForTimeout(650);await height(selector);
+  await wheel(selector,width*.8);await atPage(selector,width*2);await height(selector);
   assert(Math.abs(await rail.evaluate(e=>e.scrollLeft)-width*2)<3,selector+' shorter page');
-  await wheel(selector,-width*1.7);await page.waitForTimeout(650);await height(selector);
+  await wheel(selector,-width*1.7);await atPage(selector,0);await height(selector);
   const prevented=await rail.locator('.nested').first().evaluate(el=>{const e=new WheelEvent('wheel',{deltaX:90,bubbles:true,cancelable:true});el.dispatchEvent(e);return e.defaultPrevented;});assert.equal(prevented,false,'nested rail owns wheel');
   await page.setViewportSize({width:844,height:390});await page.waitForTimeout(400);await height(selector);
   await page.setViewportSize({width:390,height:844});await page.waitForTimeout(400);await height(selector);

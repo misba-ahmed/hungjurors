@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: '24'
       - run: npm install --no-save --package-lock=false playwright sharp
-      - run: npx playwright install chromium --with-deps
+      - run: npx playwright install chromium webkit --with-deps
       - run: |
           node scripts/test-lineup-rules.mjs
           node scripts/test-lineup-status.mjs

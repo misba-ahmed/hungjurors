@@ -145,6 +145,17 @@ export function prepareSite(html){
  html=replaceOnce(html,/function pcSeasonProjectionHTML\([^]*?\n}\n(?=async function pcRenderVegas)/g,projectionSummary+'\n');
  html=replaceOnce(html,/  const label=`Week \$\{week\}`,panel=pcVegasPanel[^]*?(?=\n };\n for\(const kind of \['weekly','season'\])/g,
   "  target.classList.add('pc-weekly-summary');\n  target.innerHTML=pcProjectionSummaryHTML(player,data,row,state.espn,!state.done.has(kind),'week',week);");
+ // Font/layout decorators change serialized HTML after a status is rendered.
+ // Compare renderer input, not decorated DOM, to avoid a body-observer loop.
+ html=replaceOnce(html,/function hjRefreshGameContexts\(\)\{/g,`const HJ_CONTEXT_MARKUP_CACHE=new WeakMap();
+function hjSetGameContextMarkup(node,markup){
+ if(HJ_CONTEXT_MARKUP_CACHE.get(node)===markup)return;
+ if(node.innerHTML!==markup)node.innerHTML=markup;
+ HJ_CONTEXT_MARKUP_CACHE.set(node,markup);
+}
+function hjRefreshGameContexts(){`);
+ html=replaceOnce(html,/const markup=hjContextStatusHTML\(c\);if\(status.innerHTML!==markup\)status.innerHTML=markup;/g,
+  'const markup=hjContextStatusHTML(c);hjSetGameContextMarkup(status,markup);');
  // Game status lines read FINAL in caps everywhere.
  html=replaceOnce(html,/`Final \$\{result\}`/g,'`FINAL ${result}`');
  html=replaceOnce(html,/<b>\$\{past\?'Final':winChance===null\?'Unavailable':'Est\. win chance'\}<\/b>/g,"<b>${past?'FINAL':winChance===null?'Unavailable':'Est. win chance'}</b>");
@@ -170,12 +181,12 @@ export function prepareSite(html){
  // Persistent roster pages use the exact native scroll controller as Matchups.
  const singleRoster='<div class="league-team-view">${hjTeamViewHTML(selected,data)}</div>';
  if(html.split(singleRoster).length!==2)throw Error('Roster page source changed');
- html=html.replace(singleRoster,()=>"<div class=\"hj-section-rail hj-roster-rail\">${teams.map(team=>`<div class=\"league-team-view hj-section-page\" data-hj-roster-team=\"${esc(team.id)}\" ${Number(team.id)===Number(selected.id)?'':'inert aria-hidden=\"true\"'}>${hjTeamViewHTML(team,data)}</div>`).join('')}</div>");
+ html=html.replace(singleRoster,()=>"<div class=\"hj-section-rail hj-roster-rail\">${teams.map(team=>`<div class=\"league-team-view hj-section-page\" data-hj-roster-team=\"${esc(team.id)}\" ${Number(team.id)===Number(selected.id)?'':'inert aria-hidden=\"true\"'}>${Number(team.id)===Number(selected.id)?hjTeamViewHTML(team,data):''}</div>`).join('')}</div>");
 
  // Hosted Vegas projections stay visible for 36 hours after the last verified retrieval so a collector hiccup never blanks the site.
  if(!/<\/body>\s*<\/html>\s*$/.test(html))throw Error('Page end changed; review layout guard injection');
  return prepareManagerAvatars(html.replace(old,'Date.now()-at<36*60*60*1000&&data.updated')
-  .replace('</head>','<link rel="stylesheet" href="/styles/section-scroll.css?v=20261007-native">\n<link rel="stylesheet" href="/styles/wire-priorities.css?v=20261007-compact">\n<link rel="stylesheet" href="/styles/player-stat-bars.css?v=20260929-stable2">\n<link rel="stylesheet" href="/styles/team-photos.css?v=20260929-gold7">\n<link rel="stylesheet" href="/styles/player-search.css?v=20260924a">\n<link rel="stylesheet" href="/styles/wire-interaction.css?v=20260923b">\n<link rel="stylesheet" href="/styles/news-spin.css?v=20260924a">\n<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20261007-native">\n<link rel="stylesheet" href="/styles/standings.css?v=20261007-details">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20261005-avatar-crop">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3"><link rel="stylesheet" href="/styles/player-value.css?v=20260923-a3">\n<link rel="stylesheet" href="/styles/trade-desk.css?v=20260929-lineup-spacing4">\n<link rel="stylesheet" href="/styles/side-bets.css?v=20260924f">\n<link rel="stylesheet" href="/styles/live-display.css?v=20260930a">\n</head>')
+  .replace('</head>','<link rel="stylesheet" href="/styles/section-scroll.css?v=20261007-bounded">\n<link rel="stylesheet" href="/styles/wire-priorities.css?v=20261007-compact">\n<link rel="stylesheet" href="/styles/player-stat-bars.css?v=20260929-stable2">\n<link rel="stylesheet" href="/styles/team-photos.css?v=20260929-gold7">\n<link rel="stylesheet" href="/styles/player-search.css?v=20260924a">\n<link rel="stylesheet" href="/styles/wire-interaction.css?v=20260923b">\n<link rel="stylesheet" href="/styles/news-spin.css?v=20260924a">\n<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20261007-native">\n<link rel="stylesheet" href="/styles/standings.css?v=20261007-details">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20261005-avatar-crop">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3"><link rel="stylesheet" href="/styles/player-value.css?v=20260923-a3">\n<link rel="stylesheet" href="/styles/trade-desk.css?v=20260929-lineup-spacing4">\n<link rel="stylesheet" href="/styles/side-bets.css?v=20260924f">\n<link rel="stylesheet" href="/styles/live-display.css?v=20260930a">\n</head>')
   .replace(/<\/body>\s*<\/html>\s*$/,()=>'<script id="hj-player-search">'+playerSearch+'</script>\n<script>ffnInstallSpin();</script>\n<script id="hj-record-engine">'+recordEngine+'</script>\n<script id="hj-record-live">'+recordLive+'</script>\n<script id="hj-direct-links">'+directLinks+'</script>\n<script id="hj-wire-live">'+wireLive+'</script>\n<script id="hj-wire-priorities">'+wirePriorities+'</script>\n<script id="hj-player-value">'+playerValue+'</script>\n<script id="hj-trade-desk">'+tradeDesk+'</script>\n<script id="hj-side-bets">'+sideBets+'</script>\n<script id="hj-layout-guard">'+layoutGuard+'</script>\n</body>\n</html>\n'));
 }
 if(process.argv[2]){

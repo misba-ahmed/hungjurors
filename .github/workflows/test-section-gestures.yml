@@ -1,8 +1,10 @@
 name: Verify section gestures
 on:
   push:
-    branches: [main, fix-desktop-section-wheel, fix-continuous-trackpad-scroll, shared-matchup-scrolling]
+    branches: [main, fix-desktop-section-wheel, fix-continuous-trackpad-scroll, shared-matchup-scrolling, stabilize-native-sections]
     paths:
+      - scripts/team-photos.js
+      - scripts/test-section-stability.mjs
       - scripts/section-scroll.js
       - styles/section-scroll.css
       - scripts/prepare-site.mjs
@@ -23,7 +25,7 @@ permissions:
 jobs:
   section-gestures:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -37,6 +39,8 @@ jobs:
           node scripts/test-lineup-status.mjs
           node scripts/test-lineup-live-scores.mjs
           node scripts/test-lineup-spotlight.mjs
+      - name: Verify zoom and rendering stability
+        run: node scripts/test-section-stability.mjs
       - name: Verify built site scrolling
         run: node scripts/test-trackpad-site.mjs
       - name: Verify touch and desktop trackpad navigation
