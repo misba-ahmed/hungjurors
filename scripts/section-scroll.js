@@ -138,14 +138,13 @@ function hjSectionRail(deck,options){
      if(nested)nested.style.overscrollBehaviorX='contain';
      s.touch=null;s.target=null;return;
     }
-    options.prepare?.(nearest(deck));
     const t=event.touches[0];s.touch={x:t.clientX,y:t.clientY,index:nearest(deck),axis:'',dx:0};s.target=null;
    },{passive:true});
    deck.addEventListener('touchmove',event=>{
     const start=s.touch;if(!start)return;
     if(event.touches.length!==1||zoomed()){cards(deck)[start.index]?.style.removeProperty('translate');s.touch=null;return;}
     const t=event.touches[0],dx=t.clientX-start.x,dy=t.clientY-start.y;
-    if(!start.axis&&Math.hypot(dx,dy)>10)start.axis=Math.abs(dx)>Math.abs(dy)*1.15?'x':'y';
+    if(!start.axis&&Math.hypot(dx,dy)>10){start.axis=Math.abs(dx)>Math.abs(dy)*1.15?'x':'y';if(start.axis==='x')options.prepare?.(start.index);}
     const edge=start.index===0&&dx>0||start.index===cards(deck).length-1&&dx<0;
     if(start.axis==='x'&&edge){
      if(event.cancelable)event.preventDefault();
