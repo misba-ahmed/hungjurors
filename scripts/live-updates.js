@@ -4,7 +4,7 @@
  const targets=new Set(['league-sync-content','hq-matchup-content','hq-fa-results','hq-panel-strength','hq-panel-activity','hq-panel-recap']);
  function key(node){
   if(node.nodeType!==1)return '';
-  for(const attr of ['id','data-team-photo-player','data-hq-directory-id','data-hq40-stat-rail','data-league-team','data-hq-matchup-jump','data-hq-lineup-mode','data-hq40-period','data-hq40-year','data-hq-matchup-key','data-pc-id','data-hq40-sort-stat','data-pc-section','data-pc-rz','data-wire-key','data-news-id']){
+  for(const attr of ['id','data-team-photo-player','data-hj-roster-team','data-hq-directory-id','data-hq40-stat-rail','data-league-team','data-hq-matchup-jump','data-hq-lineup-mode','data-hq40-period','data-hq40-year','data-hq-matchup-key','data-pc-id','data-hq40-sort-stat','data-pc-section','data-pc-rz','data-wire-key','data-news-id']){
    if(node.hasAttribute(attr))return node.tagName+':'+attr+':'+node.getAttribute(attr);
   }
   return '';
@@ -16,7 +16,7 @@
   for(const name of ['data-hj-fit-height','data-columns','data-hj-projection-section']){
    if(current.hasAttribute(name)&&!fresh.hasAttribute(name))fresh.setAttribute(name,current.getAttribute(name));
   }
-  for(const name of ['--hj-matchup-height','--hj-row-room','font-family']){
+  for(const name of ['--hj-section-height','--hj-matchup-height','--hj-row-room','font-family']){
    const value=current.style.getPropertyValue(name);
    if(value&&!fresh.style.getPropertyValue(name))fresh.style.setProperty(name,value,current.style.getPropertyPriority(name));
   }
@@ -24,7 +24,7 @@
   const active=current===document.activeElement;
   for(const attr of Array.from(current.attributes)){
    if(attr.name==='open'&&current.tagName==='DETAILS')continue;
-   if(current.classList.contains('hq-matchup-list')&&['tabindex','aria-label'].includes(attr.name)&&!fresh.hasAttribute(attr.name))continue;
+   if((current.classList.contains('hq-matchup-list')||current.classList.contains('hj-section-rail'))&&['tabindex','aria-label'].includes(attr.name)&&!fresh.hasAttribute(attr.name))continue;
    if(!fresh.hasAttribute(attr.name))current.removeAttribute(attr.name);
   }
   for(const attr of Array.from(fresh.attributes)){
@@ -138,3 +138,4 @@
   return result;
  };
 })();
+

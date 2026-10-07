@@ -1,7 +1,7 @@
-:is(#challenge-out,.hj-wheel-challenge-out){min-height:220px}
-:is(#challenge-out,.hj-wheel-challenge-out) .who-cell{gap:11px}
-:is(#challenge-out,.hj-wheel-challenge-out) .who-cell>.av{width:42px;height:42px;flex:0 0 42px;border-width:2px}
-:is(#challenge-out,.hj-wheel-challenge-out) .challenge-live-card .who-cell>.av{width:48px;height:48px;flex-basis:48px}
+:is(#challenge-out,.hj-challenge-out){min-height:220px}
+:is(#challenge-out,.hj-challenge-out) .who-cell{gap:11px}
+:is(#challenge-out,.hj-challenge-out) .who-cell>.av{width:42px;height:42px;flex:0 0 42px;border-width:2px}
+:is(#challenge-out,.hj-challenge-out) .challenge-live-card .who-cell>.av{width:48px;height:48px;flex-basis:48px}
 .lms-view{position:relative;container-type:inline-size;container-name:lms;margin-bottom:28px}
 .lms-zoom{display:none;position:absolute;top:8px;right:8px;z-index:4;gap:4px;margin:0}
 .lms-zoom button{display:inline-flex;align-items:center;justify-content:center;gap:6px;width:30px;height:30px;padding:0;border:1px solid var(--line);border-radius:999px;background:#fffffff2;box-shadow:0 1px 3px #14324f22;color:var(--navy);font:700 12px/1 var(--sans);cursor:pointer;transition:background .2s,color .2s,border-color .2s;touch-action:manipulation}
@@ -31,7 +31,7 @@
 .lms-figure.is-eliminated .lms-upper{transform:translateY(57px)}
 .lms-figure.is-eliminated .lms-standing-legs{opacity:0}
 .lms-figure.is-eliminated .lms-seated-legs{opacity:1}
-@media(max-width:600px){:is(#challenge-out,.hj-wheel-challenge-out) .who-cell>.av{width:36px;height:36px;flex-basis:36px}:is(#challenge-out,.hj-wheel-challenge-out) .challenge-live-card .who-cell>.av{width:40px;height:40px;flex-basis:40px}.lms-feed-week{padding:15px;gap:14px;grid-template-columns:1fr}.lms-feed-meta{flex-direction:row;justify-content:space-between;align-items:center}.lms-feed-result>strong{font-size:24px}.lms-feed-result .who-cell{font-size:14px}}
+@media(max-width:600px){:is(#challenge-out,.hj-challenge-out) .who-cell>.av{width:36px;height:36px;flex-basis:36px}:is(#challenge-out,.hj-challenge-out) .challenge-live-card .who-cell>.av{width:40px;height:40px;flex-basis:40px}.lms-feed-week{padding:15px;gap:14px;grid-template-columns:1fr}.lms-feed-meta{flex-direction:row;justify-content:space-between;align-items:center}.lms-feed-result>strong{font-size:24px}.lms-feed-result .who-cell{font-size:14px}}
 @media(prefers-reduced-motion:reduce){.lms-upper,.lms-figure,.lms-standing-legs,.lms-seated-legs,.lms-lineup,.lms-name,.lms-zoom button{transition:none}}
 /* Shared fitted lineup (raffle tickets, titty bars): the Last Man Standing shell with zoom buttons, double tap and scroll stage. */
 .lineup-view{margin-bottom:18px}
@@ -95,11 +95,11 @@
 .titty-view table.heat th:nth-child(2),.titty-view table.heat td.tot,.over-view table.heat th:nth-child(2),.over-view table.heat td.tot,.opt-view table.heat th:nth-child(2),.opt-view table.heat td.tot{min-width:64px;padding-left:12px;padding-right:12px}
 .titty-view table.heat th,.over-view table.heat th,.opt-view table.heat th{position:static}
 .titty-view table.heat .who-cell,.over-view table.heat .who-cell,.opt-view table.heat .who-cell{gap:8px}
-:is(#challenge-out,.hj-wheel-challenge-out) .titty-view table.heat .who-cell>.av,:is(#challenge-out,.hj-wheel-challenge-out) .over-view table.heat .who-cell>.av,:is(#challenge-out,.hj-wheel-challenge-out) .opt-view table.heat .who-cell>.av{width:30px;height:30px;flex-basis:30px;border-width:1.5px}
+:is(#challenge-out,.hj-challenge-out) .titty-view table.heat .who-cell>.av,:is(#challenge-out,.hj-challenge-out) .over-view table.heat .who-cell>.av,:is(#challenge-out,.hj-challenge-out) .opt-view table.heat .who-cell>.av{width:30px;height:30px;flex-basis:30px;border-width:1.5px}
 .titty-view table.heat td.is-missing,.over-view table.heat td.is-missing,.opt-view table.heat td.is-missing{color:#b5bcc4}
 .titty-view .legend,.over-view .legend,.opt-view .legend{margin-bottom:14px}
 /* Weekly tables sized like the heatmap: compact rows, small portraits, hugging their content. */
-:is(#challenge-out,.hj-wheel-challenge-out) .titty-weeks .who-cell>.av{width:30px;height:30px;flex-basis:30px;border-width:1.5px}
+:is(#challenge-out,.hj-challenge-out) .titty-weeks .who-cell>.av{width:30px;height:30px;flex-basis:30px;border-width:1.5px}
 /* MVP Special: one horizontally scrolling row of award cards per week, headshots rising out of the card top. */
 .mvp-week .mvp-cards{display:flex;gap:12px;overflow-x:auto;padding:46px 14px 14px;scroll-snap-type:x proximity;scrollbar-width:thin;-webkit-overflow-scrolling:touch;background:var(--paper-dim)}
 .mvp-card{position:relative;flex:0 0 150px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;gap:3px;padding:44px 10px 14px;border:1px solid #ffffff1f;border-radius:16px;background:linear-gradient(180deg,var(--navy-ink) 0%,var(--navy) 45%,var(--navy-deep) 100%);color:var(--paper);text-align:center;box-shadow:0 8px 20px #0c223833,inset 0 1px 0 #ffffff1a;overflow:visible}
@@ -117,7 +117,7 @@
 .mvp-card-owner{display:flex;flex-direction:column;align-items:center;gap:2px;margin:3px 0 7px;min-height:46px;justify-content:flex-start;cursor:pointer;border-radius:8px;padding:2px 6px}
 .mvp-card-owner:hover{background:#ffffff12}
 .mvp-card-owner b{font:700 10px/1.3 var(--sans);letter-spacing:.05em;color:var(--paper)}
-:is(#challenge-out,.hj-wheel-challenge-out) .mvp-card-owner>.av.mvp-card-av{width:28px;height:28px;flex-basis:28px;border:1.5px solid var(--brass-bright);background:var(--paper)}
+:is(#challenge-out,.hj-challenge-out) .mvp-card-owner>.av.mvp-card-av{width:28px;height:28px;flex-basis:28px;border:1.5px solid var(--brass-bright);background:var(--paper)}
 .mvp-card-owner.is-status{justify-content:center;font:700 9px/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:#c9c2ae}
 .mvp-card-owner.is-status:not(.manager-profile-trigger){cursor:default}
 .mvp-card-owner.is-status:not(.manager-profile-trigger):hover{background:none}
@@ -195,7 +195,7 @@ tr.ch-detail>td{padding:0!important;border-top:0!important;background:transparen
 .ch-detail-panel:before{content:"";position:absolute;top:-6px;left:var(--arrow-x);width:12px;height:12px;background:var(--navy);transform:translateX(-50%) rotate(45deg);border-radius:2px}
 .ch-detail-title{display:flex;align-items:center;gap:10px;margin-bottom:10px;font:800 13px/1.3 var(--sans);color:var(--paper)}
 .ch-detail-title .who-cell{gap:8px;color:var(--paper)}
-:is(#challenge-out,.hj-wheel-challenge-out) .ch-detail-title .who-cell>.av{width:28px;height:28px;flex-basis:28px;border:1.5px solid var(--brass-bright)}
+:is(#challenge-out,.hj-challenge-out) .ch-detail-title .who-cell>.av{width:28px;height:28px;flex-basis:28px;border:1.5px solid var(--brass-bright)}
 .ch-detail-title>span{font:700 10.5px/1.3 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--brass-bright)}
 .opt-swaps{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .opt-swaps li{display:grid;grid-template-columns:52px minmax(0,1fr) 22px minmax(0,1fr) 72px;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;background:#ffffff0f}
@@ -312,32 +312,33 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 /* LMS uses the raffle's exact shared figure sizing in fitted and zoomed views. */
 .lms-survival-view .lms-stage{overflow-y:hidden}
 /* Keep the shared raffle table typography, white/cream stripes and rounded shell. */
-:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table{overflow:hidden;container-type:inline-size}
-:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table table{width:100%;min-width:0;table-layout:fixed;white-space:normal}
-:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table th,:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table td{padding:10px 14px;vertical-align:middle;white-space:normal;overflow-wrap:break-word}
-:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table th:nth-child(1){width:16%}
-:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table th:nth-child(2){width:44%}
-:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table th:nth-child(3){width:40%}
-:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table .lms-score-group{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table .lms-score-group+.lms-score-group{margin-top:10px}
-:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table .who-cell{display:inline-flex;align-items:center;min-width:0;gap:11px;white-space:normal}
-:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table .who-cell>.av{width:42px;height:42px;flex:0 0 42px}
-:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table .lms-score-copy{display:flex;flex-direction:column;justify-content:center;min-width:0;line-height:1.35}
-:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table .lms-score-copy b{font-size:inherit;font-weight:700;color:var(--navy)}
-:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table .lms-result{max-width:100%;box-sizing:border-box;white-space:normal;letter-spacing:.025em}
-:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table .lms-result.is-eliminated{background:#f3e0de;color:var(--verdict-red)}
-:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table .lms-result.is-already-out{background:var(--paper-dim);color:#6f8090}
-:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table .lms-result.is-pending{background:#f5ead0;color:#8c7138}
+:is(#challenge-out,.hj-challenge-out) .lms-week-table{overflow:hidden;container-type:inline-size}
+:is(#challenge-out,.hj-challenge-out) .lms-week-table table{width:100%;min-width:0;table-layout:fixed;white-space:normal}
+:is(#challenge-out,.hj-challenge-out) .lms-week-table th,:is(#challenge-out,.hj-challenge-out) .lms-week-table td{padding:10px 14px;vertical-align:middle;white-space:normal;overflow-wrap:break-word}
+:is(#challenge-out,.hj-challenge-out) .lms-week-table th:nth-child(1){width:16%}
+:is(#challenge-out,.hj-challenge-out) .lms-week-table th:nth-child(2){width:44%}
+:is(#challenge-out,.hj-challenge-out) .lms-week-table th:nth-child(3){width:40%}
+:is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-score-group{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+:is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-score-group+.lms-score-group{margin-top:10px}
+:is(#challenge-out,.hj-challenge-out) .lms-week-table .who-cell{display:inline-flex;align-items:center;min-width:0;gap:11px;white-space:normal}
+:is(#challenge-out,.hj-challenge-out) .lms-week-table .who-cell>.av{width:42px;height:42px;flex:0 0 42px}
+:is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-score-copy{display:flex;flex-direction:column;justify-content:center;min-width:0;line-height:1.35}
+:is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-score-copy b{font-size:inherit;font-weight:700;color:var(--navy)}
+:is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-result{max-width:100%;box-sizing:border-box;white-space:normal;letter-spacing:.025em}
+:is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-result.is-eliminated{background:#f3e0de;color:var(--verdict-red)}
+:is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-result.is-already-out{background:var(--paper-dim);color:#6f8090}
+:is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-result.is-pending{background:#f5ead0;color:#8c7138}
 @media(max-width:600px){
- :is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table th,:is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table td{padding:10px 8px}
- :is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table th{font-size:9px;letter-spacing:.025em}
- :is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table th:nth-child(1){width:16%}
- :is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table th:nth-child(2){width:42%}
- :is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table th:nth-child(3){width:42%}
- :is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table .lms-week-label{display:none}
- :is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table .lms-score-group{flex-direction:column;align-items:flex-start;gap:6px}
- :is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table .who-cell{gap:8px}
- :is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table .who-cell>.av{width:36px;height:36px;flex-basis:36px}
- :is(#challenge-out,.hj-wheel-challenge-out) .lms-week-table .lms-result{font-size:9px;padding:3px 7px}
+ :is(#challenge-out,.hj-challenge-out) .lms-week-table th,:is(#challenge-out,.hj-challenge-out) .lms-week-table td{padding:10px 8px}
+ :is(#challenge-out,.hj-challenge-out) .lms-week-table th{font-size:9px;letter-spacing:.025em}
+ :is(#challenge-out,.hj-challenge-out) .lms-week-table th:nth-child(1){width:16%}
+ :is(#challenge-out,.hj-challenge-out) .lms-week-table th:nth-child(2){width:42%}
+ :is(#challenge-out,.hj-challenge-out) .lms-week-table th:nth-child(3){width:42%}
+ :is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-week-label{display:none}
+ :is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-score-group{flex-direction:column;align-items:flex-start;gap:6px}
+ :is(#challenge-out,.hj-challenge-out) .lms-week-table .who-cell{gap:8px}
+ :is(#challenge-out,.hj-challenge-out) .lms-week-table .who-cell>.av{width:36px;height:36px;flex-basis:36px}
+ :is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-result{font-size:9px;padding:3px 7px}
 }
+
 
