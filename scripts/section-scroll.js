@@ -167,15 +167,16 @@ function hjSectionRail(deck,options){
     event.preventDefault();go(deck,nearest(deck)+(event.key==='ArrowRight'?1:-1),true);
    });
    let resizeFrame=0;
+   const viewportChanged=()=>{if(!zoomed())later(deck);};
    const observer=new ResizeObserver(()=>{cancelAnimationFrame(resizeFrame);resizeFrame=requestAnimationFrame(()=>{
-    if(!deck.isConnected){observer.disconnect();stopWheel(deck,s);clearTimeout(s.timer);finishSlide();return}
+    if(!deck.isConnected){observer.disconnect();window.visualViewport?.removeEventListener('resize',viewportChanged);stopWheel(deck,s);clearTimeout(s.timer);finishSlide();return}
     if(!deck.clientWidth||zoomed())return;
     if(Math.abs(s.width-deck.clientWidth)>1){
      s.width=deck.clientWidth;if(s.touch)cards(deck)[s.touch.index]?.style.removeProperty('translate');s.touch=null;s.nestedTouch=false;finishSlide();go(deck,options.selected());
     }else if(!s.moving&&!s.touch&&!s.nestedTouch)fit(deck,options.selected());
    });});
    s.observer=observer;observer.observe(deck);
-   window.visualViewport?.addEventListener('resize',()=>{if(!zoomed())later(deck);},{passive:true});
+   window.visualViewport?.addEventListener('resize',viewportChanged,{passive:true});
    go(deck,options.selected());
   }
  }
