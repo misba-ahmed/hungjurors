@@ -53,16 +53,19 @@ for(const engine of [chromium,webkit]){
  }
  const stage=page.locator('#challenge-out .lms-stage');
  await stage.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));await page.waitForTimeout(400);
+ await page.evaluate(()=>{window.tapTrace=[];for(const type of ['pointerdown','pointerup','pointercancel'])document.addEventListener(type,e=>window.tapTrace.push({type,at:e.timeStamp,stage:!!e.target.closest('.lms-stage'),width:e.target.closest('.lms-view')?.clientWidth,x:e.clientX,y:e.clientY}),{capture:true});});
  const box=await stage.boundingBox(),tapX=box.x+box.width/2,tapY=box.y+box.height/2;
  await page.touchscreen.tap(tapX,tapY);await page.waitForTimeout(80);await page.touchscreen.tap(tapX,tapY);
- assert.equal(await page.locator('#challenge-out .lms-view').evaluate(e=>e.classList.contains('is-fit')),false,'double tap zoom');
+ console.log('TAP_TRACE',engine.name(),JSON.stringify(await page.evaluate(()=>window.tapTrace)));
+ const doubleTapZoomed=await page.locator('#challenge-out .lms-view').evaluate(e=>!e.classList.contains('is-fit')); 
  await page.locator('#challenge-out [data-lms-zoom="fit"]').click();
  // Repeated selection must release distant pages rather than retaining all old artwork.
  for(const id of ['mvp','optimizer','raffle','lms']){await page.locator('#challenge-tab-'+id).click();await page.waitForTimeout(500);}
  await page.evaluate(()=>hjRenderLeague());await page.waitForTimeout(600);
  const final=await metrics();console.log('FINAL_METRICS',engine.name(),JSON.stringify(final));assert(final.rosters<=3);assert(final.challenges<=3);
- const idle=await page.evaluate(async()=>{const times=[];let previous=performance.now();for(let i=0;i<30;i++)await new Promise(resolve=>requestAnimationFrame(now=>{times.push(now-previous);previous=now;resolve();}));return {max:Math.max(...times),slow:times.filter(n=>n>100).length};});
+ const idle=await page.evaluate(async()=>{const times=[];let previous=performance.now();for(let i=0;i<30;i++)await new Promise(resolve=>requestAnimationFrame(now=>{times.push(now-previous);previous=now;resolve();}));observer.disconnect();return {max:Math.max(...times),slow:times.filter(n=>n>100).length,mutations:Object.entries(mutations).sort((a,b)=>b[1]-a[1]).slice(0,8)};});
  console.log('IDLE_FRAMES',engine.name(),JSON.stringify(idle));assert(idle.slow<6,'no sustained layout/observer loop');
+ assert(doubleTapZoomed,'double tap zoom');
  const note=await page.locator(active+' .league-matchup-score').evaluate(e=>({bg:getComputedStyle(e).backgroundColor,blend:getComputedStyle(e).backgroundBlendMode}));assert.equal(note.bg,'rgb(249, 237, 215)');assert.equal(note.blend,'multiply');
  await page.locator('#hq-tab-rosters').click();await page.locator(active+' .league-matchup-score').scrollIntoViewIfNeeded();await page.waitForTimeout(400);
  const shot=await page.screenshot({type:'jpeg',quality:65});console.log('STABILITY_IMAGE '+engine.name()+' '+shot.toString('base64'));
