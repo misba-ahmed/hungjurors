@@ -10,7 +10,7 @@
     "jersey": "9"
   },
   "14880": {
-    "file": "14880-faces-v1.webp",
+    "file": "14880-faces-v2.webp",
     "width": 318,
     "height": 850,
     "ratio": 0.37412,
@@ -210,10 +210,10 @@
     "jersey": "89"
   },
   "3116406": {
-    "file": "3116406-free-agent-v1.webp",
-    "width": 315,
+    "file": "3116406-free-agent-v2.webp",
+    "width": 317,
     "height": 850,
-    "ratio": 0.37059,
+    "ratio": 0.37294,
     "heightInches": 70,
     "name": "Tyreek Hill",
     "teamId": 0,
@@ -343,10 +343,10 @@
     "teamId": 33,
     "jersey": "8",
     "unavailable": {
-      "file": "3916387-crutches-v1.webp",
-      "width": 339,
+      "file": "3916387-crutches-v2.webp",
+      "width": 343,
       "height": 850,
-      "ratio": 0.39882,
+      "ratio": 0.40353,
       "kind": "injury"
     }
   },
@@ -390,7 +390,7 @@
     "teamId": 21,
     "jersey": "26",
     "unavailable": {
-      "file": "3929630-crutches-v1.webp",
+      "file": "3929630-crutches-v2.webp",
       "width": 345,
       "height": 850,
       "ratio": 0.40588,
@@ -1051,10 +1051,10 @@
     "teamId": 12,
     "jersey": "4",
     "unavailable": {
-      "file": "4428331-crutches-v1.webp",
-      "width": 324,
+      "file": "4428331-crutches-v2.webp",
+      "width": 321,
       "height": 850,
-      "ratio": 0.38118,
+      "ratio": 0.37765,
       "kind": "injury"
     }
   },
@@ -1216,7 +1216,7 @@
     "jersey": "84"
   },
   "4431545": {
-    "file": "4431545-faces-v1.webp",
+    "file": "4431545-faces-v2.webp",
     "width": 317,
     "height": 850,
     "ratio": 0.37294,
