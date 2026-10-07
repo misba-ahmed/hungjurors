@@ -45,3 +45,9 @@ Also read `assets/ARTWORK_PROPORTIONS.md` and `assets/artwork-proportions.json`.
 
 ## BYE weeks (October 6)
 Confirmed NFL byes share the 28% saturation treatment, including DST mascots. Use the verified full current-season schedule; missing data is not a bye. A bye alone keeps regular artwork and must not trigger crutches from its zero projection. Preserve actual injury/suspension variants. Recalculate using current week so bye tint automatically clears; independently injured players stay muted. Shared game context displays BYE.
+
+## Projection recovery correction (October 7)
+A finite positive ESPN projection for the current scoring week and current NFL season restores the regular player image and clears injury tint, even when ESPN still carries an injury/inactive label. An explicit zero reapplies an available injury variant; Josh Jacobs uses his existing front-handcuff variant. A confirmed bye alone keeps regular artwork with bye tint. Missing, nonnumeric, actual, prior-week and prior-season values never count as a restored projection. When current projection data is missing, preserve the existing status-based fallback. Keep both regular and alternate assets.
+
+
+Free-agent correction (October 7): Tyreek Hill wears beach shorts with no shirt and no crutches. Free agents (explicit ESPN proTeamId 0) use 28% saturation without injury variants. The free-agent condition overrides injury/zero-projection poses and clears when ESPN assigns a team. Missing team IDs are not confirmed free agents.

@@ -1,0 +1,27 @@
+name: Verify roster artwork and status
+on:
+  push:
+    branches: [fix-roster-artwork-recovery]
+  pull_request:
+    paths:
+      - scripts/team-photos.js
+      - scripts/test-lineup-status.mjs
+      - assets/team-photos/**
+jobs:
+  lineup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright sharp
+      - run: npx playwright install chromium --with-deps
+      - run: |
+          node scripts/test-lineup-rules.mjs
+          node scripts/test-lineup-status.mjs
+          node scripts/test-lineup-live-scores.mjs
+          node scripts/test-lineup-mascots.mjs
+          node scripts/test-bye-status.mjs
+          node scripts/test-lineup-spotlight.mjs
+          node scripts/test-roster-swipe.mjs

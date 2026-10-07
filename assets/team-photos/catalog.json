@@ -9,6 +9,16 @@
     "teamId": 14,
     "jersey": "9"
   },
+  "14880": {
+    "file": "14880-faces-v1.webp",
+    "width": 318,
+    "height": 850,
+    "ratio": 0.37412,
+    "heightInches": 75,
+    "name": "Kirk Cousins",
+    "teamId": 13,
+    "jersey": "8"
+  },
   "15847": {
     "file": "15847-faces-v2.webp",
     "width": 324,
@@ -199,6 +209,16 @@
     "teamId": 33,
     "jersey": "89"
   },
+  "3116406": {
+    "file": "3116406-free-agent-v1.webp",
+    "width": 315,
+    "height": 850,
+    "ratio": 0.37059,
+    "heightInches": 70,
+    "name": "Tyreek Hill",
+    "teamId": 0,
+    "jersey": "10"
+  },
   "3117251": {
     "file": "3117251-faces-v2.webp",
     "width": 323,
@@ -321,7 +341,14 @@
     "heightInches": 74,
     "name": "Lamar Jackson",
     "teamId": 33,
-    "jersey": "8"
+    "jersey": "8",
+    "unavailable": {
+      "file": "3916387-crutches-v1.webp",
+      "width": 339,
+      "height": 850,
+      "ratio": 0.39882,
+      "kind": "injury"
+    }
   },
   "3916433": {
     "file": "3916433-faces-v2.webp",
@@ -361,7 +388,14 @@
     "heightInches": 72,
     "name": "Saquon Barkley",
     "teamId": 21,
-    "jersey": "26"
+    "jersey": "26",
+    "unavailable": {
+      "file": "3929630-crutches-v1.webp",
+      "width": 345,
+      "height": 850,
+      "ratio": 0.40588,
+      "kind": "injury"
+    }
   },
   "3929645": {
     "file": "3929645-faces-v2.webp",
@@ -1015,7 +1049,14 @@
     "heightInches": 73,
     "name": "Rashee Rice",
     "teamId": 12,
-    "jersey": "4"
+    "jersey": "4",
+    "unavailable": {
+      "file": "4428331-crutches-v1.webp",
+      "width": 324,
+      "height": 850,
+      "ratio": 0.38118,
+      "kind": "injury"
+    }
   },
   "4428850": {
     "file": "4428850-faces-v2.webp",
@@ -1173,6 +1214,16 @@
     "name": "Tyler Warren",
     "teamId": 11,
     "jersey": "84"
+  },
+  "4431545": {
+    "file": "4431545-faces-v1.webp",
+    "width": 317,
+    "height": 850,
+    "ratio": 0.37294,
+    "heightInches": 71,
+    "name": "Will Shipley",
+    "teamId": 21,
+    "jersey": "28"
   },
   "4431611": {
     "file": "4431611-faces-v2.webp",
