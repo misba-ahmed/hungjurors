@@ -24,6 +24,15 @@ function standingsFormDots(p){
  return `<span class="st-dots" aria-label="Last ${last.length}: ${last.map(e=>hjNumber(e.oppPts)===null?'?':e.pts>Number(e.oppPts)?'W':e.pts<Number(e.oppPts)?'L':'T').join(' ')}">${last.map(e=>{const r=hjNumber(e.oppPts)===null?'':e.pts>Number(e.oppPts)?'win':e.pts<Number(e.oppPts)?'loss':'tie';return `<i class="${r}" title="Week ${e.week}: ${e.pts.toFixed(2)}${hjNumber(e.oppPts)!==null?` vs ${Number(e.oppPts).toFixed(2)}`:''}"></i>`}).join('')}</span>`;
 }
 function standingsTile(k,v,s='',tone=''){return `<div class="st-tile${tone?` is-${tone}`:''}"><span>${k}</span><b>${v}</b>${s?`<small>${s}</small>`:''}</div>`}
+function standingsNextAvatars(p){
+ const names=(p.next3||[]).slice(0,3);
+ return names.length?`<div class="st-next-avatars" aria-label="Next three opponents">${names.map(name=>`<button type="button" class="manager-profile-trigger" data-manager="${esc(name)}" title="${esc(name)}" aria-label="Open ${esc(name)} profile">${av(name)}</button>`).join('')}</div>`:'—';
+}
+function standingsCloseGamesHTML(p){
+ const games=p.entries.filter(e=>hjNumber(e.oppPts)!==null&&Number.isFinite(e.pts)&&Math.abs(e.pts-Number(e.oppPts))<=10).sort((a,b)=>a.week-b.week);
+ const rows=games.map(e=>`<div class="st-close-game"><span class="st-close-week">Week ${esc(e.week)}</span><div class="st-close-score"><span>${esc(p.short)}</span><b>${pcFpts(e.pts)}</b></div><div class="st-close-score"><span>${esc(e.opp||'Opponent')}</span><b>${pcFpts(Number(e.oppPts))}</b></div></div>`).join('');
+ return `<details class="st-tile st-close" data-close-manager="${esc(p.short)}"><summary><span>Close games</span><b>${p.entries.length?`${p.closeW}–${p.closeL}`:'—'}</b><small>decided by 10 or less</small><i aria-hidden="true">⌄</i></summary><div class="st-close-list">${rows||'<p>No close games yet.</p>'}</div></details>`;
+}
 function standingsAnalyticsHTML(p){
  const expected=Number.isFinite(p.expectedWins)?`${standingsFmt(p.expectedWins,1)}–${standingsFmt(Math.max(0,p.entries.length-p.expectedWins),1)}`:'—';
  const allPlay=p.allW+p.allL+p.allT?`${p.allW}–${p.allL}${p.allT?`–${p.allT}`:''}`:'—';
@@ -34,10 +43,10 @@ function standingsAnalyticsHTML(p){
   standingsTile('Points against',Number.isFinite(p.pa)?pcFpts(p.pa):'—',Number.isFinite(p.oppAvg)?`${pcFpts(p.oppAvg)} per game`:''),
   standingsTile('Lineup efficiency',Number.isFinite(p.efficiency)?`${standingsFmt(p.efficiency,1)}%`:'—',Number.isFinite(p.benchGap)?`${pcFpts(p.benchGap)} left on bench`:''),
   standingsTile('vs ESPN projection',projection,p.projWeeks?`beat it ${p.projBeat} of ${p.projWeeks}`:'',p.projDiff>0?'pos':p.projDiff<0?'neg':''),
-  standingsTile('Close games',p.entries.length?`${p.closeW}–${p.closeL}`:'—','decided by 10 or less'),
+  standingsCloseGamesHTML(p),
   standingsTile('Strength of schedule',Number.isFinite(p.sosRank)?`#${p.sosRank}`:'—',Number.isFinite(p.remainingSOSRank)?`#${p.remainingSOSRank} remaining`:''),
   standingsTile('Volatility',Number.isFinite(p.volatility)?pcFpts(p.volatility):'—','week-to-week swing'),
-  standingsTile('Next 3',p.next3?.length?esc(p.next3.join(' · ')):'—',Number.isFinite(p.repeatDrawRank)?`repeat draw #${p.repeatDrawRank}`:'')
+  `<div class="st-tile st-next"><span>Next 3</span>${standingsNextAvatars(p)}${Number.isFinite(p.repeatDrawRank)?`<small>repeat draw #${p.repeatDrawRank}</small>`:''}</div>`
  ].join('');
  const scores=p.entries.map(e=>e.pts),min=scores.length?Math.min(...scores):0,max=scores.length?Math.max(...scores):1;
  const bars=p.entries.map(e=>{const h=22+((e.pts-min)/Math.max(1,max-min))*78,r=hjNumber(e.oppPts)===null?'':e.pts>Number(e.oppPts)?'win':e.pts<Number(e.oppPts)?'loss':'';return `<i class="${r}" style="height:${h.toFixed(1)}%" title="Week ${e.week}: ${e.pts.toFixed(2)}${hjNumber(e.oppPts)!==null?` · opp ${Number(e.oppPts).toFixed(2)}`:''}"><small>${e.week}</small></i>`}).join('');
@@ -83,6 +92,7 @@ function renderStandingsDashboard(animate=false){
  const metricHead=standingsMode==='standings'?(data.people.some(p=>Number.isFinite(p.playoffOdds))?'Odds':'PF rk'):STANDINGS_MODES[standingsMode].label;
  if(!hasSeasonData){out.innerHTML=`<div class="st"><div class="st-modes">${modeButtons}</div><p class="st-note">Standings fill in after Week 1. Here is the starting grid.</p>${standingsPreseasonHTML()}</div>`;return;}
  const ordered=standingsSort(data.people,standingsMode),officialSeed=Object.fromEntries(data.official.map((p,i)=>[p.short,i+1]));
+ const closeOpened=new Set([...out.querySelectorAll('.st-close[open]')].map(el=>el.dataset.closeManager));
  const opened=[...out.querySelectorAll('.standings-entry.is-open')].map(n=>n.dataset.standingEntry),raceOpen=out.querySelector('.st-race')?.open;
  const oldRects=animate?Object.fromEntries([...out.querySelectorAll('[data-standing-entry]')].map(el=>[el.dataset.standingEntry,el.getBoundingClientRect()])):{};
  out.innerHTML=`<div class="st">
@@ -91,6 +101,7 @@ function renderStandingsDashboard(animate=false){
   ${standingsHistoryHTML(data)}
  </div>`;
  for(const name of opened){const el=out.querySelector(`.standings-entry[data-standing-entry="${CSS.escape(name)}"]`);if(el){el.classList.add('is-open');el.querySelector('.standings-lane')?.setAttribute('aria-expanded','true');}}
+ out.querySelectorAll('.st-close').forEach(el=>{el.open=closeOpened.has(el.dataset.closeManager);});
  if(raceOpen!==undefined){const race=out.querySelector('.st-race');if(race)race.open=raceOpen;}
  if(animate&&Object.keys(oldRects).length&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
   [...out.querySelectorAll('[data-standing-entry]')].forEach((el,i)=>{const old=oldRects[el.dataset.standingEntry];if(!old)return;const dy=old.top-el.getBoundingClientRect().top;el.animate([{transform:`translateY(${dy}px)`,opacity:.72},{transform:'translateY(0)',opacity:1}],{duration:380+i*12,easing:'cubic-bezier(.2,.72,.25,1)'})});

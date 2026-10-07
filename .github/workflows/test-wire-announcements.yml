@@ -1,9 +1,11 @@
 name: Verify separate Wire announcements
 on:
   push:
-    branches: [fix-wire-announcements]
+    branches: [fix-wire-announcements, fix-standings-compact-cards]
   pull_request:
     paths:
+      - scripts/standings-live.js
+      - styles/standings.css
       - scripts/wire-priorities.js
       - styles/wire-priorities.css
       - scripts/test-wire-priorities.mjs

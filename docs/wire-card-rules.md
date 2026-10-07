@@ -46,3 +46,6 @@ Run scripts/test-wire-priorities.mjs and the existing card gesture checks. Do no
 
 ## October 7 update — supersedes the grouped This Week exceptions above
 Each priority announcement now occupies a full ordinary-sized carousel card, with its own bottom chip. Order: Kickoff, Bye Week, Last Man Standing, followed by the existing remaining sections. No shared This Week group/chip or stacked panels. LMS includes “Lowest score this week will be eliminated.” plus original manager figures and a compact managers / one elimination summary. Keep BYE cream boxes, mirrored team rows, live roster data, ordinary dimensions, shared gestures, expansion, stable keys and refresh behavior. See docs/wire-priorities.md. Run the additional desktop/mobile Chromium/WebKit test-wire-announcements.mjs.
+
+## October 7 follow-up
+Remove the LMS managers / elimination count line; preserve the elimination sentence and manager artwork. BYE rows must stay compact (24px player minimum, 1px row padding). Do not enlarge rows to create scrolling: the current 7-player maximum team column must fit the normal card at phone and desktop widths. Retain scrolling only for genuinely longer future rosters.

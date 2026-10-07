@@ -131,3 +131,21 @@
 @media (prefers-reduced-motion:reduce){
  #standings-out .st-tray-wrap,#standings-out .st-caret{transition:none}
 }
+
+/* The next three opponents always fit the tile, including narrow phones. */
+#standings-out .st-next-avatars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;width:100%;max-width:112px;min-width:0;align-items:center}
+#standings-out .st-next-avatars>button{display:block;width:100%;max-width:34px;min-width:0;aspect-ratio:1;padding:0;border:0;background:transparent;cursor:pointer}
+#standings-out .st-next-avatars .av{display:block;width:100%!important;height:auto!important;aspect-ratio:1;max-width:100%;min-width:0;margin:0;box-sizing:border-box}
+#standings-out .st-close{display:block;align-self:start}
+#standings-out .st-close summary{position:relative;display:flex;flex-direction:column;gap:3px;list-style:none;cursor:pointer;padding-right:14px}
+#standings-out .st-close summary::-webkit-details-marker{display:none}
+#standings-out .st-close summary i{position:absolute;right:0;top:2px;font-style:normal;color:var(--brass);font-size:14px}
+#standings-out .st-close[open]{grid-column:1/-1}
+#standings-out .st-close[open] summary i{transform:rotate(180deg)}
+#standings-out .st-close-list{margin-top:9px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:8px}
+#standings-out .st-close-game{padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--paper)}
+#standings-out .st-close-score{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:4px}
+#standings-out .st-close-score span{font:700 10px/1.3 var(--sans);letter-spacing:0;white-space:normal;color:var(--navy)}
+#standings-out .st-close-score b{font-size:12px;overflow:visible}
+#standings-out .st-close-list p{font:500 11px/1.4 var(--sans);margin:0;color:#6f8090}
+#standings-out .st-close summary:focus-visible,#standings-out .st-next-avatars button:focus-visible{outline:2px solid var(--brass);outline-offset:3px;border-radius:3px}
