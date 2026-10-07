@@ -20,9 +20,14 @@ for(const engine of [webkit,chromium]){
    await page.locator(selector).scrollIntoViewIfNeeded();
    const info=await page.locator(selector).evaluate(el=>{const before=el.scrollLeft,w=el.clientWidth;const delta=before>w?-.8*w:.8*w;el.dispatchEvent(new WheelEvent('wheel',{deltaX:delta,bubbles:true,cancelable:true}));return {before,after:el.scrollLeft,delta};});
    assert(Math.abs(info.after-info.before-info.delta)<3,selector+' exact wheel distance '+JSON.stringify(info));
-   await page.waitForTimeout(800);
+   // Large live artwork/layout updates can delay a frame in WebKit. Verify the
+   // actual settled state rather than assuming a wall-clock sleep completed it.
+   await page.waitForFunction(selector=>{
+    const el=document.querySelector(selector),left=el.getBoundingClientRect().left;
+    const p=[...el.children].find(c=>Math.abs(c.getBoundingClientRect().left-left)<2);
+    return p&&!p.inert&&Math.abs(el.clientHeight-p.getBoundingClientRect().height)<3;
+   },selector,{timeout:15000});
    const geometry=await page.locator(selector).evaluate(el=>{const children=[...el.children],p=children.reduce((a,b)=>Math.abs(a.getBoundingClientRect().left-el.getBoundingClientRect().left)<Math.abs(b.getBoundingClientRect().left-el.getBoundingClientRect().left)?a:b);return {rail:el.clientHeight,page:p.getBoundingClientRect().height,padding:getComputedStyle(el).padding,box:getComputedStyle(el).boxSizing,cssHeight:getComputedStyle(el).height,offset:el.offsetHeight,variable:el.style.getPropertyValue('--hj-section-height'),top:el.scrollTop,left:el.scrollLeft,width:el.clientWidth,active:HJ_CHALLENGE_STATE.active,pages:children.map(c=>({height:c.getBoundingClientRect().height,key:c.dataset.hjChallenge}))};});
-   if(Math.abs(geometry.rail-geometry.page)>=3){console.log('HEIGHT_DIAGNOSTIC '+JSON.stringify(geometry));await page.waitForTimeout(1500);console.log('HEIGHT_LATER '+JSON.stringify(await page.locator(selector).evaluate(el=>({height:el.clientHeight,variable:el.style.getPropertyValue('--hj-section-height'),pages:[...el.children].map(c=>c.getBoundingClientRect().height)}))));}
    assert(Math.abs(geometry.rail-geometry.page)<3,'no height floor '+selector+' '+width+' '+JSON.stringify(geometry));assert.equal(geometry.padding,'0px');
   }
  }
