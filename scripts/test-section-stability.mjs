@@ -1,0 +1,72 @@
+import fs from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {chromium,webkit} from 'playwright';
+import {prepareSite} from './prepare-site.mjs';
+const html=prepareSite(await fs.readFile('index.html','utf8'));
+await fs.mkdir('gesture-proof',{recursive:true});
+for(const engine of [chromium,webkit]){
+ const browser=await engine.launch();
+ try{
+ const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ await page.route('https://hungjurors.com/',r=>r.fulfill({contentType:'text/html',body:html}));
+ await page.route('https://hungjurors.com/styles/**',async r=>{try{await r.fulfill({contentType:'text/css',body:await fs.readFile(new URL(r.request().url()).pathname.slice(1),'utf8')});}catch{await r.continue();}});
+ await page.goto('https://hungjurors.com/#rosters',{waitUntil:'domcontentloaded'});
+ await page.waitForFunction(()=>document.querySelector('.hj-roster-rail')&&typeof HJ_CHALLENGE_STATE!=='undefined'&&HJ_CHALLENGE_STATE.model,{timeout:90000});
+ await page.locator('#hq-tab-rosters').click();
+ await page.waitForTimeout(2500);
+ const metrics=()=>page.evaluate(()=>({rosters:document.querySelectorAll('.hj-roster-rail .league-roster-head').length,players:document.querySelectorAll('.hj-roster-rail .hj-team-photo-player').length,challenges:[...document.querySelector('.hj-challenge-rail').children].filter(c=>c.firstElementChild).length,nodes:document.querySelectorAll('*').length}));
+ const initial=await metrics();console.log('INITIAL_METRICS',engine.name(),JSON.stringify(initial));assert(initial.rosters<=3);assert(initial.challenges<=3);
+ // No-op live refreshes must not tear down inactive previews and restart observers.
+ const churn=await page.evaluate(async()=>{let mutations=0;const observer=new MutationObserver(rs=>mutations+=rs.filter(r=>r.type==='childList').length);observer.observe(document.querySelector('.hj-challenge-rail'),{childList:true,subtree:true});for(let i=0;i<10;i++)hjRenderChallenge();await new Promise(r=>setTimeout(r,500));observer.disconnect();return mutations;});
+ console.log('NOOP_REFRESH_MUTATIONS',engine.name(),churn);assert(churn<20,'unchanged challenge refresh must stay quiet');
+ // Walk the player figures with real touch, keeping the same roster selected.
+ const selected=await page.locator('[data-league-team].active').getAttribute('data-league-team');
+ const active='.hj-roster-rail .hj-section-page:not([inert])';
+ await page.locator(active+' .hj-team-photo').scrollIntoViewIfNeeded();
+ const players=page.locator(active+' .hj-team-photo-player');
+ for(let i=0;i<Math.min(8,await players.count());i++){await players.nth(i).tap();await page.waitForTimeout(60);}
+ assert.equal(await page.locator('[data-league-team].active').getAttribute('data-league-team'),selected);
+ if(engine===chromium){
+  const cdp=await page.context().newCDPSession(page);const b=await page.locator(active+' .hj-team-photo-stage').boundingBox();
+  const y=Math.max(100,Math.min(730,b.y+b.height/2)),x=b.x+20;
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
+  for(let i=1;i<=18;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+i*(b.width-40)/18,y}]});await page.waitForTimeout(16);}
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  // Real browser pinch. The page must remain responsive at each scale.
+  for(let i=0;i<3;i++){
+   await cdp.send('Input.synthesizePinchGesture',{x:190,y:430,scaleFactor:1.35,relativeSpeed:400,gestureSourceType:'touch'});
+   await page.waitForTimeout(250);assert(await page.locator('#league-hq').count());
+   await cdp.send('Input.synthesizePinchGesture',{x:190,y:430,scaleFactor:1/1.35,relativeSpeed:400,gestureSourceType:'touch'});
+  }
+  await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});
+ }
+ // Keep gestures and art enabled; exercise both challenge zoom controls and double tap.
+ await page.locator('#challenge-tab-lms').click();
+ await page.locator('#challenge-out .lms-stage').scrollIntoViewIfNeeded();
+ for(let i=0;i<6;i++){
+  await page.locator('#challenge-out [data-lms-zoom="scroll"]').count();
+  const zoom=page.locator('#challenge-out [data-lms-zoom]').filter({hasText:'+'});
+  // The actual markup advertises zoom/fit values; inspect the accessible pressed state.
+  await page.locator('#challenge-out [data-lms-zoom]').evaluateAll(bs=>bs.find(b=>b.dataset.lmsZoom!=='fit').click());
+  assert.equal(await page.locator('#challenge-out .lms-view').evaluate(e=>e.classList.contains('is-fit')),false);
+  await page.locator('#challenge-out [data-lms-zoom="fit"]').click();
+  assert.equal(await page.locator('#challenge-out .lms-view').evaluate(e=>e.classList.contains('is-fit')),true);
+ }
+ const stage=page.locator('#challenge-out .lms-stage');
+ await stage.tap({position:{x:15,y:15}});await page.waitForTimeout(80);await stage.tap({position:{x:15,y:15}});
+ assert.equal(await page.locator('#challenge-out .lms-view').evaluate(e=>e.classList.contains('is-fit')),false,'double tap zoom');
+ await page.locator('#challenge-out [data-lms-zoom="fit"]').click();
+ // Repeated selection must release distant pages rather than retaining all old artwork.
+ for(const id of ['mvp','optimizer','raffle','lms']){await page.locator('#challenge-tab-'+id).click();await page.waitForTimeout(500);}
+ await page.evaluate(()=>hjRenderLeague());await page.waitForTimeout(600);
+ const final=await metrics();console.log('FINAL_METRICS',engine.name(),JSON.stringify(final));assert(final.rosters<=3);assert(final.challenges<=3);
+ const idle=await page.evaluate(async()=>{const times=[];let previous=performance.now();for(let i=0;i<30;i++)await new Promise(resolve=>requestAnimationFrame(now=>{times.push(now-previous);previous=now;resolve();}));return {max:Math.max(...times),slow:times.filter(n=>n>100).length};});
+ console.log('IDLE_FRAMES',engine.name(),JSON.stringify(idle));assert(idle.slow<6,'no sustained layout/observer loop');
+ const note=await page.locator(active+' .league-matchup-score').evaluate(e=>({bg:getComputedStyle(e).backgroundColor,blend:getComputedStyle(e).backgroundBlendMode}));assert.equal(note.bg,'rgb(249, 237, 215)');assert.equal(note.blend,'multiply');
+ await page.locator('#hq-tab-rosters').click();await page.locator(active+' .league-matchup-score').scrollIntoViewIfNeeded();await page.waitForTimeout(400);
+ const shot=await page.screenshot({type:'jpeg',quality:65});console.log('STABILITY_IMAGE '+engine.name()+' '+shot.toString('base64'));
+ assert(!errors.some(e=>!/ResizeObserver/.test(e)),errors.join('\n'));
+ console.log('PASS '+engine.name()+': bounded artwork, quiet refreshes, lineup taps, pinch, challenge zoom and double tap, stable frame loop, paper note blending');
+ }finally{await browser.close();}
+}

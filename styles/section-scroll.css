@@ -4,3 +4,10 @@
 .hj-section-rail>.hj-section-page{flex:0 0 100%;width:100%;min-width:0;max-width:100%;box-sizing:border-box;scroll-snap-align:start;scroll-snap-stop:always;}
 .hj-challenge-page{display:flow-root;padding:0;margin:0;}
 .hj-section-rail:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+
+/* Blend the paper note into its own paper background, across compositing layers. */
+#league-hq #league-sync-content .league-roster-head .league-matchup-score{
+ background-color:#f9edd7!important;background-blend-mode:multiply!important;mix-blend-mode:normal!important;
+}
+/* Empty distant pages preserve scroll positions without retaining heavy artwork. */
+.hj-section-page:empty{min-height:1px;}

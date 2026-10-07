@@ -55,10 +55,21 @@ function hjScrollMatchupStart(card){
  const installed=new WeakMap();
  function install(){
   const deck=root.querySelector('.hj-roster-rail');if(!deck||!deck.clientWidth)return;
-  if(installed.has(deck)){installed.get(deck).fit();return;}
+  if(installed.has(deck)){const api=installed.get(deck);api.populate();api.fit();return;}
   const pages=()=>[...deck.children];
+  function prepare(index,prune=false){
+   const list=pages(),selected=String(HJ_LEAGUE_STATE.selectedTeamId),count=list.length;
+   const keep=new Set([index,(index+count-1)%count,(index+1)%count]);
+   if(!prune)keep.add(list.findIndex(p=>p.dataset.hjRosterTeam===selected));
+   list.forEach((page,i)=>{
+    if(keep.has(i)&&!page.firstElementChild){
+     const data=HJ_LEAGUE_STATE.data,team=data?.teams?.find(t=>String(t.id)===page.dataset.hjRosterTeam);
+     if(team)page.innerHTML=hjTeamViewHTML(team,data);
+    }else if(prune&&!keep.has(i)&&page.firstElementChild)page.replaceChildren();
+   });
+  }
   const api=hjSectionRail(deck,{
-   label:'Rosters.',inert:true,
+   label:'Rosters.',inert:true,prepare:index=>prepare(index),settled:index=>prepare(index,true),
    selected:()=>Math.max(0,pages().findIndex(p=>p.dataset.hjRosterTeam===String(HJ_LEAGUE_STATE.selectedTeamId))),
    exclude:node=>node.matches('.hj-team-photo,input,select,textarea,[contenteditable]'),
    choose:index=>{
@@ -69,7 +80,7 @@ function hjScrollMatchupStart(card){
     const tab=root.querySelector('[data-league-team].active'),rail=tab?.parentElement;
     if(tab&&rail){const r=rail.getBoundingClientRect(),b=tab.getBoundingClientRect();if(b.left<r.left)rail.scrollLeft+=b.left-r.left;else if(b.right>r.right)rail.scrollLeft+=b.right-r.right;}
    }
-  });installed.set(deck,api);
+  });api.populate=()=>prepare(Math.max(0,pages().findIndex(p=>p.dataset.hjRosterTeam===String(HJ_LEAGUE_STATE.selectedTeamId))),true);installed.set(deck,api);
  }
  root.addEventListener('click',event=>{
   const tab=event.target.closest('[data-league-team]'),deck=root.querySelector('.hj-roster-rail');if(!tab||!deck)return;
@@ -94,28 +105,37 @@ function hjScrollMatchupStart(card){
  let active=CHALLENGES.findIndex(ch=>ch.id===HJ_CHALLENGE_STATE.active),api=null;
  pages[active].append(card,out);
  const baseSelect=selectChallenge,baseRender=hjRenderChallenge;
+ const previewHTML=new Map();
  function preview(index){
   if(index===active)return;
-  const ch=CHALLENGES[index],head=card.cloneNode(true),body=document.createElement('div');
+  if(previewHTML.has(index)&&pages[index].firstElementChild)return;
+  const ch=CHALLENGES[index],html=hjChBodyHTML(ch,HJ_CHALLENGE_STATE.model);
+  if(previewHTML.get(index)===html&&pages[index].firstElementChild)return;
+  previewHTML.set(index,html);
+  const head=card.cloneNode(true),body=document.createElement('div');
   head.removeAttribute('id');head.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
   head.querySelector('.ch-title').textContent=ch.label;head.querySelector('.ch-rules').textContent=ch.rule;head.querySelector('.ch-rules').classList.remove('is-open');head.querySelector('.ch-stamp').textContent=ch.prize;
   const toggle=head.querySelector('.ch-rules-toggle');if(toggle){toggle.textContent='Full rules';toggle.setAttribute('aria-expanded','false');}
-  body.className='hj-challenge-out';body.innerHTML=hjChBodyHTML(ch,HJ_CHALLENGE_STATE.model);
+  body.className='hj-challenge-out';body.innerHTML=html;
   pages[index].replaceChildren(head,body);
  }
- function refresh(){pages.forEach((_,i)=>preview(i));api?.fit();}
+ function prepare(index,prune=false){
+  const count=pages.length,keep=new Set([index,(index+count-1)%count,(index+1)%count,active]);
+  pages.forEach((page,i)=>{if(keep.has(i))preview(i);else if(prune&&page.firstElementChild){page.replaceChildren();previewHTML.delete(i);}});
+ }
+ function refresh(){prepare(active,true);api?.fit();}
  function choose(index){
   if(index===active)return;
   const previous=active;active=index;
   if(HJ_CHALLENGE_STATE.profileTimer){clearTimeout(HJ_CHALLENGE_STATE.profileTimer);HJ_CHALLENGE_STATE.profileTimer=null;}
-  pages[index].replaceChildren(card,out);preview(previous);
+  pages[index].replaceChildren(card,out);previewHTML.delete(index);previewHTML.delete(previous);preview(previous);
   baseSelect(CHALLENGES[index].id);
  }
  refresh();
  api=hjSectionRail(deck,{
-  label:'Side challenges.',inert:true,selected:()=>active,choose,
+  label:'Side challenges.',inert:true,selected:()=>active,choose,prepare:index=>prepare(index),settled:index=>prepare(index,true),
   exclude:node=>node.matches('input,select,textarea,[contenteditable]')||node.matches('.lms-stage')&&!node.closest('.lms-view')?.classList.contains('is-fit')
  });
  selectChallenge=function(id){const index=CHALLENGES.findIndex(ch=>ch.id===id);api.go(index<0?0:index);};
- hjRenderChallenge=function(){const result=baseRender.apply(this,arguments);refresh();return result;};
+ hjRenderChallenge=function(){const previous=HJ_CHALLENGE_STATE.lastHtml;const result=baseRender.apply(this,arguments);if(previous!==HJ_CHALLENGE_STATE.lastHtml){previewHTML.clear();refresh();}return result;};
 })();
