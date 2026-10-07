@@ -43,3 +43,6 @@ Run scripts/test-wire-priorities.mjs and the existing card gesture checks. Do no
 - Header widths must account for their right margins. Do not combine width:100% with extra horizontal margins; that created 25px of hidden horizontal overflow.
 
 - Cream inset boxes also contain the waiver countdown and LMS manager lineup. White outer cards retain brass borders, top-left labels, original expand controls and thin cream page gaps. Do not replace approved artwork or resize avatar crops as part of banner styling.
+
+## October 7 update — supersedes the grouped This Week exceptions above
+Each priority announcement now occupies a full ordinary-sized carousel card, with its own bottom chip. Order: Kickoff, Bye Week, Last Man Standing, followed by the existing remaining sections. No shared This Week group/chip or stacked panels. LMS includes “Lowest score this week will be eliminated.” plus original manager figures and a compact managers / one elimination summary. Keep BYE cream boxes, mirrored team rows, live roster data, ordinary dimensions, shared gestures, expansion, stable keys and refresh behavior. See docs/wire-priorities.md. Run the additional desktop/mobile Chromium/WebKit test-wire-announcements.mjs.
