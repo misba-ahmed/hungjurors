@@ -72,7 +72,7 @@ try{for(const [engineName,engine] of [['chromium',chromium],['webkit',webkit]]){
   const avatars=entry.locator('.st-next-avatars');assert.equal(await avatars.locator('button').count(),3);
   assert(await avatars.evaluate(el=>{const r=el.getBoundingClientRect();return [...el.children].every(n=>{const a=n.getBoundingClientRect();return a.width>0&&a.left>=r.left-1&&a.right<=r.right+1;});}));
   const close=entry.locator('.st-close');await close.locator('summary').click();assert.equal(await close.getAttribute('open'),'');
-  assert.equal(await close.locator('.st-close-game').count(),2);assert((await close.innerText()).includes('100.00'));assert((await close.innerText()).includes('105.00'));assert((await close.innerText()).includes('Week 2'));assert(!(await close.innerText()).includes('Week 3'));
+  assert.equal(await close.locator('.st-close-game').count(),2);assert((await close.innerText()).includes('100.00'));assert((await close.innerText()).includes('105.00'));assert((await close.textContent()).includes('Week 2'));assert(!(await close.textContent()).includes('Week 3'));
   await page.evaluate(()=>renderStandingsDashboard());assert.equal(await entry.locator('.st-close').getAttribute('open'),'');
   await entry.locator('.st-close summary').click();assert.equal(await entry.locator('.st-close').getAttribute('open'),null);
   await entry.locator('.st-close summary').focus();await page.keyboard.press('Enter');assert.equal(await entry.locator('.st-close').getAttribute('open'),'');
