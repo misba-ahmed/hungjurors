@@ -63,6 +63,7 @@ for(const engine of [chromium,webkit]){
   for(let i=0;i<3;i++){
    await cdp.send('Input.synthesizePinchGesture',{x:190,y:430,scaleFactor:1.35,relativeSpeed:400,gestureSourceType:'touch'});
    await page.waitForTimeout(250);assert(await page.locator('#league-hq').count());
+   const zoomScale=await page.evaluate(()=>visualViewport.scale);console.log('PINCH_SCALE',zoomScale);assert(zoomScale>1.1,'pinch must actually zoom the browser, not merely leave the DOM present');
    await cdp.send('Input.synthesizePinchGesture',{x:190,y:430,scaleFactor:1/1.35,relativeSpeed:400,gestureSourceType:'touch'});
   }
   await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});
