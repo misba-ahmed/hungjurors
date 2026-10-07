@@ -9,7 +9,7 @@ const source=await fs.readFile('index.html','utf8');
 // Exercise the actual prepared page's rendering, navigation and gestures with deterministic cards.
 const html=prepareSite(source).replace(/<script id="hj-wire-priorities">[\s\S]*?<\/script>/,'');
 for(const [path,bytes] of extractSiteArtwork(source).assets){await fs.mkdir(dirname(path),{recursive:true});await fs.writeFile(path,bytes);}
-const server=createServer(async(req,res)=>{try{const path=new URL(req.url,'http://local').pathname;res.setHeader('Content-Type',path==='/'?'text/html':({'.css':'text/css','.js':'text/javascript','.webp':'image/webp','.png':'image/png'})[extname(path)]||'application/json');res.end(path==='/'?html:await fs.readFile('.'+path));}catch{res.statusCode=404;res.end('{}');}});
+const server=createServer(async(req,res)=>{try{const path=new URL(req.url,'http://local').pathname;res.setHeader('Content-Type',path==='/'?'text/html':({'.css':'text/css','.js':'text/javascript','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml'})[extname(path)]||'application/json');res.end(path==='/'?html:await fs.readFile('.'+path));}catch{res.statusCode=404;res.end('{}');}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
 function emit(name,bytes){const value=bytes.toString('base64');for(let i=0;i<value.length;i+=6000)console.log('BANNER_IMAGE '+name+' '+(i/6000)+' '+value.slice(i,i+6000));}
 try{for(const [engineName,engine] of [['chromium',chromium],['webkit',webkit]]){
