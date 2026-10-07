@@ -21,7 +21,14 @@ const diagnostics=`<script id="hj-zoom-diagnostics">(function(){
  if(flags.has('nosticky'))css.push('body>nav,.hj-folder-dock,.league-team-rail,#challenge-top,.wp-team-header,.hq49-controls,.hj-sticky-scorecard,.hq-matchup-switcher-shell{position:relative!important;top:auto!important}');
  if(flags.has('noimg'))css.push('img,canvas,video,svg image{visibility:hidden!important}*,*::before,*::after{background-image:none!important}');
  if(flags.has('noscroll'))css.push('*{overflow:visible!important}');
- const sections={hero:'main>div:first-child',hq:'#league-hq',standings:'#standings',challenges:'#challenges',trophy:'#trophy',history:'#history',payouts:'#payouts',dues:'#dues',header:'header#top',footer:'footer'};
+ if(flags.has('nosnap'))css.push('*{scroll-snap-type:none!important;scroll-snap-stop:normal!important;scroll-snap-align:none!important}');
+ if(flags.has('nooverscroll'))css.push('*{overscroll-behavior:auto!important}');
+ if(flags.has('nolegacyscroll'))css.push('*{-webkit-overflow-scrolling:auto!important}');
+ if(flags.has('nohscroll'))css.push('*{overflow-x:hidden!important}');
+ if(flags.has('nofonts'))css.push('*,*::before,*::after{font-family:-apple-system,Helvetica,Arial,sans-serif!important;font-variation-settings:normal!important;font-optical-sizing:none!important}');
+ if(flags.has('nosvg'))css.push('svg{display:none!important}');
+ if(flags.has('notext'))css.push('*,*::before,*::after{color:transparent!important;-webkit-text-fill-color:transparent!important}');
+ const sections={managers:'#hj-manager-hero',wire:'#wire',week1:'.week1-wrap',news:'.ffn-wrap',nav:'body>nav',hero:'main>div:first-child',hq:'#league-hq',standings:'#standings',challenges:'#challenges',trophy:'#trophy',history:'#history',payouts:'#payouts',dues:'#dues',header:'header#top',footer:'footer'};
  for(const [name,selector] of Object.entries(sections))if(flags.has('hide-'+name))css.push(selector+'{display:none!important}');
  if(flags.has('noevents')){
   const stop=e=>e.stopImmediatePropagation();
