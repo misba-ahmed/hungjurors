@@ -64,3 +64,32 @@ console.log('PASS: challenge scoring, source periods, return/FG double counting,
  assert.deepEqual(repeat.eliminations,survival.eliminations,'refresh never duplicates an elimination');
  console.log('PASS: ten-manager Week 5 survival ladder, missing scores, ties, finality and repeat refresh');
 }
+
+// Overall weekly lows remain visible even after a manager leaves LMS.
+{
+ const history=c.hjChLmsHistory(twoOut,three);
+ assert.equal(history[1].overallLowest[0].short,'A');
+ assert.equal(history[1].overallLowest[0].score,0);
+ assert.equal(history[1].lowest[0].short,'B');
+ const incomplete=c.hjChLmsHistory(c.hjChStandings([scoreWeek(5,[1,2,3]),scoreWeek(6,[null,4,5])],three),three)[1];
+ assert.equal(incomplete.overallLowest.length,0,'unknown league scores cannot produce an overall low');
+ assert.equal(incomplete.lowest[0].short,'B','missing score for an eliminated manager does not block eligible results');
+ const tiedOverall=c.hjChLmsHistory(c.hjChStandings([scoreWeek(5,[1,2,3]),scoreWeek(6,[4,4,5])],three),three)[1];
+ assert.equal(tiedOverall.overallLowest.length,2,'retain all tied league lows');
+ const liveSource=await readFile(new URL('./challenge-live.js',import.meta.url),'utf8');
+ c.esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');
+ c.av=name=>`<img class="av" alt="${name}">`;
+ vm.runInContext(liveSource.slice(liveSource.indexOf('function hjChLmsManagerScore('),liveSource.indexOf('function hjChLms(model)')),c);
+ const rows=c.hjChLmsRows(twoOut,three),week6=rows.split('</tr>')[0];
+ assert.match(week6,/<b>A<\/b><b>0.00<\/b>/);
+ assert.match(week6,/is-already-out">Eliminated Wk 5/);
+ assert.match(week6,/<b>B<\/b><b>4.00<\/b>/);
+ assert.match(week6,/is-eliminated">Eliminated/);
+ assert.equal((week6.match(/<td>/g)||[]).length,3);
+ assert.doesNotMatch(rows.split('</tr>')[1],/Eliminated Wk/,'never mark this week’s loser as previously out');
+ const warmup=c.hjChLmsRows(first,names);
+ assert.match(warmup,/No Elimination/);assert.doesNotMatch(warmup,/is-eliminated/);
+ const blocked=c.hjChLmsRows(c.hjChStandings([scoreWeek(5,[1,1,2])],three),three);
+ assert.match(blocked,/Pending/);assert.doesNotMatch(blocked,/is-eliminated/);
+ console.log('PASS: separate league lows and LMS eliminations, tied/unknown overall scores, prior-week badges and rendered results');
+}

@@ -27,3 +27,10 @@ ESPN stat identifiers follow the existing player-stat integration and the mainta
 ## October 5, 2026 readiness check
 Last Man Standing uses the same shared lineup row, figure width, 20px side padding, and fitted/800px zoom behavior as the raffle. Do not recreate a separate flex layout for LMS. All ten eliminated poses already exist: managers-v4 seated assets, except Jarrett uses managers-v8. They remain seated, grayscale, and 58% opaque; new artwork requires approval. The Weekly Low Score table uses scoped fixed columns and wraps names/results within the available width; it must not scroll horizontally.
 Verified: no elimination before Week 5 or during unfinished Week 5; one final-week loser; eliminated managers excluded thereafter; missing weeks and ties block later eliminations; nine eliminations leave one survivor. Do not invent an elimination tiebreaker.
+
+
+
+## October 7, 2026 LMS results layout
+The Weekly Low Scores & Eliminations table shows every final week, newest first, with Week, Lowest Score, and LMS Elimination columns. Lowest Score always considers the whole league, including managers already out. Their muted badge says Eliminated Wk followed by their actual elimination week. The LMS Elimination column shows the newly eliminated eligible manager and red Eliminated badge. Before Week 5 it shows No Elimination; missing results and unresolved ties remain Pending. Never publish example scores as league records.
+
+Reuse the Highest Scorer table's typography, white/cream alternating rows, rounded corners and original manager portraits. Keep each name and score the same size, stacked to the right of a vertically centered avatar. Desktop badges sit alongside their own player group; mobile badges sit beneath the full group, aligned with the avatar's left edge. Mobile shows week numbers only and uses 36px portraits; desktop uses 42px portraits. Center all cell contents vertically. Preserve shared lineup artwork, zoom and manager-profile interactions.

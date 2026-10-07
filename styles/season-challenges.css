@@ -311,21 +311,32 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 /* LMS uses the raffle's exact shared figure sizing in fitted and zoomed views. */
 .lms-survival-view .lms-stage{overflow-y:hidden}
-#challenge-out .lms-week-table{overflow:visible;container-type:inline-size}
+/* Keep the shared raffle table typography, white/cream stripes and rounded shell. */
+#challenge-out .lms-week-table{overflow:hidden;container-type:inline-size}
 #challenge-out .lms-week-table table{width:100%;min-width:0;table-layout:fixed;white-space:normal}
-#challenge-out .lms-week-table th,#challenge-out .lms-week-table td{padding:12px 8px;white-space:normal;overflow-wrap:break-word}
-#challenge-out .lms-week-table th:nth-child(1){width:15%}
-#challenge-out .lms-week-table th:nth-child(2){width:37%}
-#challenge-out .lms-week-table th:nth-child(3){width:18%}
-#challenge-out .lms-week-table th:nth-child(4){width:30%}
-#challenge-out .lms-week-table .who-cell{display:flex;min-width:0;gap:6px;white-space:normal}
-#challenge-out .lms-week-table .who-cell b{min-width:0;white-space:normal}
-#challenge-out .lms-week-table .who-cell>.av{width:28px;height:28px;flex:0 0 28px}
+#challenge-out .lms-week-table th,#challenge-out .lms-week-table td{padding:10px 14px;vertical-align:middle;white-space:normal;overflow-wrap:break-word}
+#challenge-out .lms-week-table th:nth-child(1){width:16%}
+#challenge-out .lms-week-table th:nth-child(2){width:44%}
+#challenge-out .lms-week-table th:nth-child(3){width:40%}
+#challenge-out .lms-week-table .lms-score-group{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+#challenge-out .lms-week-table .lms-score-group+.lms-score-group{margin-top:10px}
+#challenge-out .lms-week-table .who-cell{display:inline-flex;align-items:center;min-width:0;gap:11px;white-space:normal}
+#challenge-out .lms-week-table .who-cell>.av{width:42px;height:42px;flex:0 0 42px}
+#challenge-out .lms-week-table .lms-score-copy{display:flex;flex-direction:column;justify-content:center;min-width:0;line-height:1.35}
+#challenge-out .lms-week-table .lms-score-copy b{font-size:inherit;font-weight:700;color:var(--navy)}
 #challenge-out .lms-week-table .lms-result{max-width:100%;box-sizing:border-box;white-space:normal;letter-spacing:.025em}
+#challenge-out .lms-week-table .lms-result.is-eliminated{background:#f3e0de;color:var(--verdict-red)}
+#challenge-out .lms-week-table .lms-result.is-already-out{background:var(--paper-dim);color:#6f8090}
+#challenge-out .lms-week-table .lms-result.is-pending{background:#f5ead0;color:#8c7138}
 @media(max-width:600px){
- #challenge-out .lms-week-table th,#challenge-out .lms-week-table td{padding:10px 5px;font-size:12px;letter-spacing:0}
- #challenge-out .lms-week-table th{font-size:10px}
- #challenge-out .lms-week-table .who-cell{font-size:12px;gap:4px}
- #challenge-out .lms-week-table .who-cell>.av{width:24px;height:24px;flex-basis:24px}
- #challenge-out .lms-week-table .lms-result{font-size:9px;padding:3px 4px}
+ #challenge-out .lms-week-table th,#challenge-out .lms-week-table td{padding:10px 8px}
+ #challenge-out .lms-week-table th{font-size:9px;letter-spacing:.025em}
+ #challenge-out .lms-week-table th:nth-child(1){width:16%}
+ #challenge-out .lms-week-table th:nth-child(2){width:42%}
+ #challenge-out .lms-week-table th:nth-child(3){width:42%}
+ #challenge-out .lms-week-table .lms-week-label{display:none}
+ #challenge-out .lms-week-table .lms-score-group{flex-direction:column;align-items:flex-start;gap:6px}
+ #challenge-out .lms-week-table .who-cell{gap:8px}
+ #challenge-out .lms-week-table .who-cell>.av{width:36px;height:36px;flex-basis:36px}
+ #challenge-out .lms-week-table .lms-result{font-size:9px;padding:3px 7px}
 }

@@ -105,7 +105,10 @@ function hjChLmsHistory(model,names){
   const lowest=eliminated?[eliminated]:complete?eligible.filter(t=>Math.abs(t.score-low)<.00001):[];
   const pending=!complete||(w.week>=5&&remaining.size>1&&!eliminated);
   if(eliminated)remaining.delete(eliminated.id);
-  return {week:w.week,eliminated:!!eliminated,pending,lowest};
+  const allComplete=names.length>0&&w.teams.length===names.length&&w.teams.every(t=>Number.isFinite(t.score));
+  const overallLow=allComplete?Math.min(...w.teams.map(t=>t.score)):null;
+  const overallLowest=allComplete?w.teams.filter(t=>Math.abs(t.score-overallLow)<.00001):[];
+  return {week:w.week,eliminated:!!eliminated,pending,lowest,overallLowest};
  });
 }
 // Only the Titty count moves during games; the other stat challenges wait for the week's final game.
@@ -142,3 +145,4 @@ function hjChStandings(weeks,names,{regularEnd=14,finalEnd=16}={}){
  tickets.sort((a,b)=>b.total-a.total||a.short.localeCompare(b.short));
  return {weeks:ordered,totals,tickets,raffle,alive:[...alive],eliminations,lmsBlocked,regularEnd,finalEnd,liveWeek:ordered.findLast(w=>!w.final)?.week||0,finalWeek:ordered.filter(w=>w.final).at(-1)?.week||0};
 }
+

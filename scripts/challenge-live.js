@@ -236,12 +236,27 @@ function hjChFigureArt(manager,key,crown=false,pose='standing'){
  ${crown?`<g transform="translate(0 ${seated?23:-7})"><g class="lms-crown"><path d="M37 15 43-9 52 5 60-17 68 5 77-9 83 15Z" fill="#e6bb3f" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><path d="M37 15h46v8H37Z" fill="#f3d266" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><circle cx="60" cy="9" r="3" fill="#b3352c"/><circle cx="47" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="73" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="43" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="60" cy="-16" r="2.4" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="77" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/></g></g>`:''}
  </svg>`;
 }
+function hjChLmsManagerScore(team,badge='',state=''){
+ const player=`<span class="who-cell manager-profile-trigger" data-manager="${esc(team.short)}" role="button" tabindex="0" aria-label="Open ${esc(team.short)} profile">${av(team.short,'challenge-avatar')}<span class="lms-score-copy"><b>${esc(team.short)}</b><b>${team.score.toFixed(2)}</b></span></span>`;
+ return `<div class="lms-score-group">${player}${badge?`<span class="lms-result ${state}">${esc(badge)}</span>`:''}</div>`;
+}
+function hjChLmsRows(model,names){
+ const eliminated=new Map(model.eliminations.map(e=>[e.id,e]));
+ return [...hjChLmsHistory(model,names)].sort((a,b)=>b.week-a.week).map(w=>{
+  const overall=w.overallLowest.map(t=>{
+   const prior=eliminated.get(t.id),alreadyOut=prior&&prior.week<w.week;
+   return hjChLmsManagerScore(t,alreadyOut?`Eliminated Wk ${prior.week}`:'',alreadyOut?'is-already-out':'');
+  }).join('')||'<span class="lms-result is-pending">Pending</span>';
+  const result=w.eliminated?w.lowest.map(t=>hjChLmsManagerScore(t,'Eliminated','is-eliminated')).join(''):w.pending?'<span class="lms-result is-pending">Pending</span>':'<span class="lms-result">No Elimination</span>';
+  return `<tr><td><b aria-label="Week ${w.week}"><span class="lms-week-label" aria-hidden="true">Week </span>${w.week}</b></td><td>${overall}</td><td>${result}</td></tr>`;
+ }).join('')||'<tr><td colspan="3" class="raffle-empty">The lowest score each week appears when ESPN finalizes Week 1.</td></tr>';
+}
 function hjChLms(model){
  const names=HJ_CHALLENGE_STATE.names,eliminated=new Map(model.eliminations.map(e=>[e.id,e]));
  const figures=names.map((n,i)=>hjChLmsFigure(n,eliminated.get(n.id),i)).join('');
- const history=[...hjChLmsHistory(model,names)].sort((a,b)=>b.week-a.week).map(w=>`<tr class="${w.eliminated?'is-eliminated':w.pending?'is-pending':''}"><td><b>Week ${w.week}</b></td><td>${w.lowest.map(t=>hjChManager(t.short)).join(' ')||'—'}</td><td class="num"><b>${w.lowest.map(t=>t.score.toFixed(2)).join(' / ')||'—'}</b></td><td><span class="lms-result">${w.eliminated?'Eliminated':w.pending?'Pending':'No Elimination'}</span></td></tr>`).join('')||'<tr><td colspan="4" class="raffle-empty">The lowest score each week appears when ESPN finalizes Week 1.</td></tr>';
+ const history=hjChLmsRows(model,names);
  const fit=HJ_CHALLENGE_STATE.lmsFit;
- return `<div class="lms-view lineup-view lms-survival-view${fit?' is-fit':''}" data-fit-key="lmsFit"><div class="lms-stage lineup-stage" style="touch-action:manipulation" tabindex="0" role="group" aria-label="Last Man Standing manager lineup"><div class="lineup" id="lms-lineup" style="--lineup-count:${names.length}"><div class="lineup-row">${figures}</div></div></div>${hjChZoomButtons(fit,'lms-lineup')}</div><h4 class="aw-sub challenge-sub">Weekly Low Score</h4>${model.lmsBlocked?`<p class="challenge-pending" role="status">${esc(model.lmsBlocked)}</p>`:''}${hjChTable(['Week','Lowest','Score','Result'],history,'week-table lms-week-table')}`;
+ return `<div class="lms-view lineup-view lms-survival-view${fit?' is-fit':''}" data-fit-key="lmsFit"><div class="lms-stage lineup-stage" style="touch-action:manipulation" tabindex="0" role="group" aria-label="Last Man Standing manager lineup"><div class="lineup" id="lms-lineup" style="--lineup-count:${names.length}"><div class="lineup-row">${figures}</div></div></div>${hjChZoomButtons(fit,'lms-lineup')}</div><h4 class="aw-sub challenge-sub">Weekly Low Scores &amp; Eliminations</h4>${model.lmsBlocked?`<p class="challenge-pending" role="status">${esc(model.lmsBlocked)}</p>`:''}${hjChTable(['Week','Lowest Score','LMS Elimination'],history,'week-table lms-week-table')}`;
 }
 function hjChZoomButtons(fit,controls){
  return `<div class="lms-zoom" role="group" aria-label="Lineup zoom"><button type="button" data-lms-zoom="fit" aria-pressed="${fit}" aria-controls="${controls}" aria-label="Show entire lineup"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M7.5 10.5h6"/></svg></button><button type="button" data-lms-zoom="detail" aria-pressed="${!fit}" aria-controls="${controls}" aria-label="Zoom in on lineup"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M7.5 10.5h6M10.5 7.5v6"/></svg></button></div>`;
@@ -461,3 +476,4 @@ function selectChallenge(id){
   if(moving)stop();
  },true);
 })();
+
