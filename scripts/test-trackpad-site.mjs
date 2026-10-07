@@ -19,7 +19,7 @@ try{
  const before=await page.locator('[data-league-team].active').getAttribute('data-league-team');
  await page.evaluate(()=>{
   window.gestureFrames=[];
-  document.querySelector('#league-hq').addEventListener('wheel',e=>{
+  document.addEventListener('wheel',e=>{
    const rail=document.querySelector('[data-hj-wheel-scroll]');if(!rail)return;
    const sample={delta:e.deltaX,offset:rail.scrollLeft-rail.clientWidth,time:performance.now()};gestureFrames.push(sample);
    requestAnimationFrame(()=>{sample.frameOffset=rail.scrollLeft-rail.clientWidth;sample.frameMs=performance.now()-sample.time;});
@@ -33,7 +33,10 @@ try{
  const position=await rail.evaluate(e=>({left:e.scrollLeft,width:e.clientWidth,height:e.clientHeight}));
  console.log('Roster movement',JSON.stringify(await page.evaluate(()=>gestureFrames)));
  await page.screenshot({path:'gesture-proof/roster-debug.png'});
- assert(Math.abs(position.left-position.width-280)<4,'real roster follows 280px: '+JSON.stringify(position));
+ // Capture the input frame inside the page. Remote locator round-trips can
+ // finish after the legitimate idle settle, especially on this large page.
+ const movement=await page.evaluate(()=>gestureFrames[0]);
+ assert(Math.abs(movement.offset-280)<4&&Math.abs(movement.frameOffset-280)<4,'real roster follows 280px on the input/render frame: '+JSON.stringify(movement));
  assert(position.height>400,'real artwork and lineup remain in scroll viewport');
  assert.equal(await page.locator('[data-league-team].active').getAttribute('data-league-team'),before,'selection stays put while fingers move');
  await fs.mkdir('gesture-proof',{recursive:true});
@@ -47,10 +50,12 @@ try{
  await page.screenshot({path:'gesture-proof/roster-settled.png'});
  await page.locator('#challenge-tab-lms').click();await page.locator('#challenge-title').scrollIntoViewIfNeeded();
  const title=await page.locator('#challenge-title').boundingBox();await page.mouse.move(title.x+20,title.y+10);
+ await page.evaluate(()=>{gestureFrames=[];});
  await page.mouse.wheel(280,0);await page.waitForTimeout(40);
  const challengeRail=page.locator('#challenges [data-hj-wheel-scroll]');
  assert.equal(await challengeRail.count(),1);
- assert(Math.abs(await challengeRail.evaluate(e=>e.scrollLeft-e.clientWidth)-280)<4,'real challenge follows 280px');
+ const challengeMovement=await page.evaluate(()=>gestureFrames[0]);
+ assert(Math.abs(challengeMovement.offset-280)<4&&Math.abs(challengeMovement.frameOffset-280)<4,'real challenge follows 280px on the input/render frame');
  await page.screenshot({path:'gesture-proof/challenge-partial.png'});
  await page.waitForTimeout(550);assert.equal(await page.locator('#challenge-title').innerText(),'Last Man Standing');
  await page.mouse.move(title.x+20,title.y+10);for(let i=0;i<9;i++){await page.mouse.wheel(90,0);await page.waitForTimeout(30);}
