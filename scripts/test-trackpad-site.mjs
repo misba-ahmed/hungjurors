@@ -17,13 +17,21 @@ try{
  await page.waitForFunction(()=>document.querySelector('.league-roster-head')&&typeof HJ_CHALLENGE_STATE!=='undefined'&&HJ_CHALLENGE_STATE.model,{timeout:90000});
  await page.locator('#hq-tab-rosters').click();await page.locator('.league-roster-identity').scrollIntoViewIfNeeded();
  const before=await page.locator('[data-league-team].active').getAttribute('data-league-team');
+ await page.evaluate(()=>{
+  window.gestureFrames=[];
+  document.querySelector('#league-hq').addEventListener('wheel',e=>{
+   const rail=document.querySelector('[data-hj-wheel-scroll]');if(!rail)return;
+   const sample={delta:e.deltaX,offset:rail.scrollLeft-rail.clientWidth,time:performance.now()};gestureFrames.push(sample);
+   requestAnimationFrame(()=>{sample.frameOffset=rail.scrollLeft-rail.clientWidth;sample.frameMs=performance.now()-sample.time;});
+  });
+ });
  const box=await page.locator('.league-roster-identity').boundingBox();
  await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
  await page.mouse.wheel(280,0);await page.waitForTimeout(40);
  const rail=page.locator('#league-sync-content [data-hj-wheel-scroll]');
  assert.equal(await rail.count(),1,'real roster creates scrolling rail');
- const position=await rail.evaluate(e=>({left:e.scrollLeft,width:e.clientWidth,height:e.clientHeight,scrollWidth:e.scrollWidth,style:e.style.cssText,children:[...e.children].map(n=>({rect:n.getBoundingClientRect().toJSON(),style:n.style.cssText}))}));
- console.log('Roster rail',JSON.stringify(position));
+ const position=await rail.evaluate(e=>({left:e.scrollLeft,width:e.clientWidth,height:e.clientHeight}));
+ console.log('Roster movement',JSON.stringify(await page.evaluate(()=>gestureFrames)));
  await page.screenshot({path:'gesture-proof/roster-debug.png'});
  assert(Math.abs(position.left-position.width-280)<4,'real roster follows 280px: '+JSON.stringify(position));
  assert(position.height>400,'real artwork and lineup remain in scroll viewport');

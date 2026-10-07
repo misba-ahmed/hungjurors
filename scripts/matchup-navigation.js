@@ -56,7 +56,10 @@ function hjTrackpadScroll({root,nodes,index,count,render,commit}){
    // Recycle only at whole-page boundaries, preserving the exact residual offset.
    while(left>=width*2){current=wrap(current+1);left-=width;refill();}
    while(left<0){current=wrap(current-1);left+=width;refill();}
-   rail.scrollLeft=left;timer=setTimeout(settle,180);return true;
+   rail.scrollLeft=left;
+   // Begin the idle window after this movement reaches a frame. Live artwork
+   // layout work must not consume the quiet period before the user sees it.
+   frame=requestAnimationFrame(()=>{timer=setTimeout(settle,180);});return true;
   },
   cancel:cleanup,
   get active(){return !closed;}
