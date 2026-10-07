@@ -8,6 +8,7 @@ import {prepareDefenseFantasyRanks} from './prepare-defense-fantasy-ranks.mjs';
 import {preparePlayerStatBars} from './prepare-player-stat-bars.mjs';
 import {prepareLiveDisplay} from './prepare-live-display.mjs';
 import {prepareRenderStability} from './prepare-render-stability.mjs';
+import {prepareZoomDiagnostics} from './prepare-zoom-diagnostics.mjs';
 const playerSearch=readFileSync(new URL('./player-search.js',import.meta.url),'utf8');
 const playerNews=readFileSync(new URL('./player-news.js',import.meta.url),'utf8');
 const recapLoader=readFileSync(new URL('./recap-loader.js',import.meta.url),'utf8');
@@ -42,6 +43,8 @@ const folderArtwork=readFileSync(new URL('./folder-artwork.js',import.meta.url),
 export function prepareSite(html){
  // Phone rendering load: compositor-only loops, quiet countdown, sized logo.
  html=prepareRenderStability(html);
+ // Opt-in (?hjdiag=...) physical-iPhone crash bisection; inert otherwise.
+ html=prepareZoomDiagnostics(html);
  // Shared decorators run after live DOM updates. Unchanged projection keys and
  // already-correct fonts must not churn hundreds of nodes during interaction.
  html=replaceOnce(html,/;chip\.dataset\.projKey=key;/g,';if(chip.dataset.projKey!==key)chip.dataset.projKey=key;');
