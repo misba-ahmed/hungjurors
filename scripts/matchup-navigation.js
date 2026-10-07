@@ -55,7 +55,7 @@ function hjScrollMatchupStart(card){
  const installed=new WeakMap();
  function install(){
   const deck=root.querySelector('.hj-roster-rail');if(!deck||!deck.clientWidth)return;
-  if(installed.has(deck)){const api=installed.get(deck);api.populate();api.fit();return;}
+  if(installed.has(deck)){const api=installed.get(deck);if(!api.busy)api.populate();api.fit();return;}
   const pages=()=>[...deck.children];
   function prepare(index,prune=false){
    const list=pages(),selected=String(HJ_LEAGUE_STATE.selectedTeamId),count=list.length;
@@ -123,7 +123,7 @@ function hjScrollMatchupStart(card){
   const count=pages.length,keep=new Set([index,(index+count-1)%count,(index+1)%count,active]);
   pages.forEach((page,i)=>{if(keep.has(i))preview(i);else if(prune&&page.firstElementChild){page.replaceChildren();previewHTML.delete(i);}});
  }
- function refresh(){prepare(active,true);api?.fit();}
+ function refresh(){prepare(active,!api?.busy);api?.fit();}
  function choose(index){
   if(index===active)return;
   const previous=active;active=index;

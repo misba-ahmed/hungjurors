@@ -51,6 +51,7 @@ function hjSectionRail(deck,options){
   if(options.inert)cards(deck).forEach((card,i)=>{const hidden=i!==index;if(card.inert!==hidden)card.inert=hidden;if(card.getAttribute('aria-hidden')!==String(hidden))card.setAttribute('aria-hidden',String(hidden));});
  }
  function fit(deck,index){
+  if(zoomed())return;
   options.beforeFit?.();
   const card=cards(deck)[index];if(!card||!deck.clientWidth)return;
   const style=getComputedStyle(deck),height=Math.ceil(card.getBoundingClientRect().height+
