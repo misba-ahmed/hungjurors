@@ -4,6 +4,7 @@ import {chromium} from 'playwright';
 import {prepareSite} from './prepare-site.mjs';
 const html=prepareSite(await fs.readFile('index.html','utf8'));
 const browser=await chromium.launch({headless:true});
+await fs.mkdir('gesture-proof',{recursive:true});
 try{
  const page=await browser.newPage({viewport:{width:1365,height:1000}}),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
@@ -21,8 +22,10 @@ try{
  await page.mouse.wheel(280,0);await page.waitForTimeout(40);
  const rail=page.locator('#league-sync-content [data-hj-wheel-scroll]');
  assert.equal(await rail.count(),1,'real roster creates scrolling rail');
- const position=await rail.evaluate(e=>({left:e.scrollLeft,width:e.clientWidth,height:e.clientHeight}));
- assert(Math.abs(position.left-position.width-280)<4,'real roster follows 280px');
+ const position=await rail.evaluate(e=>({left:e.scrollLeft,width:e.clientWidth,height:e.clientHeight,scrollWidth:e.scrollWidth,style:e.style.cssText,children:[...e.children].map(n=>({rect:n.getBoundingClientRect().toJSON(),style:n.style.cssText}))}));
+ console.log('Roster rail',JSON.stringify(position));
+ await page.screenshot({path:'gesture-proof/roster-debug.png'});
+ assert(Math.abs(position.left-position.width-280)<4,'real roster follows 280px: '+JSON.stringify(position));
  assert(position.height>400,'real artwork and lineup remain in scroll viewport');
  assert.equal(await page.locator('[data-league-team].active').getAttribute('data-league-team'),before,'selection stays put while fingers move');
  await fs.mkdir('gesture-proof',{recursive:true});

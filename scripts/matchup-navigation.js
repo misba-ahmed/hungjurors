@@ -38,6 +38,7 @@ function hjTrackpadScroll({root,nodes,index,count,render,commit}){
  function finish(){const selected=current;cleanup();if(selected!==original)commit(selected);}
  function settle(){
   if(closed)return;
+  if(!rail.isConnected||!first.isConnected){cleanup();return;}
   const target=Math.round(rail.scrollLeft/width)*width,start=rail.scrollLeft;
   const direction=Math.round(target/width)-1;
   if(matchMedia('(prefers-reduced-motion: reduce)').matches||Math.abs(target-start)<.5){current=wrap(current+direction);finish();return;}
