@@ -202,6 +202,34 @@ function hjScrollMatchupStart(card){
   // Suppress only the physical click that can follow a swipe, not this selection.
   void slideSwap(start.view,start.panel,()=>tabs[next].click(),()=>start.panel.querySelector('.league-team-view'),dx<0?1:-1,start.dx||0);rosterClickUntil=Date.now()+500;
  },{passive:true});
+
+ let rosterWheelMoving=false;
+ // Trackpads emit wheel events, not touch events. Latch one page per gesture,
+ // including its momentum tail, and leave vertical scrolling/pinch/nested rails alone.
+ let rosterWheel=null;
+ root.addEventListener('wheel',event=>{
+  const now=Date.now(),fresh=!rosterWheel||now-rosterWheel.last>200;
+  if(fresh)rosterWheel={last:now,total:0,axis:'',done:false,blocked:!rosterPanel(event.target)||!!rosterTouch||rosterWheelMoving||!!event.target.closest('input,select,textarea,[contenteditable],.hj-team-photo,[data-league-team]')||!!nestedRail(event.target,rosterPanel(event.target))};
+  const gesture=rosterWheel;gesture.last=now;
+  if(event.ctrlKey||zoomed()){gesture.blocked=true;return;}
+  if(gesture.blocked)return;
+  const scale=event.deltaMode===1?16:event.deltaMode===2?root.clientWidth:1;
+  const dx=event.deltaX*scale,dy=event.deltaY*scale;
+  if(!gesture.axis&&Math.hypot(dx,dy)>2)gesture.axis=Math.abs(dx)>Math.abs(dy)*1.15?'x':'y';
+  if(gesture.axis!=='x')return;
+  if(event.cancelable)event.preventDefault();
+  if(gesture.done)return;
+  gesture.total+=dx;
+  if(Math.abs(gesture.total)<40)return;
+  gesture.done=true;
+  const panel=rosterPanel(event.target),tabs=rosterTabs(panel);
+  const index=tabs.findIndex(b=>b.classList.contains('active')||b.getAttribute('aria-selected')==='true');
+  if(index<0||tabs.length<2)return;
+  const direction=gesture.total>0?1:-1,next=(index+direction+tabs.length)%tabs.length;
+  rosterWheelMoving=true;
+  void slideSwap(panel.querySelector('.league-team-view'),panel,()=>tabs[next].click(),()=>panel.querySelector('.league-team-view'),direction).finally(()=>{rosterWheelMoving=false;});
+ },{passive:false});
+
  root.addEventListener('touchcancel',()=>{rosterTouch?.view?.style.removeProperty('translate');rosterTouch=null;},{passive:true});
  root.addEventListener('click',event=>{
   if(event.isTrusted&&Date.now()<rosterClickUntil&&rosterPanel(event.target)){
@@ -214,3 +242,4 @@ function hjScrollMatchupStart(card){
  root.addEventListener('toggle',schedule,true);
  window.addEventListener('resize',schedule);install();
 })();
+

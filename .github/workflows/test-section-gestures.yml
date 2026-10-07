@@ -1,0 +1,36 @@
+name: Verify section gestures
+on:
+  push:
+    branches: [main, fix-desktop-section-wheel]
+    paths:
+      - scripts/matchup-navigation.js
+      - scripts/challenge-live.js
+      - scripts/test-desktop-section-wheel.mjs
+      - scripts/test-roster-swipe.mjs
+      - scripts/test-challenge-swipe.mjs
+      - .github/workflows/test-section-gestures.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  section-gestures:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright
+      - run: npx playwright install chromium webkit --with-deps
+      - name: Verify existing lineup behavior
+        run: |
+          node scripts/test-lineup-rules.mjs
+          node scripts/test-lineup-status.mjs
+          node scripts/test-lineup-live-scores.mjs
+          node scripts/test-lineup-spotlight.mjs
+      - name: Verify touch and desktop trackpad navigation
+        run: |
+          node scripts/test-roster-swipe.mjs
+          node scripts/test-challenge-swipe.mjs
+          node scripts/test-desktop-section-wheel.mjs

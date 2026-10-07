@@ -470,10 +470,33 @@ function selectChallenge(id){
   clickUntil=Date.now()+500;
   settle(dx<0?1:-1,dx);
  },{passive:true});
+
+ // Trackpads emit wheel events, not touch events. Latch one page per gesture,
+ // including its momentum tail, and leave vertical scrolling/pinch/nested rails alone.
+ let challengeWheel=null;
+ root.addEventListener('wheel',e=>{
+  const now=Date.now(),fresh=!challengeWheel||now-challengeWheel.last>200;
+  if(fresh)challengeWheel={last:now,total:0,axis:'',done:false,blocked:!!touch||moving||ownsGesture(e.target)||!e.target.closest('#challenge-out,.ch-card')};
+  const gesture=challengeWheel;gesture.last=now;
+  if(e.ctrlKey||zoomed()){gesture.blocked=true;return;}
+  if(gesture.blocked)return;
+  const scale=e.deltaMode===1?16:e.deltaMode===2?root.clientWidth:1;
+  const dx=e.deltaX*scale,dy=e.deltaY*scale;
+  if(!gesture.axis&&Math.hypot(dx,dy)>2)gesture.axis=Math.abs(dx)>Math.abs(dy)*1.15?'x':'y';
+  if(gesture.axis!=='x')return;
+  if(e.cancelable)e.preventDefault();
+  if(gesture.done)return;
+  gesture.total+=dx;
+  if(Math.abs(gesture.total)<40)return;
+  gesture.done=true;
+  settle(gesture.total>0?1:-1,0);
+ },{passive:false});
+
  root.addEventListener('touchcancel',()=>{if(touch)root.style.overflowX=touch.overflow;stop();},{passive:true});
  root.addEventListener('click',e=>{
   if(e.isTrusted&&Date.now()<clickUntil){e.preventDefault();e.stopImmediatePropagation();return;}
   if(moving)stop();
  },true);
 })();
+
 
