@@ -1,181 +1,68 @@
-/* The Wire priority slide: one standard viewport, three independent banners. */
-#wire-scroll>.wc.wp-group{height:var(--wp-standard-height,420px)!important;min-height:0!important;max-height:var(--wp-standard-height,420px)!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:0!important;overflow:hidden!important;display:flex;flex-direction:column;align-self:flex-start!important}
-.wp-heading{flex:none;font:800 11px/1.2 var(--sans);letter-spacing:.12em;text-transform:uppercase;margin:0 2px 8px;color:var(--navy)}
-.wp-heading span{color:#7b8996}
-.wp-grid{display:grid;grid-template-columns:repeat(var(--wp-count),minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:10px;flex:1 1 0;min-height:0}
-.wp-panel{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;height:100%;padding:18px 16px;background:#fff;color:var(--navy);border:1px solid var(--brass);border-top:4px solid var(--brass);border-radius:12px;box-shadow:0 4px 8px #0c223812;overflow-x:hidden;overflow-y:auto;overscroll-behavior-x:auto;scrollbar-width:none}
+/* Independent priority cards share the ordinary Wire viewport and gestures. */
+#wire-scroll>.wc.wp-single{height:var(--wp-standard-height,420px)!important;min-height:0!important;max-height:var(--wp-standard-height,420px)!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:0!important;overflow:hidden!important;align-self:flex-start!important}
+.wp-panel{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;height:100%;box-sizing:border-box;padding:24px;background:#fff;color:var(--navy);border:1px solid var(--brass);border-top:4px solid var(--brass);border-radius:14px;overflow-x:hidden;overflow-y:auto;overscroll-behavior-x:auto;scrollbar-width:none;cursor:zoom-in}
 .wp-panel::-webkit-scrollbar,.wp-bye-list::-webkit-scrollbar{display:none}
-.wp-panel[data-wp-card]{cursor:zoom-in}
 .wp-panel:focus-visible,.wp-bye-list:focus-visible{outline:2px solid var(--brass);outline-offset:-3px}
-.wp-panel .wp-eyebrow{display:block;color:var(--brass);font-weight:700;padding-right:32px;flex:none}
-.wp-waivers .wp-eyebrow{color:var(--verdict-red)}
-.wp-panel h3{font-family:var(--sans);font-weight:800;color:var(--navy);letter-spacing:-.025em;flex:none}
-.wp-panel p{font:400 12px/1.4 var(--sans);margin:0;color:var(--navy-ink)}
-.wp-panel{justify-content:flex-start}
-#wire-scroll .wp-panel .wc-kicker,.wp-detail .wp-panel .wc-kicker{position:static!important;width:auto!important;min-width:0;max-width:100%;box-sizing:border-box;text-align:left!important;margin:0 32px 5px 0!important;align-self:stretch}
-#wire-scroll .wp-panel .wc-title,.wp-detail .wp-panel .wc-title{width:auto!important;min-width:0;max-width:100%;box-sizing:border-box;text-align:left!important;margin:0 0 3px!important}
-.wp-panel .wp-eyebrow{text-align:left!important}
-.wp-panel .wp-action{text-align:left}
-.wp-panel .wp-bye-logos{justify-content:stretch}
-.wp-panel .wc-count{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;gap:5px;margin:10px 0;flex:none}
-.wp-panel .wc-count .unit{min-width:0}
-.wp-panel .wc-count .n{font:800 clamp(20px,2vw,28px)/1.4 var(--sans);padding:5px 0;background:var(--paper);color:var(--navy);border:1px solid var(--line);border-bottom:3px solid var(--brass);border-radius:6px;text-align:center}
-.wp-panel .wc-count .l{font:600 7px/1.5 var(--sans);letter-spacing:.03em;color:var(--brass);text-align:center;margin-top:3px}
-.wp-action{flex:none;margin-top:7px;text-align:left}
-.wp-button{display:inline-flex;align-items:center;max-width:100%;min-height:0;padding:3px 0;border:0;border-radius:0;background:transparent;color:var(--navy);text-decoration:none;font:800 11px/1.2 var(--sans);cursor:pointer}
-.wp-text-button{background:transparent;border:0;padding:3px 0;min-height:0}
-.wp-bye-logos{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px;margin:5px 0;flex:none}
-.wp-bye-logos>div{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
-.wp-bye-logos img{width:34px;height:29px;object-fit:contain}
-.wp-bye-logos span{font:700 9px/1.2 var(--sans)}
-.wp-team-list{min-width:0}
-.wp-bye-list{display:grid;grid-template-columns:repeat(var(--wp-teams,2),minmax(0,1fr));gap:8px;align-content:start;flex:1 1 0;min-height:40px;overflow-y:auto;overflow-x:hidden;overscroll-behavior-x:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x pan-y;cursor:auto}
-.wp-person{margin:0;padding:4px 0}
-.wp-player{appearance:none;display:flex;align-items:center;width:100%;min-width:0;min-height:36px;gap:8px;border:0;padding:0;background:none;color:var(--navy);text-align:left;cursor:pointer}
+#wire-scroll .wp-panel .wc-kicker,.wp-detail .wp-panel .wc-kicker{position:static!important;width:auto!important;min-width:0;max-width:100%;box-sizing:border-box;text-align:left!important;margin:0 36px 8px 0!important;align-self:stretch;color:var(--brass);font:800 11px/1.2 var(--sans)!important;letter-spacing:.12em!important}
+#wire-scroll .wp-panel .wc-title,.wp-detail .wp-panel .wc-title{width:auto!important;min-width:0;max-width:100%;box-sizing:border-box;text-align:left!important;margin:0 28px 12px 0!important;font:800 26px/1.12 var(--sans)!important;letter-spacing:-.025em;color:var(--navy)}
+.wp-panel .wc-expand{width:30px;height:30px;top:15px;right:15px;font-size:15px}
+.wp-panel p{font:400 14px/1.4 var(--sans);margin:0;color:var(--navy-ink)}
+.wp-action{flex:none;margin-top:12px;text-align:center}
+.wp-button{display:inline-flex;align-items:center;max-width:100%;padding:5px 0;border:0;border-radius:0;background:transparent;color:var(--navy);text-decoration:none;font:800 12px/1.3 var(--sans);cursor:pointer}
+.wp-bye-list{display:grid;grid-template-columns:repeat(var(--wp-teams,2),minmax(0,1fr));gap:12px;grid-auto-rows:max-content;align-items:start;align-content:start;flex:1 1 0;min-height:40px;overflow-y:auto;overflow-x:hidden;overscroll-behavior-x:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x pan-y;cursor:auto}
+.wp-team-list{min-width:0;min-height:max-content;background:#f7f4e9;border:1px solid #ddd7c6;border-radius:10px;padding:0 9px 6px;overflow:visible}
+.wp-team-header{border-radius:9px 9px 0 0;display:flex;align-items:center;gap:8px;background:#eee8d6;margin:0 -9px 4px;padding:9px;position:sticky;top:0;z-index:1}
+.wp-team-header img{width:32px;height:26px;object-fit:contain}
+.wp-team-header span{font:800 15px/1.15 var(--sans)}
+.wp-person{margin:0;padding:5px 0;border-bottom:1px solid #e2ddce}
+.wp-person:last-child{border-bottom:0}
+.wp-player{appearance:none;display:flex;align-items:center;width:100%;min-width:0;min-height:36px;gap:7px;border:0;padding:0;background:none;color:var(--navy);text-align:left;cursor:pointer}
 .wp-player>span{min-width:0}
 .wp-player b,.wp-player small{display:block;letter-spacing:0}
 .wp-player b{font:700 12px/1.25 var(--sans)}
 .wp-player small{font:500 10px/1.25 var(--sans);margin-top:2px;color:#748391}
 .wp-panel .wp-player img{width:32px!important;height:32px!important;flex:0 0 32px;border-radius:50%;background:var(--paper-dim);object-fit:cover}
 .wp-panel .wp-player img.is-defense{object-fit:contain}
-.wp-managers{display:flex;align-items:flex-end;justify-content:center;width:100%;margin:8px 0;flex:none}
-.wp-managers img{width:10%;min-width:0;height:auto;object-fit:contain}
-/* Expanded views use the shared dialog, scroll owner and dismissal hooks. */
+.wp-team-list:nth-child(even) .wp-team-header,.wp-team-list:nth-child(even) .wp-player{flex-direction:row-reverse;text-align:right}
+.wp-lms-stakes{background:#f7f4e9;border-left:3px solid var(--brass);padding:12px 15px;flex:none}
+.wp-lms-stakes>span{font:800 10px/1.2 var(--sans);letter-spacing:.12em;color:var(--brass)}
+.wp-panel .wp-lms-stakes p{font:800 20px/1.25 var(--sans);color:var(--navy);margin-top:5px;max-width:440px}
+.wp-managers{display:flex;align-items:flex-end;justify-content:center;width:100%;margin:12px 0 0;flex:1 1 auto;min-height:70px;background:linear-gradient(180deg,#fff 0%,#f7f4e9 100%);border-bottom:1px solid #ddd7c6;padding:5px 6px 10px;box-sizing:border-box}
+.wp-managers img{width:10%;min-width:0;max-height:125px;height:auto;object-fit:contain}
+.wp-lms-meta{display:flex;justify-content:center;gap:32px;margin-top:10px;font:500 12px/1.3 var(--sans);color:#748391}
+.wp-lms-meta strong{font-weight:800;color:var(--navy)}
+.wp-waivers .wc-count{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;gap:8px;margin:24px 0;flex:none;background:#f7f4e9;border:1px solid #ddd7c6;border-radius:9px;padding:12px;box-sizing:border-box}
+.wp-waivers .wc-count .unit{min-width:0}
+.wp-waivers .wc-count .n{font:800 30px/1.4 var(--sans);padding:8px 0;background:white;color:var(--navy);border:1px solid var(--line);border-bottom:3px solid var(--brass);border-radius:6px;text-align:center}
+.wp-waivers .wc-count .l{font:600 9px/1.5 var(--sans);letter-spacing:.03em;color:var(--brass);text-align:center;margin-top:3px}
+.wp-waivers .wp-action{margin-top:auto}
 .wire-expanded-stage>.wc.wp-detail{overflow-y:auto!important;overflow-x:hidden!important;padding:0!important;border:0!important}
-.wp-detail>.wp-panel{min-height:100%;height:auto;border:0;border-radius:0;box-shadow:none;padding:clamp(24px,3vw,38px) clamp(22px,4vw,52px);overflow:visible;cursor:zoom-out}
-.wp-detail .wp-bye-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px;flex:none;min-height:0;overflow:visible}
+.wp-detail>.wp-panel{min-height:100%;height:auto;border:0;border-radius:0;padding:clamp(24px,3vw,38px) clamp(22px,4vw,52px);overflow:visible;cursor:zoom-out}
+.wp-detail .wp-bye-list{flex:none;min-height:0;overflow:visible}
 .wp-detail .wp-player b{font-size:16px}
 .wp-detail .wp-player small{font-size:12px}
-.wp-detail .wp-panel p{font-size:16px}
 .wp-detail .wp-panel .wp-player img{width:44px!important;height:44px!important;flex-basis:44px}
-@media(max-width:980px){#wire-scroll>.wc.wp-group{--wp-standard-height:410px}}
-@media(max-width:720px){#wire-scroll>.wc.wp-group{--wp-standard-height:395px}}
-@media(max-width:760px){
- .wp-grid{grid-template-columns:1fr;grid-template-rows:repeat(var(--wp-count),minmax(0,1fr));gap:7px}
- .wp-heading{font-size:10px;margin-bottom:5px}
- #wire-scroll .wp-panel{padding:7px 10px;border-top-width:3px;justify-content:flex-start}
- #wire-scroll .wp-panel .wp-eyebrow{font-size:8px!important;line-height:1.1!important;letter-spacing:.07em!important;padding:0!important;margin:0 25px 3px 0!important}
- #wire-scroll .wp-panel .wc-title{font-size:14px!important;line-height:1.1!important;margin:0 24px 3px 0!important;text-align:left!important}
- #wire-scroll .wp-panel p{font-size:9px;line-height:1.2;margin:0}
- #wire-scroll .wp-panel .wc-expand{width:24px;height:24px;top:6px;right:6px;font-size:11px}
- #wire-scroll .wp-action{margin-top:3px;line-height:1;text-align:center}
- #wire-scroll .wp-button{font-size:8px;line-height:1.2;min-height:0;padding:1px 0;border:0;background:none}
- #wire-scroll .wp-panel .wc-count{margin:4px 0 0;gap:4px;max-width:240px}
- #wire-scroll .wp-panel .wc-count .n{font-size:16px!important;line-height:1.1!important;min-height:0!important;height:auto!important;padding:1px 0!important;border-bottom-width:2px}
- #wire-scroll .wp-panel .wc-count .l{font-size:5.5px!important;letter-spacing:0!important;line-height:1.2!important;margin-top:1px}
- #wire-scroll .wp-bye-logos{margin:0 0 3px;gap:8px;justify-content:stretch}
- #wire-scroll .wp-bye-logos img{width:22px;height:16px}
- #wire-scroll .wp-bye-logos>div{flex-direction:row;align-items:center;gap:5px}
- #wire-scroll .wp-bye-logos span{display:block;font-size:10px}
- #wire-scroll .wp-byes .wp-action{display:none}
- #wire-scroll .wp-bye-list{display:grid;grid-template-columns:repeat(var(--wp-teams,2),minmax(0,1fr));align-content:start;gap:3px 8px;min-height:25px}
- #wire-scroll .wp-person{padding:0 0 3px;min-width:0}
- #wire-scroll .wp-player{min-height:26px;gap:5px}
- #wire-scroll .wp-player b{font-size:10px;line-height:1.15}
- #wire-scroll .wp-player small{font-size:8px;line-height:1.15;margin-top:1px}
- #wire-scroll .wp-panel .wp-player img{width:23px!important;height:23px!important;flex-basis:23px}
- #wire-scroll .wp-managers{margin:3px 0;justify-content:flex-start;height:43px}
- #wire-scroll .wp-managers img{height:43px;max-width:10%;object-fit:contain}
- .wp-detail .wp-bye-list{grid-template-columns:repeat(var(--wp-teams,2),minmax(0,1fr))}
+.wp-detail .wp-managers{min-height:150px;margin-top:22px}
+@media(max-width:980px){#wire-scroll>.wc.wp-single{--wp-standard-height:410px}}
+@media(max-width:720px){
+ #wire-scroll>.wc.wp-single{--wp-standard-height:395px}
+ .wp-panel{padding:18px 16px}
+ #wire-scroll .wp-panel .wc-kicker{font-size:10px!important;margin-bottom:7px!important}
+ #wire-scroll .wp-panel .wc-title{font-size:22px!important;margin-bottom:13px!important}
+ .wp-panel .wc-expand{width:27px;height:27px;top:12px;right:12px;font-size:13px}
+ .wp-bye-list{gap:8px}
+ .wp-team-list{padding:0 6px 5px}
+ .wp-team-header{gap:5px;margin:0 -6px 3px;padding:8px 6px}
+ .wp-team-header img{width:25px;height:22px}
+ .wp-team-header span{font-size:12px}
+ .wp-player{gap:5px}
+ .wp-player b{font-size:11px}
+ .wp-player small{font-size:9px}
+ .wp-panel .wp-player img{width:27px!important;height:27px!important;flex-basis:27px}
+ .wp-panel .wp-lms-stakes p{font-size:20px}
+ .wp-managers{padding:6px 0 12px;margin-top:12px}
+ .wp-lms-meta{gap:22px}
  .wp-detail .wp-player b{font-size:12px}
  .wp-detail .wp-player small{font-size:10px}
  .wp-detail .wp-panel .wp-player img{width:28px!important;height:28px!important;flex-basis:28px}
 }
-
-/* Approved cream inset design: desktop stacked left / full-height BYEs right. */
-@media(min-width:761px){
- #wire-scroll .wp-grid[data-panel-count="3"]{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);grid-template-rows:repeat(2,minmax(0,1fr));gap:10px}
- #wire-scroll .wp-grid[data-panel-count="3"] .wp-waivers{grid-column:1;grid-row:1}
- #wire-scroll .wp-grid[data-panel-count="3"] .wp-lms{grid-column:1;grid-row:2}
- #wire-scroll .wp-grid[data-panel-count="3"] .wp-byes{grid-column:2;grid-row:1 / 3}
- #wire-scroll .wp-panel{padding:12px 14px}
- #wire-scroll .wp-panel .wp-eyebrow{font-size:10px!important;line-height:1.2!important;margin-bottom:4px!important}
- #wire-scroll .wp-panel .wc-title{font-size:20px!important;line-height:1.15!important;margin-right:25px!important}
- #wire-scroll .wp-waivers .wc-count{margin:7px 0 0!important;gap:6px}
- #wire-scroll .wp-waivers .wc-count .n{font-size:25px!important;line-height:1.15!important;padding:4px 0!important;min-height:0!important;height:auto!important}
- #wire-scroll .wp-waivers .wc-count .l{font-size:7px!important;margin-top:2px}
- #wire-scroll .wp-action{margin-top:7px!important;text-align:center}
- #wire-scroll .wp-button{font-size:10px}
- #wire-scroll .wp-managers{margin:6px 0 0;height:65px}
- #wire-scroll .wp-managers img{height:65px;object-fit:contain}
- #wire-scroll .wp-bye-logos{margin:8px 0 6px}
- #wire-scroll .wp-bye-logos>div{flex-direction:row;align-items:center;gap:6px}
- #wire-scroll .wp-bye-logos img{width:27px;height:25px}
- #wire-scroll .wp-bye-logos span{font-size:11px}
- #wire-scroll .wp-person{padding:3px 0}
- #wire-scroll .wp-player b{font-size:12px}
- #wire-scroll .wp-player small{font-size:10px}
- #wire-scroll .wp-panel .wc-expand{width:26px;height:26px;top:9px;right:9px;font-size:13px}
-}
-@media(min-width:761px){
- #wire-scroll .wp-bye-logos{margin:12px 0 8px}
- #wire-scroll .wp-bye-logos>div{gap:10px;justify-content:flex-start}
- #wire-scroll .wp-bye-logos img{width:42px;height:34px;object-fit:contain}
- #wire-scroll .wp-bye-logos span{font-size:17px;font-weight:800;line-height:1.15}
- #wire-scroll .wp-person{min-height:32px;padding:1px 0}
- #wire-scroll .wp-player{min-height:32px;gap:8px}
- #wire-scroll .wp-player img{width:29px;height:29px;min-width:29px}
- #wire-scroll .wp-player b{font-size:12px;line-height:1.2}
- #wire-scroll .wp-player small{font-size:9px;line-height:1.2;margin-top:2px}
- #wire-scroll .wp-team-list{gap:2px}
-}
-
-@media(min-width:761px){
- #wire-scroll .wp-bye-list{margin-top:10px!important;gap:10px!important;align-items:stretch}
- #wire-scroll .wp-team-list{background:#f7f4e9;border:1px solid #ddd7c6;border-radius:10px;overflow:hidden;gap:0!important;padding:0 7px 5px!important}
- #wire-scroll .wp-team-header{display:flex;align-items:center;gap:8px;background:#eee8d6;margin:0 -7px 4px;padding:8px 10px;min-height:42px;box-sizing:border-box}
- #wire-scroll .wp-team-header img{width:36px;height:28px;object-fit:contain}
- #wire-scroll .wp-team-header span{font-size:16px;font-weight:800;line-height:1.1}
- #wire-scroll .wp-person{border-bottom:1px solid #e2ddce;min-height:29px!important;padding:2px 0!important}
- #wire-scroll .wp-person:last-child{border-bottom:0}
- #wire-scroll .wp-player{min-height:29px!important}
- #wire-scroll .wp-player img{width:26px!important;height:26px!important;min-width:26px!important}
- #wire-scroll .wp-player b{font-size:11px!important}
- #wire-scroll .wp-player small{font-size:8px!important}
- #wire-scroll .wp-byes .wp-action{margin-top:6px!important}
- #wire-scroll .wp-waivers .wc-count{background:#f7f4e9;border:1px solid #ddd7c6;border-radius:9px;padding:7px!important;gap:7px!important}
- #wire-scroll .wp-waivers .wc-count .n{background:white!important}
- #wire-scroll .wp-managers{background:#f7f4e9;border:1px solid #ddd7c6;border-radius:9px;padding:7px 5px;height:77px!important;box-sizing:border-box}
- #wire-scroll .wp-managers img{height:61px!important}
-}
-
-@media(min-width:761px){
- #wire-scroll .wp-team-list:nth-child(2) .wp-team-header{flex-direction:row-reverse;text-align:right}
- #wire-scroll .wp-team-list:nth-child(2) .wp-player{flex-direction:row-reverse;text-align:right;justify-content:flex-start}
- #wire-scroll .wp-team-list:nth-child(2) .wp-player>span{text-align:right}
-}
-
-@media(max-width:760px){
- #wire-scroll .wp-grid{gap:7px!important}
- #wire-scroll .wp-panel{padding:7px 9px!important}
- #wire-scroll .wp-panel .wp-eyebrow{font-size:8px!important;margin:0 0 2px!important;line-height:1.1!important}
- #wire-scroll .wp-panel .wc-title{font-size:13px!important;line-height:1.15!important;margin:0 25px 3px 0!important}
- #wire-scroll .wp-waivers .wc-count{background:#f7f4e9;border:1px solid #ddd7c6;border-radius:7px;padding:4px!important;margin:4px 0 0!important;gap:4px!important}
- #wire-scroll .wp-waivers .wc-count .n{background:white!important;font-size:17px!important;padding:1px 0!important;line-height:1.1!important}
- #wire-scroll .wp-waivers .wc-count .l{font-size:6px!important}
- #wire-scroll .wp-bye-list{margin-top:2px!important;gap:6px!important;min-height:0!important;overflow-y:auto!important}
- #wire-scroll .wp-team-list{background:#f7f4e9;border:1px solid #ddd7c6;border-radius:6px;gap:0!important;padding:0 4px 3px!important}
- #wire-scroll .wp-team-header{display:flex;align-items:center;gap:5px;background:#eee8d6;margin:0 -4px 2px;padding:3px 5px;position:sticky;top:0;z-index:1}
- #wire-scroll .wp-team-header img{width:20px;height:16px;object-fit:contain}
- #wire-scroll .wp-team-header span{font-size:10px;font-weight:800}
- #wire-scroll .wp-person{border-bottom:1px solid #e2ddce;min-height:25px!important;padding:2px 0!important}
- #wire-scroll .wp-person:last-child{border:0}
- #wire-scroll .wp-player{min-height:25px!important;gap:4px!important}
- #wire-scroll .wp-player img{width:22px!important;height:22px!important;min-width:22px!important}
- #wire-scroll .wp-player b{font-size:9px!important;line-height:1.1!important}
- #wire-scroll .wp-player small{font-size:7px!important;line-height:1.1!important}
- #wire-scroll .wp-team-list:nth-child(2) .wp-team-header{flex-direction:row-reverse;text-align:right}
- #wire-scroll .wp-team-list:nth-child(2) .wp-player{flex-direction:row-reverse;text-align:right;justify-content:flex-start}
- #wire-scroll .wp-managers{background:#f7f4e9;border:1px solid #ddd7c6;border-radius:7px;padding:4px;height:47px!important;margin-top:3px!important;box-sizing:border-box}
- #wire-scroll .wp-managers img{height:37px!important}
- #wire-scroll .wp-action{margin-top:4px!important;text-align:center}
- #wire-scroll .wp-button{font-size:8px!important}
-}
-
-/* Expanded cards preserve the same roster grouping and mirrored alignment. */
-.wp-detail .wp-team-list{background:#f7f4e9;border:1px solid #ddd7c6;border-radius:10px;padding:0 10px 8px;overflow:hidden}
-.wp-detail .wp-team-header{display:flex;align-items:center;gap:8px;background:#eee8d6;margin:0 -10px 4px;padding:10px;font-weight:800}
-.wp-detail .wp-team-header img{width:34px;height:28px;object-fit:contain}
-.wp-detail .wp-person{border-bottom:1px solid #e2ddce}
-.wp-detail .wp-person:last-child{border:0}
-.wp-detail .wp-team-list:nth-child(even) .wp-team-header,.wp-detail .wp-team-list:nth-child(even) .wp-player{flex-direction:row-reverse;text-align:right}

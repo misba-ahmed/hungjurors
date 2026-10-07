@@ -1,10 +1,11 @@
 /* Occasional priority announcements inside the existing Wire carousel.
- * Keep one carousel item, three independent panels, ivory gaps, and existing navigation.
+ * Each announcement owns a full carousel card and a bottom navigation chip.
  * Use live roster/schedule data; never infer a bye from missing game data. */
 (function(){
  const baseBuild=wireBuild,baseLabel=hjWireNavLabel;
- if(!HJ_WIRE_ORDER.includes('this-week'))HJ_WIRE_ORDER.unshift('this-week');
- hjWireNavLabel=function(section,data){return section==='this-week'?'This Week':baseLabel(section,data)};
+ const priorityOrder=['kickoff','byes','lms'];
+ HJ_WIRE_ORDER.splice(0,HJ_WIRE_ORDER.length,...priorityOrder,...HJ_WIRE_ORDER.filter(s=>!priorityOrder.includes(s)&&s!=='this-week'));
+ hjWireNavLabel=function(section,data){return ({byes:'Bye Week',lms:'Last Man Standing'})[section]||baseLabel(section,data)};
  function byeGroups(data,week){
   if(HJ_BYE_STATE.season!==Number(NFL_SEASON))return [];
   const groups=[...HJ_BYE_STATE.teams.keys()].filter(t=>hjTeamOnBye(t,week)).sort().map(team=>({team,players:[]}));
@@ -37,35 +38,32 @@
  function panel(kind,label,title,body,action){
   return '<section class="wp-panel wp-'+kind+'" data-wp-card="'+kind+'" tabindex="0" aria-label="'+esc(title)+'. Click to expand."><button type="button" class="wc-expand wp-expand" data-wp-expand="'+kind+'" aria-label="Expand '+esc(title)+'">↗</button><div class="wc-kicker wp-eyebrow">'+label+'</div><h3 class="wc-title">'+title+'</h3>'+body+'<div class="wp-action">'+action+'</div></section>';
  }
- let detail={};
+ function announcement(kind,html){return {section:kind,html:'<div class="wc wp-single" data-wire-key="priority-'+kind+'" aria-label="'+({byes:'Bye Week',lms:'Last Man Standing',waivers:'Waivers'})[kind]+'">'+html+'</div>'};}
  wireBuild=function(data){
   const built=baseBuild.apply(this,arguments);if(!data?.teams?.length)return built;
   const week=Number(hjCurrentWeek(data)),groups=byeGroups(data,week),waiver=wireWaiverCard(data),lms=week===5;
-  const panels=[];detail={};
+  const panels=[];
   if(waiver){
    const info=wireNextWaiver(data,Date.now());
    if(info){
     const body='<p>Wednesday · 2 AM CT</p>'+wireCountdownHTML(info.start,'');
     const action='<a class="wp-button" href="https://fantasy.espn.com/football/players/add?leagueId='+ESPN_FANTASY_LEAGUE_ID+'" target="_blank" rel="noopener">Open ESPN waivers ↗</a>';
-    panels.push(panel('waivers','Waiver deadline','Set your claims',body,action));
-    detail.waivers=panel('waivers','Waiver deadline','Set your claims',body,action);
+    panels.push(announcement('waivers',panel('waivers','Waiver deadline','Set your claims',body,action)));
    }
   }
   if(groups.length){
    const action='<button class="wp-button wp-text-button" type="button" data-wp-expand="byes">Expand list ↗</button>';
-   panels.push(panel('byes','Lineup check','Teams on BYE this week',groupHTML(groups),action));
-   detail.byes=panel('byes','Week '+week+' · Lineup check','Teams on BYE this week',groupHTML(groups),'');
+   panels.push(announcement('byes',panel('byes','Week '+week+' · Lineup check','Teams on BYE this week',groupHTML(groups),action)));
   }
   if(lms){
-   const body=figures(data);
+   const body='<div class="wp-lms-stakes"><span>WEEK '+week+'</span><p>Lowest score this week will be eliminated.</p></div>'+figures(data)+'<div class="wp-lms-meta"><span><strong>'+data.teams.length+'</strong> managers</span><span><strong>1</strong> elimination</span></div>';
    const action='<button type="button" class="wp-button" data-wp-lms>View challenge →</button>';
-   panels.push(panel('lms','Last Man Standing','Eliminations start this week!',body,action));
-   detail.lms=panel('lms','Last Man Standing','Eliminations start this week!',body,action);
+   panels.push(announcement('lms',panel('lms','Last Man Standing','Eliminations start this week!',body,action)));
   }
-  // Leave ordinary weeks' single-feature banners alone; BYEs/LMS can stand alone.
-  if(!groups.length&&!lms)return built;
-  built.cards=built.cards.filter(c=>c.section!=='waivers');
-  built.cards.unshift({section:'this-week',html:'<div class="wc wp-group" data-wire-key="this-week" aria-label="This Week"><div class="wp-heading">This Week <span>· Week '+week+'</span></div><div class="wp-grid" data-panel-count="'+panels.length+'" style="--wp-count:'+panels.length+'">'+panels.join('')+'</div></div>'});
+  if(!panels.length)return built;
+  built.cards=built.cards.filter(c=>!panels.some(p=>p.section===c.section));
+  built.cards.push(...panels);
+  built.cards.sort((a,b)=>HJ_WIRE_ORDER.indexOf(a.section)-HJ_WIRE_ORDER.indexOf(b.section));
   return built;
  };
  const interactive='a,button,input,select,textarea,label,summary,[role="button"],[role="link"],[contenteditable="true"],.pc-player-trigger,.manager-profile-trigger';
@@ -111,8 +109,8 @@
   heightFrame=0;
   const rail=document.querySelector('#wire-scroll'),active=wireCardNodes()[WIRE.index||0];if(!rail||!active)return;
   if(observed!==active){sizeObserver?.disconnect();sizeObserver?.observe(active);observed=active;}
-  const standard=wireCardNodes().find(node=>!node.classList.contains('wp-group')),group=rail.querySelector('.wp-group');
-  if(standard&&group){const normalHeight=standard.getBoundingClientRect().height+'px';if(group.style.getPropertyValue('--wp-standard-height')!==normalHeight)group.style.setProperty('--wp-standard-height',normalHeight);}
+  const standard=wireCardNodes().find(node=>!node.classList.contains('wp-single')),groups=rail.querySelectorAll('.wp-single');
+  if(standard){const normalHeight=standard.getBoundingClientRect().height+'px';groups.forEach(group=>{if(group.style.getPropertyValue('--wp-standard-height')!==normalHeight)group.style.setProperty('--wp-standard-height',normalHeight);});}
   const style=getComputedStyle(rail),height=Math.ceil(active.getBoundingClientRect().height+parseFloat(style.paddingTop||0)+parseFloat(style.paddingBottom||0));
   const value=height+'px';if(rail.style.height!==value)rail.style.setProperty('height',value,'important');
  }

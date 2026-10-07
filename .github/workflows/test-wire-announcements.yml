@@ -1,0 +1,24 @@
+name: Verify separate Wire announcements
+on:
+  push:
+    branches: [fix-wire-announcements]
+  pull_request:
+    paths:
+      - scripts/wire-priorities.js
+      - styles/wire-priorities.css
+      - scripts/test-wire-priorities.mjs
+      - scripts/test-wire-announcements.mjs
+jobs:
+  wire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright
+      - run: npx playwright install chromium webkit --with-deps
+      - run: node scripts/test-wire-priorities.mjs
+      - run: xvfb-run -a node scripts/test-wire-announcements.mjs
+      - run: xvfb-run -a node scripts/test-card-gestures.mjs
