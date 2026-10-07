@@ -59,12 +59,22 @@ for(const engine of [chromium,webkit]){
   console.log('CASCADE_PROOF',JSON.stringify(cascade));
   assert(cascade.players>=4,'a finger sweep must actually select successive players, not just keep the tab alive');
   assert.equal(cascade.textWrites,0,'artwork selection must not wake global child-list observers');
-  // Real browser pinch. The page must remain responsive at each scale.
-  for(let i=0;i<3;i++){
-   await cdp.send('Input.synthesizePinchGesture',{x:190,y:430,scaleFactor:1.35,relativeSpeed:400,gestureSourceType:'touch'});
-   await page.waitForTimeout(250);assert(await page.locator('#league-hq').count());
-   const zoomScale=await page.evaluate(()=>visualViewport.scale);console.log('PINCH_SCALE',zoomScale);assert(zoomScale>1.1,'pinch must actually zoom the browser, not merely leave the DOM present');
-   await cdp.send('Input.synthesizePinchGesture',{x:190,y:430,scaleFactor:1/1.35,relativeSpeed:400,gestureSourceType:'touch'});
+  // Exercise two-finger ownership separately from browser rendering scale.
+  // Headless synthetic pinch can be a no-op; never count that as zoom coverage.
+  await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:5});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:150,y:430,id:1},{x:230,y:430,id:2}]});
+  for(let i=1;i<=8;i++)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:150-i*7,y:430,id:1},{x:230+i*7,y:430,id:2}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  assert.equal(await page.locator('[data-league-team].active').getAttribute('data-league-team'),selected);
+  let layers=[];await cdp.send('LayerTree.enable');cdp.on('LayerTree.layerTreeDidChange',event=>{layers=event.layers||[];});
+  for(const scale of [1.35,2,3]){
+   await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:scale});
+   await page.waitForTimeout(300);
+   const zoomScale=await page.evaluate(()=>visualViewport.scale);console.log('BROWSER_ZOOM_SCALE',zoomScale);assert(Math.abs(zoomScale-scale)<.05,'browser rendering must actually reach the requested zoom scale');
+   assert(await page.locator('#league-hq').count());
+   console.log('ZOOM_LAYER_BOUNDS',scale,JSON.stringify(layers.filter(l=>l.drawsContent).map(l=>({width:l.width,height:l.height})).sort((a,b)=>b.width*b.height-a.width*a.height).slice(0,5)));
+   await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});
+   await page.waitForTimeout(150);
   }
   await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:1});
  }
@@ -97,7 +107,7 @@ for(const engine of [chromium,webkit]){
  await page.locator('#hq-tab-rosters').click();await page.locator(active+' .league-matchup-score').scrollIntoViewIfNeeded();await page.waitForTimeout(400);
  const shot=await page.screenshot({type:'jpeg',quality:65});console.log('STABILITY_IMAGE '+engine.name()+' '+shot.toString('base64'));
  assert(!errors.some(e=>!/ResizeObserver/.test(e)),errors.join('\n'));
- console.log('PASS '+engine.name()+': bounded artwork, quiet refreshes, lineup taps, pinch, challenge zoom and double tap, stable frame loop, paper note blending');
+ console.log('PASS '+engine.name()+': bounded artwork, quiet refreshes, lineup taps, challenge zoom and double tap, stable frame loop, paper note blending; Chromium also verifies browser zoom scales and multi-touch ownership');
  }finally{await browser.close();}
 }
 
