@@ -41,7 +41,10 @@
    const r=button.getBoundingClientRect();
    const left=button.offsetLeft,scale=(r.width+215)/2048;
    const paintKey=[railWidth,r.width,left,ratio,cropLeft,cropWidth].join(':');
-   if(canvas._paintKey===paintKey&&canvas._paintSource===source.src)return;
+   // The artwork is a ~2.5 MB data URL. Reading .src serializes a fresh copy
+   // on every scroll/resize check; the attribute value is shared instead.
+   const sourceKey=source.getAttribute('src');
+   if(canvas._paintKey===paintKey&&canvas._paintSource===sourceKey)return;
    const artX=left-15,joinLeft=artX+140*scale,joinRight=artX+1100*scale;
    const width=Math.round(cropWidth*ratio),height=Math.round(180*ratio);
    if(canvas.width!==width)canvas.width=width;if(canvas.height!==height)canvas.height=height;
@@ -84,7 +87,7 @@
    fade.addColorStop(0,'rgba(249,237,215,0)');fade.addColorStop(1,'#f9edd7');
    ctx.fillStyle=fade;ctx.fillRect(0,localBottom-4,nr.width,5);
    ctx.fillStyle='#f9edd7';ctx.fillRect(0,localBottom,nr.width,180-localBottom);
-   button.classList.add('hj-layer-ready');canvas._paintKey=paintKey;canvas._paintSource=source.src;
+   button.classList.add('hj-layer-ready');canvas._paintKey=paintKey;canvas._paintSource=sourceKey;
   });
 
  }

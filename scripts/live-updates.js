@@ -90,18 +90,24 @@
    if(Math.abs(delta)>.5){if(scrollRoot)scrollRoot.scrollTop+=delta;else window.scrollBy({top:delta,behavior:'instant'})}
   }
  }
- window.hjPatchLiveContent=update;
+ // Decorators (DST labels, fonts, projection chips, statuses) watch childList
+ // records. A patch that only rewrites text or attributes produces none, so
+ // tell them once that live content changed. They previously caught up only
+ // because the Wire countdown replaced its digits every second.
+ function wake(element){if(!element?.isConnected)return;const marker=document.createComment('');element.append(marker);marker.remove();}
+ const patchContent=update;
+ window.hjPatchLiveContent=function(element){const result=patchContent.apply(this,arguments);wake(element);return result;};
  // Intercept only these live-result roots; other HTML writes keep their normal behavior.
  Object.defineProperty(Element.prototype,'innerHTML',{
   configurable:original.configurable,enumerable:original.enumerable,get:original.get,
-  set(markup){if((targets.has(this.id)&&this.closest('#league-hq'))||this.matches('.manager-hq-roster'))update(this,markup);else original.set.call(this,markup)}
+  set(markup){if((targets.has(this.id)&&this.closest('#league-hq'))||this.matches('.manager-hq-roster')){update(this,markup);wake(this);}else original.set.call(this,markup)}
  });
  window.hjPatchLiveControls=function(current,markup){
   const t=document.createElement('template');original.set.call(t,markup);const fresh=t.content.firstElementChild;if(!fresh)return;
   const select=current.querySelector('[data-hj-position-select]');
   const row=fresh.querySelector('.hq49-row-selects');
   if(select&&row)row.append(select.cloneNode(true));
-  patch(current,fresh);
+  patch(current,fresh);wake(current);
  };
  const toolsBase=hjRenderLeagueTools;
  hjRenderLeagueTools=function(data){

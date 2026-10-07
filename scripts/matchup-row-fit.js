@@ -8,8 +8,10 @@ function hjFitStarterSpace(){
  panel.querySelectorAll('.hj-lineup-v2').forEach(lineup=>{
   const grid=lineup.querySelector('.hj-lineup-v2-starters'),card=lineup.closest('.hq-matchup');
   if(!grid||!card||!lineup.clientWidth)return;
-  lineup.removeAttribute('data-density');
-  lineup.dataset.columns='1';
+  // Write only real changes: identical writes still queue mutation records and
+  // invalidate style, and the reads below then force a full-page layout.
+  if(lineup.hasAttribute('data-density'))lineup.removeAttribute('data-density');
+  if(lineup.dataset.columns!=='1')lineup.dataset.columns='1';
   const before=grid.getBoundingClientRect().top-card.getBoundingClientRect().top;
   // Scrolling, score updates and expanded panels must not resize the player rows.
   const key=[lineup.clientWidth,viewport,grid.children.length].join('|');
@@ -36,7 +38,9 @@ function hjFitStarterSpace(){
 }
 (function(){
  let frame=0;
- const schedule=()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=0;hjFitStarterSpace()})};
+ // Pinch zoom resizes only the visual viewport (continuously on iOS). The
+ // rows depend on the layout, so they are refit once the zoom returns to 1.
+ const schedule=()=>{if(window.visualViewport?.scale>1.01)return;if(!frame)frame=requestAnimationFrame(()=>{frame=0;hjFitStarterSpace()})};
  window.addEventListener('resize',schedule);
  window.visualViewport?.addEventListener('resize',schedule);
  document.fonts?.ready.then(schedule);

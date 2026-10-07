@@ -235,6 +235,17 @@ function hjTeamPhotoHTML(team){
   else show(g.button,'touch');
  },{passive:true});
  document.addEventListener('pointercancel',()=>{cancelShow();gesture=null;ignoreClickUntil=Date.now()+700;},{passive:true});
+ // The lineup now sits inside the native roster rail. iOS can hand a
+ // horizontal finger sweep to that ancestor scroller (or pan the page and
+ // resize its toolbar), which cancels the pointer stream mid-cascade.
+ // pointermove.preventDefault() cannot stop native scrolling; touchmove can.
+ // Claim only one-finger, horizontally dominant moves that began on the
+ // lineup, so vertical page scrolling and pinch zoom stay native.
+ document.addEventListener('touchmove',event=>{
+  if(!gesture||!event.cancelable||event.touches.length!==1)return;
+  const touch=event.touches[0],dx=touch.clientX-gesture.x,dy=touch.clientY-gesture.y;
+  if(gesture.axis==='x'||(!gesture.axis&&Math.abs(dx)>=4&&Math.abs(dx)>Math.abs(dy)*1.15))event.preventDefault();
+ },{passive:false});
  document.addEventListener('click',event=>{
   const group=groupOf(event.target);if(!group)return;
   event.preventDefault();event.stopPropagation();
@@ -268,8 +279,12 @@ function hjTeamPhotoHTML(team){
  });
  document.addEventListener('hj:team-photo-scores',()=>document.querySelectorAll(selector).forEach(refreshScore));
  setInterval(()=>{if(!document.hidden&&document.querySelector(groupSelector))hjTeamPhotoLoadScores();},60000);
+ let layoutWidth=document.documentElement.clientWidth;
  function refit(){
-  cancelShow();gesture=null;
+  // Mobile Safari fires resize when its toolbar collapses during a touch.
+  // Only a real layout-width change (rotation) interrupts an active sweep.
+  const width=document.documentElement.clientWidth;
+  if(width!==layoutWidth){layoutWidth=width;cancelShow();gesture=null;}
   if(window.visualViewport?.scale>1.01)return;
   cancelAnimationFrame(layoutFrame);layoutFrame=requestAnimationFrame(()=>{
    const active=document.querySelector(groupSelector+' .is-active');
