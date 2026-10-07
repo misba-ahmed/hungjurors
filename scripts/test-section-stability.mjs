@@ -45,8 +45,6 @@ for(const engine of [chromium,webkit]){
  await page.locator('#challenge-tab-lms').click();
  await page.locator('#challenge-out .lms-stage').scrollIntoViewIfNeeded();
  for(let i=0;i<6;i++){
-  await page.locator('#challenge-out [data-lms-zoom="scroll"]').count();
-  const zoom=page.locator('#challenge-out [data-lms-zoom]').filter({hasText:'+'});
   // The actual markup advertises zoom/fit values; inspect the accessible pressed state.
   await page.locator('#challenge-out [data-lms-zoom]').evaluateAll(bs=>bs.find(b=>b.dataset.lmsZoom!=='fit').click());
   assert.equal(await page.locator('#challenge-out .lms-view').evaluate(e=>e.classList.contains('is-fit')),false);
@@ -54,7 +52,9 @@ for(const engine of [chromium,webkit]){
   assert.equal(await page.locator('#challenge-out .lms-view').evaluate(e=>e.classList.contains('is-fit')),true);
  }
  const stage=page.locator('#challenge-out .lms-stage');
- await stage.tap({position:{x:15,y:15}});await page.waitForTimeout(80);await stage.tap({position:{x:15,y:15}});
+ await stage.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));await page.waitForTimeout(400);
+ const box=await stage.boundingBox(),tapX=box.x+box.width/2,tapY=box.y+box.height/2;
+ await page.touchscreen.tap(tapX,tapY);await page.waitForTimeout(80);await page.touchscreen.tap(tapX,tapY);
  assert.equal(await page.locator('#challenge-out .lms-view').evaluate(e=>e.classList.contains('is-fit')),false,'double tap zoom');
  await page.locator('#challenge-out [data-lms-zoom="fit"]').click();
  // Repeated selection must release distant pages rather than retaining all old artwork.
