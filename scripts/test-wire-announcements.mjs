@@ -53,7 +53,7 @@ try{for(const [engineName,engine] of [['chromium',chromium],['webkit',webkit]]){
   const panel=page.locator('#wire-scroll .wp-byes');await panel.focus();await page.keyboard.press('Enter');await page.waitForSelector('.wire-expanded-overlay.is-open');
   await page.locator('.wp-detail .wc-title').click();await page.waitForSelector('.wire-expanded-overlay',{state:'detached'});
   const list=page.locator('#wire-scroll .wp-bye-list');await list.evaluate(el=>el.scrollTop=45);
-  const before=await list.evaluate(el=>el.scrollTop);assert(before>0||width===1365);
+  const before=await list.evaluate(el=>el.scrollTop);assert(before>0||width===1365,JSON.stringify(await list.evaluate(el=>({height:el.clientHeight,scroll:el.scrollHeight,children:[...el.children].map(n=>({height:n.clientHeight,scroll:n.scrollHeight}))}))));
   await page.evaluate(()=>wireRender(true));await page.waitForTimeout(700);
   assert.equal(await page.locator('#wire-scroll .is-scroll-active').getAttribute('data-wire-section'),'byes');
   assert.equal(await list.evaluate(el=>el.scrollTop),before);
