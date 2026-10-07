@@ -1,7 +1,7 @@
 name: Verify section gestures
 on:
   push:
-    branches: [main, fix-desktop-section-wheel, fix-continuous-trackpad-scroll, shared-matchup-scrolling, stabilize-native-sections]
+    branches: [main, fix-desktop-section-wheel, fix-continuous-trackpad-scroll, shared-matchup-scrolling, stabilize-native-sections, repair-zoom-cascade]
     paths:
       - scripts/team-photos.js
       - scripts/test-section-stability.mjs
@@ -52,4 +52,5 @@ jobs:
         with:
           name: gesture-proof
           path: gesture-proof/
+
 

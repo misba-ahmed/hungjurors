@@ -7,7 +7,7 @@ await fs.mkdir('gesture-proof',{recursive:true});
 for(const engine of [chromium,webkit]){
  const browser=await engine.launch();
  try{
- const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),errors=[];
+ const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true}),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  await page.route('https://hungjurors.com/',r=>r.fulfill({contentType:'text/html',body:html}));
  await page.route('https://hungjurors.com/styles/**',async r=>{try{await r.fulfill({contentType:'text/css',body:await fs.readFile(new URL(r.request().url()).pathname.slice(1),'utf8')});}catch{await r.continue();}});
@@ -28,11 +28,24 @@ for(const engine of [chromium,webkit]){
  for(let i=0;i<Math.min(8,await players.count());i++){await players.nth(i).tap();await page.waitForTimeout(60);}
  assert.equal(await page.locator('[data-league-team].active').getAttribute('data-league-team'),selected);
  if(engine===chromium){
+  await page.evaluate(()=>{
+   window.cascadeProof={players:new Set(),textWrites:0};
+   window.cascadeObserver=new MutationObserver(records=>{
+    for(const record of records){if(record.type==='childList')window.cascadeProof.textWrites++;}
+    const selected=document.querySelector('.hj-team-photo-player.is-active');if(selected)window.cascadeProof.players.add(selected.dataset.teamPhotoPlayer);
+   });
+   window.cascadeObserver.observe(document.querySelector('.hj-roster-rail .hj-section-page:not([inert]) .hj-team-photo'),{attributes:true,childList:true,subtree:true});
+  });
   const cdp=await page.context().newCDPSession(page);const b=await page.locator(active+' .hj-team-photo-stage').boundingBox();
   const y=Math.max(100,Math.min(730,b.y+b.height/2)),x=b.x+20;
   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
   for(let i=1;i<=18;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+i*(b.width-40)/18,y}]});await page.waitForTimeout(16);}
   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  await page.waitForTimeout(250);
+  const cascade=await page.evaluate(()=>{window.cascadeObserver.disconnect();return {players:window.cascadeProof.players.size,textWrites:window.cascadeProof.textWrites};});
+  console.log('CASCADE_PROOF',JSON.stringify(cascade));
+  assert(cascade.players>=4,'a finger sweep must actually select successive players, not just keep the tab alive');
+  assert.equal(cascade.textWrites,0,'artwork selection must not wake global child-list observers');
   // Real browser pinch. The page must remain responsive at each scale.
   for(let i=0;i<3;i++){
    await cdp.send('Input.synthesizePinchGesture',{x:190,y:430,scaleFactor:1.35,relativeSpeed:400,gestureSourceType:'touch'});
@@ -73,3 +86,4 @@ for(const engine of [chromium,webkit]){
  console.log('PASS '+engine.name()+': bounded artwork, quiet refreshes, lineup taps, pinch, challenge zoom and double tap, stable frame loop, paper note blending');
  }finally{await browser.close();}
 }
+

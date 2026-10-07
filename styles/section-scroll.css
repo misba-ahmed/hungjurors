@@ -11,3 +11,8 @@
 }
 /* Empty distant pages preserve scroll positions without retaining heavy artwork. */
 .hj-section-page:empty{min-height:1px;}
+/* Bound each page's paint surface instead of allowing filtered artwork to
+   promote the full multi-page scroll strip during Safari pinch/graphic zoom.
+   This adds no padding, height floor, or change to native scroll geometry. */
+.hj-section-rail>.hj-section-page{contain:layout paint;}
+
