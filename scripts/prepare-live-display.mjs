@@ -1,7 +1,7 @@
 import {readFileSync} from 'node:fs';
 const liveUpdates=readFileSync(new URL('./live-updates.js',import.meta.url),'utf8');
 const news=readFileSync(new URL('./news-feed.js',import.meta.url),'utf8');
-const navigation=readFileSync(new URL('./matchup-navigation.js',import.meta.url),'utf8');
+const navigation=readFileSync(new URL('./section-scroll.js',import.meta.url),'utf8')+'\n'+readFileSync(new URL('./matchup-navigation.js',import.meta.url),'utf8');
 const rowFit=readFileSync(new URL('./matchup-row-fit.js',import.meta.url),'utf8');
 const probability=readFileSync(new URL('./espn-win-probability.js',import.meta.url),'utf8');
 const patches=[
@@ -124,3 +124,4 @@ export function prepareLiveDisplay(html){
  html=once(html,/function hjScrollToMatchupV32\(key\)\{[^]*?\n\}/g,`function hjScrollToMatchupV32(key){hjCenterMatchupJumpChipV32(key);hjScrollMatchupStart(key);}`,'shared matchup landing');
  return html;
 }
+
