@@ -22,17 +22,18 @@ for(const engine of [chromium,webkit])for(const mobile of [false,true]){
  await page.evaluate(()=>document.getElementById('league-sync-content').hidden=false);await page.waitForTimeout(400);
  const rails=['.hq-matchup-list','.hj-roster-rail','.hj-challenge-rail'];
  async function wheel(selector,dx){await page.locator(selector).evaluate((el,dx)=>el.dispatchEvent(new WheelEvent('wheel',{deltaX:dx,bubbles:true,cancelable:true})),dx);}
+ async function atPage(selector,left){await page.waitForFunction(({selector,left})=>Math.abs(document.querySelector(selector).scrollLeft-left)<2,{selector,left},{timeout:2500});}
  async function height(selector){const r=await page.locator(selector).evaluate(el=>{const pages=[...el.children],p=pages.reduce((a,b)=>Math.abs(a.getBoundingClientRect().left-el.getBoundingClientRect().left)<Math.abs(b.getBoundingClientRect().left-el.getBoundingClientRect().left)?a:b);return {rail:el.clientHeight,page:p.getBoundingClientRect().height,padding:getComputedStyle(el).padding};});assert(Math.abs(r.rail-r.page)<2,selector+' only selected height '+JSON.stringify(r));assert.equal(r.padding,'0px');}
  for(const selector of rails){
   const rail=page.locator(selector),width=await rail.evaluate(e=>e.clientWidth);
   await wheel(selector,80);assert(Math.abs(await rail.evaluate(e=>e.scrollLeft)-80)<2,selector+' pixel follow');
   await wheel(selector,-50);assert(Math.abs(await rail.evaluate(e=>e.scrollLeft)-30)<2,selector+' reversal');
-  await page.waitForTimeout(650);assert(await rail.evaluate(e=>e.scrollLeft)<2);
-  await wheel(selector,width*.8);await page.waitForTimeout(650);await height(selector);
+  await atPage(selector,0);assert(await rail.evaluate(e=>e.scrollLeft)<2,selector+' reversal returns to first page');
+  await wheel(selector,width*.8);await atPage(selector,width);await height(selector);
   assert(Math.abs(await rail.evaluate(e=>e.scrollLeft)-width)<3,selector+' next');
-  await wheel(selector,width*.8);await page.waitForTimeout(650);await height(selector);
+  await wheel(selector,width*.8);await atPage(selector,width*2);await height(selector);
   assert(Math.abs(await rail.evaluate(e=>e.scrollLeft)-width*2)<3,selector+' shorter page');
-  await wheel(selector,-width*1.7);await page.waitForTimeout(650);await height(selector);
+  await wheel(selector,-width*1.7);await atPage(selector,0);await height(selector);
   const prevented=await rail.locator('.nested').first().evaluate(el=>{const e=new WheelEvent('wheel',{deltaX:90,bubbles:true,cancelable:true});el.dispatchEvent(e);return e.defaultPrevented;});assert.equal(prevented,false,'nested rail owns wheel');
   await page.setViewportSize({width:844,height:390});await page.waitForTimeout(400);await height(selector);
   await page.setViewportSize({width:390,height:844});await page.waitForTimeout(400);await height(selector);
