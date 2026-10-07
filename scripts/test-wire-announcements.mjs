@@ -27,7 +27,7 @@ try{for(const [engineName,engine] of [['chromium',chromium],['webkit',webkit]]){
    HJ_BYE_STATE.season=Number(NFL_SEASON);HJ_BYE_STATE.teams=new Map([['KC',new Set([5])],['CAR',new Set([5])]]);
    hjTeamOnBye=t=>['KC','CAR'].includes(t);hjRosterEntries=t=>t.entries;hjPlayer=p=>p;wirePlayerObj=p=>p;hjPlayerTeam=p=>p.team;wireManager=t=>t.name;
    wireWaiverCard=()=>null;
-   wirePlayerHTML=p=>'<button class="wc-player pc-player-trigger" data-pc-id="'+p.id+'"><span><b>'+p.name+'</b><small>Team</small></span></button>';
+   wirePlayerHTML=p=>'<button class="wc-player pc-player-trigger" data-pc-id="'+p.id+'"><img alt="" src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2232%22 height=%2232%22%3E%3C/svg%3E"><span><b>'+p.name+'</b><small>Team</small></span></button>';
    wireBuild=()=>({cards:[{section:'kickoff',html:wireCard({kicker:'Next NFL kickoff',tag:'THU · 7:15 PM CT',cls:'is-lead is-kickoff',body:'<div class="wc-title">Buccaneers at Cowboys</div>'})},{section:'recap',html:wireCard({kicker:'Week 4 Recap',body:'<div class="wc-title">Week 4 Recap</div>'})}],headline:{title:'',kicker:'The Wire'}});
   });
   await page.addScriptTag({content:await fs.readFile('scripts/wire-priorities.js','utf8')});
