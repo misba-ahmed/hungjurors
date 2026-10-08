@@ -46,6 +46,12 @@ const diagnostics=`<script id="hj-zoom-diagnostics">(function(){
  if(flags.has('hiderails')){const run=()=>document.querySelectorAll('.hj-section-rail,.hq-matchup-list').forEach(el=>el.style.setProperty('overflow','hidden','important'));setTimeout(run,1500);setTimeout(run,5000);setInterval(run,15000);}
  if(flags.has('hidescroll')){const run=()=>freeze(true);setTimeout(run,1500);setTimeout(run,5000);setInterval(run,15000);}
  if(flags.has('zoomhide')&&window.visualViewport){let zoomed=false;const check=()=>{const z=visualViewport.scale>1.01;if(z!==zoomed){zoomed=z;freeze(z);}};visualViewport.addEventListener('resize',check);window.addEventListener('touchstart',e=>{if(e.touches.length>1&&!zoomed){zoomed=true;freeze(true);}},{capture:true,passive:true});window.addEventListener('touchend',()=>setTimeout(check,400),{capture:true,passive:true});}
+ // 'clipscroll': scrollers become overflow:clip (not scroll containers at all;
+ // same clip box, but content shows from its start).
+ if(flags.has('clipscroll')){const run=()=>scrollers().forEach(el=>el.style.setProperty('overflow','clip','important'));setTimeout(run,1500);setTimeout(run,5000);setInterval(run,15000);}
+ // 'cvauto': every item inside a native scroller skips rendering while it is
+ // offscreen (content-visibility:auto), keeping its measured size.
+ if(flags.has('cvauto')){const run=()=>scrollers().forEach(el=>{for(const item of el.children){if(item.dataset.hjDiagCv)continue;const r=item.getBoundingClientRect();if(!r.width||!r.height)continue;item.dataset.hjDiagCv='1';item.style.setProperty('contain-intrinsic-size','auto '+Math.round(r.width)+'px auto '+Math.round(r.height)+'px');item.style.setProperty('content-visibility','auto');}});setTimeout(run,2000);setTimeout(run,6000);setInterval(run,15000);}
  if(flags.has('novideo'))css.push('video{display:none!important}');
  if(flags.has('pausevideo'))setInterval(()=>document.querySelectorAll('video').forEach(v=>{if(!v.paused)v.pause();}),500);
  function apply(){
