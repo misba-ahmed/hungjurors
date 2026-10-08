@@ -5,7 +5,8 @@
  *    every body-wide decorator once per second)
  *  - a pinch-zoom resize (layout viewport unchanged) is not delivered to page
  *    resize handlers; an unzoomed resize still is
- *  - the oversized ESPN Jets logo is requested at the shared 500px size
+ *  - ESPN team logos and NFL headshots are requested at display-appropriate
+ *    sizes (combiner), the weekly recap feature photo at full size
  * Headless engines cannot reproduce an iPhone process crash; these guard the
  * measured causes of continuous load, not the crash itself.
  */
@@ -14,7 +15,9 @@ import assert from 'node:assert/strict';
 import {chromium,webkit} from 'playwright';
 import {prepareSite} from './prepare-site.mjs';
 const html=prepareSite(await fs.readFile('index.html','utf8'));
-assert(html.includes("abbr==='nyj'?'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/nyj.png&w=500&h=500'"),'Jets logo must use the 500px source');
+assert(html.includes("const nflLogo = abbr => `https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/${abbr}.png&w=330&h=330`;"),'Team logos (including the 4096px Jets file) must use the 330px combiner size');
+assert(!/https:\/\/a\.espncdn\.com\/i\/headshots\/nfl\/players\/full\/[^"'`]*\.png/.test(html.replace(/\/combiner\/i\?img=\/i\/headshots/g,'')),'NFL headshots must use the sized combiner URL');
+assert(html.includes('<img src="${esc(hjEspnFullImg(photo))}"'),'Weekly recap feature photo keeps the full-size headshot');
 for(const engine of [chromium,webkit]){
  const browser=await engine.launch();
  try{
