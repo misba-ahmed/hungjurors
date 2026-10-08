@@ -8,15 +8,21 @@ permissions:
 jobs:
   challenge-zoom:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 3
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - run: npm install --no-save --package-lock=false playwright
+      - run: npm install --no-save --package-lock=false playwright pngjs
       - run: npx playwright install chromium webkit --with-deps
       - run: node scripts/test-challenge-zoom.mjs
+        env:
+          CHALLENGE_ZOOM_BASELINE: c8a270fa22e7a0d37df9617e020ad147d0edbd12
+      - run: node scripts/test-challenges.mjs
+      - run: node scripts/test-challenge-zoom-site.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
