@@ -200,3 +200,20 @@
 
 /* Nearly grayscale with a hint of uniform color, only while a crutch/handcuff alternate is displayed. */
 #league-hq .hj-team-photo-player.is-unavailable .hj-team-photo-figure img{filter:saturate(.28) contrast(.94)}
+
+/* Navy-square business branding, using the unchanged logo alpha silhouette. */
+#league-hq #league-sync-content .league-roster-head>.hj-business-card>.hj-business-logo{
+ display:block!important;background:#16354c!important;box-sizing:border-box!important;
+ padding:1.1cqw!important;border:0!important;border-radius:0!important;
+ opacity:1!important;mix-blend-mode:normal!important;
+}
+.hj-business-logo-mark{
+ display:block;width:100%;height:100%;background:#b88a2a;
+ -webkit-mask:var(--hj-business-mark) center/contain no-repeat;
+ mask:var(--hj-business-mark) center/contain no-repeat;
+}
+#league-hq #league-sync-content .league-roster-head>.hj-business-card>.hj-business-crown{
+ position:absolute;left:18%;top:21%;width:9cqw;height:6.5cqw;
+ transform:rotate(18deg);transform-origin:center;
+ z-index:2;pointer-events:none;overflow:visible;
+}
