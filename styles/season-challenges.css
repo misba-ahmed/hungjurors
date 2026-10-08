@@ -84,7 +84,7 @@
 .lineup-figure.is-leader .lineup-bar{background:linear-gradient(180deg,#f0cd5a,var(--brass-bright) 60%,var(--brass))}
 .lineup-figure.is-scored .lineup-bar{animation:lineup-scored 1.2s ease-out}
 @keyframes lineup-scored{0%{filter:brightness(1)}30%{filter:brightness(1.45) drop-shadow(0 0 6px #d9a93f)}100%{filter:brightness(1)}}
-/* Crown shadow is inside its bounded SVG image, not a live nested SVG filter. */
+.lms-crown{filter:drop-shadow(0 1px 1px #0004)}
 /* A soft brass glow follows the current leader's silhouette in every lineup graphic. */
 .lineup-figure.is-leader .lms-art{filter:drop-shadow(0 0 5px rgba(217,169,63,.6)) drop-shadow(0 0 18px rgba(217,169,63,.34))}
 .titty-view .aw-sub.challenge-sub,.over-view .aw-sub.challenge-sub,.opt-view .aw-sub.challenge-sub{margin:22px 0 10px;font-size:17px}
@@ -340,6 +340,5 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
  :is(#challenge-out,.hj-challenge-out) .lms-week-table .who-cell>.av{width:36px;height:36px;flex-basis:36px}
  :is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-result{font-size:9px;padding:3px 7px}
 }
-
 
 

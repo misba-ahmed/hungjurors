@@ -37,12 +37,11 @@ const bookcaseSheenTransform=`  @keyframes awardBookcaseSheen{
 const countdown="node.querySelectorAll('.n').forEach((el,i)=>{const v=String(vals[i]);if(el.textContent!==v)el.textContent=v});";
 const countdownText="node.querySelectorAll('.n').forEach((el,i)=>{const v=String(vals[i]),text=el.firstChild;if(text&&text.nodeType===3&&!text.nextSibling){if(text.data!==v)text.data=v}else if(el.textContent!==v)el.textContent=v});";
 
-// ESPN serves the Jets logo at 4096x4096 (64 MB decoded) and every other team
-// logo at 500x500 (1 MB decoded), shown at 17-110px. ESPN's own image combiner
-// returns the same transparent PNG (and a 404 for an unknown team) at 330x330:
-// 3x the largest 110px use, about 44% of the decoded memory.
+// ESPN serves the Jets logo at 4096x4096 (64 MB decoded) while every other
+// team logo at this path is 500x500. ESPN's own image combiner returns the
+// same transparent PNG at 500x500, matching the other teams.
 const nflLogo='const nflLogo = abbr => `https://a.espncdn.com/i/teamlogos/nfl/500/${abbr}.png`;';
-const nflLogoSized='const nflLogo = abbr => `https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/${abbr}.png&w=330&h=330`;';
+const nflLogoSized='const nflLogo = abbr => abbr===\'nyj\'?\'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/nyj.png&w=500&h=500\':`https://a.espncdn.com/i/teamlogos/nfl/500/${abbr}.png`;';
 
 // Endless decorative loops keep running while their section is scrolled far
 // away. Pause only those loops (never one-shot entrance animations) until the

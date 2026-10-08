@@ -19,15 +19,3 @@ Since PR #17 the lineup sits inside the native roster rail. iOS can give a horiz
 
 ## Verification
 `node scripts/test-render-stability.mjs` (Chromium and WebKit): compositor-only endless loops, quiet countdown, zoom-only resize suppression, Jets logo source. Also run the existing section, lineup and Wire checks. Physical iPhone confirmation is still required.
-
-## Phone memory (October 7, 2026, measured on the iPhone)
-Jetsam logs from the user's phone show every pinch crash is a memory kill: Safari's page process (WebContent, 1.3–1.65 GB) and its GPU process (315–436 MB, which holds decoded images and layer backing stores) were killed for "highwater" while the system was out of memory. Safari Web Inspector on the phone (Timelines → Memory) showed the page holding ~1 GB before any zoom: ~480 MB JavaScript, ~500 MB page structure. Layers → ~82 MB of backing stores at the top of the page. Pinch zoom re-renders those backing stores at the new scale, so the first pinch tipped the system over.
-
-Repairs (no visual or behavioral change):
-- NFL headshots (~250 unique, 600×436 = ~1 MB decoded each, shown in 17–74px circles) are requested from ESPN's image combiner at 350×254 (`scripts/prepare-phone-memory.mjs`). Same PNG, transparency and 404-on-missing (initials fallback unchanged), ≥3× sharp in every circle. The weekly recap feature photo (up to 150px wide) keeps the full file via `hjEspnFullImg`. Runtime ESPN API headshot URLs (depth charts) go through `hjEspnImg`.
-- Team logos (500×500; the Jets file is 4096×4096) use the combiner at 330×330, 3× the largest 110px use (`nflLogo` in `scripts/prepare-render-stability.mjs`).
-- The trophy loop video (an 8 MB base64 data URL) is written by the build as an ordinary file in `assets/site-art/` (`extractSiteMedia` in `scripts/site-artwork.mjs`). Same bytes and `<video>` attributes.
-- The league-wide injury feed (8.8 MB, every minute) differs between fetches only in its leading `timestamp`. When the rest is identical, the statuses already derived from it are kept instead of parsing 8.8 MB of JSON again; the report time still advances. (The kona player pools were checked too: ESPN reorders their stats between identical requests, so they are parsed as before.)
-- The site's own hosted data files (`data/advanced-stats-*.json` ~3 MB, `projections.json`) are still fetched every minute, but when the text is identical to the last download the data already parsed from it is reused (callers already share one parsed object between refreshes).
-
-Phone-only memory diagnostics (inert without the URL parameter): `?hjdiag=noperiodic` (refresh timers ≥20 s never start), `farhide`, `farflat`, `farcv` (sections >1500px from the viewport hidden / 3D-flattened / rendering skipped). For use with Safari Web Inspector (Layers, Timelines → Memory) on a connected iPhone.
