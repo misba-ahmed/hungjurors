@@ -35,6 +35,19 @@ const diagnostics=`<script id="hj-zoom-diagnostics">(function(){
   window.addEventListener('resize',stop,true);window.addEventListener('scroll',stop,true);
   window.visualViewport?.addEventListener('resize',stop);window.visualViewport?.addEventListener('scroll',stop);
  }
+ // Native scrollers become plain clipped boxes (same clip, same scroll
+ // offset, no user scrolling): 'hidescroll' always, 'zoomhide' only while
+ // the page is pinch-zoomed.
+ function scrollers(){return [...document.querySelectorAll('body *')].filter(el=>{const cs=getComputedStyle(el);return /^(auto|scroll)$/.test(cs.overflowX)||/^(auto|scroll)$/.test(cs.overflowY);});}
+ function freeze(on){
+  if(on){for(const el of scrollers()){if(el.dataset.hjDiagScroll)continue;el.dataset.hjDiagScroll='1';el.style.setProperty('overflow','hidden','important');}}
+  else document.querySelectorAll('[data-hj-diag-scroll]').forEach(el=>{delete el.dataset.hjDiagScroll;el.style.removeProperty('overflow');});
+ }
+ if(flags.has('hiderails')){const run=()=>document.querySelectorAll('.hj-section-rail,.hq-matchup-list').forEach(el=>el.style.setProperty('overflow','hidden','important'));setTimeout(run,1500);setTimeout(run,5000);setInterval(run,15000);}
+ if(flags.has('hidescroll')){const run=()=>freeze(true);setTimeout(run,1500);setTimeout(run,5000);setInterval(run,15000);}
+ if(flags.has('zoomhide')&&window.visualViewport){let zoomed=false;const check=()=>{const z=visualViewport.scale>1.01;if(z!==zoomed){zoomed=z;freeze(z);}};visualViewport.addEventListener('resize',check);window.addEventListener('touchstart',e=>{if(e.touches.length>1&&!zoomed){zoomed=true;freeze(true);}},{capture:true,passive:true});window.addEventListener('touchend',()=>setTimeout(check,400),{capture:true,passive:true});}
+ if(flags.has('novideo'))css.push('video{display:none!important}');
+ if(flags.has('pausevideo'))setInterval(()=>document.querySelectorAll('video').forEach(v=>{if(!v.paused)v.pause();}),500);
  function apply(){
   const style=document.createElement('style');style.id='hj-zoom-diagnostics-style';style.textContent=css.join('\\n');
   document.documentElement.append(style);
