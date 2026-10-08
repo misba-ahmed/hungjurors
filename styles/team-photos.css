@@ -221,6 +221,6 @@
 }
 #league-hq #league-sync-content .league-roster-head>.hj-business-card>.hj-business-crown{
  position:absolute;left:16.8%;top:22%;width:8.4cqw;height:6.5cqw;
- transform:translateX(-50%) rotate(-12deg);transform-origin:50% 85%;
+ transform:translateX(-50%) rotate(22deg);transform-origin:50% 85%;
  z-index:2;pointer-events:none;overflow:visible;
 }
