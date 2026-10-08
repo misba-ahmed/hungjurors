@@ -231,9 +231,10 @@ function hjChFigureArt(manager,key,crown=false,pose='standing'){
   return `<svg class="lms-art manager-real-art lms-ground-art" viewBox="0 0 120 240" aria-hidden="true" focusable="false"><svg x="0" y="100" width="120" height="128.914286" viewBox="${frame.x} ${frame.y} ${frame.width} ${frame.height}" overflow="hidden"><image href="/assets/managers-lms-v1/ground-seated-sad.png" x="0" y="0" width="2079" height="756"/></svg></svg>`;
  }
  const seated=pose==='seated';
+ // Isolate the crown shadow in a small image; keep its original paths and placement.
  return `<svg class="lms-art manager-real-art" viewBox="0 0 120 240" aria-hidden="true" focusable="false">
  <image href="/assets/${slug==='jarrett'?'managers-v8':'managers-v4'}/${esc(slug)}-${pose}.webp" x="0" y="${seated&&key.startsWith('lms-')?-16:0}" width="120" height="240"/>
- ${crown?`<g transform="translate(0 ${seated?23:-7})"><g class="lms-crown"><path d="M37 15 43-9 52 5 60-17 68 5 77-9 83 15Z" fill="#e6bb3f" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><path d="M37 15h46v8H37Z" fill="#f3d266" stroke="#8a6414" stroke-width="2" stroke-linejoin="round"/><circle cx="60" cy="9" r="3" fill="#b3352c"/><circle cx="47" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="73" cy="12" r="2.2" fill="#2f6f9f"/><circle cx="43" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="60" cy="-16" r="2.4" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/><circle cx="77" cy="-8" r="2.2" fill="#f3d266" stroke="#8a6414" stroke-width="1.2"/></g></g>`:''}
+ ${crown?`<image class="lms-crown" href="/assets/challenges/lineup-crown-v1.svg" x="30" y="${seated?-7:-37}" width="60" height="60"/>`:''}
  </svg>`;
 }
 function hjChLmsManagerScore(team,badge='',state=''){
@@ -410,4 +411,5 @@ function selectChallenge(id){
  selectChallenge('raffle');if(HJ_LEAGUE_STATE.data)hjRefreshChallenges(HJ_LEAGUE_STATE.data);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&HJ_LEAGUE_STATE.data)hjRefreshChallenges(HJ_LEAGUE_STATE.data)});
 }
+
 
