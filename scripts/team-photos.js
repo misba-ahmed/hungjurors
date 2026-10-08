@@ -78,7 +78,7 @@ function hjTeamPhotoAsset(entry){
  // Free agents use their regular/free-agent outfit, muted without injury equipment.
  const isFreeAgent=p.proTeamId!=null&&Number(p.proTeamId)===0;
  if(isFreeAgent)return base?{...base,isBye:false,isFreeAgent:true}:base;
- if(!base?.unavailable)return base?{...base,isBye}:base;
+ if(!base)return base;
  const status=String(p.injuryStatus||'').trim().toUpperCase().replace(/[ -]+/g,'_');
  const rosterStatus=String(typeof p.status==='object'?p.status?.type||p.status?.name||'':p.status||'').toUpperCase().replace(/[ -]+/g,'_');
  const blocked=new Set(['OUT','DOUBTFUL','QUESTIONABLE','INJURY_RESERVE','INJURED_RESERVE','IR','SUSPENSION','SUSPENDED','EXEMPT','COMMISSIONER_EXEMPT','NON_FOOTBALL_INJURY','PHYSICALLY_UNABLE_TO_PERFORM','PUP','INACTIVE']);
@@ -91,7 +91,10 @@ function hjTeamPhotoAsset(entry){
  const zeroProjection=!isBye&&projection?.appliedTotal===0;
  const unavailable=zeroProjection||p.injured===true||p.active===false||blocked.has(status)||blocked.has(rosterStatus);
  const healthy=['ACTIVE','HEALTHY','NORMAL'].includes(status)||(!status&&p.injured===false&&p.active===true);
- return healthy&&!unavailable?{...base,isBye}:{...base,...base.unavailable,isUnavailable:true,isBye};
+ // Missing alternate artwork must not suppress the unavailable tint.
+ // Only players with an alternate keep the legacy unknown-status pose fallback.
+ const showUnavailable=unavailable||(!healthy&&!!base.unavailable);
+ return showUnavailable?{...base,...(base.unavailable||{}),isUnavailable:true,isBye}:{...base,isBye};
 }
 
 function hjTeamPhotoHTML(team){

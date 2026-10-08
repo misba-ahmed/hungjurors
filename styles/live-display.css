@@ -132,3 +132,14 @@ html body .mvp-week .mvp-cards::-webkit-scrollbar{
 }
 /* Tighten the news-to-HQ gap; keep section contents and sticky behavior intact. */
 html body #league-hq{padding-top:24px!important}
+
+
+/* A BYE is short enough to stay with the name/team column on phones. */
+@media(max-width:760px){
+ html #league-hq #hq-panel-matchups .hj-player-v3:has(>.hj-game-context[title="Bye week"]){
+  grid-template-areas:"avatar identity score" "avatar game score"!important;
+ }
+ html #league-hq #hq-panel-matchups .hj-player-v3.is-right:has(>.hj-game-context[title="Bye week"]){
+  grid-template-areas:"score identity avatar" "score game avatar"!important;
+ }
+}
