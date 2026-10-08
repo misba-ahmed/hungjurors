@@ -30,7 +30,20 @@ const recapFeature='aria-label="Open ${esc(p.name)} player card"><img src="${esc
 // of JSON again; the report time still advances exactly as before.
 const injuryParse="const payload=await response.json(),rows=hjParseInjuryFeed(payload);\n  HJ_INJURY_REPORT.rows=rows;HJ_INJURY_REPORT.at=payload.timestamp||new Date().toISOString();";
 const injuryReuse="const text=await response.text(),stamp=text.match(/^\\{\"timestamp\":\"([^\"]*)\",/),body=stamp?text.slice(stamp[0].length):null;\n  if(body===null||body!==HJ_INJURY_REPORT.feedBody){const payload=JSON.parse(text),rows=hjParseInjuryFeed(payload);HJ_INJURY_REPORT.rows=rows;HJ_INJURY_REPORT.feedBody=body;HJ_INJURY_REPORT.at=payload.timestamp||new Date().toISOString();}\n  else HJ_INJURY_REPORT.at=stamp[1]||new Date().toISOString();";
+// The site's own hosted data files (advanced stats ~3 MB, projections) are
+// re-downloaded every minute but only change when the site is redeployed. When
+// the downloaded text is identical to the last one, hand back the data already
+// parsed from that exact text (callers already share one parsed object between
+// refreshes) instead of parsing it again.
+const hostedParse=" record.pending=hjDataJson(new URL(`data/${file}?v=${Math.floor(Date.now()/60000)}`,location.href).href).then(data=>{record.value=data;record.at=Date.now();return data}).finally(()=>{record.pending=null;});";
+const hostedReuse="record.pending=hjDataText(new URL(`data/${file}?v=${Math.floor(Date.now()/60000)}`,location.href).href).then(text=>{if(record.value!==undefined&&record.text===text){record.at=Date.now();return record.value}const data=JSON.parse(text);record.value=data;record.text=text;record.at=Date.now();return data}).finally(()=>{record.pending=null;});";
+const dataJson="async function hjDataJson(url,options={}){";
+const dataText="async function hjDataText(url,options={}){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);try{const response=await fetch(url,{...options,credentials:'omit',cache:'no-store',signal:controller.signal});if(!response.ok)throw Error(`Data request failed (${response.status})`);return await response.text()}finally{clearTimeout(timer)}}\n";
 export function preparePhoneMemory(html){
+ if(html.split(hostedParse).length!==2)throw Error('Hosted data loader changed; review hosted reuse');
+ html=html.replace(hostedParse,()=>hostedReuse);
+ if(html.split(dataJson).length!==2)throw Error('Data loader changed; review hosted reuse');
+ html=html.replace(dataJson,()=>dataText+dataJson);
  if(html.split(injuryParse).length!==2)throw Error('Injury refresh source changed; review feed reuse');
  html=html.replace(injuryParse,()=>injuryReuse);
  const before=(html.match(literal)||[]).length;
