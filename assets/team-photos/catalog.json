@@ -89,6 +89,16 @@
     "teamId": 6,
     "jersey": "4"
   },
+  "2578570": {
+    "file": "2578570-faces-v1.webp",
+    "width": 331,
+    "height": 850,
+    "ratio": 0.38941,
+    "heightInches": 76,
+    "name": "Jacoby Brissett",
+    "teamId": 22,
+    "jersey": "7"
+  },
   "2971573": {
     "file": "2971573-faces-v2.webp",
     "width": 321,
@@ -556,7 +566,13 @@
     "heightInches": 76,
     "name": "Tee Higgins",
     "teamId": 4,
-    "jersey": "5"
+    "jersey": "5",
+    "unavailable": {
+      "file": "4239993-crutches-v1.webp",
+      "width": 332,
+      "height": 850,
+      "ratio": 0.39059
+    }
   },
   "4239996": {
     "file": "4239996-faces-v2.webp",

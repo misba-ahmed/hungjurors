@@ -53,6 +53,12 @@
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/2577417?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:37.907Z"
   },
+  "2578570": {
+    "name": "Jacoby Brissett",
+    "heightInches": 76,
+    "source": "https://site.api.espn.com/apis/common/v3/sports/football/nfl/athletes/2578570",
+    "checkedAt": "2026-10-08"
+  },
   "2971573": {
     "name": "Ka'imi Fairbairn",
     "heightInches": 72,
