@@ -1,7 +1,13 @@
 name: Verify every challenge zoom
 on:
   push:
-    branches: [repair-challenge-zoom]
+    branches: [main, repair-challenge-zoom]
+    paths:
+      - scripts/challenge-live.js
+      - styles/season-challenges.css
+      - assets/challenges/**
+      - scripts/test-challenge-zoom*.mjs
+      - .github/workflows/test-challenge-zoom.yml
   workflow_dispatch:
 permissions:
   contents: read
@@ -11,8 +17,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
-        with:
-          fetch-depth: 3
+      - run: git fetch --no-tags --depth=1 origin c8a270fa22e7a0d37df9617e020ad147d0edbd12
       - uses: actions/setup-node@v6
         with:
           node-version: '24'

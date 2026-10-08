@@ -1,0 +1,9 @@
+# Challenge graphic zoom
+
+On October 8, the user reported that Highest Scorer and Last Man Standing zoom correctly, while the other four challenge graphics crash the phone browser when using their zoom button or double tap. All six use the same zoom controller. The four reported failures share the crowned SVG figure; raffle has the leader glow but no crown, and LMS has neither.
+
+The targeted change keeps the existing manager images, crown paths, positions, colors, leader glow, bars, pedestals, bench, animations and zoom controller. It moves the crown's small shadow into `assets/challenges/lineup-crown-v1.svg`, a self-contained SVG image with an explicit 60-by-60 filter region. The manager SVG embeds that image at the original crown coordinates instead of hosting another live filtered SVG group inside the filtered manager. Standing placement remains a -7-unit translation; seated placement remains +23. No manager asset pixels or proportions change.
+
+The rendering change targets the specific difference in the user's report. Headless browser results do not establish that it resolves the physical iPhone crash. Do not describe an unreproduced phone crash as fixed based on these tests.
+
+`scripts/test-challenge-zoom.mjs` exercises the actual renderers and artwork for every challenge, repeatedly zooms and fits, double taps, and compares desktop/mobile geometry and pixels against the pre-change version when `CHALLENGE_ZOOM_BASELINE` is supplied. Its deterministic scores are test fixtures, never published league records. Process RSS is diagnostic Linux runner data, not iPhone memory usage. `scripts/test-challenge-zoom-site.mjs` exercises all six windows within the complete prepared page and verifies that graphic zoom retains the selected challenge. Wait for the actual final width rather than assuming a fixed delay means the transition finished. Run the existing challenge scoring tests too.

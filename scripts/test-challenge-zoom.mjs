@@ -41,18 +41,18 @@ for(const engine of [webkit,chromium]){
   const startRss=rss();let peakRss=startRss;
   for(let i=0;i<5;i++){
    await page.getByRole('button',{name:'Zoom in on lineup',exact:true}).tap();
-   await page.waitForTimeout(600);
+   await page.waitForFunction(()=>Math.abs(document.querySelector('.lineup').getBoundingClientRect().width-800)<.1,{},{timeout:10000});
    assert.equal(await page.locator('.lms-view').evaluate(e=>e.classList.contains('is-fit')),false);
    assert.equal(await page.locator('.lineup').evaluate(e=>Math.round(e.getBoundingClientRect().width)),800);
    peakRss=Math.max(peakRss||0,rss()||0);
    if(i===0)await page.screenshot({path:`gesture-proof/${engine.name()}-${kind}-detail.png`});
    await page.getByRole('button',{name:'Show entire lineup',exact:true}).tap();
-   await page.waitForTimeout(600);
+   await page.waitForFunction(()=>Math.abs(document.querySelector('.lineup').getBoundingClientRect().width-document.querySelector('.lms-stage').clientWidth)<.1,{},{timeout:10000});
    assert.equal(await page.locator('.lms-view').evaluate(e=>e.classList.contains('is-fit')),true);
   }
   const stage=page.locator('.lms-stage'),box=await stage.boundingBox();
   await page.touchscreen.tap(box.x+box.width/2,box.y+25);await page.waitForTimeout(80);await page.touchscreen.tap(box.x+box.width/2,box.y+25);
-  await page.waitForTimeout(600);
+  await page.waitForFunction(()=>Math.abs(document.querySelector('.lineup').getBoundingClientRect().width-800)<.1,{},{timeout:10000});
   assert.equal(await page.locator('.lms-view').evaluate(e=>e.classList.contains('is-fit')),false,kind+' double tap');
   const details=await page.evaluate(()=>({crowns:document.querySelectorAll('.lms-crown').length,filters:[...document.querySelectorAll('.lms-view *')].filter(e=>getComputedStyle(e).filter!=='none').map(e=>({tag:e.tagName,cls:e.getAttribute('class'),filter:getComputedStyle(e).filter})),height:document.querySelector('.lms-stage').clientHeight}));
   console.log('ZOOM_PROOF',JSON.stringify({engine:engine.name(),kind,startRssKB:startRss,peakRssKB:peakRss,...details}));

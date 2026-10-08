@@ -19,14 +19,17 @@ for(const engine of [chromium,webkit]){
    await page.waitForTimeout(1300);
    const count=await page.locator('#challenge-out .lineup-figure').count();assert.equal(count,10);
    for(let i=0;i<3;i++){
-    await page.locator('#challenge-out [data-lms-zoom="detail"]').tap();await page.waitForTimeout(650);
+    await page.locator('#challenge-out [data-lms-zoom="detail"]').tap();
+    await page.waitForFunction(()=>Math.abs(document.querySelector('#challenge-out .lineup').getBoundingClientRect().width-800)<.1,{},{timeout:10000});
     assert.equal(await page.locator('#challenge-out .lineup').evaluate(e=>Math.round(e.getBoundingClientRect().width)),800);
-    await page.locator('#challenge-out [data-lms-zoom="fit"]').tap();await page.waitForTimeout(650);
+    await page.locator('#challenge-out [data-lms-zoom="fit"]').tap();
+    await page.waitForFunction(()=>Math.abs(document.querySelector('#challenge-out .lineup').getBoundingClientRect().width-document.querySelector('#challenge-out .lms-stage').clientWidth)<.1,{},{timeout:10000});
     assert(await page.locator('#challenge-out .lineup').evaluate(e=>e.getBoundingClientRect().width<390));
    }
    const stage=page.locator('#challenge-out .lms-stage');await stage.scrollIntoViewIfNeeded();
    const box=await stage.boundingBox(),x=box.x+box.width/2,y=Math.max(box.y+25,80);
-   await page.touchscreen.tap(x,y);await page.waitForTimeout(80);await page.touchscreen.tap(x,y);await page.waitForTimeout(650);
+   await page.touchscreen.tap(x,y);await page.waitForTimeout(80);await page.touchscreen.tap(x,y);
+   await page.waitForFunction(()=>Math.abs(document.querySelector('#challenge-out .lineup').getBoundingClientRect().width-800)<.1,{},{timeout:10000});
    assert.equal(await page.locator('#challenge-out .lms-view').evaluate(e=>e.classList.contains('is-fit')),false,kind+' double tap on prepared site');
    assert.equal(await page.locator('#challenge-strip [aria-selected="true"]').getAttribute('data-challenge'),kind);
    console.log('PASS_SITE_ZOOM',engine.name(),kind);
