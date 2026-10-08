@@ -1,0 +1,24 @@
+name: Verify every challenge zoom
+on:
+  push:
+    branches: [repair-challenge-zoom]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  challenge-zoom:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright
+      - run: npx playwright install chromium webkit --with-deps
+      - run: node scripts/test-challenge-zoom.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: challenge-zoom-proof
+          path: gesture-proof/
