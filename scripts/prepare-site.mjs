@@ -1,3 +1,4 @@
+import {preparePffReliability} from './prepare-pff-reliability.mjs';
 import {prepareCardGestures} from './prepare-card-gestures.mjs';
 import {prepareManagerAvatars} from './prepare-manager-avatars.mjs';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
@@ -58,6 +59,7 @@ export function prepareSite(html){
   "ctx.putImageData(pixels,0,0);folderURL=canvas.toDataURL('image/png');canvas.width=canvas.height=0;");
  html=prepareCardGestures(html);
  html=preparePlayerStatBars(html);
+ html=preparePffReliability(html);
  html=prepareDefenseFantasyRanks(html);
  html=extractSiteArtwork(html).html;
 

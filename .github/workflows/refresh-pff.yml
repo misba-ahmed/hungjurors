@@ -443,6 +443,14 @@ jobs:
            await Promise.all(Array.from({length:4},worker));
            const count=Object.keys(result.players).length;
            if(failed||count<Math.ceil(ids.length*.8))throw Error(`PFF refresh incomplete (${count}/${ids.length}); keeping the previous deployment`);
+           // A failed individual fetch must not erase a previously verified season grade.
+           // Preserve the original checkedAt; the UI identifies delayed refreshes.
+           for(const id of ids){
+            if(result.players[id]&&result.players[id].status!=='source-unavailable')continue;
+            const row=previous?.players?.[id],entry=players[id];
+            if(previous?.schema!==1||previous.season!==season||row?.schema!==4||String(row.espnId)!==id||String(row.pffId)!==String(entry.pffId)||row.season!==season||row.source!==(entry.kind==='team'?'pff-public-team':'pff-public-profile')||row.status!=='available'||!Number.isFinite(row.grade)||row.grade<0||row.grade>100||!Number.isFinite(row.checkedAt)||row.checkedAt>now()+60000||now()-row.checkedAt>=7*86400000)continue;
+            result.players[id]=row;
+           }
            result.generatedAt=now();
            console.log(`PFF refresh: ${count} checked players, ${Object.keys(result.errors).length} unavailable.`);
            return result;
