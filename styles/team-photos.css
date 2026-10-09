@@ -232,7 +232,7 @@
   .23cqw .32cqw .24cqw rgba(57,43,23,.18)!important;
 }
 #league-hq #league-sync-content .league-roster-head>.hj-business-card>.hj-business-crown{
- position:absolute;left:19%;top:22%;width:9cqw;height:6.5cqw;
- transform:rotate(28deg);transform-origin:center;
+ position:absolute;left:18.6%;top:22.7%;width:9cqw;height:6.5cqw;
+ transform:rotate(34deg);transform-origin:center;
  z-index:2;pointer-events:none;overflow:visible;
 }
