@@ -31,19 +31,79 @@
       put(byName,hj40SleeperNameKey(row.position,row.name),row);
       if(row.position==='D/ST')put(byTeam,pcTeam(row.team),row);
     }
+    if(HJ40_SLEEPER.data?.generatedAt>feed.generatedAt)return;
     HJ40_SLEEPER.data=feed;HJ40_SLEEPER.byId=byId;HJ40_SLEEPER.byName=byName;HJ40_SLEEPER.byTeam=byTeam;
   }
+  async function hj40SleeperJSON(url){
+    const response=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(12000)});
+    if(!response.ok)throw Error('Sleeper trends HTTP '+response.status);
+    return response.json();
+  }
+  async function hj40LiveSleeperFeed(){
+    const positions=new Set(['QB','RB','WR','TE','K','D/ST']);
+    const pos=value=>value==='DEF'||value==='DST'?'D/ST':String(value||'').toUpperCase();
+    const validMap=map=>map?.schema===1&&map.source==='Sleeper'&&Array.isArray(map.players)&&map.players.length>=100&&Number.isFinite(map.generatedAt)&&map.generatedAt<=Date.now()+60000&&Date.now()-map.generatedAt<86400000;
+    async function fullMap(){
+      const raw=await hj40SleeperJSON('https://api.sleeper.app/v1/players/nfl');
+      if(!raw||Array.isArray(raw)||typeof raw!=='object')throw Error('Invalid Sleeper player map');
+      const players=[],ignoredIds=[];
+      for(const [id,p] of Object.entries(raw)){
+        const key=String(p.player_id||id),position=pos(p.position);
+        if(!positions.has(position)){ignoredIds.push(key);continue}
+        players.push({id:key,espnId:p.espn_id==null?'':String(p.espn_id),name:p.full_name||[p.first_name,p.last_name].filter(Boolean).join(' ')||p.team||id,position,team:p.team||id});
+      }
+      const map={schema:1,source:'Sleeper',generatedAt:Date.now(),players,ignoredIds};
+      if(!validMap(map))throw Error('Incomplete Sleeper player map');
+      HJ40_SLEEPER.playerMap=map;return map;
+    }
+    async function playerMap(){
+      if(validMap(HJ40_SLEEPER.playerMap))return HJ40_SLEEPER.playerMap;
+      try{
+        const map=await hj40SleeperJSON('/data/sleeper-player-map.json');
+        if(validMap(map)){HJ40_SLEEPER.playerMap=map;return map}
+      }catch(_){}
+      return fullMap();
+    }
+    function counts(rows){
+      if(!Array.isArray(rows)||rows.length>=10000)throw Error('Incomplete Sleeper trends');
+      const result=new Map();
+      for(const row of rows){
+        const id=String(row?.player_id||'');
+        if(!id||result.has(id)||!Number.isSafeInteger(row.count)||row.count<0)throw Error('Invalid Sleeper trend count');
+        result.set(id,row.count);
+      }
+      return result;
+    }
+    const [initialMap,adds,drops]=await Promise.all([playerMap(),
+      hj40SleeperJSON('https://api.sleeper.app/v1/players/nfl/trending/add?lookback_hours=24&limit=10000'),
+      hj40SleeperJSON('https://api.sleeper.app/v1/players/nfl/trending/drop?lookback_hours=24&limit=10000')]);
+    const a=counts(adds),d=counts(drops);
+    let map=initialMap;
+    const missing=()=>{
+      const known=new Set([...map.players.map(p=>p.id),...(map.ignoredIds||[])]);
+      return [...a.keys(),...d.keys()].some(id=>!known.has(id));
+    };
+    if(missing())map=await fullMap();
+    if(missing())throw Error('Sleeper trends contain unmapped players');
+    return {schema:1,source:'Sleeper',lookbackHours:24,generatedAt:Date.now(),
+      players:map.players.map(p=>({...p,adds:a.get(p.id)||0,drops:d.get(p.id)||0,net:(a.get(p.id)||0)-(d.get(p.id)||0)}))};
+  }
   async function hj40RefreshSleeper(){
-    if(HJ_HQ_STATE.activeTab!=='free-agents'||document.hidden||HJ40_SLEEPER.pending||Date.now()-HJ40_SLEEPER.lastAttempt<5*60000)return;
+    if(HJ_HQ_STATE.activeTab!=='free-agents'||document.hidden||HJ40_SLEEPER.pending||Date.now()-HJ40_SLEEPER.lastAttempt<(HJ40_SLEEPER.retryDelay||60000))return;
     HJ40_SLEEPER.lastAttempt=Date.now();
     HJ40_SLEEPER.pending=(async()=>{
       try{
-        const response=await fetch('/data/sleeper-trends.json',{cache:'no-store',signal:AbortSignal.timeout(10000)});
-        if(!response.ok)throw Error('Sleeper trends HTTP '+response.status);
-        const feed=await response.json(),changed=feed.generatedAt!==HJ40_SLEEPER.data?.generatedAt;
-        hj40SetSleeperFeed(feed);
-        if(changed)hj40RefreshExtraMetrics();
+        const previousAt=HJ40_SLEEPER.data?.generatedAt;
+        try{
+          hj40SetSleeperFeed(await hj40SleeperJSON('/data/sleeper-trends.json'));
+        }catch(_){
+          // Refresh from the source when scheduled publishing is delayed or unavailable.
+          hj40SetSleeperFeed(await hj40LiveSleeperFeed());
+        }
+        HJ40_SLEEPER.retryDelay=5*60000;
+        if(HJ40_SLEEPER.data.generatedAt!==previousAt)hj40RefreshExtraMetrics();
       }catch(error){
+        HJ40_SLEEPER.retryDelay=60000;
         if(HJ40_SLEEPER.data&&Date.now()-HJ40_SLEEPER.data.generatedAt>2*3600000){HJ40_SLEEPER.data=null;hj40RefreshExtraMetrics()}
         console.warn('Sleeper trends unavailable',error);
       }finally{HJ40_SLEEPER.pending=null}
@@ -139,8 +199,8 @@
     return context+'Sort by '+label+': '+next;
   }
   function hj40RefreshExtraMetrics(){
-    if(HJ_HQ_STATE.activeTab!=='free-agents')return;
     HJ40.snapshotCache.clear();
+    if(HJ_HQ_STATE.activeTab!=='free-agents')return;
     if(['rostPct','startPct','trend','oppRank'].includes(HJ40.statSort)){
       hjRenderPlayerDirectory(false);return;
     }
