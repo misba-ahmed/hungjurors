@@ -921,7 +921,7 @@
     "jersey": "1"
   },
   "4366031": {
-    "file": "4366031-faces-v1.webp",
+    "file": "4366031-faces-v2.webp",
     "width": 301,
     "height": 850,
     "ratio": 0.35412,
@@ -930,10 +930,10 @@
     "teamId": 34,
     "jersey": "1",
     "unavailable": {
-      "file": "4366031-crutches-v1.webp",
-      "width": 304,
+      "file": "4366031-crutches-v2.webp",
+      "width": 305,
       "height": 850,
-      "ratio": 0.35765,
+      "ratio": 0.35882,
       "kind": "injury"
     }
   },
