@@ -914,7 +914,14 @@
     "heightInches": 70,
     "name": "Tank Dell",
     "teamId": 34,
-    "jersey": "1"
+    "jersey": "1",
+    "unavailable": {
+      "file": "4366031-crutches-v1.webp",
+      "width": 304,
+      "height": 850,
+      "ratio": 0.35765,
+      "kind": "injury"
+    }
   },
   "4371733": {
     "file": "4371733-faces-v2.webp",
