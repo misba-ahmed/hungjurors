@@ -127,7 +127,14 @@
     "heightInches": 72,
     "name": "Stefon Diggs",
     "teamId": 28,
-    "jersey": "3"
+    "jersey": "3",
+    "unavailable": {
+      "file": "2976212-crutches-v1.webp",
+      "width": 332,
+      "height": 850,
+      "ratio": 0.39059,
+      "kind": "injury"
+    }
   },
   "3040151": {
     "file": "3040151-faces-v2.webp",
@@ -321,7 +328,14 @@
     "heightInches": 72,
     "name": "DJ Moore",
     "teamId": 2,
-    "jersey": "2"
+    "jersey": "2",
+    "unavailable": {
+      "file": "3915416-crutches-v1.webp",
+      "width": 333,
+      "height": 850,
+      "ratio": 0.39176,
+      "kind": "injury"
+    }
   },
   "3915511": {
     "file": "3915511-faces-v2.webp",
@@ -1109,7 +1123,14 @@
     "heightInches": 74,
     "name": "Quentin Johnston",
     "teamId": 24,
-    "jersey": "1"
+    "jersey": "1",
+    "unavailable": {
+      "file": "4429025-crutches-v1.webp",
+      "width": 324,
+      "height": 850,
+      "ratio": 0.38118,
+      "kind": "injury"
+    }
   },
   "4429086": {
     "file": "4429086-faces-v2.webp",
@@ -1345,6 +1366,16 @@
     "teamId": 12,
     "jersey": "9"
   },
+  "4567104": {
+    "file": "4567104-faces-v1.webp",
+    "width": 316,
+    "height": 850,
+    "ratio": 0.37176,
+    "heightInches": 73,
+    "name": "Will Reichard",
+    "teamId": 16,
+    "jersey": "16"
+  },
   "4567750": {
     "file": "4567750-faces-v2.webp",
     "width": 314,
@@ -1500,7 +1531,14 @@
     "heightInches": 68,
     "name": "Kyle Monangai",
     "teamId": 3,
-    "jersey": "25"
+    "jersey": "25",
+    "unavailable": {
+      "file": "4608686-crutches-v1.webp",
+      "width": 357,
+      "height": 850,
+      "ratio": 0.42,
+      "kind": "injury"
+    }
   },
   "4612826": {
     "file": "4612826-faces-v2.webp",

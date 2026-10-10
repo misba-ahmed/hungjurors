@@ -719,6 +719,12 @@
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4567048?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.233Z"
   },
+  "4567104": {
+    "name": "Will Reichard",
+    "heightInches": 73,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4567104?lang=en&region=us",
+    "checkedAt": "2026-10-10T01:19:45.490Z"
+  },
   "4567750": {
     "name": "Emeka Egbuka",
     "heightInches": 73,
