@@ -485,6 +485,12 @@
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4362628?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.161Z"
   },
+  "4366031": {
+    "name": "Tank Dell",
+    "heightInches": 70,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4366031?lang=en&region=us",
+    "checkedAt": "2026-10-10T00:28:07.842Z"
+  },
   "4371733": {
     "name": "Kenny Gainwell",
     "heightInches": 69,
