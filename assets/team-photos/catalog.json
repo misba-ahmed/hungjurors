@@ -1343,11 +1343,12 @@
     "teamId": 22,
     "jersey": "18",
     "unavailable": {
-      "file": "4432708-crutches-v1.webp",
-      "width": 326,
+      "file": "4432708-moving-day-v1.webp",
+      "width": 323,
       "height": 850,
-      "ratio": 0.38353,
-      "kind": "injury"
+      "ratio": 0.38,
+      "kind": "trade",
+      "teamId": 34
     }
   },
   "4432710": {
