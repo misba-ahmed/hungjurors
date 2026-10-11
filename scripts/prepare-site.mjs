@@ -1,3 +1,4 @@
+const livePossession=readFileSync(new URL('./live-possession.js',import.meta.url),'utf8');
 import {prepareProfileScoreColors} from './prepare-profile-score-colors.mjs';
 import {preparePffReliability} from './prepare-pff-reliability.mjs';
 import {prepareCardGestures} from './prepare-card-gestures.mjs';
@@ -44,6 +45,8 @@ function replaceOnce(html,pattern,replacement){
 }
 const folderArtwork=readFileSync(new URL('./folder-artwork.js',import.meta.url),'utf8');
 export function prepareSite(html){
+ html=replaceOnce(html,/function nflGameFromEspn\(event,period\)\{/g,livePossession+'\nfunction nflGameFromEspn(event,period){');
+ html=replaceOnce(html,/    nflWriteScheduleCache\(period,NFL_WEEK1\);/g,'    nflWriteScheduleCache(period,NFL_WEEK1);\n    window.hjUpdateLivePossession?.(data,period);');
  // Phone rendering load: compositor-only loops, quiet countdown, sized logo.
  html=prepareRenderStability(html);
  // Opt-in (?hjdiag=...) physical-iPhone crash bisection; inert otherwise.
