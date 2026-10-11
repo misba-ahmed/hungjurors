@@ -407,7 +407,12 @@ function hjTeamPhotoHTML(team){
  requestAnimationFrame(window.hjAlignMatchupCameras);
  function snapshot(card){
   const origin=card.getBoundingClientRect(),ops=[];
-  const box=r=>({x:r.left-origin.left,y:r.top-origin.top,w:r.width,h:r.height});
+  const actions=card.querySelector('.hj-matchup-actions'),firstRow=card.querySelector('.hj-lineup-v2-row,.hq-lineup-row');
+  const cutStart=actions?actions.getBoundingClientRect().top-origin.top:0;
+  const cutEnd=actions&&firstRow?firstRow.getBoundingClientRect().top-origin.top:cutStart;
+  const cutHeight=Math.max(0,cutEnd-cutStart);
+  const compress=y=>y>=cutEnd?y-cutHeight:y>cutStart?cutStart:y;
+  const box=r=>({x:r.left-origin.left,y:compress(r.top-origin.top),w:r.width,h:compress(r.bottom-origin.top)-compress(r.top-origin.top)});
   function radius(css,r){const v=parseFloat(css.borderTopLeftRadius)||0;return css.borderTopLeftRadius.includes('%')?Math.min(r.width,r.height)*v/100:v;}
   function walk(node,clips=[],opacity=1){
    if(node.nodeType===3){
@@ -417,10 +422,10 @@ function hjTeamPhotoHTML(team){
      range.setStart(node,match.index);range.setEnd(node,match.index+match[0].length);
      const r=range.getBoundingClientRect();if(!r.width||!r.height)continue;
      let value=match[0];if(css.textTransform==='uppercase')value=value.toUpperCase();else if(css.textTransform==='lowercase')value=value.toLowerCase();
-     ops.push({type:'text',...box(r),value,font:css.font,color:css.color,letterSpacing:css.letterSpacing,clips,opacity});
+     ops.push({type:'text',...box(r),value,font:css.fontStyle+' '+css.fontWeight+' '+css.fontSize+' '+css.fontFamily,color:css.color,letterSpacing:css.letterSpacing,clips,opacity});
     }return;
    }
-   if(node.nodeType!==1||node.matches('script,style,.hj-matchup-camera'))return;
+   if(node.nodeType!==1||node.matches('script,style,.hj-matchup-actions,.hj-matchup-camera'))return;
    const css=getComputedStyle(node),r=node.getBoundingClientRect();
    if(css.display==='none'||css.visibility==='hidden'||!r.width||!r.height)return;
    opacity*=Number(css.opacity);if(!opacity)return;
@@ -436,7 +441,7 @@ function hjTeamPhotoHTML(team){
   const rows=card.querySelectorAll('.hj-lineup-v2-row,.hq-lineup-row');
   if(!rows.length)throw Error('No matchup rows');
   const names=[...card.querySelectorAll('.hq-match-team-name')].map(n=>n.textContent.trim());
-  return {ops,width:Math.ceil(origin.width),height:Math.ceil(Math.max(origin.height,...[...rows].map(n=>n.getBoundingClientRect().bottom-origin.top))),title:names.join(' vs ')+' · Week '+card.dataset.hqMatchupKey?.split(':')[0]};
+  return {ops,width:Math.ceil(origin.width),height:Math.ceil(Math.max(origin.height,...[...rows].map(n=>n.getBoundingClientRect().bottom-origin.top))-cutHeight),title:names.join(' vs ')+' · Week '+card.dataset.hqMatchupKey?.split(':')[0]};
  }
  async function render(data,canceled){
   const canvas=document.createElement('canvas'),scale=Math.min(2,Math.sqrt(3500000/(data.width*data.height)),8000/data.height);
