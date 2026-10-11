@@ -1382,10 +1382,10 @@
     "jersey": "9"
   },
   "4567104": {
-    "file": "4567104-faces-v1.webp",
-    "width": 316,
+    "file": "4567104-faces-v2.webp",
+    "width": 311,
     "height": 850,
-    "ratio": 0.37176,
+    "ratio": 0.36588,
     "heightInches": 73,
     "name": "Will Reichard",
     "teamId": 16,
@@ -1565,10 +1565,10 @@
     "teamId": 24,
     "jersey": "15",
     "unavailable": {
-      "file": "4612826-crutches-v1.webp",
-      "width": 325,
+      "file": "4612826-crutches-v2.webp",
+      "width": 326,
       "height": 850,
-      "ratio": 0.38235,
+      "ratio": 0.38353,
       "kind": "injury"
     }
   },
