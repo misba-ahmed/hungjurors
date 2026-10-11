@@ -1,3 +1,4 @@
+import {prepareProfileScoreColors} from './prepare-profile-score-colors.mjs';
 import {preparePffReliability} from './prepare-pff-reliability.mjs';
 import {prepareCardGestures} from './prepare-card-gestures.mjs';
 import {prepareManagerAvatars} from './prepare-manager-avatars.mjs';
@@ -195,6 +196,7 @@ function hjRefreshGameContexts(){`);
  html=replaceOnce(html,/if\(!HJ_HQ_STATE.matchupWeek\|\|Number\(HJ_HQ_STATE.matchupWeek\)===old\)HJ_HQ_STATE.matchupWeek=week;/g,'if(!HJ_HQ_STATE.matchupWeek||Number(HJ_HQ_STATE.matchupWeek)===old)HJ_HQ_STATE.matchupWeek=0;');
  html=replaceOnce(html,/if\(tab==='matchups'&&focusTeamId\)\{HJ_HQ_STATE.matchupWeek=hjCurrentWeek\(HJ_LEAGUE_STATE.data\);/g,"if(tab==='matchups'&&focusTeamId){HJ_HQ_STATE.matchupWeek=0;");
  html=prepareLiveDisplay(html);
+ html=prepareProfileScoreColors(html);
  html=replaceOnce(html,/function hjTeamViewHTML\(team,data\)\{/g,'const HJ_DST_MASCOTS='+dstMascots+';\nconst HJ_TEAM_PHOTO_ASSETS='+teamPhotoAssets+';\n'+byeStatus+'\n'+teamPhotoScript+'\nfunction hjTeamViewHTML(team,data){');
  const rosterHead='<div class="league-roster-head">${identity}${matchupHTML}</div>';
  if(!html.includes(rosterHead))throw Error('Roster header changed');
