@@ -125,6 +125,7 @@ function hjTeamPhotoHTML(team){
   if(!showFrame)showFrame=requestAnimationFrame(()=>{showFrame=0;const next=pendingShow;pendingShow=null;if(next)show(next.button,next.mode);});
  }
  function cancelShow(){cancelAnimationFrame(showFrame);showFrame=0;pendingShow=null;}
+ document.addEventListener('hj:save-team-photo',()=>{cancelShow();gesture=null;ignoreClickUntil=Date.now()+1000;});
  const groupOf=target=>target instanceof Element?target.closest(groupSelector):null;
  const players=group=>Array.from(group.querySelectorAll(selector));
  function clear(){
@@ -301,3 +302,83 @@ function hjTeamPhotoHTML(team){
 
 
 
+
+// Compose only on explicit request; no cached canvases or background rendering.
+(function(){
+ let hold=null,dialog=null,objectURL=null,serial=0,suppressClickUntil=0;
+ const groupOf=target=>target instanceof Element?target.closest('.hj-team-photo'):null;
+ function cancelHold(){if(hold)clearTimeout(hold.timer);hold=null;}
+ function close(){serial++;if(dialog){dialog.close();dialog.remove();dialog=null;}if(objectURL){URL.revokeObjectURL(objectURL);objectURL=null;}}
+ async function open(group){
+  if(dialog)return;
+  cancelHold();suppressClickUntil=Date.now()+1000;
+  document.dispatchEvent(new Event('hj:save-team-photo'));
+  const stage=group.querySelector('.hj-team-photo-stage');
+  const rows=Array.from(stage.querySelectorAll('.hj-team-photo-player')).map(el=>({
+   src:el.querySelector('img').src,left:parseFloat(el.style.left)/100,
+   width:parseFloat(el.style.width)/100,height:parseFloat(el.style.height)/100,
+   layer:Number(el.style.getPropertyValue('--player-layer'))+(el.classList.contains('is-starter')?30:0),
+   starter:el.classList.contains('is-starter'),muted:el.classList.contains('is-unavailable'),portrait:el.classList.contains('is-portrait')
+  })).sort((a,b)=>a.layer-b.layer);
+  const ratio=stage.style.aspectRatio.split('/').map(Number),aspect=ratio[0]/ratio[1];
+  const manager=group.closest('.league-roster-head')?.querySelector('.league-roster-name')?.textContent.trim()||'Team';
+  const filename=manager.replace(/[^a-z0-9_-]+/gi,'-').toLowerCase()+'-lineup.png';
+  const token=++serial,d=document.createElement('dialog');dialog=d;
+  d.setAttribute('aria-label',manager+' lineup image');
+  d.style.cssText='width:min(960px,94vw);max-height:90vh;box-sizing:border-box;padding:18px;border:2px solid #b88a2a;border-radius:12px;background:#f6f2e5;color:#16354c;overflow:auto';
+  const bar=document.createElement('div');bar.style.cssText='display:flex;align-items:center;gap:12px;margin-bottom:12px';
+  const title=document.createElement('strong');title.textContent=manager+' lineup';title.style.flex='1';
+  const dismiss=document.createElement('button');dismiss.textContent='Close';dismiss.type='button';dismiss.onclick=close;
+  const status=document.createElement('p');status.textContent='Creating image…';status.setAttribute('role','status');
+  bar.append(title,dismiss);d.append(bar,status);document.body.append(d);d.showModal();
+  d.addEventListener('cancel',event=>{event.preventDefault();close();});
+  let canvas;
+  try{
+   canvas=document.createElement('canvas');
+   canvas.width=Math.min(2800,Math.round(900*aspect));canvas.height=Math.round(canvas.width/aspect)+32;
+   const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height-32;
+   ctx.fillStyle='#f8edd6';ctx.fillRect(0,0,w,canvas.height);
+   for(const row of rows){
+    if(token!==serial)return;
+    const img=new Image();img.crossOrigin='anonymous';img.src=row.src;
+    await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Image timeout')),15000);img.onload=()=>{clearTimeout(timer);resolve();};img.onerror=()=>{clearTimeout(timer);reject(Error('Image unavailable'));};if(img.complete&&img.naturalWidth){clearTimeout(timer);resolve();}});
+    if(token!==serial)return;
+    const scale=row.starter?1.05:1,bw=row.width*w*scale,bh=row.height*h*scale;
+    const boxW=row.width*w,x=row.left*w+(boxW-bw)/2,bottom=16+h*.985+(row.starter?2:0);
+    const fit=Math.min(bw/img.naturalWidth,(row.portrait?bh*.42:bh)/img.naturalHeight),dw=img.naturalWidth*fit,dh=img.naturalHeight*fit;
+    const dx=x+(bw-dw)/2,dy=row.portrait?bottom-bh+bh*.08:bottom-dh;
+    // A small temporary layer provides the same muted treatment in Safari too.
+    const layer=document.createElement('canvas');layer.width=Math.max(1,Math.ceil(dw));layer.height=Math.max(1,Math.ceil(dh));
+    try{
+     const lc=layer.getContext('2d');lc.drawImage(img,0,0,layer.width,layer.height);
+     if(row.muted){const data=lc.getImageData(0,0,layer.width,layer.height),p=data.data;for(let i=0;i<p.length;i+=4){const l=.2126*p[i]+.7152*p[i+1]+.0722*p[i+2];for(let j=0;j<3;j++)p[i+j]=((l+(p[i+j]-l)*.28)-127.5)*.94+127.5;}lc.putImageData(data,0,0);}
+     ctx.save();if(row.starter){ctx.shadowColor='#d9a93f';ctx.shadowBlur=8;}ctx.drawImage(layer,dx,dy,dw,dh);ctx.restore();
+    }finally{layer.width=layer.height=0;}
+   }
+   const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Image unavailable')),'image/png'));
+   if(token!==serial)return;
+   objectURL=URL.createObjectURL(blob);
+   const image=document.createElement('img');image.src=objectURL;image.alt=manager+' entire lineup';image.style.cssText='display:block;width:100%;height:auto;-webkit-touch-callout:default;user-select:auto;touch-action:auto';
+   status.textContent='Hold the image to save to Photos, or use Save image.';
+   const save=document.createElement('button');save.type='button';save.textContent='Save image';
+   save.onclick=async()=>{
+    const file=new File([blob],filename,{type:'image/png'});
+    if(navigator.canShare?.({files:[file]}))try{await navigator.share({files:[file],title:manager+' lineup'});return;}catch(error){if(error.name==='AbortError')return;}
+    const a=document.createElement('a');a.href=objectURL;a.download=filename;d.append(a);a.click();a.remove();
+   };
+   bar.insertBefore(save,dismiss);d.insertBefore(image,status);
+  }catch(error){if(token===serial)status.textContent='Could not create the lineup image. Please close and try again.';}
+  finally{if(canvas)canvas.width=canvas.height=0;}
+ }
+ document.addEventListener('contextmenu',event=>{const group=groupOf(event.target);if(!group||event.target.closest('.hj-team-photo-name'))return;event.preventDefault();open(group);});
+ document.addEventListener('pointerdown',event=>{
+  cancelHold();if(event.pointerType==='mouse'||event.isPrimary===false)return;
+  const group=groupOf(event.target);if(!group||event.target.closest('.hj-team-photo-name'))return;
+  hold={id:event.pointerId,x:event.clientX,y:event.clientY,timer:setTimeout(()=>{if(group.isConnected)open(group);},600)};
+ },{passive:true});
+ document.addEventListener('pointermove',event=>{if(hold&&event.pointerId===hold.id&&Math.hypot(event.clientX-hold.x,event.clientY-hold.y)>8)cancelHold();},{passive:true});
+ for(const type of ['pointerup','pointercancel','scroll'])document.addEventListener(type,cancelHold,{capture:true,passive:true});
+ document.addEventListener('touchstart',event=>{if(event.touches.length>1)cancelHold();},{passive:true});
+ document.addEventListener('click',event=>{if(Date.now()<suppressClickUntil&&groupOf(event.target)){event.preventDefault();event.stopImmediatePropagation();}},true);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelHold();});
+})();
