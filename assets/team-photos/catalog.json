@@ -1177,7 +1177,14 @@
     "heightInches": 71,
     "name": "Jordan Addison",
     "teamId": 16,
-    "jersey": "3"
+    "jersey": "3",
+    "unavailable": {
+      "file": "4429205-crutches-v1.webp",
+      "width": 302,
+      "height": 850,
+      "ratio": 0.35529,
+      "kind": "injury"
+    }
   },
   "4429615": {
     "file": "4429615-faces-v2.webp",
@@ -1334,7 +1341,14 @@
     "heightInches": 75,
     "name": "Marvin Harrison Jr.",
     "teamId": 22,
-    "jersey": "18"
+    "jersey": "18",
+    "unavailable": {
+      "file": "4432708-crutches-v1.webp",
+      "width": 326,
+      "height": 850,
+      "ratio": 0.38353,
+      "kind": "injury"
+    }
   },
   "4432710": {
     "file": "4432710-faces-v2.webp",
@@ -1548,7 +1562,14 @@
     "heightInches": 72,
     "name": "Ladd McConkey",
     "teamId": 24,
-    "jersey": "15"
+    "jersey": "15",
+    "unavailable": {
+      "file": "4612826-crutches-v1.webp",
+      "width": 325,
+      "height": 850,
+      "ratio": 0.38235,
+      "kind": "injury"
+    }
   },
   "4635008": {
     "file": "4635008-faces-v2.webp",
