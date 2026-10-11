@@ -417,12 +417,16 @@ function hjTeamPhotoHTML(team){
   function walk(node,clips=[],opacity=1){
    if(node.nodeType===3){
     const parent=node.parentElement,css=getComputedStyle(parent),range=document.createRange();
+    const team=parent.closest('.hq-match-team'),copy=team?.querySelector('.hq-match-team-copy');
+    const group=parent.closest('.hq-match-team-score')?'score':parent.closest('.hq-adjusted-projection')?'adjusted':parent.closest('.hq-match-team-name')?'name':parent.closest('.hq-match-team-left')?'left':parent.closest('.hj-proj-flip')?'projection':'';
+    const side=team?.classList.contains('is-away')?'right':'left';
+    const anchor=copy?(side==='right'?copy.getBoundingClientRect().right:copy.getBoundingClientRect().left)-origin.left:0;
     if(!node.textContent.trim())return;
     for(const match of node.textContent.matchAll(/\S+/g)){
      range.setStart(node,match.index);range.setEnd(node,match.index+match[0].length);
      const r=range.getBoundingClientRect();if(!r.width||!r.height)continue;
      let value=match[0];if(css.textTransform==='uppercase')value=value.toUpperCase();else if(css.textTransform==='lowercase')value=value.toLowerCase();
-     ops.push({type:'text',...box(r),value,font:css.fontStyle+' '+css.fontWeight+' '+css.fontSize+' '+css.fontFamily,color:css.color,letterSpacing:css.letterSpacing,clips,opacity});
+     ops.push({type:'text',...box(r),value,font:css.fontStyle+' '+css.fontWeight+' '+css.fontSize+' '+css.fontFamily,color:css.color,letterSpacing:css.letterSpacing,header:team&&group?{side,group,anchor}:null,clips,opacity});
     }return;
    }
    if(node.nodeType!==1||node.matches('script,style,.hj-matchup-actions,.hj-matchup-camera'))return;
@@ -453,6 +457,30 @@ function hjTeamPhotoHTML(team){
    const img=new Image();img.crossOrigin='anonymous';await new Promise(resolve=>{const timer=setTimeout(resolve,7000);img.onload=img.onerror=()=>{clearTimeout(timer);resolve();};img.src=src;});if(img.naturalWidth)images.set(src,img);
   }
   function path(r){ctx.beginPath();const radius=Math.min(r.radius||0,r.w/2,r.h/2);if(ctx.roundRect)ctx.roundRect(r.x,r.y,r.w,r.h,radius);else ctx.rect(r.x,r.y,r.w,r.h);}
+  // Align header rows with measured canvas advances, including Safari font metrics.
+  const headerGroups=new Map(),baselines={};
+  for(const op of data.ops.filter(o=>o.type==='text'&&o.header)){
+   ctx.font=op.font;if('letterSpacing' in ctx)ctx.letterSpacing=op.letterSpacing==='normal'?'0px':op.letterSpacing;
+   const m=ctx.measureText(op.value),a=m.fontBoundingBoxAscent??m.actualBoundingBoxAscent,d=m.fontBoundingBoxDescent??m.actualBoundingBoxDescent;
+   op.advance=m.width;op.baseline=op.y+(op.h-a-d)/2+a;
+   const key=op.header.side+':'+op.header.group;
+   if(!headerGroups.has(key))headerGroups.set(key,[]);headerGroups.get(key).push(op);
+   if(op.header.group!=='adjusted')baselines[op.header.group]=Math.max(baselines[op.header.group]||0,op.baseline);
+  }
+  const widths={};
+  for(const [key,list] of headerGroups){
+   list.sort((a,b)=>a.x-b.x);let cursor=0;
+   list.forEach((op,i)=>{if(i)cursor+=Math.max(2,op.x-(list[i-1].originalX+list[i-1].w));op.originalX=op.x;op.headerX=cursor;cursor+=op.advance;});
+   widths[key]=cursor;
+   const h=list[0].header,start=h.side==='right'?h.anchor-cursor:h.anchor;
+   for(const op of list){op.x=start+op.headerX;op.baseline=baselines[h.group==='adjusted'?'score':h.group];}
+  }
+  for(const side of ['left','right']){
+   const list=headerGroups.get(side+':adjusted');if(!list)continue;
+   const h=list[0].header,total=widths[side+':adjusted'],scoreWidth=widths[side+':score']||0;
+   const start=side==='right'?h.anchor-scoreWidth-8-total:h.anchor+scoreWidth+8;
+   for(const op of list)op.x=start+op.headerX;
+  }
   for(const op of data.ops){
    ctx.save();ctx.globalAlpha=op.opacity;
    for(const clip of op.clips){path(clip);ctx.clip();}
@@ -463,7 +491,7 @@ function hjTeamPhotoHTML(team){
     ctx.font=op.font;ctx.fillStyle=op.color;ctx.textAlign='left';ctx.textBaseline='alphabetic';
     if('letterSpacing' in ctx)ctx.letterSpacing=op.letterSpacing==='normal'?'0px':op.letterSpacing;
     const m=ctx.measureText(op.value),ascent=m.fontBoundingBoxAscent??m.actualBoundingBoxAscent,descent=m.fontBoundingBoxDescent??m.actualBoundingBoxDescent;
-    ctx.fillText(op.value,op.x,op.y+(op.h-ascent-descent)/2+ascent);
+    ctx.fillText(op.value,op.x,op.baseline??(op.y+(op.h-ascent-descent)/2+ascent));
    }else if(op.type==='image'){
     const img=images.get(op.src);if(img){
      const cover=op.fit==='cover',k=cover?Math.max(op.w/img.naturalWidth,op.h/img.naturalHeight):Math.min(op.w/img.naturalWidth,op.h/img.naturalHeight);
