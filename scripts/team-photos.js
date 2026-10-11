@@ -309,28 +309,28 @@ function hjTeamPhotoHTML(team){
  const groupOf=target=>target instanceof Element?target.closest('.hj-team-photo'):null;
  function cancelHold(){if(hold)clearTimeout(hold.timer);hold=null;}
  function close(){serial++;if(dialog){dialog.close();dialog.remove();dialog=null;}if(objectURL){URL.revokeObjectURL(objectURL);objectURL=null;}}
- async function open(group){
+ async function open(group,job=null){
   if(dialog)return;
   cancelHold();suppressClickUntil=Date.now()+1000;
   document.dispatchEvent(new Event('hj:save-team-photo'));
-  const stage=group.querySelector('.hj-team-photo-stage');
-  const rows=Array.from(stage.querySelectorAll('.hj-team-photo-player')).map(el=>({
+  const stage=group?.querySelector('.hj-team-photo-stage');
+  const rows=Array.from(stage?.querySelectorAll('.hj-team-photo-player')||[]).map(el=>({
    src:el.querySelector('img').src,left:parseFloat(el.style.left)/100,
    width:parseFloat(el.style.width)/100,height:parseFloat(el.style.height)/100,
    layer:Number(el.style.getPropertyValue('--player-layer'))+(el.classList.contains('is-starter')?30:0),
    starter:el.classList.contains('is-starter'),muted:el.classList.contains('is-unavailable'),portrait:el.classList.contains('is-portrait')
   })).sort((a,b)=>a.layer-b.layer);
-  const ratio=stage.style.aspectRatio.split('/').map(Number),aspect=ratio[0]/ratio[1];
-  const manager=group.closest('.league-roster-head')?.querySelector('.league-roster-name')?.textContent.trim()||'Team';
-  const filename=manager.replace(/[^a-z0-9_-]+/gi,'-').toLowerCase()+'-lineup.png';
+  const ratio=(stage?.style.aspectRatio||'4/1').split('/').map(Number),aspect=ratio[0]/ratio[1];
+  const manager=job?.title||group?.closest('.league-roster-head')?.querySelector('.league-roster-name')?.textContent.trim()||'Team';
+  const filename=manager.replace(/[^a-z0-9_-]+/gi,'-').toLowerCase()+(job?'-matchup.png':'-lineup.png');
   const token=++serial,d=document.createElement('dialog');dialog=d;
-  d.setAttribute('aria-label',manager+' lineup image');
+  d.setAttribute('aria-label',manager+(job?' image':' lineup image'));
   d.className='hj-lineup-save-card';
   d.style.cssText='position:fixed!important;inset:0!important;margin:auto!important;width:min(960px,calc(100vw - 32px));height:fit-content;max-height:88vh;max-height:88dvh;box-sizing:border-box;padding:0;border:1px solid #b88a2a;border-radius:16px;background:#f6f2e5;color:#16354c;overflow:auto;box-shadow:0 18px 60px #081d3866;font-family:var(--sans,Arial,sans-serif)';
   const skin=document.createElement('style');skin.textContent='.hj-lineup-save-card::backdrop{background:rgba(8,25,43,.62)}.hj-lineup-save-card button:focus-visible{outline:2px solid #dbb85c;outline-offset:3px}';d.append(skin);
   const bar=document.createElement('div');bar.className='hj-lineup-save-head';bar.style.cssText='display:flex;align-items:center;gap:12px;padding:16px 18px;background:#123149;color:#fff;border-bottom:3px solid #b88a2a';
-  const title=document.createElement('strong');title.textContent=manager+' lineup';title.style.cssText='flex:1;min-width:0;font-size:clamp(17px,3.8vw,24px);line-height:1.2';
-  const dismiss=document.createElement('button');dismiss.className='hj-lineup-save-close';dismiss.textContent='×';dismiss.type='button';dismiss.setAttribute('aria-label','Close lineup image');dismiss.style.cssText='appearance:none;display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;padding:0;border:1px solid #ffffff55;border-radius:50%;background:#ffffff12;color:#fff;font:400 30px/1 Arial;cursor:pointer';dismiss.onclick=close;
+  const title=document.createElement('strong');title.textContent=manager+(job?'':' lineup');title.style.cssText='flex:1;min-width:0;font-size:clamp(17px,3.8vw,24px);line-height:1.2';
+  const dismiss=document.createElement('button');dismiss.className='hj-lineup-save-close';dismiss.textContent='×';dismiss.type='button';dismiss.setAttribute('aria-label',job?'Close matchup image':'Close lineup image');dismiss.style.cssText='appearance:none;display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;padding:0;border:1px solid #ffffff55;border-radius:50%;background:#ffffff12;color:#fff;font:400 30px/1 Arial;cursor:pointer';dismiss.onclick=close;
   const status=document.createElement('p');status.textContent='Creating image…';status.setAttribute('role','status');status.style.cssText='margin:12px 18px 18px;font-size:13px;line-height:1.4;color:#627486';
   bar.append(title,dismiss);d.append(bar,status);document.body.append(d);d.showModal();
   d.addEventListener('cancel',event=>{event.preventDefault();close();});
@@ -340,6 +340,7 @@ function hjTeamPhotoHTML(team){
   d.addEventListener('click',event=>{if(backdropDown&&event.target===d&&outside(event))close();backdropDown=false;});
   let canvas;
   try{
+   if(job){canvas=await job.render(()=>token!==serial);if(token!==serial)return;}else{
    canvas=document.createElement('canvas');
    canvas.width=Math.min(2800,Math.round(900*aspect));canvas.height=Math.round(canvas.width/aspect)+32;
    const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height-32;
@@ -361,10 +362,11 @@ function hjTeamPhotoHTML(team){
      ctx.save();if(row.starter){ctx.shadowColor='#d9a93f';ctx.shadowBlur=8;}ctx.drawImage(layer,dx,dy,dw,dh);ctx.restore();
     }finally{layer.width=layer.height=0;}
    }
+   }
    const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Image unavailable')),'image/png'));
    if(token!==serial)return;
    objectURL=URL.createObjectURL(blob);
-   const image=document.createElement('img');image.src=objectURL;image.alt=manager+' entire lineup';image.style.cssText='display:block;width:calc(100% - 32px);height:auto;margin:18px 16px 0;border-radius:6px;-webkit-touch-callout:default;user-select:auto;touch-action:auto';
+   const image=document.createElement('img');image.src=objectURL;image.alt=manager+(job?' entire matchup including bench':' entire lineup');image.style.cssText='display:block;width:calc(100% - 32px);height:auto;margin:18px 16px 0;border-radius:6px;-webkit-touch-callout:default;user-select:auto;touch-action:auto';
    status.textContent='Hold the image to save to Photos, or use Save image.';
    const save=document.createElement('button');save.type='button';save.textContent='Save image';save.style.cssText='appearance:none;flex-shrink:0;padding:9px 13px;border:1px solid #c49a41;border-radius:999px;background:#b88a2a;color:#fff;font:700 13px/1.2 var(--sans,Arial,sans-serif);cursor:pointer';
    save.onclick=async()=>{
@@ -373,9 +375,10 @@ function hjTeamPhotoHTML(team){
     const a=document.createElement('a');a.href=objectURL;a.download=filename;d.append(a);a.click();a.remove();
    };
    bar.insertBefore(save,dismiss);d.insertBefore(image,status);
-  }catch(error){if(token===serial)status.textContent='Could not create the lineup image. Please close and try again.';}
+  }catch(error){if(token===serial)status.textContent='Could not create the image. Please close and try again.';}
   finally{if(canvas)canvas.width=canvas.height=0;}
  }
+ window.hjOpenSaveImageCard=job=>open(null,job);
  document.addEventListener('contextmenu',event=>{const group=groupOf(event.target);if(!group||event.target.closest('.hj-team-photo-name'))return;event.preventDefault();open(group);});
  document.addEventListener('pointerdown',event=>{
   cancelHold();if(event.pointerType==='mouse'||event.isPrimary===false)return;
@@ -387,4 +390,61 @@ function hjTeamPhotoHTML(team){
  document.addEventListener('touchstart',event=>{if(event.touches.length>1)cancelHold();},{passive:true});
  document.addEventListener('click',event=>{if(Date.now()<suppressClickUntil&&groupOf(event.target)){event.preventDefault();event.stopImmediatePropagation();}},true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelHold();});
+})();
+
+/* Matchup-only capture. Load the renderer only after an explicit camera press. */
+(function(){
+ let renderer;
+ function loadRenderer(){
+  if(window.html2canvas)return Promise.resolve(window.html2canvas);
+  if(!renderer)renderer=new Promise((resolve,reject)=>{
+   const script=document.createElement('script');script.src='/scripts/vendor/html2canvas-1.4.1.min.js';
+   script.onload=()=>resolve(window.html2canvas);script.onerror=()=>{script.remove();renderer=null;reject(Error('Renderer unavailable'));};document.head.append(script);
+  });return renderer;
+ }
+ const skin=document.createElement('style');skin.textContent='.hj-matchup-actions{position:relative}.hj-matchup-camera{position:absolute;right:52px;top:2px;display:grid;place-items:center;min-width:30px;height:28px;padding:4px;border:1px solid #c7ced3;border-radius:6px;background:#fffdf7;color:#16354c;cursor:pointer;box-sizing:border-box}.hj-matchup-camera:focus-visible{outline:2px solid #b88a2a;outline-offset:2px}@media(max-width:450px){.hj-matchup-camera{right:42px;height:26px;min-width:27px;padding:3px}}';document.head.append(skin);
+ function snapshot(source){
+  const clone=source.cloneNode(true),originals=[source,...source.querySelectorAll('*')],copies=[clone,...clone.querySelectorAll('*')];
+  for(let i=0;i<originals.length;i++){
+   const a=originals[i],b=copies[i],computed=getComputedStyle(a);
+   b.removeAttribute('id');b.removeAttribute('autofocus');
+   for(const attr of [...b.attributes])if(attr.name.startsWith('on'))b.removeAttribute(attr.name);
+   b.style.cssText=Array.from(computed).map(p=>p+':'+computed.getPropertyValue(p)+';').join('');
+   b.style.setProperty('animation','none','important');b.style.setProperty('transition','none','important');
+   if(computed.position==='sticky'||computed.position==='fixed'){b.style.position='static';b.style.top='auto';}
+   if(b.tagName==='IMG'){b.src=a.currentSrc||a.src;b.removeAttribute('srcset');b.loading='eager';}
+  }
+  clone.querySelectorAll('script,iframe,.hj-matchup-actions,.hq-matchup-head,.hq-swing').forEach(n=>n.remove());
+  for(const node of [clone,...clone.querySelectorAll('.hq-lineup-wrap,.hq-lineup-clip,.hq-lineup-detail,.hq-lineup-table')]){
+   node.style.setProperty('height','auto','important');node.style.setProperty('max-height','none','important');node.style.setProperty('overflow','visible','important');node.style.setProperty('transform','none','important');
+  }
+  const wrap=clone.querySelector('.hq-lineup-wrap');if(wrap){wrap.style.display='block';wrap.style.gridTemplateRows='none';}
+  clone.style.margin='0';clone.style.boxShadow='none';clone.style.width=source.getBoundingClientRect().width+'px';
+  return clone;
+ }
+ document.addEventListener('click',event=>{
+  const button=event.target.closest?.('.hj-matchup-camera');if(!button)return;
+  event.preventDefault();event.stopPropagation();
+  const card=button.closest('.hq-matchup');if(!card)return;
+  // Freeze this matchup's live values now; later feed refreshes cannot mix rows.
+  const clone=snapshot(card),width=Math.ceil(card.getBoundingClientRect().width);
+  const names=[...card.querySelectorAll('.hq-matchup-manager-name')].map(n=>n.textContent.trim());
+  const week=card.dataset.hqMatchupKey?.split(':')[0];
+  const title=(names.length?names.join(' vs '):'Matchup')+(week?' · Week '+week:'');
+  window.hjOpenSaveImageCard({title,render:async canceled=>{
+   const capture=await loadRenderer();if(canceled())throw Error('Canceled');
+   const frame=document.createElement('iframe');frame.setAttribute('aria-hidden','true');frame.tabIndex=-1;
+   frame.style.cssText='position:fixed;left:-20000px;top:0;border:0;pointer-events:none;width:'+width+'px;height:1000px';document.body.append(frame);
+   try{
+    const doc=frame.contentDocument;doc.open();doc.write('<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#f6f2e5"></body></html>');doc.close();
+    const target=doc.importNode(clone,true);doc.body.append(target);
+    await Promise.all([...target.querySelectorAll('img')].map(img=>new Promise(resolve=>{if(img.complete)return resolve();const timer=setTimeout(resolve,8000);img.onload=img.onerror=()=>{clearTimeout(timer);resolve();};})));
+    if(canceled())throw Error('Canceled');
+    const height=Math.ceil(Math.max(target.scrollHeight,target.getBoundingClientRect().height));
+    // Keep Safari's export surface below four megapixels regardless of viewport.
+    const scale=Math.min(2,Math.sqrt(3500000/(width*height)),8000/height,3000/width);
+    return await capture(target,{backgroundColor:'#f6f2e5',scale,width,height,windowWidth:width,windowHeight:height,scrollX:0,scrollY:0,useCORS:true,allowTaint:false,logging:false,imageTimeout:8000,removeContainer:true});
+   }finally{frame.remove();}
+  }});
+ });
 })();

@@ -197,6 +197,8 @@ function hjRefreshGameContexts(){`);
  html=replaceOnce(html,/if\(tab==='matchups'&&focusTeamId\)\{HJ_HQ_STATE.matchupWeek=hjCurrentWeek\(HJ_LEAGUE_STATE.data\);/g,"if(tab==='matchups'&&focusTeamId){HJ_HQ_STATE.matchupWeek=0;");
  html=prepareLiveDisplay(html);
  html=prepareProfileScoreColors(html);
+ // Camera is part of each matchup's existing action row.
+ html=html.replace(/actions\.append\(tray\);/g,'actions.append(tray);actions.insertAdjacentHTML(\'beforeend\',\'<button type="button" class="hj-matchup-camera" aria-label="Save entire matchup image" title="Save matchup image"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 5l2-2h4l2 2h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/><circle cx="12" cy="13" r="4"/></svg></button>\');');
  html=replaceOnce(html,/function hjTeamViewHTML\(team,data\)\{/g,'const HJ_DST_MASCOTS='+dstMascots+';\nconst HJ_TEAM_PHOTO_ASSETS='+teamPhotoAssets+';\n'+byeStatus+'\n'+teamPhotoScript+'\nfunction hjTeamViewHTML(team,data){');
  const rosterHead='<div class="league-roster-head">${identity}${matchupHTML}</div>';
  if(!html.includes(rosterHead))throw Error('Roster header changed');
@@ -221,6 +223,7 @@ if(process.argv[2]){
  await Promise.all(assets.map(([name,bytes])=>writeFile(join(dirname(path),name),bytes)));
  await writeFile(path,prepareSite(source));
 }
+
 
 
 
