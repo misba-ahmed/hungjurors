@@ -1,5 +1,5 @@
 /* Give headers to the drag controller without disabling page zoom or content scroll. */
-.pc-modal-head,.manager-modal-head,.season-modal-head,.award-modal-head,.manager-draft-detail-head,.nfl-depth-top{
+.hj-lineup-save-head,.pc-modal-head,.manager-modal-head,.season-modal-head,.award-modal-head,.manager-draft-detail-head,.nfl-depth-top{
  touch-action:pan-x pinch-zoom;
 }
 .hj-pull-moving{will-change:transform!important;user-select:none!important;-webkit-user-select:none!important;transition:none!important}

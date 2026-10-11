@@ -1,6 +1,7 @@
 /* Shared direct-manipulation dismissal. Native close callbacks own cleanup/focus. */
 (function(){
  const types=[
+  {root:'.hj-lineup-save-card',head:'.hj-lineup-save-head',close:'.hj-lineup-save-close'},
   {root:'.manager-draft-detail',head:'.manager-draft-detail-head',close:'.manager-draft-close'},
   {root:'.pc-modal',head:'.pc-modal-head',close:'.pc-modal-close'},
   {root:'.manager-modal-stage',head:'.manager-modal-head',close:'.manager-modal-close'},
