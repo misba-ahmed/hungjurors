@@ -325,13 +325,19 @@ function hjTeamPhotoHTML(team){
   const filename=manager.replace(/[^a-z0-9_-]+/gi,'-').toLowerCase()+'-lineup.png';
   const token=++serial,d=document.createElement('dialog');dialog=d;
   d.setAttribute('aria-label',manager+' lineup image');
-  d.style.cssText='width:min(960px,94vw);max-height:90vh;box-sizing:border-box;padding:18px;border:2px solid #b88a2a;border-radius:12px;background:#f6f2e5;color:#16354c;overflow:auto';
-  const bar=document.createElement('div');bar.style.cssText='display:flex;align-items:center;gap:12px;margin-bottom:12px';
-  const title=document.createElement('strong');title.textContent=manager+' lineup';title.style.flex='1';
-  const dismiss=document.createElement('button');dismiss.textContent='Close';dismiss.type='button';dismiss.onclick=close;
-  const status=document.createElement('p');status.textContent='Creating image…';status.setAttribute('role','status');
+  d.className='hj-lineup-save-card';
+  d.style.cssText='position:fixed!important;inset:0!important;margin:auto!important;width:min(960px,calc(100vw - 32px));height:fit-content;max-height:88vh;max-height:88dvh;box-sizing:border-box;padding:0;border:1px solid #b88a2a;border-radius:16px;background:#f6f2e5;color:#16354c;overflow:auto;box-shadow:0 18px 60px #081d3866;font-family:var(--sans,Arial,sans-serif)';
+  const skin=document.createElement('style');skin.textContent='.hj-lineup-save-card::backdrop{background:rgba(8,25,43,.62)}.hj-lineup-save-card button:focus-visible{outline:2px solid #dbb85c;outline-offset:3px}';d.append(skin);
+  const bar=document.createElement('div');bar.style.cssText='display:flex;align-items:center;gap:12px;padding:16px 18px;background:#123149;color:#fff;border-bottom:3px solid #b88a2a';
+  const title=document.createElement('strong');title.textContent=manager+' lineup';title.style.cssText='flex:1;min-width:0;font-size:clamp(17px,3.8vw,24px);line-height:1.2';
+  const dismiss=document.createElement('button');dismiss.textContent='×';dismiss.type='button';dismiss.setAttribute('aria-label','Close lineup image');dismiss.style.cssText='appearance:none;display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;padding:0;border:1px solid #ffffff55;border-radius:50%;background:#ffffff12;color:#fff;font:400 30px/1 Arial;cursor:pointer';dismiss.onclick=close;
+  const status=document.createElement('p');status.textContent='Creating image…';status.setAttribute('role','status');status.style.cssText='margin:12px 18px 18px;font-size:13px;line-height:1.4;color:#627486';
   bar.append(title,dismiss);d.append(bar,status);document.body.append(d);d.showModal();
   d.addEventListener('cancel',event=>{event.preventDefault();close();});
+  const outside=event=>{const r=d.getBoundingClientRect();return event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom;};
+  let backdropDown=false;
+  d.addEventListener('pointerdown',event=>{backdropDown=event.target===d&&outside(event);});
+  d.addEventListener('click',event=>{if(backdropDown&&event.target===d&&outside(event))close();backdropDown=false;});
   let canvas;
   try{
    canvas=document.createElement('canvas');
@@ -358,9 +364,9 @@ function hjTeamPhotoHTML(team){
    const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Image unavailable')),'image/png'));
    if(token!==serial)return;
    objectURL=URL.createObjectURL(blob);
-   const image=document.createElement('img');image.src=objectURL;image.alt=manager+' entire lineup';image.style.cssText='display:block;width:100%;height:auto;-webkit-touch-callout:default;user-select:auto;touch-action:auto';
+   const image=document.createElement('img');image.src=objectURL;image.alt=manager+' entire lineup';image.style.cssText='display:block;width:calc(100% - 32px);height:auto;margin:18px 16px 0;border-radius:6px;-webkit-touch-callout:default;user-select:auto;touch-action:auto';
    status.textContent='Hold the image to save to Photos, or use Save image.';
-   const save=document.createElement('button');save.type='button';save.textContent='Save image';
+   const save=document.createElement('button');save.type='button';save.textContent='Save image';save.style.cssText='appearance:none;flex-shrink:0;padding:9px 13px;border:1px solid #c49a41;border-radius:999px;background:#b88a2a;color:#fff;font:700 13px/1.2 var(--sans,Arial,sans-serif);cursor:pointer';
    save.onclick=async()=>{
     const file=new File([blob],filename,{type:'image/png'});
     if(navigator.canShare?.({files:[file]}))try{await navigator.share({files:[file],title:manager+' lineup'});return;}catch(error){if(error.name==='AbortError')return;}
