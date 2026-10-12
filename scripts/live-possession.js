@@ -57,11 +57,11 @@ function hjPossessionGlow(state,position){
   states=hjPossessionStates(data,nextWeek===week&&nextSeason===season?states:new Map());
   week=nextWeek;season=nextSeason;queue();
  };
- // Observe inserted rows only; styling updates do not retrigger the observer.
+ // Refresh inserted/rebuilt player content and identity changes, without observing our ring attribute.
  const observer=new MutationObserver(records=>{
-  if(records.some(r=>[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches(selector)||n.querySelector(selector)))))queue();
+  if(records.some(r=>r.target.closest?.(selector)||[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches(selector)||n.querySelector(selector)))))queue();
  });
- observer.observe(document.body,{childList:true,subtree:true});
+ observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['data-pc-team','data-pc-position','data-hj-game-player']});
  document.addEventListener('visibilitychange',queue);
  document.addEventListener('hj:game-ranks-updated',queue);
 })();

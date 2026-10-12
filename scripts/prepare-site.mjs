@@ -45,6 +45,10 @@ function replaceOnce(html,pattern,replacement){
 }
 const folderArtwork=readFileSync(new URL('./folder-artwork.js',import.meta.url),'utf8');
 export function prepareSite(html){
+ // Possession outlines belong to the live possession controller, not row markup.
+ html=replaceOnce(html,/\['data-hj-fit-height','data-columns','data-hj-projection-section'\]/g,
+  "['data-hj-fit-height','data-columns','data-hj-projection-section','data-hj-possession']");
+
  html=replaceOnce(html,/function nflGameFromEspn\(event,period\)\{/g,livePossession+'\nfunction nflGameFromEspn(event,period){');
  html=replaceOnce(html,/    nflWriteScheduleCache\(period,NFL_WEEK1\);/g,'    nflWriteScheduleCache(period,NFL_WEEK1);\n    window.hjUpdateLivePossession?.(data,period);');
  // Phone rendering load: compositor-only loops, quiet countdown, sized logo.
