@@ -1,4 +1,12 @@
 /* One shared possession snapshot from the existing live NFL scoreboard refresh. */
+async function hjFetchPossessionScoreboard(url){
+ const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),15000);
+ try{
+  const response=await fetch(url,{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',signal:controller.signal});
+  if(!response.ok)throw new Error(`ESPN ${response.status}`);
+  return await response.json();
+ }finally{clearTimeout(timeout);}
+}
 function hjPossessionTeam(value){const key=String(value||'').trim().toUpperCase();return ({WAS:'WSH',JAC:'JAX',LA:'LAR'})[key]||key;}
 // Keep the last confirmed possession briefly when ESPN omits situation data.
 const HJ_POSSESSION_MAX_AGE=180000;
@@ -40,7 +48,7 @@ function hjPossessionGlow(state,position){
   if(states.size)expiry=setTimeout(queue,Math.max(1,Math.min(...[...states.values()].map(s=>s.confirmedAt+HJ_POSSESSION_MAX_AGE-now))+25));
   const fresh=season===Number(NFL_SEASON);
   document.querySelectorAll(selector).forEach(row=>{
-   const avatar=row.querySelector('.hj-v3-avatar')||row.querySelector('img');if(!avatar)return;
+   const avatar=row.querySelector('.hj-v3-avatar,.hj-player-v2-avatar')||row.querySelector('img');if(!avatar)return;
    const context=row.querySelector('[data-hj-game-player]');let info=null;
    try{info=JSON.parse(context?.dataset.hjGamePlayer||'null');}catch(_){}
    const team=row.dataset.pcTeam||info?.team,position=row.dataset.pcPosition||info?.position;
@@ -59,9 +67,10 @@ function hjPossessionGlow(state,position){
  };
  // Refresh inserted/rebuilt player content and identity changes, without observing our ring attribute.
  const observer=new MutationObserver(records=>{
-  if(records.some(r=>r.target.closest?.(selector)||[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches(selector)||n.querySelector(selector)))))queue();
+  if(records.some(r=>r.target.closest?.(selector)||[...r.addedNodes].some(n=>n.nodeType===1&&(n.closest(selector)||n.querySelector(selector)))))queue();
  });
  observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['data-pc-team','data-pc-position','data-hj-game-player']});
  document.addEventListener('visibilitychange',queue);
  document.addEventListener('hj:game-ranks-updated',queue);
 })();
+

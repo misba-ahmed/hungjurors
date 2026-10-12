@@ -13,7 +13,7 @@
  function patch(current,fresh){
   if(current.nodeType!==1){if(current.nodeValue!==fresh.nodeValue)current.nodeValue=fresh.nodeValue;return}
   // Renderers own data; layout installers own these persistent measurements.
-  for(const name of ['data-hj-fit-height','data-columns','data-hj-projection-section']){
+  for(const name of ['data-hj-fit-height','data-columns','data-hj-projection-section','data-hj-possession']){
    if(current.hasAttribute(name)&&!fresh.hasAttribute(name))fresh.setAttribute(name,current.getAttribute(name));
   }
   for(const name of ['--hj-section-height','--hj-matchup-height','--hj-row-room','font-family']){
@@ -144,4 +144,5 @@
   return result;
  };
 })();
+
 
