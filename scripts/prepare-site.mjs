@@ -39,7 +39,7 @@ const teamPhotoScript=readFileSync(new URL('./team-photos.js',import.meta.url),'
 const teamPhotoAssets=readFileSync(new URL('../assets/team-photos/catalog.json',import.meta.url),'utf8');
 const dstMascots=readFileSync(new URL('../assets/team-photos/mascots.json',import.meta.url),'utf8');
 const sideBets=readFileSync(new URL('./side-bets.js',import.meta.url),'utf8');
-const challengeScripts=['challenge-engine.js','challenge-live.js'].map(file=>readFileSync(new URL(file,import.meta.url),'utf8')).join('\n');
+const challengeScripts=['challenge-engine.js','perfect-lineup.js','challenge-live.js'].map(file=>readFileSync(new URL(file,import.meta.url),'utf8')).join('\n');
 function replaceOnce(html,pattern,replacement){
  if([...html.matchAll(pattern)].length!==1)throw Error('Source markup changed; review site preparation');
  return html.replace(pattern,()=>replacement);
@@ -155,6 +155,7 @@ export function prepareSite(html){
   <button type="button" role="menuitem" data-challenge="mvp"><span>MVP Special</span><span class="menu-prize">$10</span></button>
   <button type="button" role="menuitem" data-challenge="overachiever"><span>Overachiever Special</span><span class="menu-prize">$10</span></button>
   <button type="button" role="menuitem" data-challenge="optimizer"><span>Optimizer Special</span><span class="menu-prize">$10</span></button>
+  <button type="button" role="menuitem" data-challenge="perfect"><span>The Perfect Lineup</span><span class="menu-prize">$30</span></button>
 </div>
 `);
  // League HQ · Weekly Recap: graphic week review with play-by-play win-chance and elimination factoids.
@@ -220,7 +221,7 @@ function hjRefreshGameContexts(){`);
  if(!/<\/body>\s*<\/html>\s*$/.test(html))throw Error('Page end changed; review layout guard injection');
  // Phone memory: sized ESPN images, unchanged injury feed reuse (see prepare-phone-memory.mjs).
  return preparePhoneMemory(prepareManagerAvatars(html.replace(old,'Date.now()-at<36*60*60*1000&&data.updated')
-  .replace('</head>','<link rel="stylesheet" href="/styles/section-scroll.css?v=20261007-paint-bounds">\n<link rel="stylesheet" href="/styles/wire-priorities.css?v=20261007-compact">\n<link rel="stylesheet" href="/styles/player-stat-bars.css?v=20260929-stable2">\n<link rel="stylesheet" href="/styles/team-photos.css?v=20261009-crown-34deg-diagonal">\n<link rel="stylesheet" href="/styles/player-search.css?v=20260924a">\n<link rel="stylesheet" href="/styles/wire-interaction.css?v=20260923b">\n<link rel="stylesheet" href="/styles/news-spin.css?v=20260924a">\n<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20261007-native">\n<link rel="stylesheet" href="/styles/standings.css?v=20261007-details">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20261005-avatar-crop">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3"><link rel="stylesheet" href="/styles/player-value.css?v=20260923-a3">\n<link rel="stylesheet" href="/styles/trade-desk.css?v=20260929-lineup-spacing4">\n<link rel="stylesheet" href="/styles/side-bets.css?v=20260924f">\n<link rel="stylesheet" href="/styles/live-display.css?v=20261012-uniform-roster-avatars">\n</head>')
+  .replace('</head>','<link rel="stylesheet" href="/styles/section-scroll.css?v=20261007-paint-bounds">\n<link rel="stylesheet" href="/styles/wire-priorities.css?v=20261007-compact">\n<link rel="stylesheet" href="/styles/player-stat-bars.css?v=20260929-stable2">\n<link rel="stylesheet" href="/styles/team-photos.css?v=20261009-crown-34deg-diagonal">\n<link rel="stylesheet" href="/styles/player-search.css?v=20260924a">\n<link rel="stylesheet" href="/styles/wire-interaction.css?v=20260923b">\n<link rel="stylesheet" href="/styles/news-spin.css?v=20260924a">\n<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v=20261012-perfect">\n<link rel="stylesheet" href="/styles/perfect-lineup.css?v=20261012-bars">\n<link rel="stylesheet" href="/styles/standings.css?v=20261007-details">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20261005-avatar-crop">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3"><link rel="stylesheet" href="/styles/player-value.css?v=20260923-a3">\n<link rel="stylesheet" href="/styles/trade-desk.css?v=20260929-lineup-spacing4">\n<link rel="stylesheet" href="/styles/side-bets.css?v=20260924f">\n<link rel="stylesheet" href="/styles/live-display.css?v=20261012-uniform-roster-avatars">\n</head>')
   .replace(/<\/body>\s*<\/html>\s*$/,()=>'<script id="hj-player-search">'+playerSearch+'</script>\n<script>ffnInstallSpin();</script>\n<script id="hj-record-engine">'+recordEngine+'</script>\n<script id="hj-record-live">'+recordLive+'</script>\n<script id="hj-direct-links">'+directLinks+'</script>\n<script id="hj-wire-live">'+wireLive+'</script>\n<script id="hj-wire-priorities">'+wirePriorities+'</script>\n<script id="hj-player-value">'+playerValue+'</script>\n<script id="hj-trade-desk">'+tradeDesk+'</script>\n<script id="hj-side-bets">'+sideBets+'</script>\n<script id="hj-layout-guard">'+layoutGuard+'</script>\n</body>\n</html>\n')));
 }
 if(process.argv[2]){
@@ -230,6 +231,7 @@ if(process.argv[2]){
  await Promise.all(assets.map(([name,bytes])=>writeFile(join(dirname(path),name),bytes)));
  await writeFile(path,prepareSite(source));
 }
+
 
 
 

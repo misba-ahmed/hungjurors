@@ -93,3 +93,23 @@ console.log('PASS: challenge scoring, source periods, return/FG double counting,
  assert.match(blocked,/Pending/);assert.doesNotMatch(blocked,/is-eliminated/);
  console.log('PASS: separate league lows and LMS eliminations, tied/unknown overall scores, prior-week badges and rendered results');
 }
+
+
+// Perfect Lineup: per-starter thresholds, not team total or matchup outcome.
+{
+vm.runInContext('const CHALLENGES=[];',c);
+vm.runInContext(await readFile(new URL('./perfect-lineup.js',import.meta.url),'utf8'),c);
+const perfectPast=vm.runInContext('HJ_PERFECT_PAST[0]',c);
+const perfect=c.hjPerfectResult(perfectPast.team,{week:9,final:true});
+assert.equal(perfect.short,'BRYAN');assert.equal(perfect.hits,9);assert.equal(perfect.earned,true);
+assert.equal(c.hjPerfectResult(perfectPast.team,{week:9,final:false}).earned,false,'all thresholds during live play still wait for final');
+const flexMiss=structuredClone(perfectPast.team);flexMiss.players.find(p=>p.slot===23).points=14.99;
+const missed=c.hjPerfectResult(flexMiss,{week:9,final:true});assert.equal(missed.hits,8);assert.equal(missed.earned,false);assert.equal(missed.shortfall,.01,'excess points elsewhere cannot offset a miss');
+const missing=structuredClone(perfectPast.team);missing.players.pop();assert.equal(c.hjPerfectResult(missing,{week:9,final:true}).earned,false,'empty starter cannot qualify');
+const unknown=structuredClone(perfectPast.team);unknown.players[0].points=null;assert.equal(c.hjPerfectResult(unknown,{week:9,final:true}).earned,false,'missing data cannot qualify');
+const dstDrop=structuredClone(perfectPast.team);dstDrop.players.find(p=>p.slot===16).points=9;assert.equal(c.hjPerfectResult(dstDrop,{week:9,final:false}).hits,8,'live DST score deductions revoke a target');
+assert.equal(c.hjPerfectRank([flexMiss,perfectPast.team],{week:9,final:true})[0].hits,9);
+assert.equal(w.teams[0].players[0].slot,0,'original starter slots remain in the shared model');
+console.log('PASS: Perfect Lineup thresholds, FLEX, finality, missing starters/stats, live score deductions and ranking');
+
+}

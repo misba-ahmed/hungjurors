@@ -60,13 +60,13 @@ function hjChWeek(payload,{season,week,names,pool=[],poolReady=false,final=false
   const projection=complete&&projections.every(n=>n!==null)?projections.reduce((a,b)=>a+b,0):null;
   const players=starters.map(e=>{
    const p=hjChPlayer(e),actual=hjChStat(e,season,week),value=hjChPoints(e,season,week),raw=actual?.stats||(value===0?{}:null),position=HJ_CH_POS[p.defaultPositionId];
-   return {id:String(p.id),name:p.fullName||'Player',position,proTeamId:p.proTeamId??null,opponent:opponents[String(p.proTeamId)]||null,points:value,tds:hjChTds(raw,position),yards:raw&&['QB','RB','WR'].includes(position)?[3,24,42].reduce((a,k)=>a+(Number(raw[k])||0),0):0};
+   return {id:String(p.id),name:p.fullName||'Player',slot:Number(e.lineupSlotId),position,proTeamId:p.proTeamId??null,opponent:opponents[String(p.proTeamId)]||null,points:value,tds:hjChTds(raw,position),yards:raw&&['QB','RB','WR'].includes(position)?[3,24,42].reduce((a,k)=>a+(Number(raw[k])||0),0):0};
   });
   const tds=complete&&players.every(p=>p.tds!==null)?players.reduce((a,p)=>a+p.tds,0):null;
   const optimalLineup=complete?hjChOptimalLineup(entries,counts,season,week):null,optimal=optimalLineup?.total??null;
   const swaps=optimalLineup?hjChSwaps(starters,optimalLineup,season,week):[];
   const bench=entries.filter(e=>[20,21].includes(Number(e.lineupSlotId))).map(e=>String(hjChPlayer(e).id));
-  return {...manager,score,projection,complete,players,bench,titty:tds,yards:tds!==null?players.reduce((a,p)=>a+p.yards,0):null,overachiever:projection!==null?hjChRound(score-projection):null,optimizer:optimal!==null?hjChRound(Math.max(0,optimal-lineupScore)):null,optimal,swaps,mvp:null,mvpTie:null};
+  return {...manager,starterSlots:Object.entries(counts||{}).filter(([id])=>![20,21].includes(Number(id))).flatMap(([id,n])=>Array(Number(n)).fill(Number(id))),score,projection,complete,players,bench,titty:tds,yards:tds!==null?players.reduce((a,p)=>a+p.yards,0):null,overachiever:projection!==null?hjChRound(score-projection):null,optimizer:optimal!==null?hjChRound(Math.max(0,optimal-lineupScore)):null,optimal,swaps,mvp:null,mvpTie:null};
  });
  const allPlayers=pool.map(e=>{const p=hjChPlayer(e),s=hjChStat(e,season,week);return {id:String(p.id),name:p.fullName,position:HJ_CH_POS[p.defaultPositionId],proTeamId:p.proTeamId??null,opponent:opponents[String(p.proTeamId)]||null,points:hjChNumber(s?.appliedTotal),played:!!s&&((Number(s.stats?.[210])||0)>0||Object.values(s.stats||{}).some(n=>Number(n)!==0))}}).filter(p=>p.position&&p.points!==null&&p.played);
  const awards=[];
@@ -89,8 +89,8 @@ function hjChOpponents(scoreboard){
  for(const event of scoreboard?.events||[]){
   const comp=event.competitions?.[0],home=comp?.competitors?.find(c=>c.homeAway==='home'),away=comp?.competitors?.find(c=>c.homeAway==='away');
   if(!home?.team||!away?.team)continue;
-  out[String(home.team.id)]={opp:String(away.team.abbreviation||'').toUpperCase(),home:true};
-  out[String(away.team.id)]={opp:String(home.team.abbreviation||'').toUpperCase(),home:false};
+  out[String(home.team.id)]={opp:String(away.team.abbreviation||'').toUpperCase(),home:true,state:event.status?.type?.state||comp.status?.type?.state||'pre'};
+  out[String(away.team.id)]={opp:String(home.team.abbreviation||'').toUpperCase(),home:false,state:event.status?.type?.state||comp.status?.type?.state||'pre'};
  }
  return out;
 }
@@ -145,4 +145,5 @@ function hjChStandings(weeks,names,{regularEnd=14,finalEnd=16}={}){
  tickets.sort((a,b)=>b.total-a.total||a.short.localeCompare(b.short));
  return {weeks:ordered,totals,tickets,raffle,alive:[...alive],eliminations,lmsBlocked,regularEnd,finalEnd,liveWeek:ordered.findLast(w=>!w.final)?.week||0,finalWeek:ordered.filter(w=>w.final).at(-1)?.week||0};
 }
+
 

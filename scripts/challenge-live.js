@@ -1,4 +1,4 @@
-const HJ_CHALLENGE_STATE={data:null,weeks:new Map(),model:null,names:[],pending:null,active:'raffle',error:'',checkedAt:0,lmsFit:true,raffleFit:true,tittyFit:true,mvpFit:true,overFit:true,optFit:true,profileTimer:null,suppressClickUntil:0};
+const HJ_CHALLENGE_STATE={data:null,weeks:new Map(),model:null,names:[],pending:null,active:'raffle',error:'',checkedAt:0,lmsFit:true,raffleFit:true,tittyFit:true,mvpFit:true,overFit:true,optFit:true,perfectFit:true,perfectWeek:null,perfectManager:null,profileTimer:null,suppressClickUntil:0};
 function hjChallengeNames(data){return (data.teams||[]).map(t=>({id:String(t.id),short:hjMatchManager(t,data)||hjOwnerName(t,data)||hjTeamName(t)}))}
 function hjChallengeWeekActive(data,week){
  return (data.schedule||[]).some(g=>Number(g.matchupPeriodId)===week&&['home','away'].some(k=>Math.abs(Number(g[k]?.pointsByScoringPeriod?.[week]??g[k]?.totalPointsLive??0))>0))||(typeof NFL_WEEK1!=='undefined'&&NFL_WEEK1.some(g=>Number(g.week)===week&&['in','post'].includes(g.state)));
@@ -320,7 +320,7 @@ function hjChIntro(out,id){
 
  });
 }
-function hjChBodyHTML(ch,model){return !model?'<div class="empty">Loading scores and historical lineups…</div>':ch.id==='raffle'?hjChRaffle(model):ch.id==='lms'?hjChLms(model):ch.id==='titty'?hjChTitty(model):ch.id==='mvp'?hjChMvp(model):ch.id==='overachiever'?hjChOver(model):ch.id==='optimizer'?hjChOpt(model):hjChSpecial(ch,model);}
+function hjChBodyHTML(ch,model){return !model?'<div class="empty">Loading scores and historical lineups…</div>':ch.id==='raffle'?hjChRaffle(model):ch.id==='lms'?hjChLms(model):ch.id==='titty'?hjChTitty(model):ch.id==='mvp'?hjChMvp(model):ch.id==='overachiever'?hjChOver(model):ch.id==='optimizer'?hjChOpt(model):ch.id==='perfect'?hjChPerfect(model):hjChSpecial(ch,model);}
 function hjRenderChallenge(){
  const state=HJ_CHALLENGE_STATE,ch=CHALLENGES.find(c=>c.id===state.active)||CHALLENGES[0],out=$('#challenge-out');if(!out)return;
  const model=state.model,time=state.checkedAt?new Date(state.checkedAt).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
@@ -336,10 +336,12 @@ function hjRenderChallenge(){
  const shifts=new Map([...out.querySelectorAll('.over-figure')].map(f=>[f.dataset.overId,{shift:f.style.getPropertyValue('--over-shift'),neg:f.classList.contains('is-neg')}]));
  if(state.lastHtml===html)return;
  state.lastHtml=html;
+ const perfectScroll=ch.id==='perfect'?out.querySelector('.lms-stage')?.scrollLeft||0:0;
  const hasGraphic=!!out.querySelector('.lms-view'),enter=!!model&&(out.dataset.renderedChallenge!==ch.id||!hasGraphic);
  out.classList.remove('ch-enter');
  out.innerHTML=html;
  out.dataset.renderedChallenge=ch.id;
+ if(ch.id==='perfect'&&out.querySelector('.lms-stage'))out.querySelector('.lms-stage').scrollLeft=perfectScroll;
  out.querySelectorAll('details').forEach(n=>{const label=n.querySelector('summary')?.textContent;if(opened.includes(label))n.open=true;else if(closed.includes(label))n.open=false;});
  if(openDetailKey){const cell=out.querySelector(`.ch-cell[data-ch-kind="${openDetailKey[0]}"][data-ch-id="${CSS.escape(openDetailKey[1])}"][data-ch-week="${openDetailKey[2]}"]`);if(cell)hjChOpenDetail(cell,false);}
  // Grow bars from their previous height so a live titty visibly moves the graph.
@@ -384,6 +386,14 @@ function selectChallenge(id){
  hjChBindLmsGestures($('#challenge-out'));
  $('#challenge-out').addEventListener('click',e=>{
   const button=e.target.closest('[data-lms-zoom]');if(button)return hjChSetLmsZoom(button.closest('.lms-view'),button.dataset.lmsZoom==='fit');
+  const perfect=e.target.closest('[data-perfect-manager]');
+  if(perfect){
+   if(e.timeStamp<(HJ_CHALLENGE_STATE.suppressClickUntil||0))return;
+   if(HJ_CHALLENGE_STATE.profileTimer){clearTimeout(HJ_CHALLENGE_STATE.profileTimer);HJ_CHALLENGE_STATE.profileTimer=null;}
+   const choose=()=>{HJ_CHALLENGE_STATE.profileTimer=null;HJ_CHALLENGE_STATE.perfectManager=perfect.dataset.perfectManager;hjRenderChallenge()};
+   if(perfect.closest('.lms-view')?.clientWidth<=801)HJ_CHALLENGE_STATE.profileTimer=setTimeout(choose,360);else choose();
+   return;
+  }
   const chCell=e.target.closest('.ch-cell');
   if(chCell){if(chCell.classList.contains('is-open'))hjChCloseDetail();else hjChOpenDetail(chCell);return;}
   if(e.target.closest('.pc-player-trigger,.manager-profile-trigger,.manager-profile-avatar'))return;
@@ -396,8 +406,9 @@ function selectChallenge(id){
    return;
   }
  });
+ $('#challenge-out').addEventListener('change',e=>{if(e.target.id==='perfect-week'){HJ_CHALLENGE_STATE.perfectWeek=Number(e.target.value);HJ_CHALLENGE_STATE.perfectManager=null;hjRenderChallenge()}});
  const strip=$('#challenge-strip');
- const HJ_CH_TAB_LINES={raffle:['High Score','Raffle'],lms:['Last Man','Standing'],titty:['Titty','Special'],overachiever:['Overachiever','Special'],mvp:['MVP','Special'],optimizer:['Optimizer','Special']};
+ const HJ_CH_TAB_LINES={raffle:['High Score','Raffle'],lms:['Last Man','Standing'],titty:['Titty','Special'],overachiever:['Overachiever','Special'],mvp:['MVP','Special'],optimizer:['Optimizer','Special'],perfect:['The Perfect','Lineup']};
  strip.innerHTML=CHALLENGES.map(ch=>{const lines=HJ_CH_TAB_LINES[ch.id]||[ch.label];return `<button type="button" id="challenge-tab-${ch.id}" role="tab" aria-controls="challenge-out" data-challenge="${ch.id}" aria-selected="false" aria-label="${esc(ch.label)}">${lines.map(l=>`<span>${esc(l)}</span>`).join('')}</button>`}).join('');
  // The rail sticks just under the site nav; keep the offset in step with the nav's real height.
  const hjChNavOffset=()=>document.documentElement.style.setProperty('--hj-nav-h',`${document.querySelector('nav')?.offsetHeight||0}px`);
@@ -410,4 +421,5 @@ function selectChallenge(id){
  selectChallenge('raffle');if(HJ_LEAGUE_STATE.data)hjRefreshChallenges(HJ_LEAGUE_STATE.data);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&HJ_LEAGUE_STATE.data)hjRefreshChallenges(HJ_LEAGUE_STATE.data)});
 }
+
 
