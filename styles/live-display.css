@@ -143,3 +143,26 @@ html body #league-hq{padding-top:24px!important}
   grid-template-areas:"score identity avatar" "score game avatar"!important;
  }
 }
+
+/* IR uses the space beneath starters while the desktop bench continues beside it. */
+#league-hq .league-team-view .league-roster-groups > .league-ir-wrap{
+ margin-top:-2px;
+}
+@media(min-width:761px){
+ #league-hq .league-team-view .league-roster-groups:has(> .league-ir-wrap){
+  grid-template-rows:min-content 1fr;
+ }
+ #league-hq .league-team-view .league-roster-groups:has(> .league-ir-wrap) > .league-roster-group:not(.is-bench){
+  grid-column:1;
+  grid-row:1;
+ }
+ #league-hq .league-team-view .league-roster-groups:has(> .league-ir-wrap) > .is-bench{
+  grid-column:2;
+  grid-row:1 / span 2;
+ }
+ #league-hq .league-team-view .league-roster-groups > .league-ir-wrap{
+  grid-column:1;
+  grid-row:2;
+  margin-top:0;
+ }
+}

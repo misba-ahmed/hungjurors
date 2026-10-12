@@ -96,6 +96,11 @@ function once(html,pattern,replacement,label){
  return html.replace(pattern,()=>replacement);
 }
 export function prepareLiveDisplay(html){
+ // Keep IR in the roster grid so desktop can place it below the starters.
+ // Source order remains starters, bench, IR for the single-column mobile layout.
+ const irGroup="${ir.length?`<div class=\"league-ir-wrap\">${hjRosterGroupHTML('Injured reserve',ir,week,'',rosterSeason)}</div>`:''}";
+ html=html.replaceAll('</div>'+irGroup,irGroup+'</div>');
+
  for(const {source,flags,replacement,label} of patches)html=once(html,new RegExp(source,flags),replacement,label);
  html=once(html,/function hjLeagueUrl\(/g,probability+'\nfunction hjLeagueUrl(','ESPN probability helper');
  html=once(html,/async function ffnPlayersLatest\(players\)\{[^]*?(?=async function ffnInit\()/g,news+'\n','chronological news loader');
