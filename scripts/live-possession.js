@@ -19,7 +19,7 @@ function hjPossessionGlow(state,position){
 (function(){
  let states=new Map(),week=0,season=0,at=0,expiry=0,frame=0;
  const selector='.hj-player-v3,.hj-player-v2,.league-player,.hq-lineup-player';
- const skin=document.createElement('style');skin.textContent='[data-hj-possession="green"]{outline:1px solid #2bbf70!important;outline-offset:0;box-shadow:0 0 2px 0 #2bbf7060!important;border-radius:50%!important}[data-hj-possession="red"]{outline:1px solid #ee4444!important;outline-offset:0;box-shadow:0 0 2px 0 #ee444460!important;border-radius:50%!important}';document.head.append(skin);
+ const skin=document.createElement('style');skin.textContent='[data-hj-possession="green"]{outline:1.5px solid #2bbf70!important;outline-offset:0.5px;box-shadow:0 0 3.5px 1px #2bbf7070!important;border-radius:50%!important}[data-hj-possession="red"]{outline:1.5px solid #ee4444!important;outline-offset:0.5px;box-shadow:0 0 3.5px 1px #ee444470!important;border-radius:50%!important}';document.head.append(skin);
  function apply(){
   frame=0;const fresh=Date.now()-at<75000&&season===Number(NFL_SEASON);
   document.querySelectorAll(selector).forEach(row=>{
