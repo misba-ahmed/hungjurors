@@ -372,7 +372,7 @@ function hjRenderChallenge(){
  // One layout flush starts all score transitions together, including first visits.
  if(movements.length){out.getBoundingClientRect();movements.forEach(move=>move());}
  if(ch.id==='perfect'&&motion)hjPerfectAnimateBars(out,perfectBars,enter);
- else if(enter&&motion)hjChIntro(out,ch.id);
+ if(enter&&motion)hjChIntro(out,ch.id);
 }
 function selectChallenge(id){
  const ch=CHALLENGES.find(c=>c.id===id)||CHALLENGES[0];HJ_CHALLENGE_STATE.active=ch.id;

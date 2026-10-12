@@ -64,12 +64,13 @@ function hjPerfectAnimateBars(out,previous,enter){
   if(!enter&&(old==null||old===current.get(key)))return;
   const stack=figure.querySelector('.perfect-bars');
   if(!stack?.animate)return;
+  stack.style.transformOrigin='50% 100%';
   stack.animate(enter?[
-   {opacity:.25,transform:'translateY(6px)'},
-   {opacity:1,transform:'translateY(0)'}
+   {opacity:0,transform:'scaleY(0)'},
+   {opacity:1,transform:'scaleY(1)'}
   ]:[
    {opacity:.55,transform:'scaleY(.96)'},
    {opacity:1,transform:'scaleY(1)'}
-  ],{duration:enter?420:320,delay:enter?Math.min(i*25,225):0,easing:'cubic-bezier(.2,.75,.2,1)',fill:'none'});
+  ],{duration:enter?900:320,delay:enter?Math.min(i*35,280):0,easing:'cubic-bezier(.2,.75,.2,1)',fill:'backwards'});
  });
 }
