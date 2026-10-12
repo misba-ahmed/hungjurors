@@ -39,11 +39,37 @@ function hjChPerfect(model){
  const picker=`<div class="perfect-week"><label for="perfect-week">Week <select id="perfect-week">${weeks.slice().reverse().map(w=>`<option value="${w.week}"${w.week===week.week?' selected':''}>${w.week}</option>`).join('')}</select></label><span>${week.final?'FINAL RESULTS':'<b class="perfect-live">● LIVE</b>'}</span></div>`;
  const thresholds='<div class="perfect-thresholds"><span>QB <b>20+</b></span><span>Every RB / WR / TE / FLEX <b>15+</b></span><span>K &amp; DST <b>10+</b></span></div>';
  const stage=hjChLineupView({id:'perfect-lineup',fitKey:'perfectFit',label:'Perfect Lineup managers, closest first. Tap a manager to view their starters.',figures,count:rows.length}).replace('<div class="lms-stage', '<p class="perfect-hint">Tap a manager to view their lineup.</p><div class="lms-stage');
- return `<div class="perfect-view">${thresholds}${picker}${stage}${selected?hjPerfectSelected(selected,week):'<div class="empty">ESPN starting lineups are loading.</div>'}${hjPerfectPayouts(weeks)}</div>`;
+ return `<div class="perfect-view" data-perfect-week="${week.week}">${thresholds}${picker}${stage}${selected?hjPerfectSelected(selected,week):'<div class="empty">ESPN starting lineups are loading.</div>'}${hjPerfectPayouts(weeks)}</div>`;
 }
 function hjPerfectPayouts(weeks){
  const payouts=HJ_PERFECT_PAST.map(p=>({...p,team:hjPerfectResult(p.team,{week:p.week,final:true})}));
  for(const week of weeks.filter(w=>w.final))for(const t of hjPerfectRank(week.teams,week).filter(t=>t.earned))if(!payouts.some(p=>p.season===Number(NFL_SEASON)&&p.week===week.week&&p.team.id===t.id))payouts.push({season:Number(NFL_SEASON),week:week.week,team:t,amount:30});
  payouts.sort((a,b)=>b.season-a.season||b.week-a.week||a.team.id.localeCompare(b.team.id));
  return `<div class="perfect-payout-heading"><h4 class="aw-sub challenge-sub">PAYOUTS</h4><span>${payouts.length} payout${payouts.length===1?'':'s'} · $${payouts.reduce((n,p)=>n+p.amount,0)}</span></div><div class="perfect-payouts">${payouts.map(p=>`<details class="perfect-payout"><summary><span class="perfect-payout-week">${p.season}<br>Week ${p.week}</span><span class="perfect-payout-who">${av(p.team.short,'challenge-avatar')}<b>${esc(p.team.short)}</b><small>9 of 9</small></span><b class="perfect-award">+$${p.amount}</b><span class="perfect-chevron" aria-hidden="true">⌄</span></summary>${p.note?`<p class="perfect-payout-note">${esc(p.note)}</p>`:''}${hjPerfectPlayerGrid(p.team)}</details>`).join('')||'<p class="challenge-live-note">No payouts yet.</p>'}</div>`;
+}
+
+/* Animate only small bar stacks, once per entrance or changed result. No timers or retained layers. */
+function hjPerfectBarSnapshot(out){
+ const week=out.querySelector('.perfect-view')?.dataset.perfectWeek;
+ return new Map([...out.querySelectorAll('.perfect-figure')].map(figure=>[
+  week+':'+figure.dataset.perfectManager,
+  [...figure.querySelectorAll('.perfect-segment')].map(segment=>segment.className).join('|')
+ ]));
+}
+function hjPerfectAnimateBars(out,previous,enter){
+ if(document.hidden||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ const current=hjPerfectBarSnapshot(out),week=out.querySelector('.perfect-view')?.dataset.perfectWeek;
+ out.querySelectorAll('.perfect-figure').forEach((figure,i)=>{
+  const key=week+':'+figure.dataset.perfectManager,old=previous.get(key);
+  if(!enter&&(old==null||old===current.get(key)))return;
+  const stack=figure.querySelector('.perfect-bars');
+  if(!stack?.animate)return;
+  stack.animate(enter?[
+   {opacity:.25,transform:'translateY(6px)'},
+   {opacity:1,transform:'translateY(0)'}
+  ]:[
+   {opacity:.55,transform:'scaleY(.96)'},
+   {opacity:1,transform:'scaleY(1)'}
+  ],{duration:enter?420:320,delay:enter?Math.min(i*25,225):0,easing:'cubic-bezier(.2,.75,.2,1)',fill:'none'});
+ });
 }

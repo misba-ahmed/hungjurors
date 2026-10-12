@@ -336,6 +336,7 @@ function hjRenderChallenge(){
  const shifts=new Map([...out.querySelectorAll('.over-figure')].map(f=>[f.dataset.overId,{shift:f.style.getPropertyValue('--over-shift'),neg:f.classList.contains('is-neg')}]));
  if(state.lastHtml===html)return;
  state.lastHtml=html;
+ const perfectBars=ch.id==='perfect'?hjPerfectBarSnapshot(out):null;
  const perfectScroll=ch.id==='perfect'?out.querySelector('.lms-stage')?.scrollLeft||0:0;
  const hasGraphic=!!out.querySelector('.lms-view'),enter=!!model&&(out.dataset.renderedChallenge!==ch.id||!hasGraphic);
  out.classList.remove('ch-enter');
@@ -370,7 +371,8 @@ function hjRenderChallenge(){
  });
  // One layout flush starts all score transitions together, including first visits.
  if(movements.length){out.getBoundingClientRect();movements.forEach(move=>move());}
- if(enter&&motion)hjChIntro(out,ch.id);
+ if(ch.id==='perfect'&&motion)hjPerfectAnimateBars(out,perfectBars,enter);
+ else if(enter&&motion)hjChIntro(out,ch.id);
 }
 function selectChallenge(id){
  const ch=CHALLENGES.find(c=>c.id===id)||CHALLENGES[0];HJ_CHALLENGE_STATE.active=ch.id;
