@@ -166,3 +166,32 @@ html body #league-hq{padding-top:24px!important}
   margin-top:0;
  }
 }
+
+/* Roster totals share the matchup score typography and live projection treatment. */
+html body .league-roster-group-head .league-roster-lineup-head-total{
+ display:inline-flex!important;align-items:center!important;gap:5px!important;
+ letter-spacing:0!important;flex-shrink:0;
+}
+html body .league-roster-lineup-head-total .hq-live-score-pair{
+ display:inline-flex!important;align-items:baseline!important;gap:6px!important;
+ white-space:nowrap;min-width:0;
+}
+html body .league-roster-lineup-head-total .hq-match-team-score{
+ font:800 22px/.96 var(--serif)!important;
+ font-variant-numeric:tabular-nums!important;letter-spacing:0!important;
+ margin:0!important;
+}
+html body .league-roster-lineup-head-total .hq-adjusted-projection{
+ font:600 11px/1 var(--sans)!important;color:#6d7b88!important;
+ letter-spacing:0!important;margin:0!important;
+}
+@media(max-width:900px){
+ html body .league-roster-lineup-head-total .hq-match-team-score{font-size:20px!important}
+}
+@media(max-width:620px){
+ html body .league-roster-lineup-head-total .hq-match-team-score{font-size:18px!important}
+}
+@media(max-width:600px){
+ html body .league-roster-lineup-head-total .hq-adjusted-projection{font-size:9px!important}
+ html body .league-roster-lineup-head-total .hq-live-score-pair{gap:4px!important}
+}
