@@ -104,7 +104,7 @@ export function prepareLiveDisplay(html){
 
  for(const {source,flags,replacement,label} of patches)html=once(html,new RegExp(source,flags),replacement,label);
  html=once(html,/function hjRefreshGameContexts\(\)\{/g,gameStatus+'\nfunction hjRefreshGameContexts(){','stable game status nodes');
- html=once(html,/const markup=hjContextStatusHTML\(c\);if\(status\.innerHTML!==markup\)status\.innerHTML=markup;/g,'hjUpdateGameStatus(status,hjContextStatusHTML(c));','update status without replacing unchanged opponents');
+ html=once(html,/const markup=hjContextStatusHTML\(c\);(?:if\(status\.innerHTML!==markup\)status\.innerHTML=markup;|hjSetGameContextMarkup\(status,markup\);)/g,'hjUpdateGameStatus(status,hjContextStatusHTML(c));','update status without replacing unchanged opponents');
  html=once(html,/function hjLeagueUrl\(/g,probability+'\nfunction hjLeagueUrl(','ESPN probability helper');
  html=once(html,/async function ffnPlayersLatest\(players\)\{[^]*?(?=async function ffnInit\()/g,news+'\n','chronological news loader');
  html=once(html,/<script id="hj-native-nonsticky-swipe">[^]*?<\/script>/g,'<script id="hj-native-nonsticky-swipe">'+navigation+'</script>','matchup navigation');
