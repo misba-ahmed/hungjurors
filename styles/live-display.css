@@ -177,21 +177,14 @@ html body .league-roster-lineup-head-total .hq-live-score-pair{
  white-space:nowrap;min-width:0;
 }
 html body .league-roster-lineup-head-total .hq-match-team-score{
- font:800 22px/.96 var(--serif)!important;
+ font:700 16px/1.05 var(--sans)!important;
  font-variant-numeric:tabular-nums!important;letter-spacing:0!important;
  margin:0!important;
 }
 html body .league-roster-lineup-head-total .hq-adjusted-projection{
- font:600 11px/1 var(--sans)!important;color:#6d7b88!important;
+ font:550 11px/1.1 var(--sans)!important;color:#728396!important;
  letter-spacing:0!important;margin:0!important;
 }
-@media(max-width:900px){
- html body .league-roster-lineup-head-total .hq-match-team-score{font-size:20px!important}
-}
-@media(max-width:620px){
- html body .league-roster-lineup-head-total .hq-match-team-score{font-size:18px!important}
-}
-@media(max-width:600px){
- html body .league-roster-lineup-head-total .hq-adjusted-projection{font-size:9px!important}
- html body .league-roster-lineup-head-total .hq-live-score-pair{gap:4px!important}
+@media(max-width:450px){
+ html body .league-roster-lineup-head-total .hq-match-team-score{font-size:14px!important}
 }
