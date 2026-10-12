@@ -3,6 +3,7 @@ const liveUpdates=readFileSync(new URL('./live-updates.js',import.meta.url),'utf
 const news=readFileSync(new URL('./news-feed.js',import.meta.url),'utf8');
 const navigation=readFileSync(new URL('./section-scroll.js',import.meta.url),'utf8')+'\n'+readFileSync(new URL('./matchup-navigation.js',import.meta.url),'utf8');
 const rowFit=readFileSync(new URL('./matchup-row-fit.js',import.meta.url),'utf8');
+const gameStatus=readFileSync(new URL('./game-status-update.js',import.meta.url),'utf8');
 const probability=readFileSync(new URL('./espn-win-probability.js',import.meta.url),'utf8');
 const patches=[
   {
@@ -102,6 +103,8 @@ export function prepareLiveDisplay(html){
  html=html.replaceAll('</div>'+irGroup,irGroup+'</div>');
 
  for(const {source,flags,replacement,label} of patches)html=once(html,new RegExp(source,flags),replacement,label);
+ html=once(html,/function hjRefreshGameContexts\(\)\{/g,gameStatus+'\nfunction hjRefreshGameContexts(){','stable game status nodes');
+ html=once(html,/const markup=hjContextStatusHTML\(c\);if\(status\.innerHTML!==markup\)status\.innerHTML=markup;/g,'hjUpdateGameStatus(status,hjContextStatusHTML(c));','update status without replacing unchanged opponents');
  html=once(html,/function hjLeagueUrl\(/g,probability+'\nfunction hjLeagueUrl(','ESPN probability helper');
  html=once(html,/async function ffnPlayersLatest\(players\)\{[^]*?(?=async function ffnInit\()/g,news+'\n','chronological news loader');
  html=once(html,/<script id="hj-native-nonsticky-swipe">[^]*?<\/script>/g,'<script id="hj-native-nonsticky-swipe">'+navigation+'</script>','matchup navigation');
