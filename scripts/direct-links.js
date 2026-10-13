@@ -23,12 +23,6 @@ function hjOpenRosterMatchup(){
  HJ_HQ_STATE.matchupFocusKey='';
  hjSetHQTab('matchups',HJ_LEAGUE_STATE.selectedTeamId);
 }
-/* Only ordinary tab navigation uses the roster default. Explicit game links keep
-   their own week and matchup key. */
-document.querySelector('#league-hq-tabs')?.addEventListener('click',event=>{
- const tab=event.target.closest('[data-hq-tab="matchups"]');if(!tab)return;
- event.preventDefault();event.stopImmediatePropagation();hjOpenRosterMatchup();
-},true);
 /* Shareable destinations; tab selection also updates the address bar. */
 function hjDirectRoute(hash){
  let slug;try{slug=decodeURIComponent(hash.replace(/^#/,''))}catch(_){return null}
@@ -43,6 +37,12 @@ function hjDirectRoute(hash){
  return null;
 }
 (function(){
+/* Only ordinary tab navigation uses the roster default. Explicit game links keep
+   their own week and matchup key. */
+document.querySelector('#league-hq-tabs')?.addEventListener('click',event=>{
+ const tab=event.target.closest('[data-hq-tab="matchups"]');if(!tab)return;
+ event.preventDefault();event.stopImmediatePropagation();hjOpenRosterMatchup();
+},true);
  let applying=false,pending=null,frame=0;
  const hqSlug={rosters:'rosters',matchups:'matchups','free-agents':'players',strength:'roster-strength',activity:'activity',recap:'weekly-recap'};
  function address(slug){if(!applying&&location.hash!=='#'+slug)history.pushState(null,'','#'+slug)}
