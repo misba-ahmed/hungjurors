@@ -3,7 +3,7 @@
  * Use live roster/schedule data; never infer a bye from missing game data. */
 (function(){
  const baseBuild=wireBuild,baseLabel=hjWireNavLabel;
- const priorityOrder=['kickoff','byes'];
+ const priorityOrder=['kickoff','waivers','byes'];
  HJ_WIRE_ORDER.splice(0,HJ_WIRE_ORDER.length,...priorityOrder,...HJ_WIRE_ORDER.filter(s=>!priorityOrder.includes(s)&&!['this-week','byes','lms'].includes(s)));
  hjWireNavLabel=function(section,data){return ({byes:'Bye Week',lms:'Last Man Standing'})[section]||baseLabel(section,data)};
  function byeGroups(data,week){
