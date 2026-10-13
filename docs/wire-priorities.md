@@ -9,3 +9,6 @@ Approved October 7, 2026 (supersedes the grouped This Week design):
 - Waivers retain their existing deadline and ESPN destination as a standalone card with their own chip.
 - Preserve stable card keys, refresh position, ordinary expansion/dismissal, player/action navigation and the outer carousel's gesture ownership.
 - Follow docs/wire-card-rules.md for shared behavior. Run test-wire-priorities.mjs, test-wire-announcements.mjs (desktop/mobile Chromium and WebKit), and test-card-gestures.mjs before publishing.
+
+## October 13 — restore the original waiver card
+The waiver reminder uses the original `wireWaiverCard` / `wireCard` design from before the October 6 grouped announcements update. Do not replace it with a `wp-waivers` priority panel. Preserve its deadline visibility, live countdown, ESPN destination and standard card interactions. Bye Week and LMS announcements remain removed from the carousel.

@@ -41,21 +41,9 @@
  function announcement(kind,html){return {section:kind,html:'<div class="wc wp-single" data-wire-key="priority-'+kind+'" aria-label="'+({byes:'Bye Week',lms:'Last Man Standing',waivers:'Waivers'})[kind]+'">'+html+'</div>'};}
  wireBuild=function(data){
   const built=baseBuild.apply(this,arguments);if(!data?.teams?.length)return built;
-  const waiver=wireWaiverCard(data);
+  // Keep the original pre-grouped waiver card from baseBuild, including its
+  // countdown, ESPN action and shared Wire expansion/gesture behavior.
   built.cards=built.cards.filter(c=>!['byes','lms'].includes(c.section));
-  const panels=[];
-  if(waiver){
-   const info=wireNextWaiver(data,Date.now());
-   if(info){
-    const body='<p>Wednesday · 2 AM CT</p>'+wireCountdownHTML(info.start,'');
-    const action='<a class="wp-button" href="https://fantasy.espn.com/football/players/add?leagueId='+ESPN_FANTASY_LEAGUE_ID+'" target="_blank" rel="noopener">Open ESPN waivers ↗</a>';
-    panels.push(announcement('waivers',panel('waivers','Waiver deadline','Set your claims',body,action)));
-   }
-  }
-  if(!panels.length)return built;
-  built.cards=built.cards.filter(c=>!panels.some(p=>p.section===c.section));
-  built.cards.push(...panels);
-  built.cards.sort((a,b)=>HJ_WIRE_ORDER.indexOf(a.section)-HJ_WIRE_ORDER.indexOf(b.section));
   return built;
  };
  const interactive='a,button,input,select,textarea,label,summary,[role="button"],[role="link"],[contenteditable="true"],.pc-player-trigger,.manager-profile-trigger';

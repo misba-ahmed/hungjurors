@@ -27,10 +27,8 @@ for(const [label,week,bye,waiver,expected] of [
  const ctx=setup(week,bye,waiver),out=ctx.wireBuild(data),html=out.cards.map(c=>c.html).join('');
  assert.deepEqual(Array.from(out.cards,c=>c.section),expected);
  assert(!html.includes('wp-group'));
- for(const card of out.cards.filter(c=>['byes','lms','waivers'].includes(c.section))){
-  assert.equal((card.html.match(/class="wp-panel /g)||[]).length,1);
-  assert(card.html.includes('data-wire-key="priority-'+card.section+'"'));
- }
+ if(waiver)assert.equal(out.cards.find(c=>c.section==='waivers').html,'waiver');
+ assert(!html.includes('wp-panel'));
  assert(!out.cards.some(c=>['byes','lms'].includes(c.section)));
  assert.equal(html.includes('Lowest score this week will be eliminated.'),false);
  assert.equal(ctx.hjWireNavLabel('byes'),'Bye Week');
