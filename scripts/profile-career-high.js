@@ -1,4 +1,12 @@
 /* Career highs count individual completed weeks, including all postseason games. */
+// Owner-confirmed weeks for archived season-high scores with missing week metadata.
+const HJ_CAREER_HIGH_WEEKS={
+ 'WASI':{2022:1},
+ 'TYLER':{2022:5},
+ 'GARRETT':{2020:12},
+ 'NATHAN T':{2024:13},
+ 'CESAR':{2023:13}
+};
 function hjCareerArchive(){
  if(!window.hjCareerArchiveState){
   let saved={};try{saved=JSON.parse(localStorage.getItem('hj:career-weekly:v1')||'{}')}catch(_){}
@@ -29,7 +37,7 @@ function hjManagerCareerHighRecord(name){
  for(const row of HIST.manager_seasons||[])if(row.manager===name){
   const highest=HIST.season_summaries?.[row.year]?.highest_week;
   const award=(HIST.season_awards?.perfect_lineup||[]).find?.(a=>a.manager===name&&Number(a.year)===Number(row.year)&&Number(a.score)===Number(row.max_score));
-  add({score:Number(row.max_score),year:Number(row.year),week:highest?.manager===name&&Number(highest.score)===Number(row.max_score)?highest.week:award?.week||null});
+  add({score:Number(row.max_score),year:Number(row.year),week:HJ_CAREER_HIGH_WEEKS[name]?.[row.year]||(highest?.manager===name&&Number(highest.score)===Number(row.max_score)?highest.week:award?.week||null)});
  }
  for(const season of HIST.official_playoffs||[]){
   if(season.score_format!=='single_week')continue;
