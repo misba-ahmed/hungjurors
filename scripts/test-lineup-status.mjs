@@ -41,7 +41,20 @@ for(const id of ids){
 assert.equal(ctx.choose({player:{id:'unknown',injuryStatus:'OUT'}}),undefined);
 const untouched=Object.keys(cat).find(id=>!cat[id].unavailable);
 assert.equal(ctx.choose({player:{id:untouched,injuryStatus:'OUT'}}).file,cat[untouched].file);
-assert(source.includes('hjTeamPhotoOrder(hjRosterEntries(team))'),'Only current roster entries are displayed');
+// Optimal views must retain exactly the current roster and never mutate ESPN slots.
+const roster=[{id:'starter',lineupSlotId:0},{id:'bench',lineupSlotId:20},{id:'ir',lineupSlotId:21}];
+const original=JSON.stringify(roster),modes=new Map();
+Object.assign(ctx,{hjRosterEntries:()=>roster,HJ_HQ_STATE:{lineupModes:modes},
+ hjRosterModeKey:()=> 'view',hjLineupPlan:()=>[{slotId:0}],hjSelectionForMode:()=>[roster[1]]});
+vm.runInContext('this.viewEntries=hjTeamPhotoViewEntries',ctx);
+assert.strictEqual(ctx.viewEntries({id:1}),roster);
+for(const mode of ['espn','vegas','combo']){
+ modes.set('view',mode);const view=ctx.viewEntries({id:1});
+ assert.equal(view.map(e=>e.id).join(','),roster.map(e=>e.id).join(','),'Only current roster entries are displayed');
+ assert.equal(view[0].lineupSlotId,20);assert.equal(view[1].lineupSlotId,0);assert.equal(view[2].lineupSlotId,21);
+}
+modes.set('view','actual');assert.strictEqual(ctx.viewEntries({id:1}),roster);
+assert.equal(JSON.stringify(roster),original,'Preview never changes ESPN roster slots');
 console.log('PASS: all alternate poses, healthy restoration, unavailable states, absent status, bench players, unchanged original assets, roster-only rendering');
 
 
