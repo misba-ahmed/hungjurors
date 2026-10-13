@@ -15,7 +15,8 @@
 .lms-lineup:after{content:"";position:absolute;left:20px;right:20px;bottom:calc(44px + (100% - var(--lms-top) - 44px)*.071);height:2px;background:linear-gradient(90deg,transparent,#b38b36 5%,#b38b36 95%,transparent);z-index:-1;box-shadow:0 8px 18px #a9883830}
 .lms-figure{position:relative;flex:1 1 0;max-width:120px;min-width:0;filter:drop-shadow(0 3px 2px #142c4210);transition:filter .5s ease}
 .lms-name{position:absolute;top:calc(100% + 4px);left:0;width:100%;text-align:center;white-space:nowrap;font:800 10px/1.4 var(--sans);letter-spacing:.025em;color:var(--navy)}
-.lms-figure svg{display:block;width:100%;height:auto;overflow:visible}
+.lms-figure>.lms-art{display:block;width:100%;height:auto;overflow:visible}
+.lms-elimination-week{display:block;margin-top:2px;font-size:.9em;line-height:1.4;letter-spacing:0;color:var(--verdict-red)}
 @container lms (max-width:801px){
  .lms-zoom{display:flex}
  .lms-lineup{--lms-top:64px;min-width:0;width:800px;transition:width .5s cubic-bezier(.22,.7,.2,1)}
@@ -27,7 +28,7 @@
 .lms-upper{transform:translateY(0);transition:transform .65s cubic-bezier(.2,.7,.2,1)}
 .lms-seated-legs{opacity:0;transition:opacity .3s ease}
 .lms-standing-legs{opacity:1;transition:opacity .3s ease}
-.lms-figure.is-eliminated{filter:grayscale(1);opacity:.58}
+.lms-figure.is-eliminated{filter:drop-shadow(0 3px 2px #142c4210);opacity:1}
 .lms-figure.is-eliminated .lms-upper{transform:translateY(57px)}
 .lms-figure.is-eliminated .lms-standing-legs{opacity:0}
 .lms-figure.is-eliminated .lms-seated-legs{opacity:1}
