@@ -25,9 +25,27 @@ function hjPerfectPlayerGrid(team){
  }).join('')}</div>`;
 }
 function hjPerfectSelected(team,week){return `<section class="perfect-attempt" id="perfect-selected-lineup" aria-label="${esc(team.short)} Week ${week.week} starters"><div class="perfect-attempt-head"><div class="perfect-manager">${av(team.short,'challenge-avatar')}<span><b>${esc(team.short)}</b><small>${team.hits} of 9 targets reached</small></span></div><div class="perfect-result${team.missed?' is-miss':''}"><b>${esc(team.label)}</b><small>${team.earned?'Perfect lineup':week.final?`${team.shortfall.toFixed(2)} points short`:'Not earned until final'}</small></div></div>${hjPerfectPlayerGrid(team)}</section>`}
+// Advance only once a game involving a league-rostered player has started.
+// With no Thursday participant, retain the results until the first later relevant kickoff.
+function hjPerfectWeekStarted(data,week){
+ const state=HJ_CHALLENGE_STATE,key=Number(NFL_SEASON)+':'+Number(week);
+ state.perfectStartedWeeks??=new Set();
+ if(state.perfectStartedWeeks.has(key))return true;
+ const board=state.perfectScoreboard;
+ if(Number(board?.season?.year)!==Number(NFL_SEASON)||Number(board?.week?.number)!==Number(week))return false;
+ const teams=new Set((data?.teams||[]).flatMap(team=>hjRosterEntries(team).map(entry=>String(hjPlayer(entry).proTeamId))).filter(id=>id!=='0'&&id!=='undefined'));
+ const started=(board.events||[]).some(event=>(event.competitions||[]).some(game=>{
+  const status=game.status?.type||event.status?.type;
+  return ['in','post'].includes(status?.state)&&(game.competitors||[]).some(side=>teams.has(String(side.team?.id)));
+ }));
+ if(started)state.perfectStartedWeeks.add(key);
+ return started;
+}
 function hjPerfectWeeks(model){
- const weeks=model.weeks.slice(),state=HJ_CHALLENGE_STATE,data=state.data,latest=Number(data?.scoringPeriodId);
- if(latest>0&&!weeks.some(w=>w.week===latest))try{weeks.push(hjChWeek(data,{season:Number(NFL_SEASON),week:latest,names:state.names,final:false}))}catch(error){}
+ const state=HJ_CHALLENGE_STATE,data=state.data,latest=Number(data?.scoringPeriodId);
+ const started=hjPerfectWeekStarted(data,latest);
+ const weeks=model.weeks.filter(w=>w.week<latest||w.final||started);
+ if(started&&latest>0&&!weeks.some(w=>w.week===latest))try{weeks.push(hjChWeek(data,{season:Number(NFL_SEASON),week:latest,names:state.names,final:false,opponents:hjChOpponents(state.perfectScoreboard)}))}catch(error){}
  return weeks.sort((a,b)=>a.week-b.week);
 }
 function hjChPerfect(model){

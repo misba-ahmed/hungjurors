@@ -14,7 +14,7 @@ async function hjRefreshChallenges(data,checkedAt=Number(HJ_LEAGUE_STATE.syncedA
   const regularEnd=Number(current.settings?.scheduleSettings?.matchupPeriodCount)||14,finalEnd=Number(current.status?.finalScoringPeriod)||regularEnd;
   const currentGames=(current.schedule||[]).filter(g=>Number(g.matchupPeriodId)===latest),fantasyFinal=currentGames.length>0&&currentGames.every(g=>['HOME','AWAY','TIE'].includes(g.winner)),errors=[];
   let currentScoreboard=null;
-  try{currentScoreboard=await hjDataSchedule(season,latest)}catch(error){errors.push('NFL game status unavailable; retrying automatically')}
+  try{currentScoreboard=await hjDataSchedule(season,latest);state.perfectScoreboard=currentScoreboard}catch(error){errors.push('NFL game status unavailable; retrying automatically')}
   const currentFinal=fantasyFinal||hjChNflWeekFinal(currentScoreboard,season,latest);
   const through=Math.min(finalEnd,latest-(hjChallengeWeekActive(current,latest)||currentFinal?0:1));
   let pool=[],poolReady=false;

@@ -46,3 +46,6 @@ The Perfect Lineup pays $30 each time all nine starting slots meet their individ
 
 PAYOUTS stays visible. Individual payout rows expand using the same player-grid renderer. The owner confirmed Bryan's $30 payment for 2025 Week 9 (Koo-Tang Clan, 200.24–113.42 vs Cesar); the original ESPN lineup and scores form the historical record. Future final qualifying weeks join the ledger once per season/week/manager. The redundant matchup/points-needed footer is omitted. No MAGA challenge is included.
 
+
+## Perfect Lineup week rollover — October 13
+Keep the previous week's results until an NFL game involving at least one league-rostered player starts. Thursday night kickoff opens the new week only when a roster includes a player from that game; otherwise wait for the first later game involving a rostered player. Require ESPN in-game/postgame status and the matching NFL season/week, rather than the calendar or fantasy scoring-period rollover. Missing schedule data keeps the previous results visible. Remember a confirmed start through later roster changes, preserve manual historical-week selection, and use the existing refresh cadence. This display rule affects Perfect Lineup only.
