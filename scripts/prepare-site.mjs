@@ -1,6 +1,7 @@
 import {preparePerfectAwards} from './prepare-perfect-awards.mjs';
 import {prepareProfileDetails} from './prepare-profile-details.mjs';
 import {prepareNestedCards} from './prepare-nested-cards.mjs';
+import {prepareManagerHero} from './prepare-manager-hero.mjs';
 import {prepareTeamScoreDisplay} from './prepare-team-score-display.mjs';
 const livePossession=readFileSync(new URL('./live-possession.js',import.meta.url),'utf8');
 import {prepareProfileScoreColors} from './prepare-profile-score-colors.mjs';
@@ -52,6 +53,7 @@ export function prepareSite(html){
  html=preparePerfectAwards(html);
  html=prepareProfileDetails(html);
  html=prepareNestedCards(html);
+ html=prepareManagerHero(html);
 
  html=replaceOnce(html,/function nflGameFromEspn\(event,period\)\{/g,livePossession+'\nfunction nflGameFromEspn(event,period){');
  html=replaceOnce(html,/const data=await fetchEspnJson\(nflScheduleUrl\(requested\)\);/g,'const data=await hjFetchPossessionScoreboard(nflScheduleUrl(requested));');
