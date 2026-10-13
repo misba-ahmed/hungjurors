@@ -19,9 +19,9 @@ function setup(week,bye,waiver){
 }
 const data={teams:[{id:1,name:'KAT',entries:[{id:'15',name:'Mahomes',team:'KC'}]}]};
 for(const [label,week,bye,waiver,expected] of [
- ['opening week',5,true,true,['kickoff','byes','lms','waivers','recap']],
- ['expired waiver',5,true,false,['kickoff','byes','lms','recap']],
- ['later bye week',6,true,false,['kickoff','byes','recap']],
+ ['opening week',5,true,true,['kickoff','waivers','recap']],
+ ['expired waiver',5,true,false,['kickoff','recap']],
+ ['later bye week',6,true,false,['kickoff','recap']],
  ['ordinary week',6,false,true,['kickoff','waivers','recap']]
 ])test(label,()=>{
  const ctx=setup(week,bye,waiver),out=ctx.wireBuild(data),html=out.cards.map(c=>c.html).join('');
@@ -31,8 +31,8 @@ for(const [label,week,bye,waiver,expected] of [
   assert.equal((card.html.match(/class="wp-panel /g)||[]).length,1);
   assert(card.html.includes('data-wire-key="priority-'+card.section+'"'));
  }
- if(bye){assert(html.includes('Mahomes'));assert(html.includes('KAT'));}
- assert.equal(html.includes('Lowest score this week will be eliminated.'),week===5);
+ assert(!out.cards.some(c=>['byes','lms'].includes(c.section)));
+ assert.equal(html.includes('Lowest score this week will be eliminated.'),false);
  assert.equal(ctx.hjWireNavLabel('byes'),'Bye Week');
  assert.equal(ctx.hjWireNavLabel('lms'),'Last Man Standing');
 });

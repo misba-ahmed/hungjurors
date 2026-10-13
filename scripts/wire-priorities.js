@@ -3,8 +3,8 @@
  * Use live roster/schedule data; never infer a bye from missing game data. */
 (function(){
  const baseBuild=wireBuild,baseLabel=hjWireNavLabel;
- const priorityOrder=['kickoff','byes','lms'];
- HJ_WIRE_ORDER.splice(0,HJ_WIRE_ORDER.length,...priorityOrder,...HJ_WIRE_ORDER.filter(s=>!priorityOrder.includes(s)&&s!=='this-week'));
+ const priorityOrder=['kickoff'];
+ HJ_WIRE_ORDER.splice(0,HJ_WIRE_ORDER.length,...priorityOrder,...HJ_WIRE_ORDER.filter(s=>!priorityOrder.includes(s)&&!['this-week','byes','lms'].includes(s)));
  hjWireNavLabel=function(section,data){return ({byes:'Bye Week',lms:'Last Man Standing'})[section]||baseLabel(section,data)};
  function byeGroups(data,week){
   if(HJ_BYE_STATE.season!==Number(NFL_SEASON))return [];
@@ -41,7 +41,8 @@
  function announcement(kind,html){return {section:kind,html:'<div class="wc wp-single" data-wire-key="priority-'+kind+'" aria-label="'+({byes:'Bye Week',lms:'Last Man Standing',waivers:'Waivers'})[kind]+'">'+html+'</div>'};}
  wireBuild=function(data){
   const built=baseBuild.apply(this,arguments);if(!data?.teams?.length)return built;
-  const week=Number(hjCurrentWeek(data)),groups=byeGroups(data,week),waiver=wireWaiverCard(data),lms=week===5;
+  const waiver=wireWaiverCard(data);
+  built.cards=built.cards.filter(c=>!['byes','lms'].includes(c.section));
   const panels=[];
   if(waiver){
    const info=wireNextWaiver(data,Date.now());
@@ -50,15 +51,6 @@
     const action='<a class="wp-button" href="https://fantasy.espn.com/football/players/add?leagueId='+ESPN_FANTASY_LEAGUE_ID+'" target="_blank" rel="noopener">Open ESPN waivers ↗</a>';
     panels.push(announcement('waivers',panel('waivers','Waiver deadline','Set your claims',body,action)));
    }
-  }
-  if(groups.length){
-   const action='<button class="wp-button wp-text-button" type="button" data-wp-expand="byes">Expand list ↗</button>';
-   panels.push(announcement('byes',panel('byes','Week '+week+' · Lineup check','Teams on BYE this week',groupHTML(groups),action)));
-  }
-  if(lms){
-   const body='<div class="wp-lms-stakes"><span>WEEK '+week+'</span><p>Lowest score this week will be eliminated.</p></div>'+figures(data);
-   const action='<button type="button" class="wp-button" data-wp-lms>View challenge →</button>';
-   panels.push(announcement('lms',panel('lms','Last Man Standing','Eliminations start this week!',body,action)));
   }
   if(!panels.length)return built;
   built.cards=built.cards.filter(c=>!panels.some(p=>p.section===c.section));
@@ -94,12 +86,6 @@
   if((event.key==='Enter'||event.key===' ')&&event.target.matches('[data-wp-card]')){
    event.preventDefault();expandPanel(event.target);
   }
- });
- // The validated schedule may arrive after league data. Rebuild without resetting selection.
- let byeKey='';
- document.addEventListener('hj:team-photo-scores',()=>{
-  const key=HJ_BYE_STATE.season+':'+HJ_BYE_STATE.teams.size+':'+hjCurrentWeek();
-  if(key===byeKey)return;byeKey=key;wireRender(true);
  });
  // A tall priority slide must not leave a tall empty rail beneath ordinary cards.
  const heightScroll=wireScrollTo,heightDots=wireUpdateDots,heightRender=wireRender;
