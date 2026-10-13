@@ -42,9 +42,7 @@ function hjChPerfect(model){
  return `<div class="perfect-view" data-perfect-week="${week.week}">${thresholds}${picker}${stage}${selected?hjPerfectSelected(selected,week):'<div class="empty">ESPN starting lineups are loading.</div>'}${hjPerfectPayouts(weeks)}</div>`;
 }
 function hjPerfectPayouts(weeks){
- const payouts=HJ_PERFECT_PAST.map(p=>({...p,team:hjPerfectResult(p.team,{week:p.week,final:true})}));
- for(const week of weeks.filter(w=>w.final))for(const t of hjPerfectRank(week.teams,week).filter(t=>t.earned))if(!payouts.some(p=>p.season===Number(NFL_SEASON)&&p.week===week.week&&p.team.id===t.id))payouts.push({season:Number(NFL_SEASON),week:week.week,team:t,amount:30});
- payouts.sort((a,b)=>b.season-a.season||b.week-a.week||a.team.id.localeCompare(b.team.id));
+ const payouts=hjPerfectAwardPayouts(weeks);
  return `<div class="perfect-payout-heading"><h4 class="aw-sub challenge-sub">PAYOUTS</h4><span>${payouts.length} payout${payouts.length===1?'':'s'} · $${payouts.reduce((n,p)=>n+p.amount,0)}</span></div><div class="perfect-payouts">${payouts.map(p=>`<details class="perfect-payout"><summary><span class="perfect-payout-week">${p.season}<br>Week ${p.week}</span><span class="perfect-payout-who">${av(p.team.short,'challenge-avatar')}<b>${esc(p.team.short)}</b><small>9 of 9</small></span><b class="perfect-award">+$${p.amount}</b><span class="perfect-chevron" aria-hidden="true">⌄</span></summary>${p.note?`<p class="perfect-payout-note">${esc(p.note)}</p>`:''}${hjPerfectPlayerGrid(p.team)}</details>`).join('')||'<p class="challenge-live-note">No payouts yet.</p>'}</div>`;
 }
 
@@ -77,4 +75,36 @@ function hjPerfectAnimateBars(out,previous,enter){
    stack.animate([{opacity:.55},{opacity:1}],{duration:320,easing:'ease-out',fill:'none'});
   }
  });
+}
+
+function hjPerfectAwardPayouts(weeks=[]){
+ const payouts=HJ_PERFECT_PAST.map(p=>({...p,team:hjPerfectResult(p.team,{week:p.week,final:true})}));
+ for(const week of weeks.filter(w=>w.final))for(const team of hjPerfectRank(week.teams,week).filter(t=>t.earned)){
+  if(!payouts.some(p=>p.season===Number(NFL_SEASON)&&p.week===week.week&&p.team.id===team.id))
+   payouts.push({season:Number(NFL_SEASON),week:week.week,amount:30,team});
+ }
+ return payouts.sort((a,b)=>b.season-a.season||b.week-a.week||a.team.id.localeCompare(b.team.id));
+}
+function hjPerfectAwardDetail(year,row){
+ const payout=hjPerfectAwardPayouts(HJ_CHALLENGE_STATE.model?.weeks||[]).find(p=>p.season===Number(year)&&p.week===row.week&&p.team.short===row.who);
+ if(!payout)return '<div class="empty">Loading the verified winning lineup…</div>';
+ return '<div class="champ-banner">'+av(row.who,'lg')+'<div><div class="k">'+year+' · Week '+payout.week+'</div><div class="who">'+esc(row.who)+' · The Perfect Lineup</div><div class="s">'+esc(payout.note||payout.team.score.toFixed(2)+' fantasy points · All nine targets met')+'</div></div></div>'
+  +'<div class="aw-rule">QB 20+ · Every RB / WR / TE / FLEX 15+ · K &amp; DST 10+. Prize: $30.</div>'
+  +hjPerfectSelected(payout.team,{week:payout.week,final:true});
+}
+function hjSyncPerfectAwards(model){
+ const year=Number(NFL_SEASON),payouts=hjPerfectAwardPayouts(model?.weeks||[]).filter(p=>p.season===year);
+ const display=payouts.map(p=>({k:'The Perfect Lineup',who:p.team.short,stat:'Week '+p.week+' · 9 of 9 targets · '+p.team.score.toFixed(2)+' points',link:'perfect',prize:p.amount,week:p.week}));
+ const history=payouts.map(p=>({award:'The Perfect Lineup',winner:p.team.short,cash_prize:p.amount,value:p.team.score,metric:'points · Week '+p.week+' · all 9 starters met their targets',week:p.week}));
+ const data=DATA['s'+year]||{awards:[]},old=data.awards.filter(a=>a.link==='perfect');
+ if(JSON.stringify(old)===JSON.stringify(display))return;
+ data.awards=[...data.awards.filter(a=>a.link!=='perfect'),...display];DATA['s'+year]=data;
+ HIST.season_awards[String(year)]=[...(HIST.season_awards[String(year)]||[]).filter(a=>a.award!=='The Perfect Lineup'),...history];
+ const root=document.querySelector('#league-awards-out');
+ if(root){
+  const selected=Number(root.querySelector('.award-bookcase')?.dataset.year);
+  root.innerHTML=leagueAwardsHTML();
+  const book=root.querySelector('.award-bookcase');
+  if(book&&book.querySelector('[data-award-panel="'+selected+'"]'))setLeagueAwardsYear(book,selected);
+ }
 }

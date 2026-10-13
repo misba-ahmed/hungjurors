@@ -32,6 +32,7 @@ async function hjRefreshChallenges(data){
   }
   const weeks=Array.from({length:Math.max(0,through)},(_,i)=>state.weeks.get(i+1)||{week:i+1,final:i+1<latest,teams:[],awards:[],checkedAt:0});
   state.model=hjChStandings(weeks,state.names,{regularEnd,finalEnd});state.error=[...new Set(errors)].join(' · ');state.checkedAt=Number(HJ_LEAGUE_STATE.syncedAt)||0;
+  hjSyncPerfectAwards(state.model);
   hjRenderChallenge();
  }).catch(error=>{HJ_CHALLENGE_STATE.error='ESPN challenge update delayed; retrying automatically';hjRenderChallenge();console.warn('Challenges refresh failed',error)}).finally(()=>{HJ_CHALLENGE_STATE.pending=null});
  return HJ_CHALLENGE_STATE.pending;
