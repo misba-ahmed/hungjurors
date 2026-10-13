@@ -1,10 +1,10 @@
 /* Career highs count individual completed weeks, including all postseason games. */
 function hjCareerArchive(){
- if(!window.hjCareerArchive){
+ if(!window.hjCareerArchiveState){
   let saved={};try{saved=JSON.parse(localStorage.getItem('hj:career-weekly:v1')||'{}')}catch(_){}
-  window.hjCareerArchive={seasons:saved,jobs:new Map()};
+  window.hjCareerArchiveState={seasons:saved&&typeof saved==='object'&&!Array.isArray(saved)?saved:{},jobs:new Map()};
  }
- return window.hjCareerArchive;
+ return window.hjCareerArchiveState;
 }
 function hjCareerWeeklyRows(team,data,year){
  const rows=[];if(!team||!data)return rows;
