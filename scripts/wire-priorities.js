@@ -24,8 +24,10 @@
    const header='<div class="wp-team-header"><img src="'+esc(nflLogo(g.team))+'" alt=""><span>'+esc(name)+'</span></div>';
    const players=g.players.map(item=>'<div class="wp-person">'+wirePlayerHTML(item.player).replace('wc-player','wp-player').replace(/<small>[\s\S]*?<\/small>/,'<small>'+esc(item.manager)+'</small>')+'</div>').join('');
    return '<div class="wp-team-list" role="group" aria-label="'+esc(name)+' players">'+header+players+'</div>';
-  }).join('');
-  return '<div class="wp-bye-list" tabindex="0" role="region" aria-label="Owned players on bye; scroll for all players" style="--wp-teams:'+Math.max(1,groups.length)+'">'+(columns||'<p>No owned players on BYE.</p>')+'</div>';
+  });
+  const stacks=[[],[]];columns.forEach((html,index)=>stacks[index%2].push(html));
+  const stacked=stacks.filter(items=>items.length).map(items=>'<div class="wp-bye-column">'+items.join('')+'</div>').join('');
+  return '<div class="wp-bye-list" tabindex="0" role="region" aria-label="Owned players on bye; scroll for all players" style="--wp-teams:'+Math.max(1,groups.length)+'">'+(stacked||'<p>No owned players on BYE.</p>')+'</div>';
  }
  function figures(data){
   const slugs={'NATHAN M':'nathan-m','NATHAN T':'nathan-t'};

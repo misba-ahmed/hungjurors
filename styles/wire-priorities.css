@@ -114,3 +114,12 @@
 .wp-byes .wp-player,.wp-byes p{color:var(--paper)}
 .wp-byes .wp-player small{color:#bdcad5}
 .wp-byes .wp-player img{background:rgba(255,255,255,.12)}
+
+/* Each column stacks independently so shorter lists leave no empty row gap. */
+.wp-bye-column{display:flex;flex-direction:column;gap:12px;min-width:0}
+.wp-bye-column:only-child{grid-column:1/-1}
+.wp-bye-column .wp-team-list{flex:none}
+.wp-bye-column .wp-team-list .wp-team-header,.wp-bye-column .wp-team-list .wp-player{flex-direction:row;text-align:left}
+.wp-bye-column:nth-child(2) .wp-team-list .wp-team-header,.wp-bye-column:nth-child(2) .wp-team-list .wp-player{flex-direction:row-reverse;text-align:right}
+@media(max-width:720px){.wp-bye-column{gap:8px}}
+@media(max-width:360px){.wp-bye-column{gap:4px}}
