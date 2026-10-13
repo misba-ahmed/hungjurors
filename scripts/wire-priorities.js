@@ -44,6 +44,8 @@
   // Keep the original pre-grouped waiver card from baseBuild, including its
   // countdown, ESPN action and shared Wire expansion/gesture behavior.
   built.cards=built.cards.filter(c=>!['byes','lms'].includes(c.section));
+  // Match the navy-and-gold live card while retaining the original waiver layout.
+  built.cards.forEach(c=>{if(c.section==='waivers')c.html=c.html.replace('class="wc is-red"','class="wc is-lead"');});
   return built;
  };
  const interactive='a,button,input,select,textarea,label,summary,[role="button"],[role="link"],[contenteditable="true"],.pc-player-trigger,.manager-profile-trigger';

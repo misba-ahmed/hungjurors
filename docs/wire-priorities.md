@@ -12,3 +12,5 @@ Approved October 7, 2026 (supersedes the grouped This Week design):
 
 ## October 13 — restore the original waiver card
 The waiver reminder uses the original `wireWaiverCard` / `wireCard` design from before the October 6 grouped announcements update. Do not replace it with a `wp-waivers` priority panel. Preserve its deadline visibility, live countdown, ESPN destination and standard card interactions. Bye Week and LMS announcements remain removed from the carousel.
+
+The waiver card uses the existing navy-and-gold `is-lead` theme, matching the Week Live card, as requested October 13. Keep its original layout, countdown and ESPN action.
