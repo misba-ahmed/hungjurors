@@ -16,7 +16,7 @@
    seen.add(p.id);g.players.push({player:p,manager:wireManager(team,data)});
   }
   groups.forEach(g=>g.players.sort((a,b)=>a.player.name.localeCompare(b.player.name)));
-  return groups;
+  return groups.sort((a,b)=>a.players.length-b.players.length||a.team.localeCompare(b.team));
  }
  function groupHTML(groups){
   const columns=groups.map(g=>{

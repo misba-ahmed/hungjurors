@@ -20,3 +20,6 @@ Restore a standalone Bye Week card for every current NFL week with confirmed bye
 
 ## October 13 — multi-team bye layout
 Keep at most two team columns per row in the ordinary and expanded Bye Week card. Four or six bye teams wrap into additional rows within the existing vertical scroll area; never divide the card width by the number of bye teams. Keep team logos fixed-size and allow player, manager and team names to wrap inside their own columns. Preserve mirrored right-hand teams and ordinary carousel height.
+
+## October 13 — navy theme and shortest lists first
+The Bye Week card permanently uses the waiver card's navy background, gold top edge and category label, light text, and blue inset team panels. Apply the theme to compact and expanded views. Sort NFL team panels by ascending count of league-rostered players, breaking ties alphabetically by team abbreviation; recompute from live roster data each week. Preserve two columns, vertical scrolling, player links, and its position immediately after Waivers. This supersedes the earlier white/cream color requirement for Bye Week.

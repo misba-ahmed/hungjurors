@@ -102,3 +102,15 @@
 .wp-byes .wp-player>span{flex:1 1 0;min-width:0;max-width:100%}
 .wp-byes .wp-player b,.wp-byes .wp-player small{white-space:normal;overflow-wrap:anywhere}
 .wp-byes .wp-action:empty{display:none}
+
+/* Permanent navy-and-gold Bye Week theme, matching the waiver countdown. */
+.wp-panel.wp-byes{background:var(--navy);color:var(--paper);border-color:var(--navy-deep,#0d2538);border-top-color:var(--brass-bright,#d9aa37)}
+#wire-scroll .wp-byes .wc-title,.wp-detail .wp-byes .wc-title{color:var(--paper)}
+#wire-scroll .wp-byes .wc-kicker,.wp-detail .wp-byes .wc-kicker{color:var(--brass-bright,#d9aa37)}
+.wp-byes .wc-expand{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);color:var(--paper)}
+.wp-byes .wp-team-list{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.2)}
+.wp-byes .wp-team-header{background:#29465f;color:var(--paper)}
+.wp-byes .wp-person{border-bottom-color:rgba(255,255,255,.14)}
+.wp-byes .wp-player,.wp-byes p{color:var(--paper)}
+.wp-byes .wp-player small{color:#bdcad5}
+.wp-byes .wp-player img{background:rgba(255,255,255,.12)}
