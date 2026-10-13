@@ -26,9 +26,9 @@ el('stop',{offset:'48%','stop-color':'#17344f','stop-opacity':'.14'},shadow);
 el('stop',{offset:'100%','stop-color':'#17344f','stop-opacity':'0'},shadow);
 const shadows=figures.map(f=>el('ellipse',{cx:f.cx,cy:281,rx:48,ry:9,fill:'url(#hj-manager-ground-shadow)','pointer-events':'none','aria-hidden':'true',visibility:'hidden'},svg));
 const groups=figures.map(f=>{const g=el('g',{'data-hero-manager':f.name,visibility:'hidden',tabindex:'0',role:'button','aria-label':f.name+': show current fantasy score'},svg);el('rect',{x:f.cx-50,y:80,width:100,height:201,fill:'transparent'},g);el('image',{href:'/assets/'+(f.slug==='jarrett'?'managers-v8':'managers-v4')+'/'+f.slug+'-standing.webp',x:f.x,y:f.y,width:f.width,height:f.height,'pointer-events':'none','aria-hidden':'true'},g);return g;});
-const bubble=el('g',{'pointer-events':'none',visibility:'hidden','aria-hidden':'true'},svg);el('rect',{x:-57,y:0,width:114,height:44,rx:22,fill:'#17344f',stroke:'#bb9134','stroke-width':2},bubble);el('path',{d:'M-7 44 L0 51 L7 44',fill:'#17344f'},bubble);const text=el('text',{x:0,y:30,'text-anchor':'middle',fill:'#fff','font-family':'Arial,sans-serif','font-size':25,'font-weight':700},bubble);
+const bubble=el('g',{'data-hero-score':'','pointer-events':'all',visibility:'hidden','aria-hidden':'true',role:'button',tabindex:'-1',style:'cursor:pointer'},svg);el('rect',{x:-57,y:0,width:114,height:44,rx:22,fill:'#17344f',stroke:'#bb9134','stroke-width':2},bubble);el('path',{d:'M-7 44 L0 51 L7 44',fill:'#17344f'},bubble);const text=el('text',{x:0,y:30,'text-anchor':'middle',fill:'#fff','font-family':'Arial,sans-serif','font-size':25,'font-weight':700},bubble);
 let selected=-1,drag=null,pinching=false;
-function refresh(){if(selected<0)return;let data;try{data=HJ_LEAGUE_STATE.data;}catch{return;}const name=figures[selected].name,team=(data?.teams||[]).find(t=>typeof hjMatchManager==='function'&&String(hjMatchManager(t,data)).toUpperCase()===name),value=team?actual(data,team.id):null;text.textContent=value===null?'—':value.toFixed(2);bubble.setAttribute('transform','translate('+figures[selected].cx+' 25)');bubble.setAttribute('visibility','visible');groups[selected].setAttribute('aria-label',name+': '+(value===null?'score unavailable':value.toFixed(2)+' fantasy points'));}
+function refresh(){if(selected<0)return;let data;try{data=HJ_LEAGUE_STATE.data;}catch{return;}const name=figures[selected].name,team=(data?.teams||[]).find(t=>typeof hjMatchManager==='function'&&String(hjMatchManager(t,data)).toUpperCase()===name),value=team?actual(data,team.id):null;text.textContent=value===null?'—':value.toFixed(2);bubble.setAttribute('transform','translate('+figures[selected].cx+' 25)');bubble.setAttribute('visibility','visible');bubble.setAttribute('aria-hidden','false');bubble.setAttribute('tabindex','0');bubble.setAttribute('aria-label','Open '+name+' roster in League HQ');groups[selected].setAttribute('aria-label',name+': '+(value===null?'score unavailable':value.toFixed(2)+' fantasy points'));}
 
 const originalCenters=figures.map(f=>f.cx),slots=[...originalCenters];
 let orderKey='';
@@ -48,10 +48,13 @@ function syncStandings(){
 
 function select(i){if(!orderKey)return;selected=i;refresh();}function at(x,y){const r=svg.getBoundingClientRect(),px=(x-r.left)*1290/r.width,py=(y-r.top)*450/r.height;if(py<50||py>300)return -1;return figures.findIndex(f=>Math.abs(px-f.cx)<=50);}
 groups.forEach((g,i)=>{g.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')select(i);});g.addEventListener('focus',()=>select(i));g.addEventListener('click',()=>select(i));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select(i);}});});
-function dismiss(){selected=-1;drag=null;bubble.setAttribute('visibility','hidden');}
-document.addEventListener('pointerdown',e=>{if(!e.target.closest?.('[data-hero-manager]')||!host.contains(e.target))dismiss();},{passive:true,capture:true});
+function dismiss(){selected=-1;drag=null;bubble.setAttribute('visibility','hidden');bubble.setAttribute('aria-hidden','true');bubble.setAttribute('tabindex','-1');}
+function openRoster(event){if(selected<0||typeof hjOpenManagerRoster!=='function')return;event.preventDefault();event.stopPropagation();hjOpenManagerRoster(figures[selected].name);dismiss();}
+bubble.addEventListener('click',openRoster);
+bubble.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' ')openRoster(event);});
+document.addEventListener('pointerdown',e=>{if(!e.target.closest?.('[data-hero-manager],[data-hero-score]')||!host.contains(e.target))dismiss();},{passive:true,capture:true});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')dismiss();});
-host.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'){selected=-1;bubble.setAttribute('visibility','hidden');}});
+host.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')dismiss();});
 host.addEventListener('touchstart',e=>{if(e.touches.length!==1){pinching=true;drag=null;return;}pinching=false;const t=e.touches[0];drag={x:t.clientX,y:t.clientY};const i=at(t.clientX,t.clientY);if(i>=0)select(i);},{passive:true});
 host.addEventListener('touchmove',e=>{if(pinching||e.touches.length!==1||!drag)return;const t=e.touches[0],dx=t.clientX-drag.x,dy=t.clientY-drag.y;if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>8){drag=null;return;}const i=at(t.clientX,t.clientY);if(i>=0)select(i);},{passive:true});
 host.addEventListener('touchend',()=>{drag=null;pinching=false;},{passive:true});host.addEventListener('touchcancel',()=>{drag=null;pinching=false;},{passive:true});

@@ -1,3 +1,34 @@
+/* One remembered roster choice across roster tabs, swipes and header scores. */
+function hjRememberRosterTeam(id){
+ if(id==null)return;
+ HJ_LEAGUE_STATE.selectedTeamId=String(id);
+ try{localStorage.setItem(HJ_LEAGUE_TEAM_KEY,String(id))}catch(_){}
+}
+function hjRestoreRosterTeam(){
+ let id;try{id=localStorage.getItem(HJ_LEAGUE_TEAM_KEY)}catch(_){return}
+ if(id&&(HJ_LEAGUE_STATE.data?.teams||[]).some(t=>String(t.id)===id))HJ_LEAGUE_STATE.selectedTeamId=id;
+}
+function hjOpenManagerRoster(manager){
+ const data=HJ_LEAGUE_STATE.data,team=(data?.teams||[]).find(t=>hjMatchManager(t,data)===manager);
+ if(!team)return;
+ hjRememberRosterTeam(team.id);hjSetHQTab('rosters');hjRenderLeague();
+ requestAnimationFrame(()=>{
+  const target=document.getElementById('league-hq');if(!target)return;
+  const offset=(document.querySelector('body > nav')?.getBoundingClientRect().height||0)+12;
+  window.scrollTo({top:Math.max(0,target.getBoundingClientRect().top+window.scrollY-offset),behavior:'instant'});
+ });
+}
+function hjOpenRosterMatchup(){
+ hjRestoreRosterTeam();
+ HJ_HQ_STATE.matchupFocusKey='';
+ hjSetHQTab('matchups',HJ_LEAGUE_STATE.selectedTeamId);
+}
+/* Only ordinary tab navigation uses the roster default. Explicit game links keep
+   their own week and matchup key. */
+document.querySelector('#league-hq-tabs')?.addEventListener('click',event=>{
+ const tab=event.target.closest('[data-hq-tab="matchups"]');if(!tab)return;
+ event.preventDefault();event.stopImmediatePropagation();hjOpenRosterMatchup();
+},true);
 /* Shareable destinations; tab selection also updates the address bar. */
 function hjDirectRoute(hash){
  let slug;try{slug=decodeURIComponent(hash.replace(/^#/,''))}catch(_){return null}
@@ -36,13 +67,13 @@ function hjDirectRoute(hash){
  function apply(){
   const route=hjDirectRoute(location.hash);pending=null;if(!route)return;
   applying=true;
-  try{if(route.tab)hjSetHQTab(route.tab);if(route.challenge)selectChallenge(route.challenge)}
+  try{if(route.tab==='matchups')hjOpenRosterMatchup();else if(route.tab)hjSetHQTab(route.tab);if(route.challenge)selectChallenge(route.challenge)}
   finally{applying=false}
   pending=route;cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(pending)scroll(pending)});
  }
  // ESPN creates tab panels asynchronously; finish the initial jump after that render.
  const render=hjRenderLeague;
- hjRenderLeague=function(){const result=render.apply(this,arguments);if(pending){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(pending)scroll(pending)})}return result};
+ hjRenderLeague=function(){hjRestoreRosterTeam();const result=render.apply(this,arguments);if(pending){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(pending)scroll(pending)})}return result};
  const cancel=()=>{pending=null};
  for(const event of ['wheel','touchstart','pointerdown','keydown'])window.addEventListener(event,cancel,{passive:true});
  document.addEventListener('hj:records',()=>{if(pending?.record){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(pending)scroll(pending)})}});
@@ -62,3 +93,4 @@ function hjDirectRoute(hash){
  apply();
  window.addEventListener('load',()=>{if(pending)scroll(pending)},{once:true});
 })();
+

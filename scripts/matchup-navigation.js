@@ -53,6 +53,11 @@ function hjScrollMatchupStart(card){
 (function(){
  const root=document.getElementById('league-sync-content');if(!root)return;
  const installed=new WeakMap();
+ let userSelection=false;
+ for(const type of ['touchstart','wheel','keydown'])root.addEventListener(type,event=>{
+  const deck=event.target.closest?.('.hj-roster-rail');
+  if(deck&&!event.target.closest('.hj-team-photo,input,select,textarea,[contenteditable]'))userSelection=true;
+ },{capture:true,passive:true});
  function install(){
   const deck=root.querySelector('.hj-roster-rail');if(!deck||!deck.clientWidth)return;
   if(installed.has(deck)){const api=installed.get(deck);if(!api.busy)api.populate();api.fit();return;}
@@ -75,7 +80,8 @@ function hjScrollMatchupStart(card){
    choose:index=>{
     const key=pages()[index]?.dataset.hjRosterTeam;if(key==null)return;
     HJ_LEAGUE_STATE.selectedTeamId=key;
-    try{localStorage.setItem(HJ_LEAGUE_TEAM_KEY,key)}catch(_){}
+    // Mounting, resizing and live DOM refreshes must not replace the saved choice.
+    if(userSelection){try{localStorage.setItem(HJ_LEAGUE_TEAM_KEY,key)}catch(_){}userSelection=false;}
     root.querySelectorAll('[data-league-team]').forEach(b=>{const active=b.dataset.leagueTeam===key;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
     const tab=root.querySelector('[data-league-team].active'),rail=tab?.parentElement;
     if(tab&&rail){const r=rail.getBoundingClientRect(),b=tab.getBoundingClientRect();if(b.left<r.left)rail.scrollLeft+=b.left-r.left;else if(b.right>r.right)rail.scrollLeft+=b.right-r.right;}
@@ -85,7 +91,10 @@ function hjScrollMatchupStart(card){
  root.addEventListener('click',event=>{
   const tab=event.target.closest('[data-league-team]'),deck=root.querySelector('.hj-roster-rail');if(!tab||!deck)return;
   install();const api=installed.get(deck);if(!api)return;
-  event.preventDefault();event.stopImmediatePropagation();api.go([...deck.children].findIndex(p=>p.dataset.hjRosterTeam===tab.dataset.leagueTeam));
+  event.preventDefault();event.stopImmediatePropagation();
+  // Save immediately, including a tap on the already-visible roster.
+  try{localStorage.setItem(HJ_LEAGUE_TEAM_KEY,tab.dataset.leagueTeam)}catch(_){}
+  api.go([...deck.children].findIndex(p=>p.dataset.hjRosterTeam===tab.dataset.leagueTeam));
  },true);
  let queued=false;const schedule=()=>{if(!queued){queued=true;requestAnimationFrame(()=>{queued=false;install()})}};
  new MutationObserver(schedule).observe(root,{childList:true,subtree:true});
@@ -139,3 +148,4 @@ function hjScrollMatchupStart(card){
  selectChallenge=function(id){const index=CHALLENGES.findIndex(ch=>ch.id===id);api.go(index<0?0:index);};
  hjRenderChallenge=function(){const previous=HJ_CHALLENGE_STATE.lastHtml;const result=baseRender.apply(this,arguments);if(previous!==HJ_CHALLENGE_STATE.lastHtml){previewHTML.clear();refresh();}return result;};
 })();
+
