@@ -14,7 +14,7 @@ for(const [id,a]of Object.entries(catalog)){
 // Exercise generated resting-lineup geometry, not just catalog metadata.
 const entries=Object.keys(catalog).map(id=>({id,lineupSlotId:20,fullName:catalog[id].name}));
 const ctx=vm.createContext({HJ_TEAM_PHOTO_UI:{team:''},hjTeamPhotoLoadScores:()=>{},hjTeamPhotoOrder:x=>x,
- hjRosterEntries:()=>entries,hjPlayer:x=>x,hjTeamPhotoAsset:e=>catalog[e.id],
+ hjRosterEntries:()=>entries,hjTeamPhotoViewEntries:()=>entries,hjPlayer:x=>x,hjTeamPhotoAsset:e=>catalog[e.id],
  hjPlayerPosition:()=> 'WR',hjTeamPhotoName:p=>({full:p.fullName,first:p.fullName,last:''}),
  hjTeamPhotoFinalScore:()=>null,hjPlayerTeam:()=>'',hjPlayerPhoto:()=>'',esc:x=>String(x)});
 vm.runInContext(source.slice(source.indexOf('function hjTeamPhotoHTML('),source.indexOf('(function(){'))+';this.render=hjTeamPhotoHTML;',ctx);
