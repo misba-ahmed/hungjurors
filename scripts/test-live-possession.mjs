@@ -102,3 +102,15 @@ test('no-play touchdown and ordinary fumble do not falsely end possession',()=>{
   assert.equal(glow(update(playFeed(play)).get('BAL')),'green');
  }
 });
+
+test('explicit two-point attempt restores red offense, then completed conversion clears rings',()=>{
+ const td=playFeed({id:'td',type:{text:'Touchdown'},scoringPlay:true},{score:6});
+ const stopped=update(td);
+ const attempt=playFeed({id:'td',type:{text:'Touchdown'},scoringPlay:true},{score:6});
+ attempt.events[0].competitions[0].status.type.detail='Two-Point Attempt';
+ const active=update(attempt,stopped,1000);
+ assert.equal(glow(active.get('BAL')),'red');assert.equal(glow(active.get('ATL'),'DST'),'green');
+ attempt.events[0].competitions[0].situation.lastPlay={id:'two',type:{text:'Two Point Pass'},text:'Two-point conversion failed'};
+ const ended=update(attempt,active,2000);
+ assert.equal(glow(ended.get('BAL')),'');assert.equal(glow(ended.get('ATL'),'DST'),'');
+});
