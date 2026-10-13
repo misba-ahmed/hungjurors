@@ -342,16 +342,14 @@ function hjChIntro(out,id){
     const standing=template.content.firstElementChild;
     Object.assign(standing.style,{position:'absolute',top:'0',left:'0',width:'100%',height:'auto',pointerEvents:'none',zIndex:'3'});
     figure.append(standing);
-    const timing={duration:3000,delay:500+delay,easing:'ease-in-out',fill:'both'};
+    const timing={duration:2400,delay:0,easing:'ease-in-out',fill:'both'};
     const descent=standing.animate([
      {opacity:1,transform:'translateY(0)',offset:0},
-     {opacity:1,transform:'translateY(0)',offset:.2},
-     {opacity:0,transform:'translateY(22%)',offset:.8},
+     {opacity:0,transform:'translateY(22%)',offset:.75},
      {opacity:0,transform:'translateY(22%)',offset:1}
     ],timing);
     seated.animate([
      {opacity:0,transform:'translateY(-18%)',offset:0},
-     {opacity:0,transform:'translateY(-18%)',offset:.2},
      {opacity:1,transform:'translateY(0)',offset:1}
     ],{...timing,fill:'backwards'});
     descent.finished.then(()=>standing.remove(),()=>standing.remove());
