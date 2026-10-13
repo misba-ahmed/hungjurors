@@ -17,3 +17,6 @@ The waiver card uses the existing navy-and-gold `is-lead` theme, matching the We
 
 ## October 13 — recurring Bye Week card
 Restore a standalone Bye Week card for every current NFL week with confirmed byes. Use the complete validated season schedule, show all affected owned players and their managers, and refresh when the schedule finishes loading. Keep the existing cream team panels, expansion, scrolling, gestures and stable card key. Omit the card only when the validated schedule shows no byes. Place its chip after Kickoff.
+
+## October 13 — multi-team bye layout
+Keep at most two team columns per row in the ordinary and expanded Bye Week card. Four or six bye teams wrap into additional rows within the existing vertical scroll area; never divide the card width by the number of bye teams. Keep team logos fixed-size and allow player, manager and team names to wrap inside their own columns. Preserve mirrored right-hand teams and ordinary carousel height.
