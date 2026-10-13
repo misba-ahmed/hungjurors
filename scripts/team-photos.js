@@ -97,9 +97,20 @@ function hjTeamPhotoAsset(entry){
  return showUnavailable?{...base,...(base.unavailable||{}),isUnavailable:true,isBye}:{...base,isBye};
 }
 
+// Use the same selected lineup as the roster table without changing ESPN entries.
+function hjTeamPhotoViewEntries(team,data=HJ_LEAGUE_STATE.data){
+ const entries=hjRosterEntries(team),week=hjCurrentWeek(data);
+ const mode=HJ_HQ_STATE.lineupModes.get(hjRosterModeKey(team.id,week))||'actual';
+ if(mode==='actual')return entries;
+ const plan=hjLineupPlan(data),selection=hjSelectionForMode(entries,plan,week,mode);
+ const slots=new Map();
+ selection.forEach((entry,index)=>{if(entry)slots.set(entry,Number(plan[index].slotId));});
+ return entries.map(entry=>({...entry,lineupSlotId:slots.has(entry)?slots.get(entry):Number(entry.lineupSlotId)===21?21:20}));
+}
+
 function hjTeamPhotoHTML(team){
  hjTeamPhotoLoadScores();
- const entries=hjTeamPhotoOrder(hjRosterEntries(team)),teamId=String(team.id);
+ const entries=hjTeamPhotoOrder(hjTeamPhotoViewEntries(team)),teamId=String(team.id);
  if(!entries.length)return '';
  const rows=entries.map(e=>{
   const p=hjPlayer(e),id=String(p.id||e.playerId||''),asset=hjTeamPhotoAsset(e);
