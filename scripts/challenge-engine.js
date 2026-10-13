@@ -1,5 +1,9 @@
 /* ESPN weekly records are the source of truth; recompute instead of incrementing totals. */
 const HJ_CH_POS={1:'QB',2:'RB',3:'WR',4:'TE',5:'K',16:'D/ST'};
+// Challenge finality follows the full NFL week, including overtime or rescheduled games.
+function hjChNflWeekFinal(scoreboard,season,week){
+ return Number(scoreboard?.season?.year)===season&&Number(scoreboard?.season?.type)===2&&Number(scoreboard?.week?.number)===week&&Array.isArray(scoreboard.events)&&scoreboard.events.length>0&&scoreboard.events.every(event=>event.status?.type?.completed===true&&event.status.type.state==='post');
+}
 function hjChNumber(v){return v==null||v===''?null:Number.isFinite(Number(v))?Number(v):null}
 function hjChPlayer(e){return e?.playerPoolEntry?.player||e?.player||{}}
 function hjChStat(e,season,week,source=0){return (hjChPlayer(e).stats||[]).find(s=>Number(s.seasonId)===season&&Number(s.scoringPeriodId)===week&&Number(s.statSplitTypeId)===1&&Number(s.statSourceId)===source)||null}
@@ -145,5 +149,6 @@ function hjChStandings(weeks,names,{regularEnd=14,finalEnd=16}={}){
  tickets.sort((a,b)=>b.total-a.total||a.short.localeCompare(b.short));
  return {weeks:ordered,totals,tickets,raffle,alive:[...alive],eliminations,lmsBlocked,regularEnd,finalEnd,liveWeek:ordered.findLast(w=>!w.final)?.week||0,finalWeek:ordered.filter(w=>w.final).at(-1)?.week||0};
 }
+
 
 

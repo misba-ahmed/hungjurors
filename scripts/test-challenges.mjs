@@ -41,6 +41,46 @@ const missing={...w,teams:w.teams.map(t=>({...t,titty:null}))};assert.equal(c.hj
 assert.throws(()=>c.hjChWeek({...payload,scoringPeriodId:2},{season,week,names}),/wrong season\/week/);
 console.log('PASS: challenge scoring, source periods, return/FG double counting, MVP ownership and ties, optimal assignment, missing data, live/final isolation, season limits and idempotent refresh');
 
+// The last NFL game can finalize challenges before ESPN settles fantasy matchups.
+{
+ const board={season:{year:season,type:2},week:{number:5},events:[{status:{type:{completed:true,state:'post'}}},{status:{type:{completed:true,state:'post'}}}]};
+ assert.equal(c.hjChNflWeekFinal(board,season,5),true);
+ for(const type of [{completed:false,state:'in'},{completed:false,state:'pre'},{completed:false,state:'post'}]){
+  assert.equal(c.hjChNflWeekFinal({...board,events:[board.events[0],{status:{type}}]},season,5),false,'overtime, future/delayed games and incomplete finals must wait');
+ }
+ assert.equal(c.hjChNflWeekFinal({...board,events:[]},season,5),false);
+ assert.equal(c.hjChNflWeekFinal(null,season,5),false);
+ assert.equal(c.hjChNflWeekFinal(board,season,6),false);
+ assert.equal(c.hjChNflWeekFinal(board,season+1,5),false);
+ assert.equal(c.hjChNflWeekFinal({...board,season:{year:season,type:1}},season,5),false);
+ const current=JSON.parse(JSON.stringify(payload).replaceAll('"scoringPeriodId":1','"scoringPeriodId":5').replaceAll('"matchupPeriodId":1','"matchupPeriodId":5').replaceAll('"matchupPeriods":{"1":[1]}','"matchupPeriods":{"5":[5]}').replaceAll('"pointsByScoringPeriod":{"1":','"pointsByScoringPeriod":{"5":'));
+ current.teams=names.map(n=>({id:Number(n.id),name:n.short}));current.schedule[0].winner='UNDECIDED';
+ current.settings.scheduleSettings.matchupPeriodCount=14;
+ let scoreboard={...board,events:[board.events[0],{status:{type:{completed:false,state:'in'}}}]},fetches=0,fail=false;
+ const shared={data:current,syncedAt:123,error:''},sync=vm.createContext({console,Date,document:{hidden:false},NFL_SEASON:season,ESPN_FANTASY_LEAGUE_ID:'test',HJ_LEAGUE_STATE:shared,HJ_DATA:{requests:new Map(),history:new Map()},hjMatchManager:t=>t.name,hjOwnerName:()=>'',hjTeamName:t=>t.name,hjDataSchedule:async()=>{if(fail)throw Error('offline');return scoreboard},hjDataPool:async()=>[],hjDataRequest:async()=>{throw Error('unavailable historical fixture')},hjSyncPerfectAwards:()=>{},hjRenderChallenge:()=>{},hjFetchLeagueSeason:async()=>{fetches++;if(fail)throw Error('offline');return {data:current}}});
+ vm.runInContext(await readFile(new URL('./challenge-engine.js',import.meta.url),'utf8'),sync);
+ const source=await readFile(new URL('./challenge-live.js',import.meta.url),'utf8');
+ vm.runInContext(source.slice(0,source.indexOf('function hjChManager(')),sync);
+ const model=()=>vm.runInContext('HJ_CHALLENGE_STATE.model',sync);
+ await sync.hjRefreshChallenges(current);
+ assert.equal(model().finalWeek,4);assert.equal(model().eliminations.length,0);
+ scoreboard=board;await sync.hjRefreshChallenges(current);
+ assert.equal(model().finalWeek,5);assert.equal(model().eliminations[0].short,'B');
+ assert.equal(model().raffle.at(-1).winners[0].short,'A');
+ assert.equal(model().totals.overachiever.find(t=>t.short==='A').total,30);
+ assert.equal(current.schedule[0].winner,'UNDECIDED','challenge finality never changes fantasy results for other sections');
+ assert.equal(shared.syncedAt,123,'challenge refresh never changes shared sync state');
+ await sync.hjChRecoverRefresh();assert.equal(fetches,0,'healthy shared sync needs no extra league request');
+ vm.runInContext('HJ_CHALLENGE_STATE.lastAttemptAt=0',sync);sync.document.hidden=true;
+ await sync.hjChRecoverRefresh();assert.equal(fetches,0,'background pages do not poll');
+ sync.document.hidden=false;await sync.hjChRecoverRefresh();assert.equal(fetches,1);
+ assert.equal(model().eliminations.length,1,'recovery never duplicates an elimination');
+ fail=true;vm.runInContext('HJ_CHALLENGE_STATE.lastAttemptAt=0',sync);
+ await sync.hjChRecoverRefresh();assert.equal(vm.runInContext('HJ_CHALLENGE_STATE.recovering',sync),false,'failed fetch releases recovery for the next retry');
+ assert.equal(shared.syncedAt,123);
+ console.log('PASS: last-game finality, overtime/delays, wrong/empty feeds, undecided fantasy matchups, isolated recovery and unchanged shared league state');
+}
+
 
 // Full ten-manager survival ladder: only final scores for remaining teams count.
 {
@@ -113,3 +153,4 @@ assert.equal(w.teams[0].players[0].slot,0,'original starter slots remain in the 
 console.log('PASS: Perfect Lineup thresholds, FLEX, finality, missing starters/stats, live score deductions and ranking');
 
 }
+

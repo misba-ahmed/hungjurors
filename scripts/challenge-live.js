@@ -3,21 +3,25 @@ function hjChallengeNames(data){return (data.teams||[]).map(t=>({id:String(t.id)
 function hjChallengeWeekActive(data,week){
  return (data.schedule||[]).some(g=>Number(g.matchupPeriodId)===week&&['home','away'].some(k=>Math.abs(Number(g[k]?.pointsByScoringPeriod?.[week]??g[k]?.totalPointsLive??0))>0))||(typeof NFL_WEEK1!=='undefined'&&NFL_WEEK1.some(g=>Number(g.week)===week&&['in','post'].includes(g.state)));
 }
-async function hjRefreshChallenges(data){
+async function hjRefreshChallenges(data,checkedAt=Number(HJ_LEAGUE_STATE.syncedAt)||Date.now()){
  if(!data?.teams?.length||Number(data.seasonId)!==Number(NFL_SEASON))return;
  HJ_CHALLENGE_STATE.data=data;
+ HJ_CHALLENGE_STATE.dataCheckedAt=checkedAt;HJ_CHALLENGE_STATE.lastAttemptAt=Date.now();
  if(HJ_CHALLENGE_STATE.pending)return HJ_CHALLENGE_STATE.pending;
  HJ_CHALLENGE_STATE.pending=Promise.resolve().then(async()=>{
-  const state=HJ_CHALLENGE_STATE,current=state.data,season=Number(NFL_SEASON),latest=Number(current.scoringPeriodId||current.status?.latestScoringPeriod||1);
+  const state=HJ_CHALLENGE_STATE,current=state.data,currentCheckedAt=state.dataCheckedAt,season=Number(NFL_SEASON),latest=Number(current.scoringPeriodId||current.status?.latestScoringPeriod||1);
   state.names=hjChallengeNames(current);
   const regularEnd=Number(current.settings?.scheduleSettings?.matchupPeriodCount)||14,finalEnd=Number(current.status?.finalScoringPeriod)||regularEnd;
-  const currentGames=(current.schedule||[]).filter(g=>Number(g.matchupPeriodId)===latest),currentFinal=currentGames.length>0&&currentGames.every(g=>['HOME','AWAY','TIE'].includes(g.winner));
-  const through=Math.min(finalEnd,latest-(hjChallengeWeekActive(current,latest)||currentFinal?0:1)),errors=[];
+  const currentGames=(current.schedule||[]).filter(g=>Number(g.matchupPeriodId)===latest),fantasyFinal=currentGames.length>0&&currentGames.every(g=>['HOME','AWAY','TIE'].includes(g.winner)),errors=[];
+  let currentScoreboard=null;
+  try{currentScoreboard=await hjDataSchedule(season,latest)}catch(error){errors.push('NFL game status unavailable; retrying automatically')}
+  const currentFinal=fantasyFinal||hjChNflWeekFinal(currentScoreboard,season,latest);
+  const through=Math.min(finalEnd,latest-(hjChallengeWeekActive(current,latest)||currentFinal?0:1));
   let pool=[],poolReady=false;
   if(through>0)try{pool=await hjDataPool(season,latest);poolReady=true}catch(error){errors.push('Player rankings unavailable; retrying automatically')}
   for(let week=1;week<=through;week++){
    try{
-    let payload=current,checkedAt=HJ_LEAGUE_STATE.syncedAt;
+    let payload=current,checkedAt=currentCheckedAt;
     if(week!==latest){
      const key=`history:${season}:${week}`;
      payload=await hjDataRequest(key,()=>hjDataJson(`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=${week}&view=mMatchup&view=mMatchupScore&view=mRoster&view=mSettings&view=mTeam`),300000);
@@ -26,16 +30,25 @@ async function hjRefreshChallenges(data){
     }
     const final=week<latest||currentFinal;
     let opponents={};
-    try{opponents=hjChOpponents(await hjDataRequest(`nfl:${season}:${week}`,()=>hjDataJson(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${season}&seasontype=2&week=${week}&limit=100`),final?21600000:60000));}catch(error){}
+    try{opponents=hjChOpponents(week===latest?currentScoreboard:await hjDataRequest(`nfl:${season}:${week}`,()=>hjDataJson(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${season}&seasontype=2&week=${week}&limit=100`),final?21600000:60000));}catch(error){}
     state.weeks.set(week,hjChWeek(payload,{season,week,names:state.names,pool,poolReady,final,checkedAt,opponents}));
    }catch(error){errors.push(`Week ${week} unavailable; retrying automatically`);}
   }
   const weeks=Array.from({length:Math.max(0,through)},(_,i)=>state.weeks.get(i+1)||{week:i+1,final:i+1<latest,teams:[],awards:[],checkedAt:0});
-  state.model=hjChStandings(weeks,state.names,{regularEnd,finalEnd});state.error=[...new Set(errors)].join(' · ');state.checkedAt=Number(HJ_LEAGUE_STATE.syncedAt)||0;
+  state.model=hjChStandings(weeks,state.names,{regularEnd,finalEnd});state.error=[...new Set(errors)].join(' · ');state.checkedAt=currentCheckedAt;
   hjSyncPerfectAwards(state.model);
   hjRenderChallenge();
  }).catch(error=>{HJ_CHALLENGE_STATE.error='ESPN challenge update delayed; retrying automatically';hjRenderChallenge();console.warn('Challenges refresh failed',error)}).finally(()=>{HJ_CHALLENGE_STATE.pending=null});
  return HJ_CHALLENGE_STATE.pending;
+}
+// Keep challenges current if an unrelated page renderer interrupts the shared sync loop.
+async function hjChRecoverRefresh(){
+ const state=HJ_CHALLENGE_STATE;
+ if(document.hidden||state.pending||state.recovering||Date.now()-(state.lastAttemptAt||0)<60000)return;
+ state.recovering=true;state.lastAttemptAt=Date.now();
+ try{const current=await hjFetchLeagueSeason(Number(NFL_SEASON));await hjRefreshChallenges(current.data,Date.now())}
+ catch(error){state.error='ESPN challenge update delayed; retrying automatically';hjRenderChallenge()}
+ finally{state.recovering=false}
 }
 function hjChManager(name){return `<span class="who-cell manager-profile-trigger" data-manager="${esc(name)}" role="button" tabindex="0" aria-label="Open ${esc(name)} profile">${av(name,'challenge-avatar')}<b>${esc(name)}</b></span>`}
 function hjChTeamAbbr(proTeamId){return typeof HJ_PRO_TEAM_BY_ID!=='undefined'&&proTeamId!=null?HJ_PRO_TEAM_BY_ID[String(proTeamId)]||'':''}
@@ -422,7 +435,9 @@ function selectChallenge(id){
  const base=hjApplyLiveSeason;
  hjApplyLiveSeason=function(data,...args){const result=base.call(this,data,...args);hjRefreshChallenges(data);return result};
  selectChallenge('raffle');if(HJ_LEAGUE_STATE.data)hjRefreshChallenges(HJ_LEAGUE_STATE.data);
+ setInterval(hjChRecoverRefresh,15000);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&HJ_LEAGUE_STATE.data)hjRefreshChallenges(HJ_LEAGUE_STATE.data)});
 }
+
 
 
