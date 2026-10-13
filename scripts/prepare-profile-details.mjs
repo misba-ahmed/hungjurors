@@ -1,3 +1,5 @@
+import {readFileSync} from 'node:fs';
+const careerSource=readFileSync(new URL('./profile-career-high.js',import.meta.url),'utf8');
 // Keep profile summaries tied to the same records and award cards as the site.
 export function prepareProfileDetails(html){
  const replace=(from,to)=>{
@@ -20,42 +22,15 @@ export function prepareProfileDetails(html){
 
  const awardStart='const awardHTML=awards.map(a=>`<div class="profile-award">';
  replace(awardStart,'const awardHTML=awards.map(a=>`<div ${hjProfileAwardAttrs(a,name)}>');
- replace('    const rect=card.getBoundingClientRect();\n    const overlay=document.createElement(\'div\');overlay.className=\'award-modal-overlay\';',
-  '    const rect=card.getBoundingClientRect();\n    const managerOrigin=card.closest(\'.manager-modal-overlay\');\n    managerOrigin?.querySelector(\'.manager-modal-close\')?.click();\n    const overlay=document.createElement(\'div\');if(managerOrigin)overlay.style.zIndex=\'10020\';overlay.className=\'award-modal-overlay\';');
 
  const oldHigh=html.match(/function hjCurrentSeasonHigh\(team,data\)\{[^\n]+\}/)?.[0];
  if(!oldHigh)throw Error('Career high calculation missing');
- replace(oldHigh,`${hjCurrentSeasonHigh.toString()}\n${hjManagerCareerHigh.toString()}\n${hjProfileAwardAttrs.toString()}`);
+ replace(oldHigh,`${careerSource}\n${hjProfileAwardAttrs.toString()}`);
  replace("const historical=Math.max(0,...staticRows.map(r=>Number(r.high_score||r.career_high_score||0))),live=hjCurrentSeasonHigh(team,data),v=high.querySelector('.v');if(v&&live>historical)v.textContent=Math.max(live,historical).toFixed(2)",
-  "const v=high.querySelector('.v');if(v)v.textContent=hjManagerCareerHigh(name,team,data,HIST).toFixed(2)");
+  "hjPaintCareerHigh(high,name)");
+ replace('${num(c.career_high_score,2)}</div><div class="s">regular-season points', '${num(hjManagerCareerHighRecord(name).score,2)}</div><div class="s">${hjCareerHighCaption(hjManagerCareerHighRecord(name))}');
+ replace('scroll.innerHTML=managerProfileHTML(name);back.append(head,scroll);', 'scroll.innerHTML=managerProfileHTML(name);hjLoadCareerHigh(name).then(()=>hjPaintCareerHigh(back,name));back.append(head,scroll);');
  return html;
-}
-
-export function hjCurrentSeasonHigh(team,data){
- if(!team||!data)return 0;
- const settings=data.settings?.scheduleSettings,regular=Number(settings?.matchupPeriodCount);
- if(!Number.isInteger(regular)||regular<1)return 0;
- let best=0;
- for(const game of data.schedule||[]){
-  const period=Number(game.matchupPeriodId);
-  if(period<1||period>regular||!['HOME','AWAY','TIE'].includes(game.winner))continue;
-  const weeks=settings.matchupPeriods?.[period];
-  if(!Array.isArray(weeks)||!weeks.length)continue;
-  for(const side of [game.home,game.away]){
-   if(String(side?.teamId)!==String(team.id))continue;
-   for(const week of weeks){
-    const value=side.pointsByScoringPeriod?.[week]??(weeks.length===1?side.totalPoints:null);
-    if(value!==null&&value!==undefined&&value!==''&&Number.isFinite(Number(value)))best=Math.max(best,Number(value));
-   }
-  }
- }
- return best;
-}
-
-export function hjManagerCareerHigh(name,team,data,history){
- const career=history.career_profiles?.find(row=>row.manager===name);
- const historical=Math.max(0,Number(career?.career_high_score)||0,...(history.manager_seasons||[]).filter(row=>row.manager===name).map(row=>Number(row.max_score)||0));
- return Math.max(historical,hjCurrentSeasonHigh(team,data));
 }
 
 export function hjProfileAwardAttrs(award,name){

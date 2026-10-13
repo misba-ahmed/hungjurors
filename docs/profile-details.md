@@ -1,11 +1,13 @@
 # Profile and challenge detail rules
 
 Approved October 13, 2026:
-- Keep the original navy-and-gold waiver card; omit its redundant red Waivers badge.
-- All side-challenge graphics share one zoom button. Show plus in fitted mode and minus in detail mode. Button clicks and double taps update the same saved zoom state and icon.
-- Perfect Lineup award details use the full description from the side-challenges definition.
-- Official Season Awards in manager profiles open the matching year, winner and award card, including the correct week for repeat Perfect Lineup prizes.
-- Manager player-add charts show newest seasons first. League Activity also shows newest first and uses a single horizontal row that scrolls when necessary. Its year range follows the available data.
-- Career High means the highest completed single-week regular-season score. Preserve the historical career_high_score and manager-season max_score values; live updates may raise the maximum but never replace it with a lower current-season high. Exclude unfinished games, playoffs and multi-week aggregate totals.
+- Keep the navy-and-gold waiver card; omit its redundant red Waivers badge.
+- All side-challenge graphics share one zoom button: plus in fitted mode, minus in detail mode. Clicks and double taps update the same state and icon.
+- Perfect Lineup award details use the full side-challenges description.
+- Official Season Awards in profiles open the matching year, winner and award card, including the week for repeat prizes.
+- Player-add charts show newest seasons first in a single horizontal row; never wrap bars outside the card.
+- Career High means the highest completed individual week across the entire career, including regular season and all postseason games. Show the season year and week underneath. Never count a multi-week aggregate as a weekly high. Load archived weekly scores to supplement historical summaries and preserve the largest known result during loading.
+- Every nested card retains its parent card and exact scroll position. Closing by button, backdrop, Escape or swipe dismisses only the top card. Keep original parent DOM, selected sections and horizontal positions. Shared card stacking covers manager, player, season, award and expanded Wire dialogs, including repeated dialog types.
+- Publish requested changes directly. The owner performs the review; do not run extra tests or browser verification.
 
-The previous live profile patch read nonexistent high_score / career_high_score fields on manager-season rows instead of max_score. It treated historical results as zero and overwrote Bryan's verified 200.24 with his current-season 150.22. prepare-profile-details.mjs corrects that calculation for every manager.
+The original Career High bug read nonexistent high_score / career_high_score fields on manager-season rows instead of max_score, then overwrote historical highs with lower current-season results. The October 13 follow-up removes the regular-season restriction and adds year/week metadata.
