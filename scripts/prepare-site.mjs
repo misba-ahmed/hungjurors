@@ -1,4 +1,5 @@
 import {preparePerfectAwards} from './prepare-perfect-awards.mjs';
+import {prepareProfileDetails} from './prepare-profile-details.mjs';
 import {prepareTeamScoreDisplay} from './prepare-team-score-display.mjs';
 const livePossession=readFileSync(new URL('./live-possession.js',import.meta.url),'utf8');
 import {prepareProfileScoreColors} from './prepare-profile-score-colors.mjs';
@@ -48,6 +49,7 @@ function replaceOnce(html,pattern,replacement){
 const folderArtwork=readFileSync(new URL('./folder-artwork.js',import.meta.url),'utf8');
 export function prepareSite(html){
  html=preparePerfectAwards(html);
+ html=prepareProfileDetails(html);
 
  html=replaceOnce(html,/function nflGameFromEspn\(event,period\)\{/g,livePossession+'\nfunction nflGameFromEspn(event,period){');
  html=replaceOnce(html,/const data=await fetchEspnJson\(nflScheduleUrl\(requested\)\);/g,'const data=await hjFetchPossessionScoreboard(nflScheduleUrl(requested));');
@@ -233,6 +235,7 @@ if(process.argv[2]){
  await Promise.all(assets.map(([name,bytes])=>writeFile(join(dirname(path),name),bytes)));
  await writeFile(path,prepareSite(source));
 }
+
 
 
 

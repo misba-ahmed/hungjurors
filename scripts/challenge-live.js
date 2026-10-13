@@ -273,12 +273,17 @@ function hjChLms(model){
  return `<div class="lms-view lineup-view lms-survival-view${fit?' is-fit':''}" data-fit-key="lmsFit"><div class="lms-stage lineup-stage" style="touch-action:manipulation" tabindex="0" role="group" aria-label="Last Man Standing manager lineup"><div class="lineup" id="lms-lineup" style="--lineup-count:${names.length}"><div class="lineup-row">${figures}</div></div></div>${hjChZoomButtons(fit,'lms-lineup')}</div><h4 class="aw-sub challenge-sub">Weekly Low Scores &amp; Eliminations</h4>${model.lmsBlocked?`<p class="challenge-pending" role="status">${esc(model.lmsBlocked)}</p>`:''}${hjChTable(['Week','Lowest Score','LMS Elimination'],history,'week-table lms-week-table')}`;
 }
 function hjChZoomButtons(fit,controls){
- return `<div class="lms-zoom" role="group" aria-label="Lineup zoom"><button type="button" data-lms-zoom="fit" aria-pressed="${fit}" aria-controls="${controls}" aria-label="Show entire lineup"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M7.5 10.5h6"/></svg></button><button type="button" data-lms-zoom="detail" aria-pressed="${!fit}" aria-controls="${controls}" aria-label="Zoom in on lineup"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M7.5 10.5h6M10.5 7.5v6"/></svg></button></div>`;
+ return `<div class="lms-zoom" role="group" aria-label="Lineup zoom"><button type="button" data-lms-zoom="${fit?'detail':'fit'}" aria-pressed="${!fit}" aria-controls="${controls}" aria-label="${fit?'Zoom in on lineup':'Zoom out to show entire lineup'}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M7.5 10.5h6${fit?'M10.5 7.5v6':''}"/></svg></button></div>`;
 }
 function hjChSetLmsZoom(view,fit){
  HJ_CHALLENGE_STATE[view.dataset.fitKey||'lmsFit']=fit;
  view.classList.toggle('is-fit',fit);
- view.querySelectorAll('[data-lms-zoom]').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.lmsZoom==='fit')===fit)));
+ view.querySelectorAll('[data-lms-zoom]').forEach(b=>{
+  b.dataset.lmsZoom=fit?'detail':'fit';
+  b.setAttribute('aria-pressed',String(!fit));
+  b.setAttribute('aria-label',fit?'Zoom in on lineup':'Zoom out to show entire lineup');
+  b.querySelector('path').setAttribute('d','m16 16 5 5M7.5 10.5h6'+(fit?'M10.5 7.5v6':''));
+ });
  if(fit)view.querySelector('.lms-stage').scrollTo({left:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
 }
 function hjChBindLmsGestures(out){
@@ -438,6 +443,7 @@ function selectChallenge(id){
  setInterval(hjChRecoverRefresh,15000);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&HJ_LEAGUE_STATE.data)hjRefreshChallenges(HJ_LEAGUE_STATE.data)});
 }
+
 
 
 

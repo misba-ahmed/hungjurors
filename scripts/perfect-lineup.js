@@ -89,7 +89,7 @@ function hjPerfectAwardDetail(year,row){
  const payout=hjPerfectAwardPayouts(HJ_CHALLENGE_STATE.model?.weeks||[]).find(p=>p.season===Number(year)&&p.week===row.week&&p.team.short===row.who);
  if(!payout)return '<div class="empty">Loading the verified winning lineup…</div>';
  return '<div class="champ-banner">'+av(row.who,'lg')+'<div><div class="k">'+year+' · Week '+payout.week+'</div><div class="who">'+esc(row.who)+' · The Perfect Lineup</div><div class="s">'+esc(payout.note||payout.team.score.toFixed(2)+' fantasy points · All nine targets met')+'</div></div></div>'
-  +'<div class="aw-rule">QB 20+ · Every RB / WR / TE / FLEX 15+ · K &amp; DST 10+. Prize: $30.</div>'
+  +'<div class="aw-rule">'+esc(CHALLENGES.find(ch=>ch.id==='perfect').rule)+'</div>'
   +hjPerfectSelected(payout.team,{week:payout.week,final:true});
 }
 function hjSyncPerfectAwards(model){
@@ -108,3 +108,4 @@ function hjSyncPerfectAwards(model){
   if(book&&book.querySelector('[data-award-panel="'+selected+'"]'))setLeagueAwardsYear(book,selected);
  }
 }
+
