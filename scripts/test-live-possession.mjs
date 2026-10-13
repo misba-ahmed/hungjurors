@@ -62,3 +62,43 @@ test('HTTP and JSON failures release the request timer',async()=>{
   vm.runInContext(model,c);await assert.rejects(c.hjFetchPossessionScoreboard('scoreboard'));assert.equal(cleared,true);
  }
 });
+
+function playFeed(play,{score=0,...options}={}){
+ const data=feed(options),comp=data.events[0].competitions[0];
+ comp.competitors[0].score=String(score);comp.competitors[1].score='0';
+ if(comp.situation&&play)comp.situation.lastPlay=play;
+ return data;
+}
+for(const type of ['Touchdown','Interception','Fumble Recovery (Opponent)','Turnover on Downs','Field Goal Good','Safety']){
+ test(type+' clears both rings despite stale possession and red zone',()=>{
+  const before=update(playFeed({id:'1',type:{text:'Rush'}},{red:true}));
+  const ended=playFeed({id:'2',type:{text:type}},{red:true});
+  const stopped=update(ended,before,1000);
+  for(const team of ['BAL','ATL'])for(const pos of ['WR','DST'])assert.equal(glow(stopped.get(team),pos),'');
+  const repeated=update(ended,stopped,2000);assert.equal(glow(repeated.get('BAL')),'');
+  const resumed=update(playFeed({id:'3',type:{text:'Rush'}},{owner:'1'}),repeated,3000);
+  assert.equal(glow(resumed.get('ATL')),'green');assert.equal(glow(resumed.get('BAL'),'DST'),'green');
+ });
+}
+test('score change clears stale play, persists through missing fields, then resumes on a new play',()=>{
+ const play={id:'1',type:{text:'Rush'}};
+ const before=update(playFeed(play,{red:true}));
+ const stopped=update(playFeed(play,{red:true,score:6}),before,1000);
+ assert.equal(glow(stopped.get('BAL')),'');
+ const missing=update(playFeed(null,{score:6,situation:false}),stopped,2000);
+ assert.equal(glow(missing.get('BAL')),'');assert.equal(glow(missing.get('ATL'),'DST'),'');
+ const repeated=update(playFeed(play,{score:6,red:true}),missing,3000);
+ assert.equal(glow(repeated.get('BAL')),'');
+ const resumed=update(playFeed({id:'2',type:{text:'Pass'}},{score:6,owner:'1'}),repeated,4000);
+ assert.equal(glow(resumed.get('ATL')),'green');
+});
+test('scoring flag clears even without a play label; extra points and kickoff stay off',()=>{
+ for(const play of [{id:'1',scoringPlay:true},{id:'2',type:{text:'Extra Point'}},{id:'3',type:{text:'Kickoff'}}]){
+  const stopped=update(playFeed(play,{red:true}));assert.equal(glow(stopped.get('BAL')),'');
+ }
+});
+test('no-play touchdown and ordinary fumble do not falsely end possession',()=>{
+ for(const play of [{id:'1',text:'Touchdown. Penalty. No Play.'},{id:'2',type:{text:'Fumble Recovery (Own)'}}]){
+  assert.equal(glow(update(playFeed(play)).get('BAL')),'green');
+ }
+});

@@ -8,6 +8,17 @@ async function hjFetchPossessionScoreboard(url){
  }finally{clearTimeout(timeout);}
 }
 function hjPossessionTeam(value){const key=String(value||'').trim().toUpperCase();return ({WAS:'WSH',JAC:'JAX',LA:'LAR'})[key]||key;}
+function hjPossessionPlay(situation){
+ const play=situation?.lastPlay;
+ if(!play)return {key:'',ended:false};
+ const type=String(play.type?.text||play.type?.abbreviation||''),text=String(play.text||''),description=type+' '+text;
+ const voided=/no play|nullified|overturned|reversed/i.test(description);
+ const turnover=/interception|intercepted|turnover on downs|fumble recovery \(opponent\)|fumble lost/i.test(description)
+  ||play.turnover===true;
+ const scoring=play.scoringPlay===true||/touchdown|safety|field goal (?:good|made)|field goal is good/i.test(description);
+ const betweenDrives=/extra point|two.point (?:conversion|pass|rush)|kickoff|kick off/i.test(type);
+ return {key:String(play.id||[type,text,play.period?.number,play.clock?.displayValue].join('|')),ended:!voided&&(turnover||scoring||betweenDrives)};
+}
 // Keep the last confirmed possession briefly when ESPN omits situation data.
 const HJ_POSSESSION_MAX_AGE=180000;
 function hjPossessionStates(data,previous=new Map(),now=Date.now()){
@@ -19,6 +30,18 @@ function hjPossessionStates(data,previous=new Map(),now=Date.now()){
    for(const t of teams)states.delete(hjPossessionTeam(t.team?.abbreviation));
    continue;
   }
+  const prior=teams.map(t=>states.get(hjPossessionTeam(t.team?.abbreviation))).find(Boolean);
+  const scoreKey=teams.every(t=>t.score!=null)?teams.map(t=>String(t.team?.id)+':'+String(t.score?.value??t.score)).sort().join('|'):'';
+  const play=hjPossessionPlay(s),scoreChanged=!!(scoreKey&&prior?.scoreKey&&scoreKey!==prior.scoreKey);
+  // Scores and end-of-drive plays override ESPN's lingering possession/red-zone fields.
+  // Hold rings off through repeated or incomplete updates until a new play arrives.
+  if(play.ended||scoreChanged||prior?.inactive&&(!play.key||play.key===prior.stoppedAtPlay)){
+   for(const t of teams)states.set(hjPossessionTeam(t.team?.abbreviation),{
+    inactive:true,stoppedAtPlay:play.key||prior?.stoppedAtPlay||'',scoreKey:scoreKey||prior?.scoreKey||'',
+    confirmedAt:play.ended||scoreChanged?now:prior.confirmedAt
+   });
+   continue;
+  }
   // A quarter break or incomplete update does not confirm a possession change.
   if(status?.state!=='in'||/END_PERIOD/i.test(status.name||'')||!s)continue;
   const owner=String(s.possession?.id??s.possession??'');
@@ -26,13 +49,13 @@ function hjPossessionStates(data,previous=new Map(),now=Date.now()){
   for(const t of teams){
    const key=hjPossessionTeam(t.team.abbreviation),offense=String(t.team.id)===owner,old=states.get(key);
    const red=offense&&(typeof s.isRedZone==='boolean'?s.isRedZone:!!(old?.offense&&old.red));
-   states.set(key,{offense,red,confirmedAt:now});
+   states.set(key,{offense,red,confirmedAt:now,scoreKey:scoreKey||old?.scoreKey||''});
   }
  }
  return states;
 }
 function hjPossessionGlow(state,position){
- if(!state)return '';
+ if(!state||state.inactive)return '';
  const defense=['DST','D/ST','DEF'].includes(String(position).toUpperCase());
  return defense?(!state.offense?'green':''):state.offense?(state.red?'red':'green'):'';
 }
