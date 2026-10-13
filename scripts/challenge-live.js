@@ -342,7 +342,7 @@ function hjChIntro(out,id){
     const standing=template.content.firstElementChild;
     Object.assign(standing.style,{position:'absolute',top:'0',left:'0',width:'100%',height:'auto',pointerEvents:'none',zIndex:'3'});
     figure.append(standing);
-    const timing={duration:950,delay:180+delay,easing:'cubic-bezier(.2,.75,.2,1)',fill:'both'};
+    const timing={duration:1600,delay:180+delay,easing:'cubic-bezier(.2,.75,.2,1)',fill:'both'};
     const descent=standing.animate([
      {opacity:1,transform:'translateY(0)',offset:0},
      {opacity:1,transform:'translateY(0)',offset:.2},
