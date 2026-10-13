@@ -332,6 +332,31 @@ function hjChIntro(out,id){
  out.querySelectorAll('.lineup-figure,.lms-figure').forEach((figure,i)=>{
   const delay=Math.min(i*35,280);
   figure.style.setProperty('--ch-enter-delay',delay+'ms');
+  if(id==='lms'&&figure.classList.contains('is-eliminated')){
+   const manager=HJ_CHALLENGE_STATE.names.find(n=>String(n.id)===figure.dataset.lmsManager);
+   const seated=figure.querySelector('.lms-ground-art');
+   if(manager&&seated?.animate){
+    // Temporary original standing artwork; the approved seated figure stays in layout.
+    const template=document.createElement('template');
+    template.innerHTML=hjChFigureArt(manager,'lms-entry',false,'standing');
+    const standing=template.content.firstElementChild;
+    Object.assign(standing.style,{position:'absolute',top:'0',left:'0',width:'100%',height:'auto',pointerEvents:'none',zIndex:'3'});
+    figure.append(standing);
+    const timing={duration:950,delay:180+delay,easing:'cubic-bezier(.2,.75,.2,1)',fill:'both'};
+    const descent=standing.animate([
+     {opacity:1,transform:'translateY(0)',offset:0},
+     {opacity:1,transform:'translateY(0)',offset:.2},
+     {opacity:0,transform:'translateY(22%)',offset:.8},
+     {opacity:0,transform:'translateY(22%)',offset:1}
+    ],timing);
+    seated.animate([
+     {opacity:0,transform:'translateY(-18%)',offset:0},
+     {opacity:0,transform:'translateY(-18%)',offset:.2},
+     {opacity:1,transform:'translateY(0)',offset:1}
+    ],{...timing,fill:'backwards'});
+    descent.finished.then(()=>standing.remove(),()=>standing.remove());
+   }
+  }
   play(figure.querySelector('.raffle-stack'),[
    {opacity:0,transform:'translateY(-20px) scale(.92)'},
    {opacity:1,transform:'translateY(0) scale(1)'}
