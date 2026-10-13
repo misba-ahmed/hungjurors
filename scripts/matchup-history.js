@@ -6,8 +6,9 @@ function hjNormalizeHistoryScores(payload,week){
   if(Number(game.matchupPeriodId)!==Number(week))continue;
   for(const side of ['home','away']){
    for(const entry of game[side]?.rosterForCurrentScoringPeriod?.entries||[]){
-    const player=hjPlayer(entry),total=entry.playerPoolEntry?.appliedStatTotal;
-    if(!player?.id||hjWeeklyStat(entry,week)||typeof total!=='number'||!Number.isFinite(total))continue;
+    const player=entry.playerPoolEntry?.player||entry.player||{},total=entry.playerPoolEntry?.appliedStatTotal;
+    if(!player.id||typeof total!=='number'||!Number.isFinite(total))continue;
+    if((player.stats||[]).some(stat=>Number(stat.seasonId)===Number(NFL_SEASON)&&Number(stat.scoringPeriodId)===Number(week)&&Number(stat.statSourceId)===0&&Number(stat.statSplitTypeId)===1&&stat.appliedTotal!=null&&Number.isFinite(Number(stat.appliedTotal))))continue;
     player.stats=[...(player.stats||[]),{seasonId:Number(NFL_SEASON),scoringPeriodId:Number(week),statSourceId:0,statSplitTypeId:1,appliedTotal:total}];
    }
   }

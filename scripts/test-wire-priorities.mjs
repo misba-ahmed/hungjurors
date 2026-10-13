@@ -5,6 +5,7 @@ import vm from 'node:vm';
 const source=fs.readFileSync(new URL('./wire-priorities.js',import.meta.url),'utf8');
 function setup(week,bye,waiver){
  const context={
+  WIRE:{previewWeek:week},
   wireBuild:()=>({cards:[{section:'kickoff',html:'kickoff'},...(waiver?[{section:'waivers',html:'waiver'}]:[]),{section:'recap',html:'recap'}]}),
   hjWireNavLabel:s=>s,HJ_WIRE_ORDER:['kickoff','waivers','recap'],
   HJ_BYE_STATE:{season:2026,teams:new Map([['KC',new Set()]])},NFL_SEASON:2026,
@@ -19,17 +20,19 @@ function setup(week,bye,waiver){
 }
 const data={teams:[{id:1,name:'KAT',entries:[{id:'15',name:'Mahomes',team:'KC'}]}]};
 for(const [label,week,bye,waiver,expected] of [
- ['opening week',5,true,true,['kickoff','waivers','recap']],
- ['expired waiver',5,true,false,['kickoff','recap']],
- ['later bye week',6,true,false,['kickoff','recap']],
+ ['opening week',5,true,true,['kickoff','waivers','recap','byes']],
+ ['expired waiver',5,true,false,['kickoff','recap','byes']],
+ ['later bye week',6,true,false,['kickoff','recap','byes']],
  ['ordinary week',6,false,true,['kickoff','waivers','recap']]
 ])test(label,()=>{
  const ctx=setup(week,bye,waiver),out=ctx.wireBuild(data),html=out.cards.map(c=>c.html).join('');
  assert.deepEqual(Array.from(out.cards,c=>c.section),expected);
  assert(!html.includes('wp-group'));
  if(waiver)assert.equal(out.cards.find(c=>c.section==='waivers').html,'waiver');
- assert(!html.includes('wp-panel'));
- assert(!out.cards.some(c=>['byes','lms'].includes(c.section)));
+ assert.equal(html.includes('wp-panel'),bye);
+ assert.equal(out.cards.some(c=>c.section==='byes'),bye);
+ assert(!out.cards.some(c=>c.section==='lms'));
+ if(bye){assert(html.includes('Teams on BYE this week'));assert(html.includes('Mahomes'));assert(html.includes('KAT'));}
  assert.equal(html.includes('Lowest score this week will be eliminated.'),false);
  assert.equal(ctx.hjWireNavLabel('byes'),'Bye Week');
  assert.equal(ctx.hjWireNavLabel('lms'),'Last Man Standing');
