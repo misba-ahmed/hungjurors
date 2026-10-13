@@ -11,6 +11,9 @@ Approved October 7, 2026 (supersedes the grouped This Week design):
 - Follow docs/wire-card-rules.md for shared behavior. Run test-wire-priorities.mjs, test-wire-announcements.mjs (desktop/mobile Chromium and WebKit), and test-card-gestures.mjs before publishing.
 
 ## October 13 — restore the original waiver card
-The waiver reminder uses the original `wireWaiverCard` / `wireCard` design from before the October 6 grouped announcements update. Do not replace it with a `wp-waivers` priority panel. Preserve its deadline visibility, live countdown, ESPN destination and standard card interactions. Bye Week and LMS announcements remain removed from the carousel.
+The waiver reminder uses the original `wireWaiverCard` / `wireCard` design from before the October 6 grouped announcements update. Do not replace it with a `wp-waivers` priority panel. Preserve its deadline visibility, live countdown, ESPN destination and standard card interactions. LMS announcements remain removed from the carousel.
 
 The waiver card uses the existing navy-and-gold `is-lead` theme, matching the Week Live card, as requested October 13. Keep its original layout, countdown and ESPN action.
+
+## October 13 — recurring Bye Week card
+Restore a standalone Bye Week card for every current NFL week with confirmed byes. Use the complete validated season schedule, show all affected owned players and their managers, and refresh when the schedule finishes loading. Keep the existing cream team panels, expansion, scrolling, gestures and stable card key. Omit the card only when the validated schedule shows no byes. Place its chip after Kickoff.

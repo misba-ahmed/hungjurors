@@ -22,6 +22,7 @@ async function hjLoadByeSchedule(){
   const r=await fetch('/data/nfl-schedule-'+season+'.json',{cache:'no-cache'});if(!r.ok)throw Error('Schedule unavailable');
   const teams=hjByeScheduleIndex(await r.json(),season);if(!teams)throw Error('Incomplete bye schedule');
   Object.assign(HJ_BYE_STATE,{season,teams});
+  document.dispatchEvent(new Event('hj:bye-schedule'));
   if(typeof hjRefreshGameContexts==='function')hjRefreshGameContexts();
   document.dispatchEvent(new Event('hj:team-photo-scores'));
  })().catch(error=>console.warn('Bye status unavailable',error)).finally(()=>{HJ_BYE_STATE.pending=null;});

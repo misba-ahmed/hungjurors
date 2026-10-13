@@ -17,3 +17,6 @@ All record-book categories can announce a strictly broken record except career r
 ## Weekly top-five leaderboards
 
 Immediately below Benchwarmers, The High Five ranks the five highest actual weekly scores across all positions, including starters, bench, IR, and free agents. Free Agent Gold ranks the five highest unrostered scores excluding quarterbacks. Both use the selected recap week’s ESPN applied points and historical roster entries; the waiver list waits for complete historical ownership rather than using current ownership. The full player pool is requested for the selected week. Rows deduplicate player IDs and show shared ranks for tied points. Compact ranked lists sit side by side on desktop and stack on mobile.
+
+## October 13 — zero-point historical roster entries
+ESPN can omit the detailed actual-stat row for bye or inactive players while returning an explicit appliedStatTotal of zero in the requested week's roster. Normalize that explicit total into the selected week's actual stats before computing recap efficiency and ownership completeness. Never convert a missing total into zero or borrow current-week roster totals for another week. This applies to seeded history and each fetched historical week.

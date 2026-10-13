@@ -3,7 +3,7 @@
  * Use live roster/schedule data; never infer a bye from missing game data. */
 (function(){
  const baseBuild=wireBuild,baseLabel=hjWireNavLabel;
- const priorityOrder=['kickoff'];
+ const priorityOrder=['kickoff','byes'];
  HJ_WIRE_ORDER.splice(0,HJ_WIRE_ORDER.length,...priorityOrder,...HJ_WIRE_ORDER.filter(s=>!priorityOrder.includes(s)&&!['this-week','byes','lms'].includes(s)));
  hjWireNavLabel=function(section,data){return ({byes:'Bye Week',lms:'Last Man Standing'})[section]||baseLabel(section,data)};
  function byeGroups(data,week){
@@ -44,6 +44,8 @@
   // Keep the original pre-grouped waiver card from baseBuild, including its
   // countdown, ESPN action and shared Wire expansion/gesture behavior.
   built.cards=built.cards.filter(c=>!['byes','lms'].includes(c.section));
+  const week=Number(WIRE.previewWeek||hjCurrentWeek(data)),groups=byeGroups(data,week);
+  if(groups.length)built.cards.push(announcement('byes',panel('byes','WEEK '+week+' · BYES','Teams on BYE this week',groupHTML(groups),'')));
   // Match the navy-and-gold live card while retaining the original waiver layout.
   built.cards.forEach(c=>{if(c.section==='waivers')c.html=c.html.replace('class="wc is-red"','class="wc is-lead"');});
   return built;
@@ -95,5 +97,6 @@
  wireUpdateDots=function(){const result=heightDots.apply(this,arguments);queueHeight();return result;};
  wireRender=function(){const result=heightRender.apply(this,arguments);queueHeight();return result;};
  window.addEventListener('resize',queueHeight,{passive:true});
+ document.addEventListener('hj:bye-schedule',()=>{if(HJ_BYE_STATE.season===Number(NFL_SEASON))wireRender(true);});
  wireRender(true);
 })();

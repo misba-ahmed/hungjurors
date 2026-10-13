@@ -1,10 +1,26 @@
+/* ESPN omits detailed stat rows for some zero-point bye/inactive players.
+ * Only use explicit totals from the requested historical scoring-period roster. */
+function hjNormalizeHistoryScores(payload,week){
+ if(Number(payload?.scoringPeriodId)!==Number(week))return payload;
+ for(const game of payload.schedule||[]){
+  if(Number(game.matchupPeriodId)!==Number(week))continue;
+  for(const side of ['home','away']){
+   for(const entry of game[side]?.rosterForCurrentScoringPeriod?.entries||[]){
+    const player=hjPlayer(entry),total=entry.playerPoolEntry?.appliedStatTotal;
+    if(!player?.id||hjWeeklyStat(entry,week)||typeof total!=='number'||!Number.isFinite(total))continue;
+    player.stats=[...(player.stats||[]),{seasonId:Number(NFL_SEASON),scoringPeriodId:Number(week),statSourceId:0,statSplitTypeId:1,appliedTotal:total}];
+   }
+  }
+ }
+ return payload;
+}
 /* A verified deployment snapshot supplies completed lineups before network refresh. */
 function hjSeedMatchupHistory(){
  const saved=typeof HJ_MATCHUP_HISTORY_SEED==='undefined'?null:HJ_MATCHUP_HISTORY_SEED;
  if(!saved||Number(saved.season)!==Number(NFL_SEASON)||String(saved.leagueId)!==String(ESPN_FANTASY_LEAGUE_ID)||Number(saved.payload?.scoringPeriodId)!==Number(saved.week)||!Array.isArray(saved.payload?.schedule))return;
  const week=Number(saved.week);
  if(!HJ_DATA.history.has(week)){
-  HJ_DATA.history.set(week,saved.payload);
+  HJ_DATA.history.set(week,hjNormalizeHistoryScores(saved.payload,week));
   const key=`history:${NFL_SEASON}:${week}`;
   if(!HJ_DATA.requests.has(key))HJ_DATA.requests.set(key,{value:saved.payload,at:Number(saved.checkedAt)||0});
  }
@@ -19,7 +35,7 @@ function hjLoadMatchupHistory(data,week){
  const job=hjDataRequest(key,()=>hjDataJson(`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${NFL_SEASON}/segments/0/leagues/${ESPN_FANTASY_LEAGUE_ID}?scoringPeriodId=${week}&view=mMatchup&view=mMatchupScore&view=mRoster&view=mSettings&view=mTeam`),300000)
  .then(payload=>{
   if(Number(payload.scoringPeriodId)!==week||!Array.isArray(payload.schedule))throw Error('Wrong historical week');
-  HJ_DATA.history.set(week,payload);
+  HJ_DATA.history.set(week,hjNormalizeHistoryScores(payload,week));
   hjApplyLiveSeason(HJ_LEAGUE_STATE.data,false);hjRefreshRecap();
   if(HJ_HQ_STATE.activeTab==='matchups'&&Number(HJ_HQ_STATE.matchupWeek||hjDefaultMatchupWeek(HJ_LEAGUE_STATE.data))===week)hjRenderMatchupCenter();
   return payload;
