@@ -32,7 +32,7 @@ function hjDirectRoute(hash){
  const hq={rosters:'rosters',matchups:'matchups',players:'free-agents','roster-strength':'strength',activity:'activity','weekly-recap':'recap'};
  const folds={'past-seasons':'champions-fold','record-book':'record-book-fold',awards:'league-awards-fold','record-book-fold':'record-book-fold'};
  if(Object.hasOwn(hq,slug))return {slug,tab:hq[slug],target:'league-hq'};
- if(['raffle','lms','titty','overachiever','mvp','optimizer'].includes(slug))return {slug,challenge:slug,target:'challenges'};
+ if(['raffle','lms','titty','overachiever','mvp','optimizer','perfect'].includes(slug))return {slug,challenge:slug,target:'challenges'};
  if(Object.hasOwn(folds,slug))return {slug,target:folds[slug],fold:true};
  return null;
 }
