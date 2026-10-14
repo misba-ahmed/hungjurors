@@ -21,5 +21,5 @@ export function prepareManagerAvatars(html){
  const portrait=AV[manager]||AV_DEFAULT;
  return portrait.startsWith('/')?portrait:'data:image/png;base64,'+portrait;
 };
-const av = `).replace('</head>','<style id="manager-avatar-framing">.av[data-manager="MISBA"],img.av[src*="/assets/avatars/misba-"],.lms-natural-head{filter:saturate(.8)}</style>\n</head>');
+const av = `).replace('</head>','<style id="manager-avatar-framing">.av[data-manager="MISBA"],img.av[src*="/assets/avatars/misba-"],.lms-natural-head{filter:saturate(.8)}#league-hq #league-sync-content .league-team-tab>.av,#league-hq #hq-panel-matchups .hq-matchup-jump .hq-matchup-jump-avatar{border-color:#000!important}</style>\n</head>');
 }
