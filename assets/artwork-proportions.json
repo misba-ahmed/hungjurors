@@ -2054,8 +2054,20 @@
       "effectiveDate": "2026-10-14",
       "scope": "all future new or revised NFL player lineup artwork",
       "source": "explicit owner instruction",
-      "supersedes": "16\u201317% guide and rejected 20% target; original source dimensions remain historical measurements",
-      "preserve": "uniform face scaling, identity, naturally shaded continuous neck, existing body style and physical-height behavior"
+      "supersedes": "16–17% guide and rejected 20% target; original source dimensions remain historical measurements",
+      "preserve": "uniform face scaling, identity, naturally shaded continuous neck, existing body style and physical-height behavior",
+      "generationContract": "docs/lineup-artwork-protocol.md#consistent-generation-contract--october-14-0923-ct",
+      "formula": "(chinY - hairTopY) / (solesY - hairTopY)",
+      "landmarkExclusions": [
+        "neck",
+        "transparent margins",
+        "shadow",
+        "crutches",
+        "props"
+      ],
+      "calibratedHeadMaster": null,
+      "bodyReferenceRole": "Style, pose and lighting only; historical head scale is not the 18% target.",
+      "resultReporting": "Requested ratio is not measured ratio. Without anatomical landmarks, achieved ratio is unknown."
     }
   }
 }

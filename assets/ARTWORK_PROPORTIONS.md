@@ -18,12 +18,12 @@ Canonical visual reference: team-photos/players/4047646-faces-v2.webp, 850 px na
 Visual landmark estimates for that reference: hair top near 0; chin near 140; shirt V near 175; soles near 849. These landmarks describe the original reference only. Owner correction (October 14): all future new or revised player art targets hair-top-to-chin head height at approximately 18% of full visible figure height. This replaces both the older 16–17% target and the rejected 20% target; keep the original measurements as historical measurements. Hair, helmets, build and individual facial anatomy may vary. Never use the roughly 30% manager-head ratio for NFL player artwork.
 Every regular player uses their own verified heightInches for RESTING height on a common baseline. The uniform 850 px asset resolution does not mean equal physical heights.
 SELECTED player figures share one enlarged target height independent of actual physical height; current target is 75% of the original enlargement. Preserve sharpness from native assets.
-Player body width, head scale, shoulders, pose and lighting must be compared at equal rendered height against the canonical player, then resting lineup heights must be checked separately.
+The canonical player supplies body style, shoulders, pose and lighting. Its historical head scale is not the new 18% target. Use the landmark definition and construction math in docs/lineup-artwork-protocol.md. Preserve resting physical-height behavior independently.
 Keep existing crutch/status variants, retained color, automatic restoration, scores, selection and roster membership behavior. Do not apply human height/injury rules to mascots.
 
 ## Update discipline
 Before changing art: read these references, inspect original art, identify exactly what is changing.
-After: compare both full figures and enlarged head/neck crops on cream background; reject visible seams, exposed background wedges, flattened neck shading or altered body dimensions.
+During creation, preserve a continuous shaded neck, full figure anatomy and unaffected body dimensions. Follow the owner workflow below; this does not require a separate inspection or publishing pass.
 Update the dimension snapshot only when a deliberate approved asset change occurs. Do not overwrite the reference with a rejected draft. Catalog remains the current player source of truth; snapshot is the baseline.
 
 October 5 correction: v7 was rejected for a floating head. Preserve the continuous shaded neck silhouette up both jaw sides; head-height checks alone do not validate the join. Current comparison: assets/references/jarrett-neck-comparison-20261005.png. Do not reuse the v7 proof as approved artwork.
@@ -35,3 +35,6 @@ For every new or revised human lineup asset, compute the crop from visible alpha
 The owner explicitly forbids publishing checks, automated publishing gates, mandatory test/inspection passes, proof artifacts and extra approval rounds. Do not add them or make publishing conditional on them. Apply these artwork rules while doing the requested work, then publish. This supersedes older conflicting check/proof instructions in this repository.
 
 Head percentage reporting: A generation prompt's requested ratio is not a measured result. Use hair-top-to-chin divided by visible hair-top-to-soles height; exclude neck, transparent margins and shadows. Anatomical landmarks are approximate, so label reported values approximate. Never label an output 18% or 20% merely because that number was in its prompt. The October 14 Mevis drafts labeled 20% and 18% were rejected and must not become proportion references.
+
+## Consistent generation source
+Use the Consistent generation contract in `docs/lineup-artwork-protocol.md` for reference roles, construction equations and the reusable prompt. No newly generated October 14 asset is designated a calibrated 18% reference by this documentation change. The target and an observed output ratio are separate facts.
