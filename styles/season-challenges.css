@@ -327,6 +327,9 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-score-copy b{font-size:inherit;font-weight:700;color:var(--navy)}
 :is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-result{max-width:100%;box-sizing:border-box;white-space:normal;letter-spacing:.025em}
 :is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-result.is-eliminated{background:#f3e0de;color:var(--verdict-red)}
+/* Apply the elimination treatment to every eliminated result, including future weeks. */
+:is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-score-group:has(.lms-result.is-eliminated) .who-cell>.av{border-color:var(--verdict-red)}
+:is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-score-group:has(.lms-result.is-eliminated) .lms-score-copy b{color:var(--verdict-red)}
 :is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-result.is-already-out{background:var(--paper-dim);color:#6f8090}
 :is(#challenge-out,.hj-challenge-out) .lms-week-table .lms-result.is-pending{background:#f5ead0;color:#8c7138}
 @media(max-width:600px){
