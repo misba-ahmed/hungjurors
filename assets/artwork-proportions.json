@@ -2047,6 +2047,15 @@
         "teamId": 20,
         "jersey": "16"
       }
+    },
+    "headHeightTarget": {
+      "ratio": 0.18,
+      "measurement": "hair top to chin / full visible figure height",
+      "effectiveDate": "2026-10-14",
+      "scope": "all future new or revised NFL player lineup artwork",
+      "source": "explicit owner instruction",
+      "supersedes": "16\u201317% guide and rejected 20% target; original source dimensions remain historical measurements",
+      "preserve": "uniform face scaling, identity, naturally shaded continuous neck, existing body style and physical-height behavior"
     }
   }
 }

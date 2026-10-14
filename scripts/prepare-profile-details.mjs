@@ -1,4 +1,5 @@
 import {readFileSync} from 'node:fs';
+const currentTeamSource=readFileSync(new URL('./profile-current-team.js',import.meta.url),'utf8');
 const careerSource=readFileSync(new URL('./profile-career-high.js',import.meta.url),'utf8');
 // Keep profile summaries tied to the same records and award cards as the site.
 export function prepareProfileDetails(html){
@@ -7,6 +8,18 @@ export function prepareProfileDetails(html){
   html=html.replace(from,()=>to);
  };
  replace("cls:'is-red',badge:'!Waivers'","cls:'is-red',badge:''");
+
+ // Resolve current affiliation before rendering any profile header or team section.
+ replace('function pcPlayerFromTrigger(trigger){',currentTeamSource+'\nfunction pcPlayerFromTrigger(trigger){');
+ replace('raw.photo=exact.photo||raw.photo}return raw;', 'raw.photo=exact.photo||raw.photo}return pcCurrentPlayer(raw);');
+ replace('pcActive={overlay,player,returnFocus:trigger,token:0};', 'pcActive={overlay,player,returnFocus:trigger,token:0};pcRefreshCurrentTeam(pcActive);');
+ replace('const teamLogo=ffnTeamLogo(player.team);', "const teamLogo=player.team==='FA'?'':ffnTeamLogo(player.team);");
+ replace("if(player.position==='D/ST')return;\n const id=String(player.id||''),target=overlay.querySelector('[data-profile-jersey]');", "if(player.position==='D/ST'||player.team==='FA')return;\n const id=String(player.id||''),target=overlay.querySelector('[data-profile-jersey]');");
+ replace("roster=(ffnRosterByTeam.get(team)||[])", "roster=pcCurrentRoster(team)");
+ replace('function pcTeamHTML(player,allRows,season){', `function pcTeamHTML(player,allRows,season){
+  if(player.team==='FA')return '<section class="pc-depth-card pc-team-card" data-pc-section="team"><div class="pc-depth-summary"><span>Team</span><strong>NFL free agent</strong></div></section>';`);
+ replace("const team=pcTeamForWeek(rows,week,player.team),game=", "const team=Number(season)===Number(NFL_SEASON)&&week>=hjCurrentWeek()?player.team:pcTeamForWeek(rows,week,player.team),game=");
+
 
  // Reverse only the rendered charts; other transaction consumers keep their ordering.
  replace('const years=txYears.map(year=>','const years=[...txYears].sort((a,b)=>b-a).map(year=>');
