@@ -133,7 +133,7 @@
   const resolvePlayer=item=>waiverReportState.players[String(item.playerId)]||hjActivityPlayerById(item.playerId);
   const playerHTML=item=>{
    const p=resolvePlayer(item),name=p.name||'Player',photo=p.photo||(p.id&&!String(p.id).startsWith('-')?nflHeadshot(p.id):'');
-   return '<button type="button" class="wr-player pc-player-trigger" '+ffnPlayerDataAttrs(p)+' aria-label="Open '+esc(name)+' player profile">'+(photo?'<img src="'+esc(photo)+'" alt="" loading="lazy" onerror="ffnImageFallback(this)">':'')+'<span><b>'+esc(name)+'</b><small>'+esc([p.team,p.position].filter(Boolean).join(' · '))+'</small></span></button>';
+   return '<button type="button" class="wr-player pc-player-trigger" '+ffnPlayerDataAttrs(p)+' aria-label="Open '+esc(name)+' player profile">'+(photo?'<img class="'+(p.position==='DST'||String(p.id).startsWith('-')?'is-defense':'is-headshot')+'" src="'+esc(photo)+'" alt="" loading="lazy" onerror="ffnImageFallback(this)">':'')+'<span><b>'+esc(name)+'</b><small>'+esc([p.team,p.position].filter(Boolean).join(' · '))+'</small></span></button>';
   };
   const ordinal=n=>n+([11,12,13].includes(n%100)?'th':({1:'st',2:'nd',3:'rd'}[n%10]||'th'));
   const rows=report.items.map(row=>{
@@ -171,7 +171,8 @@
  .wc.wc-waiver-report .wr-outgoing .wr-label{color:rgba(247,243,232,.65)}
  .wc.wc-waiver-report .is-failed .wr-label{color:#f2aaa2}
  .wc.wc-waiver-report .wr-player{display:flex;align-items:center;gap:7px;min-width:0;max-width:100%;padding:0;border:0;background:none;color:var(--paper);text-align:left;cursor:pointer}
- .wc.wc-waiver-report .wr-player img{width:30px;height:30px;border-radius:50%;background:var(--paper);object-fit:contain;flex:none}
+ .wc.wc-waiver-report .wr-player img{width:30px;height:30px;border-radius:50%;background:var(--paper);object-fit:cover;object-position:center;flex:none}
+ .wc.wc-waiver-report .wr-player img.is-defense{object-fit:contain}
  .wc.wc-waiver-report .wr-player span{min-width:0}
  .wc.wc-waiver-report .wr-player b{display:block;font:750 13px/1.25 var(--sans);white-space:normal;overflow-wrap:anywhere}
  .wc.wc-waiver-report .wr-player small{display:block;margin-top:2px;color:rgba(247,243,232,.65);font:500 10px/1.2 var(--sans)}
