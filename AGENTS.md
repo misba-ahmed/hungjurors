@@ -10,3 +10,6 @@ Before ANY top-carousel / Wire card update, read `docs/wire-card-rules.md` and `
 
 ## All AI editors: lineup artwork
 Read docs/lineup-artwork-protocol.md before EVERY lineup artwork generation or edit, including crutches and all alternate poses. Follow proportion/identity rules during creation, not only in the prompt. The owner forbids new publishing gates, recorded review evidence and extra approval steps. This protocol supersedes conflicting older workflow requirements for separate proof files and artwork-only test runs.
+
+## Hard rule: circular player headshots
+Every circular NFL player avatar must follow the existing roster and Wire player avatar treatment: use `object-fit: cover` with centered positioning so the jersey/bust reaches the circle's bottom edge. Never use `object-fit: contain` for a human headshot in a circle; it exposes a flat rectangular bust edge and an empty crescent underneath. Preserve the established avatar size, proportions and surrounding layout. Apply this rule to new cards, expanded cards, mobile and desktop. NFL team/DST logos are the exception: retain `object-fit: contain` so the full logo remains visible. Reuse the existing player-avatar styling instead of introducing a different crop.
