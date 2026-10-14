@@ -10,7 +10,8 @@
    const row=rows[index];
    if(!row)return '<span class="ww-trend-player is-loading" aria-label="Loading trending free agent"><span class="ww-trend-photo"></span><strong>—</strong></span>';
    const p=row.player,photo=p.photo||nflHeadshot(p.id);
-   return '<button type="button" class="ww-trend-player pc-player-trigger" '+ffnPlayerDataAttrs(p)+' aria-label="'+esc(p.name)+', '+row.adds+' adds in the last 24 hours"><img class="ww-trend-photo'+(p.position==='D/ST'?' is-defense':'')+'" src="'+esc(photo)+'" alt="" loading="lazy" onerror="ffnImageFallback(this)"><span class="ww-trend-name">'+esc(p.name).replace(/ /,'<br>')+'</span><strong>'+esc(api.format(row.adds))+'</strong></button>';
+   const name=p.position==='D/ST'?p.name:p.name.replace(/^(\S)\S*\s+/, '$1. ');
+   return '<button type="button" class="ww-trend-player pc-player-trigger" '+ffnPlayerDataAttrs(p)+' aria-label="'+esc(p.name)+', '+row.adds+' adds in the last 24 hours"><img class="ww-trend-photo'+(p.position==='D/ST'?' is-defense':'')+'" src="'+esc(photo)+'" alt="" loading="lazy" onerror="ffnImageFallback(this)"><span class="ww-trend-name" style="--ww-name-width:'+Math.max(4,name.length*.62)+'">'+esc(name)+'</span><strong>'+esc(api.format(row.adds))+'</strong></button>';
   }).join('');
   return '<a class="ww-trend-link" href="#players" data-waiver-trending title="Free agents sorted by adds in the last 24 hours">TRENDING PLAYERS ↗</a><div class="ww-trend-row" aria-label="Top five free agents by adds in the last 24 hours">'+players+'</div>';
  }
@@ -42,7 +43,7 @@
  .wc.wc-waiver-trends .ww-trend-photo{display:block;width:min(100%,36px);aspect-ratio:1;height:auto;box-sizing:border-box;object-fit:cover;object-position:top;border:1.5px solid rgba(247,243,232,.35);border-radius:50%;background:#f7f3e8}
  .wc.wc-waiver-trends .ww-trend-photo.is-defense{object-fit:contain}
  .wc.wc-waiver-trends .is-loading .ww-trend-photo{background:rgba(247,243,232,.12)}
- .wc.wc-waiver-trends .ww-trend-name{width:100%;min-width:0;min-height:2.4em;color:var(--paper);font:700 clamp(8px,2.8cqw,11px)/1.2 var(--sans);text-align:center;white-space:normal;overflow-wrap:anywhere}
+ .wc.wc-waiver-trends .ww-trend-name{width:100%;min-width:0;min-height:1.2em;color:var(--paper);font:700 min(11px,2.8cqw,calc(16cqw / var(--ww-name-width,6)))/1.2 var(--sans);text-align:center;white-space:nowrap}
  .wc.wc-waiver-trends .ww-trend-player strong{font:800 clamp(8px,3.4cqw,12px)/1.2 var(--sans);white-space:nowrap;font-variant-numeric:tabular-nums}
  .wc.wc-waiver-trends .wc-spacer{display:none!important}
  .wc.wc-waiver-trends .ww-espn-action{flex:0 0 auto;align-self:center;margin:0!important}
