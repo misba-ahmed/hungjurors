@@ -6,7 +6,7 @@
 .perfect-hint{position:absolute;z-index:3;top:14px;left:16px;right:110px;margin:0;pointer-events:none;font:400 11px/1.5 var(--sans);color:#738191}
 .perfect-view .lineup{padding-top:54px!important;padding-bottom:84px}
 .perfect-view .perfect-figure{appearance:none;border:0;background:transparent;padding:0;color:var(--navy);font:inherit;cursor:pointer}
-.perfect-view .perfect-bars{gap:calc(var(--lineup-figure)*.055);justify-content:flex-end}
+.perfect-view .perfect-bars{gap:calc(var(--lineup-figure)*.075);justify-content:flex-end}
 .perfect-segment{display:block;flex:0 0 auto;width:54%;height:calc(var(--lineup-figure)*.105);border-radius:2px;background:#dce0dc;box-shadow:inset 0 1px 0 #fff6,0 1px 2px #14324f12}
 .perfect-segment.is-hit{background:linear-gradient(180deg,#b5e3bf,#6cb886 55%,#2e7d4f)}
 .perfect-segment.is-miss{background:linear-gradient(180deg,#e4aaa3,#bb7369)}
