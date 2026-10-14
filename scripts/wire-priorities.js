@@ -10,7 +10,7 @@
    const row=rows[index];
    if(!row)return '<span class="ww-trend-player is-loading" aria-label="Loading trending free agent"><span class="ww-trend-photo"></span><strong>—</strong></span>';
    const p=row.player,photo=p.photo||nflHeadshot(p.id);
-   return '<button type="button" class="ww-trend-player pc-player-trigger" '+ffnPlayerDataAttrs(p)+' aria-label="'+esc(p.name)+', '+row.adds+' adds in the last 24 hours"><img class="ww-trend-photo'+(p.position==='D/ST'?' is-defense':'')+'" src="'+esc(photo)+'" alt="" loading="lazy" onerror="ffnImageFallback(this)"><strong>'+esc(api.format(row.adds))+'</strong></button>';
+   return '<button type="button" class="ww-trend-player pc-player-trigger" '+ffnPlayerDataAttrs(p)+' aria-label="'+esc(p.name)+', '+row.adds+' adds in the last 24 hours"><img class="ww-trend-photo'+(p.position==='D/ST'?' is-defense':'')+'" src="'+esc(photo)+'" alt="" loading="lazy" onerror="ffnImageFallback(this)"><span class="ww-trend-name">'+esc(p.name).replace(/ /,'<br>')+'</span><strong>'+esc(api.format(row.adds))+'</strong></button>';
   }).join('');
   return '<a class="ww-trend-link" href="#players" data-waiver-trending title="Free agents sorted by adds in the last 24 hours">TRENDING PLAYERS ↗</a><div class="ww-trend-row" aria-label="Top five free agents by adds in the last 24 hours">'+players+'</div>';
  }
@@ -26,26 +26,28 @@
  };
  const waiverStyle=document.createElement('style');waiverStyle.id='hj-waiver-trending-style';
  waiverStyle.textContent=`
- .wc.wc-waiver-trends .wc-body{justify-content:flex-start!important;gap:0!important;padding-top:10px!important}
+ .wc.wc-waiver-trends{container-type:inline-size}
+ .wc.wc-waiver-trends .wc-body{justify-content:space-evenly!important;gap:8px!important;padding-top:8px!important}
  .wc.wc-waiver-trends .wc-body::before,.wc.wc-waiver-trends .wc-body::after{display:none!important}
- .wc.wc-waiver-trends .wc-title{margin:4px 0 6px!important;font-size:clamp(18px,3vw,23px)!important;line-height:1.15!important}
- .wc.wc-waiver-trends .wc-copy{font-size:12px!important;line-height:1.35!important;margin:0!important}
- .wc.wc-waiver-trends .wc-count{width:100%;margin-top:12px!important;flex:0 0 auto}
+ .wc.wc-waiver-trends .wc-title{width:100%;max-width:560px;align-self:center;margin:0!important;font-size:clamp(26px,7cqw,34px)!important;line-height:1.12!important;text-wrap:balance;flex:0 0 auto}
+ .wc.wc-waiver-trends .wc-copy{font-size:12px!important;line-height:1.35!important;margin:0!important;flex:0 0 auto}
+ .wc.wc-waiver-trends .wc-count{width:100%;margin:0!important;flex:0 0 auto}
  .wc.wc-waiver-trends .wc-count .unit{min-width:0}
- .wc.wc-waiver-trends .wc-count .n{font-size:28px!important;padding:7px 2px 4px!important}
+ .wc.wc-waiver-trends .wc-count .n{font-size:30px!important;padding:7px 2px 4px!important}
  .wc.wc-waiver-trends .wc-count .l{font-size:7px!important;letter-spacing:.1em!important;margin-top:4px!important}
- .wc.wc-waiver-trends .ww-trending{width:100%;margin-top:12px;container-type:inline-size;flex:0 0 auto}
+ .wc.wc-waiver-trends .ww-trending{width:100%;margin:0;container-type:inline-size;flex:0 0 auto}
  .wc.wc-waiver-trends .ww-trend-link{display:block;width:fit-content;margin:0 auto 8px;color:var(--brass-bright);font:800 9px/1.2 var(--sans);letter-spacing:.09em;text-decoration:none}
- .wc.wc-waiver-trends .ww-trend-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;width:100%;overflow:visible}
- .wc.wc-waiver-trends .ww-trend-player{appearance:none;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;margin:0;padding:0;border:0;background:none;color:#83c991;cursor:pointer}
- .wc.wc-waiver-trends .ww-trend-photo{display:block;width:min(100%,48px);aspect-ratio:1;height:auto;box-sizing:border-box;object-fit:cover;object-position:top;border:2px solid rgba(247,243,232,.35);border-radius:50%;background:#f7f3e8}
+ .wc.wc-waiver-trends .ww-trend-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;width:100%}
+ .wc.wc-waiver-trends .ww-trend-player{appearance:none;display:grid;grid-template-rows:36px 1fr auto;justify-items:center;align-items:start;gap:4px;min-width:0;margin:0;padding:0;border:0;background:none;color:#83c991;cursor:pointer}
+ .wc.wc-waiver-trends .ww-trend-photo{display:block;width:min(100%,36px);aspect-ratio:1;height:auto;box-sizing:border-box;object-fit:cover;object-position:top;border:1.5px solid rgba(247,243,232,.35);border-radius:50%;background:#f7f3e8}
  .wc.wc-waiver-trends .ww-trend-photo.is-defense{object-fit:contain}
  .wc.wc-waiver-trends .is-loading .ww-trend-photo{background:rgba(247,243,232,.12)}
+ .wc.wc-waiver-trends .ww-trend-name{width:100%;min-width:0;min-height:2.4em;color:var(--paper);font:700 clamp(8px,2.8cqw,11px)/1.2 var(--sans);text-align:center;white-space:normal;overflow-wrap:anywhere}
  .wc.wc-waiver-trends .ww-trend-player strong{font:800 clamp(8px,3.4cqw,12px)/1.2 var(--sans);white-space:nowrap;font-variant-numeric:tabular-nums}
- .wc.wc-waiver-trends .wc-spacer{flex:1 1 8px!important;min-height:8px}
- .wc.wc-waiver-trends .ww-espn-action{flex:0 0 auto;align-self:center;margin:8px 0 0!important}
+ .wc.wc-waiver-trends .wc-spacer{display:none!important}
+ .wc.wc-waiver-trends .ww-espn-action{flex:0 0 auto;align-self:center;margin:0!important}
  .wc.wc-waiver-trends :is(.ww-trend-link,.ww-trend-player):focus-visible{outline:2px solid var(--brass-bright);outline-offset:3px}
- @media(max-width:360px){.wc.wc-waiver-trends .wc-title{font-size:17px!important}.wc.wc-waiver-trends .wc-copy{font-size:11px!important}.wc.wc-waiver-trends .ww-trend-row{gap:4px}.wc.wc-waiver-trends .ww-espn-action{font-size:9px!important}}
+ @media(max-width:360px){.wc.wc-waiver-trends .wc-body{gap:6px!important}.wc.wc-waiver-trends .wc-title{font-size:24px!important}.wc.wc-waiver-trends .wc-copy{font-size:11px!important}.wc.wc-waiver-trends .ww-trend-row{gap:4px}.wc.wc-waiver-trends .ww-espn-action{font-size:9px!important}}
  `;
  document.head.append(waiverStyle);
  document.addEventListener('hj:waiver-trends',()=>{
