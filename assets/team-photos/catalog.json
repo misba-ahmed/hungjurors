@@ -468,10 +468,10 @@
     "teamId": 34,
     "jersey": "32",
     "unavailable": {
-      "file": "4035538-crutches-v3.webp",
-      "width": 338,
+      "file": "4035538-crutches-v4.webp",
+      "width": 339,
       "height": 850,
-      "ratio": 0.39765,
+      "ratio": 0.39882,
       "kind": "injury"
     }
   },
@@ -495,10 +495,10 @@
     "teamId": 16,
     "jersey": "87",
     "unavailable": {
-      "file": "4036133-crutches-v1.webp",
-      "width": 346,
+      "file": "4036133-crutches-v2.webp",
+      "width": 349,
       "height": 850,
-      "ratio": 0.40706,
+      "ratio": 0.41059,
       "kind": "injury"
     }
   },
@@ -1307,10 +1307,10 @@
     "teamId": 21,
     "jersey": "28",
     "unavailable": {
-      "file": "4431545-crutches-v3.webp",
-      "width": 328,
+      "file": "4431545-crutches-v4.webp",
+      "width": 324,
       "height": 850,
-      "ratio": 0.38588,
+      "ratio": 0.38118,
       "kind": "injury"
     }
   },
@@ -1362,10 +1362,10 @@
     "jersey": "89"
   },
   "4432708": {
-    "file": "4432708-faces-v4.webp",
-    "width": 315,
+    "file": "4432708-faces-v5.webp",
+    "width": 317,
     "height": 850,
-    "ratio": 0.37059,
+    "ratio": 0.37294,
     "heightInches": 75,
     "name": "Marvin Harrison Jr.",
     "teamId": 34,
@@ -1389,10 +1389,10 @@
     "teamId": 17,
     "jersey": "32",
     "unavailable": {
-      "file": "4432710-crutches-v3.webp",
-      "width": 325,
+      "file": "4432710-crutches-v4.webp",
+      "width": 322,
       "height": 850,
-      "ratio": 0.38235,
+      "ratio": 0.37882,
       "kind": "injury"
     }
   },
@@ -1942,70 +1942,70 @@
     "jersey": "16"
   },
   "4249087": {
-    "file": "4249087-faces-v2.webp",
-    "width": 317,
+    "file": "4249087-faces-v3.webp",
+    "width": 320,
     "height": 850,
-    "ratio": 0.37294,
+    "ratio": 0.37647,
     "heightInches": 72,
     "name": "Matt Gay",
     "teamId": 13,
     "jersey": "14"
   },
   "4428718": {
-    "file": "4428718-faces-v2.webp",
-    "width": 321,
+    "file": "4428718-faces-v3.webp",
+    "width": 318,
     "height": 850,
-    "ratio": 0.37765,
+    "ratio": 0.37412,
     "heightInches": 68,
     "name": "Tre Tucker",
     "teamId": 13,
     "jersey": "1"
   },
   "4429059": {
-    "file": "4429059-faces-v2.webp",
-    "width": 329,
+    "file": "4429059-faces-v3.webp",
+    "width": 327,
     "height": 850,
-    "ratio": 0.38706,
+    "ratio": 0.38471,
     "heightInches": 70,
     "name": "Woody Marks",
     "teamId": 34,
     "jersey": "4"
   },
   "5082424": {
-    "file": "5082424-faces-v2.webp",
-    "width": 303,
+    "file": "5082424-faces-v3.webp",
+    "width": 308,
     "height": 850,
-    "ratio": 0.35647,
+    "ratio": 0.36235,
     "heightInches": 75,
     "name": "Dominic Zvada",
     "teamId": 19,
     "jersey": "34"
   },
   "2969939": {
-    "file": "2969939-faces-v1.webp",
-    "width": 306,
+    "file": "2969939-faces-v2.webp",
+    "width": 305,
     "height": 850,
-    "ratio": 0.36,
+    "ratio": 0.35882,
     "heightInches": 76,
     "name": "Jameis Winston",
     "teamId": 19,
     "jersey": "19"
   },
   "4429023": {
-    "file": "4429023-faces-v1.webp",
-    "width": 321,
+    "file": "4429023-faces-v2.webp",
+    "width": 317,
     "height": 850,
-    "ratio": 0.37765,
+    "ratio": 0.37294,
     "heightInches": 69,
     "name": "MarShawn Lloyd",
     "teamId": 9,
     "jersey": "32"
   },
   "4685261": {
-    "file": "4685261-faces-v1.webp",
-    "width": 305,
+    "file": "4685261-faces-v2.webp",
+    "width": 306,
     "height": 850,
-    "ratio": 0.35882,
+    "ratio": 0.36,
     "heightInches": 73,
     "name": "Germie Bernard",
     "teamId": 23,
