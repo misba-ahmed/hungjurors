@@ -300,10 +300,10 @@
     "teamId": 25,
     "jersey": "19",
     "unavailable": {
-      "file": "3126486-crutches-v2.webp",
-      "width": 372,
+      "file": "3126486-crutches-v3.webp",
+      "width": 332,
       "height": 850,
-      "ratio": 0.43765,
+      "ratio": 0.39059,
       "kind": "injury"
     }
   },
@@ -468,10 +468,10 @@
     "teamId": 34,
     "jersey": "32",
     "unavailable": {
-      "file": "4035538-crutches-v2.webp",
-      "width": 404,
+      "file": "4035538-crutches-v3.webp",
+      "width": 338,
       "height": 850,
-      "ratio": 0.47529,
+      "ratio": 0.39765,
       "kind": "injury"
     }
   },
@@ -1300,10 +1300,10 @@
     "teamId": 21,
     "jersey": "28",
     "unavailable": {
-      "file": "4431545-crutches-v2.webp",
-      "width": 361,
+      "file": "4431545-crutches-v3.webp",
+      "width": 328,
       "height": 850,
-      "ratio": 0.42471,
+      "ratio": 0.38588,
       "kind": "injury"
     }
   },
@@ -1382,10 +1382,10 @@
     "teamId": 17,
     "jersey": "32",
     "unavailable": {
-      "file": "4432710-crutches-v2.webp",
-      "width": 361,
+      "file": "4432710-crutches-v3.webp",
+      "width": 325,
       "height": 850,
-      "ratio": 0.42471,
+      "ratio": 0.38235,
       "kind": "injury"
     }
   },
