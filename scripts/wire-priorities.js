@@ -138,42 +138,66 @@
   const ordinal=n=>n+([11,12,13].includes(n%100)?'th':({1:'st',2:'nd',3:'rd'}[n%10]||'th'));
   const rows=report.items.map(row=>{
    const success=row.status==='EXECUTED',adds=row.items.filter(item=>item.type==='ADD'),drops=row.items.filter(item=>item.type==='DROP');
-   return '<div class="wr-claim'+(success?'':' is-failed')+'"><div class="wr-manager">'+wireMgrHTML(hjActivityTeamName(row.teamId))+'</div><span class="wr-priority">Priority: '+(row.priority?ordinal(row.priority):'—')+'</span>'+adds.map(item=>'<div class="wr-move">'+playerHTML(item)+'<span class="wr-result">'+(success?'ADDED':'FAILED')+'</span></div>').join('')+(success&&drops.length?'<div class="wr-drop">Dropped '+drops.map(item=>esc(resolvePlayer(item).name)).join(', ')+'</div>':'')+(!success?'<div class="wr-reason">'+esc(waiverFailureReasons[row.status]||('Unable to process · '+row.status))+'</div>':'')+'</div>';
+   const incoming='<div class="wr-incoming"><span class="wr-label">'+(success?'+ Added':'Unsuccessful')+'</span>'+adds.map(playerHTML).join('')+'</div>';
+   const detail=success?(drops.length?'<div class="wr-outgoing"><span class="wr-label">− Dropped</span>'+drops.map(playerHTML).join('')+'</div>':'<div class="wr-no-drop">No player dropped</div>'):'<div class="wr-reason">'+esc(waiverFailureReasons[row.status]||('Unable to process · '+row.status))+'</div>';
+   return '<div class="wr-claim'+(success?'':' is-failed')+'" role="listitem"><span class="wr-priority" aria-label="Priority '+(row.priority?ordinal(row.priority):'unavailable')+'">'+(row.priority?ordinal(row.priority):'—')+'</span><div class="wr-manager">'+wireMgrHTML(hjActivityTeamName(row.teamId))+'</div><div class="wr-transfer">'+incoming+detail+'</div></div>';
   }).join('');
   const successful=report.items.filter(row=>row.status==='EXECUTED').length,failed=report.items.length-successful;
-  const body='<div class="wr-heading"><div class="wc-title">Waiver Report</div><div class="wr-summary"><span><b>'+successful+'</b> successful</span><span><b>'+failed+'</b> unsuccessful</span></div></div><div class="wr-claims" tabindex="0" role="region" aria-label="All Wednesday waiver claims; scroll to view the full report">'+rows+'</div>';
+  const body='<div class="wr-heading"><div class="wc-title">Waiver Report</div><div class="wr-summary"><span><b>'+successful+'</b> successful</span><span><b>'+failed+'</b> unsuccessful</span></div></div><div class="wr-column-head" aria-hidden="true"><span>Priority</span><span>Manager</span><span>Claim results</span></div><div class="wr-claims" tabindex="0" role="region" aria-label="All Wednesday waiver claims; scroll to view the full report"><div class="wr-list" role="list">'+rows+'</div></div>';
   return {section:'waiver-report',html:wireCard({kicker:'Wednesday waivers · '+date,tag:'Processed',cls:'is-lead wc-waiver-report',body}).replace('data-wire-card','data-wire-key="waiver-report-'+report.date+'" data-wire-card')};
  }
  const reportStyle=document.createElement('style');reportStyle.id='hj-waiver-report-style';
  reportStyle.textContent=`
  .wc.wc-waiver-report{container-type:inline-size}
- .wc.wc-waiver-report[data-wire-card] .wc-body{display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;width:100%!important;max-width:none!important;min-height:0!important;height:auto!important;flex:1!important;margin:0!important;padding:0!important;gap:12px!important;text-align:left!important;overflow:hidden}
+ .wc.wc-waiver-report[data-wire-card] .wc-body{display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;width:100%!important;max-width:none!important;min-height:0!important;height:auto!important;flex:1!important;margin:0!important;padding:0!important;gap:0!important;text-align:left!important;overflow:hidden}
  .wc.wc-waiver-report .wc-body::before,.wc.wc-waiver-report .wc-body::after{display:none!important}
- .wc.wc-waiver-report .wr-heading{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:7px 16px;flex:none;padding-top:4px}
- .wc.wc-waiver-report[data-wire-card] .wc-title{margin:0!important;text-align:left!important;font-size:clamp(23px,4cqw,30px)!important;line-height:1.15!important}
- .wc.wc-waiver-report .wr-summary{display:flex;flex-wrap:wrap;gap:8px 14px;font:500 12px/1.4 var(--sans);color:rgba(247,243,232,.76)}
+ .wc.wc-waiver-report .wr-heading{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;flex:none;padding:4px 0 12px}
+ .wc.wc-waiver-report[data-wire-card] .wc-title{margin:0!important;text-align:left!important;font-size:24px!important;line-height:1.15!important}
+ .wc.wc-waiver-report .wr-summary{display:flex;flex-wrap:wrap;gap:6px 14px;font:500 12px/1.4 var(--sans);color:rgba(247,243,232,.8)}
  .wc.wc-waiver-report .wr-summary span:first-child b{color:#91d3a0}
  .wc.wc-waiver-report .wr-summary span:last-child b{color:#f2aaa2}
- .wc.wc-waiver-report .wr-claims{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:max-content;align-content:start;gap:10px;width:100%;min-width:0;min-height:0;flex:1;overflow-x:hidden;overflow-y:auto;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(185,138,46,.65) transparent;-webkit-overflow-scrolling:touch;overscroll-behavior-x:auto;overscroll-behavior-y:contain}
- .wc.wc-waiver-report .wr-claim{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px 10px;padding:10px 12px;border:1px solid rgba(247,243,232,.2);border-radius:10px;background:rgba(247,243,232,.055);min-width:0;text-align:left}
- .wc.wc-waiver-report .wr-claim[hidden]{display:grid!important}
+ .wc.wc-waiver-report .wr-column-head{display:grid;grid-template-columns:48px 150px minmax(0,1fr);gap:12px;padding:0 6px 7px;border-bottom:1px solid rgba(247,243,232,.25);color:rgba(247,243,232,.6);font:700 10px/1.3 var(--sans);text-transform:uppercase;letter-spacing:.07em;flex:none}
+ .wc.wc-waiver-report .wr-claims{width:100%;box-sizing:border-box;min-width:0;min-height:0;flex:1;overflow-x:hidden;overflow-y:auto;padding-right:5px;scrollbar-width:thin;scrollbar-color:rgba(185,138,46,.85) transparent;-webkit-overflow-scrolling:touch;overscroll-behavior-x:auto;overscroll-behavior-y:contain}
+ .wc.wc-waiver-report .wr-list{width:100%;min-width:0}
+ .wc.wc-waiver-report .wr-claim{display:grid;grid-template-columns:48px 150px minmax(0,1fr);align-items:center;gap:12px;padding:10px 6px;border-bottom:1px solid rgba(247,243,232,.15);min-width:0;text-align:left}
+ .wc.wc-waiver-report .wr-claim:last-child{border-bottom:0}
+ .wc.wc-waiver-report .wr-priority{color:#d5ac51;font:800 14px/1.2 var(--sans);white-space:nowrap}
  .wc.wc-waiver-report .wr-manager{min-width:0}
- .wc.wc-waiver-report[data-wire-card] .wr-manager .wc-mgr{display:inline-flex!important;justify-content:flex-start!important;align-self:flex-start!important;margin:0!important;padding:0!important;border:0!important;background:none!important;max-width:100%;white-space:normal;text-align:left;font-size:11px;line-height:1.2;gap:6px}
- .wc.wc-waiver-report .wr-manager img{width:23px;height:23px;flex:none}
- .wc.wc-waiver-report .wr-priority{align-self:center;color:rgba(247,243,232,.66);font:600 10px/1.2 var(--sans);white-space:nowrap}
- .wc.wc-waiver-report .wr-move{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
- .wc.wc-waiver-report .wr-result{color:#91d3a0;background:rgba(131,201,145,.1);border-radius:4px;padding:4px 6px;font:800 9px/1.2 var(--sans);letter-spacing:.04em;flex:none}
- .wc.wc-waiver-report .is-failed .wr-result{color:#f2aaa2;background:rgba(242,167,160,.1)}
- .wc.wc-waiver-report .wr-player{display:flex;align-items:center;gap:8px;min-width:0;padding:0;border:0;background:none;color:var(--paper);text-align:left;cursor:pointer}
- .wc.wc-waiver-report .wr-player img{width:32px;height:32px;border-radius:50%;background:var(--paper);object-fit:contain;flex:none}
+ .wc.wc-waiver-report[data-wire-card] .wr-manager .wc-mgr{display:inline-flex!important;justify-content:flex-start!important;align-items:center!important;align-self:flex-start!important;margin:0!important;padding:0!important;border:0!important;background:none!important;max-width:100%;white-space:normal;text-align:left;font:800 12px/1.25 var(--sans)!important;gap:7px;color:var(--paper)}
+ .wc.wc-waiver-report .wr-manager img{width:26px!important;height:26px!important;flex:none}
+ .wc.wc-waiver-report .wr-transfer{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:center;gap:14px;min-width:0}
+ .wc.wc-waiver-report .wr-incoming,.wc.wc-waiver-report .wr-outgoing{min-width:0}
+ .wc.wc-waiver-report .wr-label{display:block;margin-bottom:4px;color:#91d3a0;font:800 10px/1.2 var(--sans);letter-spacing:.04em;text-transform:uppercase}
+ .wc.wc-waiver-report .wr-outgoing .wr-label{color:rgba(247,243,232,.65)}
+ .wc.wc-waiver-report .is-failed .wr-label{color:#f2aaa2}
+ .wc.wc-waiver-report .wr-player{display:flex;align-items:center;gap:7px;min-width:0;max-width:100%;padding:0;border:0;background:none;color:var(--paper);text-align:left;cursor:pointer}
+ .wc.wc-waiver-report .wr-player img{width:30px;height:30px;border-radius:50%;background:var(--paper);object-fit:contain;flex:none}
  .wc.wc-waiver-report .wr-player span{min-width:0}
- .wc.wc-waiver-report .wr-player b{display:block;font:750 13px/1.2 var(--sans);overflow-wrap:anywhere}
- .wc.wc-waiver-report .wr-player small{display:block;margin-top:2px;color:rgba(247,243,232,.62);font:500 10px/1.2 var(--sans)}
- .wc.wc-waiver-report .wr-drop,.wc.wc-waiver-report .wr-reason{grid-column:1/-1;color:rgba(247,243,232,.72);font:500 11px/1.3 var(--sans);overflow-wrap:anywhere}
+ .wc.wc-waiver-report .wr-player b{display:block;font:750 13px/1.25 var(--sans);white-space:normal;overflow-wrap:anywhere}
+ .wc.wc-waiver-report .wr-player small{display:block;margin-top:2px;color:rgba(247,243,232,.65);font:500 10px/1.2 var(--sans)}
+ .wc.wc-waiver-report .wr-reason,.wc.wc-waiver-report .wr-no-drop{color:rgba(247,243,232,.75);font:500 12px/1.4 var(--sans);overflow-wrap:anywhere}
  .wc.wc-waiver-report .wr-reason{color:#f2aaa2}
- @container(max-width:540px){.wc.wc-waiver-report .wr-claims{grid-template-columns:minmax(0,1fr)}.wc.wc-waiver-report .wr-heading{display:block}.wc.wc-waiver-report .wr-summary{margin-top:6px}}
- .wire-expanded-stage .wc.wc-waiver-report .wr-claims{overflow-y:auto;overscroll-behavior-y:contain;padding-right:4px}
- .wire-expanded-stage .wc.wc-waiver-report .wr-claim[hidden]{display:grid!important}
+ @container(max-width:620px){
+  .wc.wc-waiver-report .wr-heading{align-items:flex-start;flex-direction:column;gap:5px;padding-bottom:10px}
+  .wc.wc-waiver-report .wr-column-head{display:none}
+  .wc.wc-waiver-report .wr-claim{grid-template-columns:32px minmax(0,1fr);align-items:start;gap:7px 8px;padding:10px 0}
+  .wc.wc-waiver-report .wr-claim:first-child{border-top:1px solid rgba(247,243,232,.2)}
+  .wc.wc-waiver-report .wr-priority{align-self:center;font-size:12px}
+  .wc.wc-waiver-report .wr-transfer{grid-column:2;gap:10px}
+  .wc.wc-waiver-report .wr-manager img{width:23px!important;height:23px!important}
+  .wc.wc-waiver-report .wr-player img{width:27px;height:27px}
+  .wc.wc-waiver-report .wr-player{gap:5px}
+  .wc.wc-waiver-report .wr-player b{font-size:12px}
+  .wc.wc-waiver-report .is-failed .wr-transfer{grid-template-columns:minmax(0,1fr)}
+  .wc.wc-waiver-report .is-failed .wr-incoming{display:flex;align-items:center;gap:10px}
+  .wc.wc-waiver-report .is-failed .wr-label{margin:0;flex:none}
+  .wc.wc-waiver-report .wr-reason{font-size:11px}
+ }
+ @container(max-width:310px){
+  .wc.wc-waiver-report .wr-transfer{grid-column:1/-1}
+  .wc.wc-waiver-report .is-failed .wr-incoming{gap:7px}
+ }
+ .wire-expanded-stage .wc.wc-waiver-report .wr-claims{overflow-y:auto;overscroll-behavior-y:contain}
  `;
  document.head.append(reportStyle);
  // Reuse the activity scheduler, keeping the report separate from roster moves.
