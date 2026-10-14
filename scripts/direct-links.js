@@ -15,7 +15,7 @@ function hjOpenManagerRoster(manager){
  requestAnimationFrame(()=>{
   const target=document.getElementById('league-hq');if(!target)return;
   const offset=(document.querySelector('body > nav')?.getBoundingClientRect().height||0)+12;
-  window.scrollTo({top:Math.max(0,target.getBoundingClientRect().top+window.scrollY-offset),behavior:'instant'});
+  window.scrollTo({top:Math.max(0,target.getBoundingClientRect().top+window.scrollY-offset),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
  });
 }
 function hjOpenRosterMatchup(){
