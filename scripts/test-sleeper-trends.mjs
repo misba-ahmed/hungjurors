@@ -29,7 +29,7 @@ assert.equal(fresh.data.players[0].net,4400000);
 const runtime=await readFile('scripts/player-stat-extras.js','utf8');
 const client=runtime.slice(0,runtime.indexOf('  // Ownership is current ESPN'));
 assert.ok(client.includes('function hj40SetSleeperFeed'));
-const context=vm.createContext({Date,Map,Set,Number,Error,console,setInterval:()=>0,hj40Pos:p=>p,hjNorm:s=>s.toLowerCase().replace(/[^a-z0-9]/g,''),pcBaseName:s=>s,pcTeam:s=>s});
+const context=vm.createContext({window:{},Date,Map,Set,Number,Error,console,setInterval:()=>0,hj40Pos:p=>p,hjNorm:s=>s.toLowerCase().replace(/[^a-z0-9]/g,''),pcBaseName:s=>s,pcTeam:s=>s});
 vm.runInContext(client,context);
 assert.equal(context.hj40TrendCount(5500000),'+5.5M');
 assert.equal(context.hj40TrendCount(-1100000),'-1.1M');
