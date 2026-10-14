@@ -2067,13 +2067,12 @@
       ],
       "calibratedHeadMaster": null,
       "bodyReferenceRole": "Style, pose and lighting only. Use individual anatomical landmarks for numeric head size.",
-      "resultReporting": "Composition targets 16.5% relative to visually annotated landmarks. Anatomical landmarks remain approximate; do not claim automatic chin detection or precise anatomical measurement.",
+      "resultReporting": "Target is 16\u201317%. Measure actual anatomical landmarks during creation; approximate coordinates remain approximate. No automatic construction guarantee.",
       "range": [
         0.16,
         0.17
       ],
-      "constructionCommand": "python scripts/compose-player-artwork.py <recipe.json>",
-      "sourceDirectory": "assets/team-photos/sources"
+      "withdrawnMethod": "October 14 polygon-cutout compositor: rejected for pasted-on heads and neck seams. Do not reuse its outputs or extracted layers."
     }
   }
 }

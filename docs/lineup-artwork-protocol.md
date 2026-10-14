@@ -4,9 +4,9 @@ These instructions apply to every new or edited lineup image: regular players, c
 ## Required inputs and proportions
 Read assets/team-photos/STYLE_GUIDE.md, assets/ARTWORK_PROPORTIONS.md and assets/artwork-proportions.json before creating artwork. Use the current catalog as authoritative.
 Use the actual approved full-body reference assets/team-photos/players/4047646-faces-v2.webp AND the player's official headshot as image inputs. When editing, also use the player's current approved body. Open the source references before generation; do not replace them with a text description.
-Owner correction (October 14, evening): restore **16–17%**, with **16.5%** as the construction target, for hair-top-to-chin divided by visible hair-top-to-planted-soles height. This supersedes the 18% and 20% targets. Use `scripts/compose-player-artwork.py` and reusable player-specific head/body layers as described in `docs/lineup-artwork-protocol.md`. Preserve identity, natural shaded necks, body geometry, physical-height metadata and all lineup behavior. Another player is a style reference, never the numeric ruler.
+Owner correction (October 14, evening): restore **16–17%**, with **16.5%** as the construction target, for hair-top-to-chin divided by visible hair-top-to-planted-soles height. This supersedes the 18% and 20% targets. Follow `docs/lineup-artwork-protocol.md`; preserve a continuous head/neck/shoulder connection. The polygon-cutout compositor is withdrawn after visible seams and neck misalignment. Preserve identity, natural shaded necks, body geometry, physical-height metadata and all lineup behavior. Another player is a style reference, never the numeric ruler.
 Preserve athletic build, padded shoulders, torso/leg proportions, lighting, skin tone, hair, uniform and complete hands/cleats. Adding crutches, a box or another prop must not shrink the head or redesign the body.
-Use the approved reference for body style during creation and use the composition command for head geometry. Including requirements in a prompt does not establish that the output follows them. Correct visible proportion/identity errors before using the asset; do not claim an inspection you did not perform.
+Use the approved reference for body style during creation and measure head geometry directly in the image. Including requirements in a prompt does not establish that the output follows them. Correct visible proportion/identity errors before using the asset; do not claim an inspection you did not perform.
 
 ## Asset integration
 Use a new versioned transparent, tightly cropped WebP, 850px high, and accurate catalog width/height/ratio. Preserve verified individual heightInches, original files, regular artwork and alternative poses.
@@ -31,65 +31,20 @@ Before generating or editing any status artwork, open an existing approved image
 
 ## Consistent generation contract
 
-The owner's October 14 evening correction restores **16–17%**, with **16.5%** as the construction target. Use the executable composition workflow below for new players and proportion edits. A prompt alone cannot set pixel geometry.
+The owner target remains 16–17%, using 16.5% as the midpoint. Let T = top of hair, C = bottom of chin excluding neck, and S = bottom of planted soles in the same image. Measure `(C-T)/(S-T)`. Exclude transparent margins, shadows, crutches and props. An 850px file is not necessarily an 850px visible figure. Identify actual landmarks during creation; another player and a prompt percentage are not measurements.
 
-### Geometry and reference roles
+### Withdrawn October 14 compositor
 
-Let T = top of hair, C = bottom of chin excluding neck, and S = bottom of planted soles, in the same registered source coordinate system. `r = (C-T)/(S-T)`. Exclude transparent margins, shadows, crutches and props. For body height below chin B = S-C, desired head height is `0.165 * B / 0.835`. The compositor scales the head equally on both axes around the chin, keeps the body fixed, then crops and resizes the entire result proportionally. An exactly 850px visible figure would have a 140.25px head; an 850px file can contain padding.
+The owner rejected the outputs of commit 9de4463 because they show pasted-on heads, jaw/neck seams and abnormal neck proportions. The polygon masks captured neck/side pixels; resizing those patches around the chin and blending over the original neck did not create a continuous anatomical join. A numeric head ratio did not prevent these defects. The compositor, its extracted source layers and its five outputs have been removed. Do not recreate this method or treat its former recipes as approved templates.
 
-Use A.J. Brown's approved source for body style, pose and lighting. Use an official headshot for new likeness generation. Use the player's own source for edits. Use an approved same-status reference for status changes. No other player supplies the numeric ruler. Deterministic proportion corrections preserve existing identity pixels and do not require fresh headshot generation.
+The catalog restores the intact pre-enlargement artwork for Lloyd (faces-v1), Winston (faces-v1), Montgomery (crutches-v3), Harrison (faces-v4) and Marks (faces-v2). This restoration removes the failed composite edits. It does not establish that all restored images meet 16–17%.
 
-Physical height is a separate display concern: preserve verified `heightInches`. It controls relative resting size. Selected figures intentionally share a display target. Neither operation changes the head ratio. Catalog `ratio` means image width/height, not head/figure height.
+### Future edits
 
-### Reusable source files
+Use the player's intact artwork as the edit source, the official headshot for identity, and the established reference for body style. Preserve body geometry, identity, natural neck length, collar position and continuous lighting. When a head adjustment requires changes at the join, edit the head and neck connection together in the image editor. Do not paste a scaled polygon of face and neck onto the existing neck. Do not stretch the neck, move the collar or compress the body to meet a percentage.
 
-Store each player's source in `assets/team-photos/sources/<playerId>/<variant>/`:
+Measure the actual hair-top, chin and sole positions as part of creating the image. A prompt target alone cannot establish compliance. There is currently no proven automatic construction method in this repository that guarantees both precise anatomy and seamless blending. Do not claim otherwise or reintroduce an unproven automatic correction as a solved workflow.
 
-- `body.png`: transparent full source canvas with the original body, shaded neck and shoulders. A clean body for head reduction must contain the anatomy that the old larger head hid.
-- `head.png`: transparent head layer registered on the SAME canvas. Include all hair and ears and a small natural neck overlap. Preserve the face's aspect ratio.
-- `recipe.json`: layer paths, actual source landmarks, player ID, catalog variant and new versioned output name. These files are editable source material, not proof artifacts or a review manifest.
+Physical height remains independent: preserve verified heightInches for resting figures and the existing selected-size behavior. Catalog ratio means image width/height. Keep status restoration and every unrelated interaction unchanged.
 
-The five October 14 source recipes preserve the earlier bodies and identity pixels. Their landmark coordinates come from visual annotation at native resolution. The math is exact relative to those coordinates; anatomical placement remains approximate. Do not describe this as automatic chin detection or guaranteed exact anatomy. Do not copy a source's coordinates onto a differently generated player.
-
-### Create or update in one command
-
-Requires Python 3 and Pillow (`python -m pip install Pillow` if unavailable):
-
-```sh
-python scripts/compose-player-artwork.py assets/team-photos/sources/4429023/regular/recipe.json
-```
-
-Choose a new `output` filename in the recipe first. The command composes the layers at 16.5%, preserves alpha, crops using alpha >=128 plus two source pixels, exports an 850px-high WebP, and updates only that player's catalog file/dimensions/aspect ratio. It preserves existing physical heights, status metadata and other entries. It refuses to overwrite an existing image. Multiple recipe paths work in one invocation. Publish through the existing repository workflow afterwards; no separate browser run, inspection pass, test suite, proof file or approval round.
-
-For uniform/status changes, edit the body layer only where needed and retain the head and landmarks. Do not feed a flattened output back into generation and assume its geometry survives. If a different pose changes the chin or sole position, register that variant's source coordinates once.
-
-### New player: preparation during creation
-
-Generate the player with the approved style reference and official headshot. Aim near the desired proportions, preserve the padded athletic build and natural neck, and keep the full figure transparent. Identify hair top, chin, chin center X and soles from THAT source once. This is the necessary anatomical input to construction; the generator prompt and alpha bounds cannot replace it.
-
-For a source whose head needs enlargement, mark a polygon around the head/hair, excluding jersey and shoulders. The optional `--prepare` helper extracts reusable head/body layers from the source and composes in the same invocation. Keep a short feathered neck overlap. Include long hair carefully; avoid enclosing unrelated clothing. Existing source recipes demonstrate this input format.
-
-```sh
-python scripts/compose-player-artwork.py --prepare path/to/recipe.json
-```
-
-For a source whose head needs reduction, create a clean headless body with continuous natural neck/shoulders and an isolated head layer, using the image editor during source creation. Register both on the same canvas. A polygon cutout leaves holes when a large head shrinks; the helper intentionally does not use that method for reduction. Compose the clean layers without `--prepare`. Never fill missing anatomy with flat skin patches or scale the body to fake compliance.
-
-Recipe shape for a NEW player (replace every example value with the actual source/player values):
-
-```json
-{
-  "playerId": "ESPN_ID",
-  "variant": "regular",
-  "body": "body.png",
-  "head": "head.png",
-  "output": "ESPN_ID-faces-v1.webp",
-  "landmarks": {"hairTopY": 4, "chinY": 135, "chinX": 165, "solesY": 846},
-  "landmarkMethod": "Visually annotated in this player's own source; approximate",
-  "newPlayer": {"name": "Player Name", "heightInches": 73, "teamId": 1, "jersey": "1"}
-}
-```
-
-For extraction also supply `source`, `headPolygon` (array of [x,y] coordinates) and `neckBlendPixels` (normally 6). Paths are relative to the recipe. Use `variant: "unavailable"` for the existing unavailable catalog slot; retain its status metadata. For an existing player, omit `newPlayer`. New player metadata must come from a current official source; the example values are placeholders, not defaults.
-
-Generate new visual content with the image-generation tool. Use this deterministic compositor for the owner-authorized geometry, layer assembly and packaging. Do not regenerate a whole person merely to change a percentage. Head width and the neck join also affect appearance; preserve identity and body anatomy rather than treating a correct vertical ratio as permission to distort them.
+The owner still requests fast creation and publishing without separate browser reviews, tests, proof artifacts or approval rounds. Do not use that preference to excuse an obvious defect or invent a measurement that was never made.
