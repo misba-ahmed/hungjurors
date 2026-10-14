@@ -1000,5 +1000,29 @@
     "heightInches": 75,
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/5083315?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.356Z"
+  },
+  "4249087": {
+    "name": "Matt Gay",
+    "heightInches": 72,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4249087?lang=en&region=us",
+    "checkedAt": "2026-10-14T09:28:18.522781+00:00"
+  },
+  "4428718": {
+    "name": "Tre Tucker",
+    "heightInches": 68,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4428718?lang=en&region=us",
+    "checkedAt": "2026-10-14T09:28:21.259925+00:00"
+  },
+  "4429059": {
+    "name": "Woody Marks",
+    "heightInches": 70,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4429059?lang=en&region=us",
+    "checkedAt": "2026-10-14T09:28:23.971880+00:00"
+  },
+  "5082424": {
+    "name": "Dominic Zvada",
+    "heightInches": 75,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/5082424?lang=en&region=us",
+    "checkedAt": "2026-10-14T09:28:35.433312+00:00"
   }
 }
