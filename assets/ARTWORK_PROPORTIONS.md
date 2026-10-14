@@ -15,10 +15,10 @@ Canonical Jarrett current files: managers-v8/jarrett-standing.webp and jarrett-s
 
 ## Players
 Canonical visual reference: team-photos/players/4047646-faces-v2.webp, 850 px native height. Use its actual image alongside the official individual headshot for every generation.
-Visual landmark estimates for that reference: hair top near 0; chin near 140; shirt V near 175; soles near 849. These landmarks describe the original reference only. Owner correction (October 14): all future new or revised player art targets hair-top-to-chin head height at approximately 18% of full visible figure height. This replaces both the older 16–17% target and the rejected 20% target; keep the original measurements as historical measurements. Hair, helmets, build and individual facial anatomy may vary. Never use the roughly 30% manager-head ratio for NFL player artwork.
+Visual landmark estimates for that reference: hair top near 0; chin near 140; shirt V near 175; soles near 849. These describe that reference only. The current owner target is 16–17%, using 16.5% during controlled composition. The earlier October 14 increases to 18% and 20% are superseded. Never apply the roughly 30% manager ratio to NFL players.
 Every regular player uses their own verified heightInches for RESTING height on a common baseline. The uniform 850 px asset resolution does not mean equal physical heights.
 SELECTED player figures share one enlarged target height independent of actual physical height; current target is 75% of the original enlargement. Preserve sharpness from native assets.
-The canonical player supplies body style, shoulders, pose and lighting. Its historical head scale is not the new 18% target. Use the landmark definition and construction math in docs/lineup-artwork-protocol.md. Preserve resting physical-height behavior independently.
+The canonical player supplies body style, shoulders, pose and lighting. Identify each new player’s own landmarks and use the composition command to set head size. Preserve resting physical-height behavior independently.
 Keep existing crutch/status variants, retained color, automatic restoration, scores, selection and roster membership behavior. Do not apply human height/injury rules to mascots.
 
 ## Update discipline
@@ -37,4 +37,4 @@ The owner explicitly forbids publishing checks, automated publishing gates, mand
 Head percentage reporting: A generation prompt's requested ratio is not a measured result. Use hair-top-to-chin divided by visible hair-top-to-soles height; exclude neck, transparent margins and shadows. Anatomical landmarks are approximate, so label reported values approximate. Never label an output 18% or 20% merely because that number was in its prompt. The October 14 Mevis drafts labeled 20% and 18% were rejected and must not become proportion references.
 
 ## Consistent generation source
-Use the Consistent generation contract in `docs/lineup-artwork-protocol.md` for reference roles, construction equations and the reusable prompt. No newly generated October 14 asset is designated a calibrated 18% reference by this documentation change. The target and an observed output ratio are separate facts.
+Use the Consistent generation contract in `docs/lineup-artwork-protocol.md`. It defines the layer construction command, player-specific landmarks and new-player workflow. The target is 16.5% within the owner’s 16–17% range. Source recipes are reusable editing inputs, not review evidence; anatomical landmark placement remains approximate.

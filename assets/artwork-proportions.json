@@ -2049,14 +2049,14 @@
       }
     },
     "headHeightTarget": {
-      "ratio": 0.18,
+      "ratio": 0.165,
       "measurement": "hair top to chin / full visible figure height",
-      "effectiveDate": "2026-10-14",
+      "effectiveDate": "2026-10-14 evening America/Chicago",
       "scope": "all future new or revised NFL player lineup artwork",
       "source": "explicit owner instruction",
-      "supersedes": "16–17% guide and rejected 20% target; original source dimensions remain historical measurements",
+      "supersedes": "18% and rejected 20% targets; restores owner 16\u201317% rule",
       "preserve": "uniform face scaling, identity, naturally shaded continuous neck, existing body style and physical-height behavior",
-      "generationContract": "docs/lineup-artwork-protocol.md#consistent-generation-contract--october-14-0923-ct",
+      "generationContract": "docs/lineup-artwork-protocol.md#consistent-generation-contract",
       "formula": "(chinY - hairTopY) / (solesY - hairTopY)",
       "landmarkExclusions": [
         "neck",
@@ -2066,8 +2066,14 @@
         "props"
       ],
       "calibratedHeadMaster": null,
-      "bodyReferenceRole": "Style, pose and lighting only; historical head scale is not the 18% target.",
-      "resultReporting": "Requested ratio is not measured ratio. Without anatomical landmarks, achieved ratio is unknown."
+      "bodyReferenceRole": "Style, pose and lighting only. Use individual anatomical landmarks for numeric head size.",
+      "resultReporting": "Composition targets 16.5% relative to visually annotated landmarks. Anatomical landmarks remain approximate; do not claim automatic chin detection or precise anatomical measurement.",
+      "range": [
+        0.16,
+        0.17
+      ],
+      "constructionCommand": "python scripts/compose-player-artwork.py <recipe.json>",
+      "sourceDirectory": "assets/team-photos/sources"
     }
   }
 }

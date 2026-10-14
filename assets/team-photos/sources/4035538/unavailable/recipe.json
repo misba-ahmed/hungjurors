@@ -1,0 +1,58 @@
+{
+  "playerId": "4035538",
+  "variant": "unavailable",
+  "source": "../../../players/4035538-crutches-v3.webp",
+  "body": "body.png",
+  "head": "head.png",
+  "output": "4035538-crutches-v5.webp",
+  "landmarks": {
+    "hairTopY": 1,
+    "chinY": 134,
+    "solesY": 850,
+    "chinX": 165
+  },
+  "landmarkMethod": "Anatomical landmarks identified visually in this source at native resolution; approximate. Composition math is deterministic relative to these coordinates.",
+  "neckBlendPixels": 6,
+  "headPolygon": [
+    [
+      105,
+      0
+    ],
+    [
+      225,
+      0
+    ],
+    [
+      225,
+      95
+    ],
+    [
+      210,
+      116
+    ],
+    [
+      192,
+      132
+    ],
+    [
+      181,
+      140
+    ],
+    [
+      146,
+      140
+    ],
+    [
+      125,
+      129
+    ],
+    [
+      111,
+      108
+    ],
+    [
+      105,
+      86
+    ]
+  ]
+}

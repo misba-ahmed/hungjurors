@@ -1,0 +1,58 @@
+{
+  "playerId": "4429023",
+  "variant": "regular",
+  "source": "../../../players/4429023-faces-v1.webp",
+  "body": "body.png",
+  "head": "head.png",
+  "output": "4429023-faces-v3.webp",
+  "landmarks": {
+    "hairTopY": 0,
+    "chinY": 130,
+    "solesY": 850,
+    "chinX": 160
+  },
+  "landmarkMethod": "Anatomical landmarks identified visually in this source at native resolution; approximate. Composition math is deterministic relative to these coordinates.",
+  "neckBlendPixels": 6,
+  "headPolygon": [
+    [
+      100,
+      0
+    ],
+    [
+      219,
+      0
+    ],
+    [
+      219,
+      90
+    ],
+    [
+      201,
+      113
+    ],
+    [
+      188,
+      129
+    ],
+    [
+      180,
+      136
+    ],
+    [
+      139,
+      136
+    ],
+    [
+      123,
+      124
+    ],
+    [
+      108,
+      100
+    ],
+    [
+      100,
+      85
+    ]
+  ]
+}
