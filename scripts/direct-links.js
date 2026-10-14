@@ -80,7 +80,7 @@ document.querySelector('#league-hq-tabs')?.addEventListener('click',event=>{
  window.addEventListener('hashchange',apply);
  window.addEventListener('popstate',apply);
  document.addEventListener('click',event=>{
-  const a=event.target.closest?.('a[href]');if(!a||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||a.target==='_blank')return;
+  const a=event.target.closest?.('a[href]');if(!a||a.hasAttribute('data-waiver-trending')||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||a.target==='_blank')return;
   const url=new URL(a.href,location.href);
   if(url.origin===location.origin&&url.pathname===location.pathname&&url.search===location.search&&hjDirectRoute(url.hash)){
    event.preventDefault();if(location.hash!==url.hash)history.pushState(null,'',url.hash);apply();
