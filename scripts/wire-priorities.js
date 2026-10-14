@@ -141,7 +141,7 @@
    return '<div class="wr-claim'+(success?'':' is-failed')+'"><div class="wr-manager">'+wireMgrHTML(hjActivityTeamName(row.teamId))+'</div><span class="wr-priority">Priority: '+(row.priority?ordinal(row.priority):'—')+'</span>'+adds.map(item=>'<div class="wr-move">'+playerHTML(item)+'<span class="wr-result">'+(success?'ADDED':'FAILED')+'</span></div>').join('')+(success&&drops.length?'<div class="wr-drop">Dropped '+drops.map(item=>esc(resolvePlayer(item).name)).join(', ')+'</div>':'')+(!success?'<div class="wr-reason">'+esc(waiverFailureReasons[row.status]||('Unable to process · '+row.status))+'</div>':'')+'</div>';
   }).join('');
   const successful=report.items.filter(row=>row.status==='EXECUTED').length,failed=report.items.length-successful;
-  const body='<div class="wr-heading"><div class="wc-title">Waiver Report</div><div class="wr-summary"><span><b>'+successful+'</b> successful</span><span><b>'+failed+'</b> unsuccessful</span></div></div><div class="wr-claims">'+rows+'</div><div class="wr-footer"><span class="wr-showing"></span><button type="button" class="wr-open" data-wire-expand>Full report ↗</button></div>';
+  const body='<div class="wr-heading"><div class="wc-title">Waiver Report</div><div class="wr-summary"><span><b>'+successful+'</b> successful</span><span><b>'+failed+'</b> unsuccessful</span></div></div><div class="wr-claims" tabindex="0" role="region" aria-label="All Wednesday waiver claims; scroll to view the full report">'+rows+'</div>';
   return {section:'waiver-report',html:wireCard({kicker:'Wednesday waivers · '+date,tag:'Processed',cls:'is-lead wc-waiver-report',body}).replace('data-wire-card','data-wire-key="waiver-report-'+report.date+'" data-wire-card')};
  }
  const reportStyle=document.createElement('style');reportStyle.id='hj-waiver-report-style';
@@ -154,9 +154,9 @@
  .wc.wc-waiver-report .wr-summary{display:flex;flex-wrap:wrap;gap:8px 14px;font:500 12px/1.4 var(--sans);color:rgba(247,243,232,.76)}
  .wc.wc-waiver-report .wr-summary span:first-child b{color:#91d3a0}
  .wc.wc-waiver-report .wr-summary span:last-child b{color:#f2aaa2}
- .wc.wc-waiver-report .wr-claims{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:max-content;align-content:start;gap:10px;width:100%;min-width:0;min-height:0;flex:1;overflow:hidden}
+ .wc.wc-waiver-report .wr-claims{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:max-content;align-content:start;gap:10px;width:100%;min-width:0;min-height:0;flex:1;overflow-x:hidden;overflow-y:auto;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(185,138,46,.65) transparent;-webkit-overflow-scrolling:touch;overscroll-behavior-x:auto;overscroll-behavior-y:contain}
  .wc.wc-waiver-report .wr-claim{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px 10px;padding:10px 12px;border:1px solid rgba(247,243,232,.2);border-radius:10px;background:rgba(247,243,232,.055);min-width:0;text-align:left}
- .wc.wc-waiver-report .wr-claim[hidden]{display:none!important}
+ .wc.wc-waiver-report .wr-claim[hidden]{display:grid!important}
  .wc.wc-waiver-report .wr-manager{min-width:0}
  .wc.wc-waiver-report[data-wire-card] .wr-manager .wc-mgr{display:inline-flex!important;justify-content:flex-start!important;align-self:flex-start!important;margin:0!important;padding:0!important;border:0!important;background:none!important;max-width:100%;white-space:normal;text-align:left;font-size:11px;line-height:1.2;gap:6px}
  .wc.wc-waiver-report .wr-manager img{width:23px;height:23px;flex:none}
@@ -171,13 +171,9 @@
  .wc.wc-waiver-report .wr-player small{display:block;margin-top:2px;color:rgba(247,243,232,.62);font:500 10px/1.2 var(--sans)}
  .wc.wc-waiver-report .wr-drop,.wc.wc-waiver-report .wr-reason{grid-column:1/-1;color:rgba(247,243,232,.72);font:500 11px/1.3 var(--sans);overflow-wrap:anywhere}
  .wc.wc-waiver-report .wr-reason{color:#f2aaa2}
- .wc.wc-waiver-report .wr-footer{display:flex;justify-content:space-between;align-items:center;flex:none;gap:10px;width:100%;padding-top:8px;border-top:1px solid rgba(247,243,232,.17)}
- .wc.wc-waiver-report .wr-showing{color:rgba(247,243,232,.65);font:500 10px/1.2 var(--sans)}
- .wc.wc-waiver-report .wr-open{flex:none;border:0;background:none;margin:0;padding:3px 0;color:var(--brass-bright);font:800 11px/1.2 var(--sans);cursor:pointer}
  @container(max-width:540px){.wc.wc-waiver-report .wr-claims{grid-template-columns:minmax(0,1fr)}.wc.wc-waiver-report .wr-heading{display:block}.wc.wc-waiver-report .wr-summary{margin-top:6px}}
  .wire-expanded-stage .wc.wc-waiver-report .wr-claims{overflow-y:auto;overscroll-behavior-y:contain;padding-right:4px}
  .wire-expanded-stage .wc.wc-waiver-report .wr-claim[hidden]{display:grid!important}
- .wire-expanded-stage .wc.wc-waiver-report .wr-footer{display:none}
  `;
  document.head.append(reportStyle);
  // Reuse the activity scheduler, keeping the report separate from roster moves.
@@ -292,26 +288,9 @@
  const heightScroll=wireScrollTo,heightDots=wireUpdateDots,heightRender=wireRender;
  let heightFrame=0,observed=null;
  const sizeObserver=typeof ResizeObserver==='function'?new ResizeObserver(()=>queueHeight()):null;
- // Fit whole claim rows to the real card viewport at every width. No partial
- // claims, fixed preview counts, or viewport breakpoints that guess the space.
- function fitWaiverReport(card){
-  if(!card?.classList.contains('wc-waiver-report'))return;
-  const list=card.querySelector('.wr-claims'),footer=card.querySelector('.wr-showing');if(!list)return;
-  const entries=[...list.children];entries.forEach(entry=>{entry.hidden=false});
-  const bottom=list.getBoundingClientRect().bottom,rows=[];
-  entries.forEach(entry=>{
-   const box=entry.getBoundingClientRect(),last=rows[rows.length-1];
-   if(last&&Math.abs(last.top-box.top)<2){last.bottom=Math.max(last.bottom,box.bottom);last.entries.push(entry)}
-   else rows.push({top:box.top,bottom:box.bottom,entries:[entry]});
-  });
-  let shown=0;
-  rows.forEach(row=>{const fits=row.bottom<=bottom+1;row.entries.forEach(entry=>{entry.hidden=!fits;if(fits)shown++})});
-  if(footer)footer.textContent=shown===entries.length?'All '+entries.length+' claims':shown?'Showing 1–'+shown+' of '+entries.length+' claims':entries.length+' claims in full report';
- }
  function syncHeight(){
   heightFrame=0;
   const rail=document.querySelector('#wire-scroll'),active=wireCardNodes()[WIRE.index||0];if(!rail||!active)return;
-  fitWaiverReport(active);
   if(observed!==active){sizeObserver?.disconnect();sizeObserver?.observe(active);observed=active;}
   const standard=wireCardNodes().find(node=>!node.classList.contains('wp-single')),groups=rail.querySelectorAll('.wp-single');
   if(standard){const normalHeight=standard.getBoundingClientRect().height+'px';groups.forEach(group=>{if(group.style.getPropertyValue('--wp-standard-height')!==normalHeight)group.style.setProperty('--wp-standard-height',normalHeight);});}
