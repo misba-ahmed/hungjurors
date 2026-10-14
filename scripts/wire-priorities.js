@@ -3,6 +3,63 @@
  * Use live roster/schedule data; never infer a bye from missing game data. */
 (function(){
  const baseBuild=wireBuild,baseLabel=hjWireNavLabel;
+ // Waiver countdown: one fixed five-player row, using the Players tab's feed.
+ function waiverTrendingHTML(data){
+  const api=window.hjWaiverTrends,rows=api?.players(data)||[];
+  const players=Array.from({length:5},(_,index)=>{
+   const row=rows[index];
+   if(!row)return '<span class="ww-trend-player is-loading" aria-label="Loading trending free agent"><span class="ww-trend-photo"></span><strong>—</strong></span>';
+   const p=row.player,photo=p.photo||nflHeadshot(p.id);
+   return '<button type="button" class="ww-trend-player pc-player-trigger" '+ffnPlayerDataAttrs(p)+' aria-label="'+esc(p.name)+', '+row.adds+' adds in the last 24 hours"><img class="ww-trend-photo'+(p.position==='D/ST'?' is-defense':'')+'" src="'+esc(photo)+'" alt="" loading="lazy" onerror="ffnImageFallback(this)"><strong>'+esc(api.format(row.adds))+'</strong></button>';
+  }).join('');
+  return '<a class="ww-trend-link" href="#players" data-waiver-trending title="Free agents sorted by adds in the last 24 hours">TRENDING PLAYERS ↗</a><div class="ww-trend-row" aria-label="Top five free agents by adds in the last 24 hours">'+players+'</div>';
+ }
+ const originalWaiverCard=wireWaiverCard;
+ wireWaiverCard=function(data){
+  const card=originalWaiverCard.apply(this,arguments);if(!card)return card;
+  card.html=card.html.replace('class="wc is-red"','class="wc is-lead wc-waiver-trends"')
+   .replace(/<div class="wire-hint">to set your waivers<\/div>/,'<div class="ww-trending">'+waiverTrendingHTML(data)+'</div>')
+   .replace('class="wc-mgr" href="https://fantasy.espn.com/football/players/add','class="wc-mgr ww-espn-action" href="https://fantasy.espn.com/football/players/add');
+  if(matchMedia('(pointer:coarse)').matches)card.html=card.html.replace('target="_blank"','target="_self"');
+  queueMicrotask(()=>window.hjWaiverTrends?.refresh());
+  return card;
+ };
+ const waiverStyle=document.createElement('style');waiverStyle.id='hj-waiver-trending-style';
+ waiverStyle.textContent=`
+ .wc.wc-waiver-trends .wc-body{justify-content:flex-start!important;gap:0!important;padding-top:10px!important}
+ .wc.wc-waiver-trends .wc-body::before,.wc.wc-waiver-trends .wc-body::after{display:none!important}
+ .wc.wc-waiver-trends .wc-title{margin:4px 0 6px!important;font-size:clamp(18px,3vw,23px)!important;line-height:1.15!important}
+ .wc.wc-waiver-trends .wc-copy{font-size:12px!important;line-height:1.35!important;margin:0!important}
+ .wc.wc-waiver-trends .wc-count{width:100%;margin-top:12px!important;flex:0 0 auto}
+ .wc.wc-waiver-trends .wc-count .unit{min-width:0}
+ .wc.wc-waiver-trends .wc-count .n{font-size:28px!important;padding:7px 2px 4px!important}
+ .wc.wc-waiver-trends .wc-count .l{font-size:7px!important;letter-spacing:.1em!important;margin-top:4px!important}
+ .wc.wc-waiver-trends .ww-trending{width:100%;margin-top:12px;container-type:inline-size;flex:0 0 auto}
+ .wc.wc-waiver-trends .ww-trend-link{display:block;width:fit-content;margin:0 auto 8px;color:var(--brass-bright);font:800 9px/1.2 var(--sans);letter-spacing:.09em;text-decoration:none}
+ .wc.wc-waiver-trends .ww-trend-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;width:100%;overflow:visible}
+ .wc.wc-waiver-trends .ww-trend-player{appearance:none;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;margin:0;padding:0;border:0;background:none;color:#83c991;cursor:pointer}
+ .wc.wc-waiver-trends .ww-trend-photo{display:block;width:min(100%,48px);aspect-ratio:1;height:auto;box-sizing:border-box;object-fit:cover;object-position:top;border:2px solid rgba(247,243,232,.35);border-radius:50%;background:#f7f3e8}
+ .wc.wc-waiver-trends .ww-trend-photo.is-defense{object-fit:contain}
+ .wc.wc-waiver-trends .is-loading .ww-trend-photo{background:rgba(247,243,232,.12)}
+ .wc.wc-waiver-trends .ww-trend-player strong{font:800 clamp(8px,3.4cqw,12px)/1.2 var(--sans);white-space:nowrap;font-variant-numeric:tabular-nums}
+ .wc.wc-waiver-trends .wc-spacer{flex:1 1 8px!important;min-height:8px}
+ .wc.wc-waiver-trends .ww-espn-action{flex:0 0 auto;align-self:center;margin:8px 0 0!important}
+ .wc.wc-waiver-trends :is(.ww-trend-link,.ww-trend-player):focus-visible{outline:2px solid var(--brass-bright);outline-offset:3px}
+ @media(max-width:360px){.wc.wc-waiver-trends .wc-title{font-size:17px!important}.wc.wc-waiver-trends .wc-copy{font-size:11px!important}.wc.wc-waiver-trends .ww-trend-row{gap:4px}.wc.wc-waiver-trends .ww-espn-action{font-size:9px!important}}
+ `;
+ document.head.append(waiverStyle);
+ document.addEventListener('hj:waiver-trends',()=>{
+  document.querySelectorAll('.wc-waiver-trends .ww-trending').forEach(node=>{
+   const html=waiverTrendingHTML(HJ_LEAGUE_STATE.data);
+   if(node.innerHTML!==html){if(window.hjPatchLiveContent)window.hjPatchLiveContent(node,html);else node.innerHTML=html}
+  });
+ });
+ document.addEventListener('click',event=>{
+  if(event.defaultPrevented||!event.target.closest('[data-waiver-trending]'))return;
+  event.preventDefault();wireCloseExpanded();window.hjWaiverTrends?.open();
+ });
+ // Let the phone handle ESPN's ordinary HTTPS links directly, without a new tab.
+ if(matchMedia('(pointer:coarse)').matches)document.querySelector('.espn-float')?.setAttribute('target','_self');
  const priorityOrder=['kickoff','waivers','byes'];
  HJ_WIRE_ORDER.splice(0,HJ_WIRE_ORDER.length,...priorityOrder,...HJ_WIRE_ORDER.filter(s=>!priorityOrder.includes(s)&&!['this-week','byes','lms'].includes(s)));
  hjWireNavLabel=function(section,data){return ({byes:'Bye Week',lms:'Last Man Standing'})[section]||baseLabel(section,data)};
@@ -102,3 +159,4 @@
  document.addEventListener('hj:bye-schedule',()=>{if(HJ_BYE_STATE.season===Number(NFL_SEASON))wireRender(true);});
  wireRender(true);
 })();
+

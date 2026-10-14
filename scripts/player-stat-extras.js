@@ -1,4 +1,5 @@
   function hj40DefaultPlayerView(){
+    HJ40.trendMetric='net';
     HJ_HQ_STATE.query='';HJ_HQ_STATE.position='ALL';HJ_HQ_STATE.sort='week';
     HJ_PLAYER_DIRECTORY.mode='all';HJ_PLAYER_DIRECTORY.renderLimit=36;
     HJ40.year=CURRENT_SEASON;HJ40.period='total';HJ40.statSort='trend';HJ40.statSortDir='desc';
@@ -88,8 +89,11 @@
     return {schema:1,source:'Sleeper',lookbackHours:24,generatedAt:Date.now(),
       players:map.players.map(p=>({...p,adds:a.get(p.id)||0,drops:d.get(p.id)||0,net:(a.get(p.id)||0)-(d.get(p.id)||0)}))};
   }
-  async function hj40RefreshSleeper(){
-    if(HJ_HQ_STATE.activeTab!=='free-agents'||document.hidden||HJ40_SLEEPER.pending||Date.now()-HJ40_SLEEPER.lastAttempt<(HJ40_SLEEPER.retryDelay||60000))return;
+  async function hj40RefreshSleeper(forWaivers=false){
+    const waiverVisible=!!document.querySelector('.wc-waiver-trends');
+    if((HJ_HQ_STATE.activeTab!=='free-agents'&&!waiverVisible&&forWaivers!==true)||document.hidden)return;
+    if(HJ40_SLEEPER.pending)return HJ40_SLEEPER.pending;
+    if(Date.now()-HJ40_SLEEPER.lastAttempt<(HJ40_SLEEPER.retryDelay||60000))return;
     HJ40_SLEEPER.lastAttempt=Date.now();
     HJ40_SLEEPER.pending=(async()=>{
       try{
@@ -106,11 +110,45 @@
         HJ40_SLEEPER.retryDelay=60000;
         if(HJ40_SLEEPER.data&&Date.now()-HJ40_SLEEPER.data.generatedAt>2*3600000){HJ40_SLEEPER.data=null;hj40RefreshExtraMetrics()}
         console.warn('Sleeper trends unavailable',error);
-      }finally{HJ40_SLEEPER.pending=null}
+      }finally{HJ40_SLEEPER.pending=null;document.dispatchEvent(new Event('hj:waiver-trends'));}
     })();
     return HJ40_SLEEPER.pending;
   }
   setInterval(hj40RefreshSleeper,60000);
+
+  // Shared bridge for the waiver card; use the directory's ESPN ownership and
+  // the same Sleeper player mapping, freshness checks and compact count format.
+  let hjWaiverPoolPending=null,hjWaiverPoolAt=0;
+  window.hjWaiverTrends={
+    async refresh(){
+      const data=HJ_LEAGUE_STATE.data;if(!data?.teams?.length)return;
+      const feed=hj40RefreshSleeper(true);
+      if(!hjWaiverPoolPending&&Date.now()-hjWaiverPoolAt>60000){
+        hjWaiverPoolAt=Date.now();
+        hjWaiverPoolPending=(async()=>{
+          try{await hjDataPool(Number(NFL_SEASON),hjCurrentWeek(data));hjDirectoryBase(HJ_LEAGUE_STATE.data)}
+          catch(error){console.warn('Waiver player pool unavailable',error)}
+          finally{hjWaiverPoolPending=null;document.dispatchEvent(new Event('hj:waiver-trends'))}
+        })();
+      }
+      await Promise.all([feed,hjWaiverPoolPending]);
+    },
+    players(data){
+      if(!data?.teams?.length||!HJ40_SLEEPER.data||Date.now()-HJ40_SLEEPER.data.generatedAt>2*3600000)return [];
+      hjOwnershipBuild(data);
+      return HJ_PLAYER_DIRECTORY.rows.map(player=>({player,adds:hj40SleeperRow(player)?.adds}))
+        .filter(row=>Number.isFinite(row.adds)&&!hjOwnershipForPlayerLike(row.player).owned)
+        .sort((a,b)=>b.adds-a.adds||a.player.name.localeCompare(b.player.name)).slice(0,5);
+    },
+    format:hj40TrendCount,
+    open(){
+      hjSetHQTab('free-agents');
+      hj40DefaultPlayerView();HJ_PLAYER_DIRECTORY.mode='free';HJ40.trendMetric='adds';
+      HJ40.statSort='trend';HJ40.statSortDir='desc';HJ40.snapshotCache.clear();
+      hj40RefreshControls();hjRenderPlayerDirectory(true);hj40RefreshSleeper(true);
+      requestAnimationFrame(()=>document.getElementById('league-hq-tabs')?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'}));
+    }
+  };
 
   // Ownership is current ESPN data, independent of the selected scoring period.
   let hj40OwnershipPool=null,hj40OwnershipById=new Map();
@@ -137,7 +175,7 @@
     return rank!==null&&rank>=1&&rank<=32?rank:null;
   }
   function hj40ExtraValue(player,key){
-    if(key==='trend')return hj40SleeperRow(player)?.net??null;
+    if(key==='trend')return hj40SleeperRow(player)?.[HJ40.trendMetric==='adds'?'adds':'net']??null;
     if(key==='oppRank')return hj40OpponentRank(player);
     return hj40OwnershipValue(player,{rostPct:'percentOwned',startPct:'percentStarted'}[key]);
   }
@@ -187,7 +225,7 @@
   function hj40StatValueHTML(player,key,metric){
     if(key==='trend'&&Number.isFinite(metric?.value)){
       const value=metric.value,tone=value>0?'up':value<0?'down':'flat',row=hj40SleeperRow(player);
-      const label='Sleeper, last 24 hours: '+(value>0?'+':'')+value+' net adds'+(row?' ('+row.adds+' adds, '+row.drops+' drops)':'');
+      const label='Sleeper, last 24 hours: '+(value>0?'+':'')+value+(HJ40.trendMetric==='adds'?' adds':' net adds')+(row?' ('+row.adds+' adds, '+row.drops+' drops)':'');
       return '<strong class="hq40-trend is-'+tone+'" aria-label="'+esc(label)+'">'+hj40TrendCount(value)+'</strong>';
     }
     if(key==='oppRank')return hjOpponentRankHTML(metric?.value,hj40Pos(player.position),Number(NFL_SEASON)).replace('>#','>');
@@ -195,7 +233,7 @@
   }
   function hj40StatTitle(key,label){
     const next=HJ40.statSort===key&&HJ40.statSortDir!=='asc'&&(key==='trend'||key==='oppRank')?'lowest to highest':'highest to lowest';
-    const context=key==='trend'?'Sleeper · Last 24 hours · Net adds (adds minus drops). ':key==='oppRank'?'Current week opponent rank vs this position; 1 allows fewest fantasy points. Ties use highest weekly projection. ':key==='startPct'?'Currently started in ESPN leagues. ':key==='rostPct'?'Currently rostered in ESPN leagues. ':'';
+    const context=key==='trend'?(HJ40.trendMetric==='adds'?'Sleeper · Last 24 hours · Adds. ':'Sleeper · Last 24 hours · Net adds (adds minus drops). '):key==='oppRank'?'Current week opponent rank vs this position; 1 allows fewest fantasy points. Ties use highest weekly projection. ':key==='startPct'?'Currently started in ESPN leagues. ':key==='rostPct'?'Currently rostered in ESPN leagues. ':'';
     return context+'Sort by '+label+': '+next;
   }
   function hj40RefreshExtraMetrics(){
@@ -259,3 +297,4 @@
   window.addEventListener('resize',hj40QueueTopBubble,{passive:true});
   window.visualViewport?.addEventListener('resize',hj40QueueTopBubble,{passive:true});
   window.visualViewport?.addEventListener('scroll',hj40QueueTopBubble,{passive:true});
+
