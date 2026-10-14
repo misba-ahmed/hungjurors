@@ -493,7 +493,14 @@
     "heightInches": 77,
     "name": "T.J. Hockenson",
     "teamId": 16,
-    "jersey": "87"
+    "jersey": "87",
+    "unavailable": {
+      "file": "4036133-crutches-v1.webp",
+      "width": 346,
+      "height": 850,
+      "ratio": 0.40706,
+      "kind": "injury"
+    }
   },
   "4036378": {
     "file": "4036378-faces-v2.webp",
@@ -1973,5 +1980,35 @@
     "name": "Dominic Zvada",
     "teamId": 19,
     "jersey": "34"
+  },
+  "2969939": {
+    "file": "2969939-faces-v1.webp",
+    "width": 306,
+    "height": 850,
+    "ratio": 0.36,
+    "heightInches": 76,
+    "name": "Jameis Winston",
+    "teamId": 19,
+    "jersey": "19"
+  },
+  "4429023": {
+    "file": "4429023-faces-v1.webp",
+    "width": 321,
+    "height": 850,
+    "ratio": 0.37765,
+    "heightInches": 69,
+    "name": "MarShawn Lloyd",
+    "teamId": 9,
+    "jersey": "32"
+  },
+  "4685261": {
+    "file": "4685261-faces-v1.webp",
+    "width": 305,
+    "height": 850,
+    "ratio": 0.35882,
+    "heightInches": 73,
+    "name": "Germie Bernard",
+    "teamId": 23,
+    "jersey": "17"
   }
 }

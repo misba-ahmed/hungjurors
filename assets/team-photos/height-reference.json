@@ -1024,5 +1024,23 @@
     "heightInches": 75,
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/5082424?lang=en&region=us",
     "checkedAt": "2026-10-14T09:28:35.433312+00:00"
+  },
+  "2969939": {
+    "name": "Jameis Winston",
+    "heightInches": 76,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/2969939?lang=en&region=us",
+    "checkedAt": "2026-10-14T14:14:17.053955+00:00"
+  },
+  "4429023": {
+    "name": "MarShawn Lloyd",
+    "heightInches": 69,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4429023?lang=en&region=us",
+    "checkedAt": "2026-10-14T14:14:19.561631+00:00"
+  },
+  "4685261": {
+    "name": "Germie Bernard",
+    "heightInches": 73,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4685261?lang=en&region=us",
+    "checkedAt": "2026-10-14T14:14:21.876108+00:00"
   }
 }
