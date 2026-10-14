@@ -13,7 +13,7 @@ function setup(week,bye,waiver){
   wireManager:t=>t.name,esc:String,nflLogo:t=>'/'+t,wirePlayerHTML:p=>'<button class="wc-player"><b>'+p.name+'</b><small>Team</small></button>',wireMgrHTML:n=>n,
   AV:{KAT:'x'},hjCurrentWeek:()=>week,wireWaiverCard:()=>waiver?{}:null,
   wireNextWaiver:()=>({start:Date.now()+100000}),wireCountdownHTML:()=>'<countdown>',
-  ESPN_FANTASY_LEAGUE_ID:123,document:{addEventListener(){},querySelector(){return null}},wireRender(){},wireScrollTo(){},wireUpdateDots(){},window:{addEventListener(){}},requestAnimationFrame:()=>0,
+  ESPN_FANTASY_LEAGUE_ID:123,document:{addEventListener(){},querySelector(){return null},createElement(){return {}},head:{append(){}}},wireRender(){},wireScrollTo(){},wireUpdateDots(){},window:{addEventListener(){}},requestAnimationFrame:()=>0,matchMedia:()=>({matches:false}),queueMicrotask(){},
  };
  vm.createContext(context);vm.runInContext(source,context);
  return context;
