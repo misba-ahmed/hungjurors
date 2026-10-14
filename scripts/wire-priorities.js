@@ -64,9 +64,96 @@
  });
  // Let the phone handle ESPN's ordinary HTTPS links directly, without a new tab.
  if(matchMedia('(pointer:coarse)').matches)document.querySelector('.espn-float')?.setAttribute('target','_self');
- const priorityOrder=['kickoff','waivers','byes'];
+
+ // Reports are driven only by ESPN's executed WAIVER transactions. Roster
+ // differences, pending claims and ordinary free-agent adds are not results.
+ function waiverReportData(now=Date.now()){
+  const rows=typeof HJ_LIVE_ACTIVITY!=='undefined'?HJ_LIVE_ACTIVITY.rows:[];
+  const claims=(rows||[]).filter(row=>{
+   if(String(row.source||'').toUpperCase()!=='WAIVER'||row.type!=='Add'||!row.to||Number(row.at)>now||Number(row.at)<=now-6*86400000)return false;
+   const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',weekday:'short',hour:'numeric',hourCycle:'h23'}).formatToParts(new Date(Number(row.at)));
+   const value=key=>parts.find(part=>part.type===key)?.value;
+   return value('weekday')==='Wed'&&Number(value('hour'))>=2&&Number(value('hour'))<8;
+  });
+  if(!claims.length)return null;
+  const latest=Math.max(...claims.map(row=>Number(row.at))),date=wireCentralDateKey(latest);
+  const morning=claims.filter(row=>wireCentralDateKey(row.at)===date),first=Math.min(...morning.map(row=>Number(row.at)));
+  // ESPN may timestamp items in the same processing run a few minutes apart.
+  // Only the first Wednesday-morning batch belongs in this weekly report.
+  const today=morning.filter(row=>Number(row.at)<first+30*60000),seen=new Set();
+  const items=today.sort((a,b)=>Number(a.at)-Number(b.at)).filter(row=>{
+   const key=String(row.transactionId||row.id||row.at)+':'+row.player?.id+':'+row.to;
+   if(seen.has(key))return false;seen.add(key);return true;
+  }).map(row=>({...row,drops:(rows||[]).filter(drop=>drop.type==='Drop'&&drop.transactionId&&drop.transactionId===row.transactionId)}));
+  return {date,at:first,items,managers:new Set(items.map(row=>row.to)).size};
+ }
+ function waiverReportCard(){
+  const report=waiverReportData();if(!report)return null;
+  const date=new Date(report.at).toLocaleDateString('en-US',{timeZone:'America/Chicago',month:'short',day:'numeric'});
+  const playerHTML=player=>{
+   const p=player||{},name=p.name||'Player',photo=p.photo||(p.id?nflHeadshot(p.id):'');
+   return '<button type="button" class="wr-player pc-player-trigger" '+ffnPlayerDataAttrs(p)+' aria-label="Open '+esc(name)+' player profile">'+(photo?'<img src="'+esc(photo)+'" alt="" loading="lazy" onerror="ffnImageFallback(this)">':'')+'<span><b>'+esc(name)+'</b><small>'+esc([p.team,p.position].filter(Boolean).join(' · '))+'</small></span></button>';
+  };
+  const rows=report.items.map(row=>'<div class="wr-claim"><div class="wr-manager">'+wireMgrHTML(row.to)+'</div><div class="wr-move"><span class="wr-add">ADD</span>'+playerHTML(row.player)+'</div>'+(row.drops.length?'<div class="wr-drop">Dropped '+row.drops.map(drop=>esc(drop.player?.name||'Player')).join(', ')+'</div>':'')+'</div>').join('');
+  const body='<div class="wc-title">Waiver Report</div><div class="wc-copy"><b>'+report.items.length+'</b> successful claim'+(report.items.length===1?'':'s')+' · <b>'+report.managers+'</b> manager'+(report.managers===1?'':'s')+'</div><div class="wr-claims">'+rows+'</div><button type="button" class="wr-open" data-wire-expand>View '+(report.items.length>4?'all '+report.items.length+' claims':'waiver report')+' ↗</button>';
+  return {section:'waiver-report',html:wireCard({kicker:'Wednesday waivers · '+date,tag:'Processed',cls:'is-lead wc-waiver-report',body}).replace('data-wire-card','data-wire-key="waiver-report-'+report.date+'" data-wire-card')};
+ }
+ const reportStyle=document.createElement('style');reportStyle.id='hj-waiver-report-style';
+ reportStyle.textContent=`
+ .wc.wc-waiver-report .wc-body{display:flex;flex-direction:column;justify-content:flex-start;gap:8px;min-height:0;height:calc(100% - 26px)}
+ .wc.wc-waiver-report .wc-body::before,.wc.wc-waiver-report .wc-body::after{display:none}
+ .wc.wc-waiver-report .wc-title{margin:4px 0 0;font-size:26px;line-height:1.1}
+ .wc.wc-waiver-report .wc-copy{font-size:12px;margin:0}
+ .wc.wc-waiver-report .wr-claims{display:flex;flex-direction:column;gap:7px;min-height:0;flex:1;overflow:hidden}
+ .wc.wc-waiver-report .wr-claim{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.5fr);column-gap:9px;align-items:center;padding:8px 10px;border:1px solid rgba(247,243,232,.18);border-radius:10px;background:rgba(247,243,232,.06)}
+ .wc.wc-waiver-report .wr-claim:nth-child(n+5){display:none}
+ .wc.wc-waiver-report .wr-manager{grid-row:1 / span 2;min-width:0}
+ .wc.wc-waiver-report .wr-manager .wc-mgr{margin:0;padding:0;background:none;max-width:100%;white-space:normal;font-size:10px;gap:5px}
+ .wc.wc-waiver-report .wr-move{display:flex;align-items:center;gap:6px;min-width:0}
+ .wc.wc-waiver-report .wr-add{color:#83c991;font:800 8px/1 var(--sans);flex:none}
+ .wc.wc-waiver-report .wr-player{display:flex;align-items:center;gap:6px;min-width:0;padding:0;border:0;background:none;color:var(--paper);text-align:left;cursor:pointer}
+ .wc.wc-waiver-report .wr-player img{width:28px;height:28px;border-radius:50%;background:var(--paper);object-fit:contain;flex:none}
+ .wc.wc-waiver-report .wr-player span{min-width:0}
+ .wc.wc-waiver-report .wr-player b{display:block;font:750 11px/1.2 var(--sans);overflow-wrap:anywhere}
+ .wc.wc-waiver-report .wr-player small{display:block;margin-top:2px;color:rgba(247,243,232,.65);font:600 8px/1.2 var(--sans)}
+ .wc.wc-waiver-report .wr-drop{grid-column:2;color:rgba(247,243,232,.65);font:500 9px/1.2 var(--sans);margin-top:4px;overflow-wrap:anywhere}
+ .wc.wc-waiver-report .wr-open{align-self:center;flex:none;border:0;background:none;padding:6px;color:var(--brass-bright);font:800 10px/1.2 var(--sans);cursor:pointer}
+ .wire-expanded-stage .wc.wc-waiver-report .wr-claims{overflow-y:auto;overscroll-behavior-x:auto}
+ .wire-expanded-stage .wc.wc-waiver-report .wr-claim:nth-child(n+5){display:grid}
+ .wire-expanded-stage .wc.wc-waiver-report .wr-open{display:none}
+ `;
+ document.head.append(reportStyle);
+ // Reuse the activity feed and its one poller. During Wednesday processing,
+ // check every 30 seconds and redraw when that morning's run is returned.
+ function waiverProcessingWindow(){
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',weekday:'short',hour:'numeric',hourCycle:'h23'}).formatToParts(new Date());
+  const value=key=>parts.find(part=>part.type===key)?.value;
+  return value('weekday')==='Wed'&&Number(value('hour'))>=2&&Number(value('hour'))<8;
+ }
+ if(typeof hjRefreshLiveActivityV24==='function'){
+  const refreshActivity=hjRefreshLiveActivityV24;
+  hjRefreshLiveActivityV24=async function(force=false){
+   const before=JSON.stringify(waiverReportData());
+   try{return await refreshActivity.call(this,force||waiverProcessingWindow())}
+   finally{if(JSON.stringify(waiverReportData())!==before)wireRender(false)}
+  };
+ }
+ if(typeof hjQueueLiveActivityV24==='function'){
+  const queueActivity=hjQueueLiveActivityV24;
+  hjQueueLiveActivityV24=function(){
+   if(!waiverProcessingWindow())return queueActivity.apply(this,arguments);
+   clearTimeout(HJ_LIVE_ACTIVITY.timer);
+   HJ_LIVE_ACTIVITY.timer=setTimeout(async()=>{
+    try{if(!document.hidden)await hjRefreshLiveActivityV24(false)}
+    finally{hjQueueLiveActivityV24()}
+   },30000);
+  };
+  hjQueueLiveActivityV24();
+ }
+
+ const priorityOrder=['kickoff','waivers','waiver-report','byes'];
  HJ_WIRE_ORDER.splice(0,HJ_WIRE_ORDER.length,...priorityOrder,...HJ_WIRE_ORDER.filter(s=>!priorityOrder.includes(s)&&!['this-week','byes','lms'].includes(s)));
- hjWireNavLabel=function(section,data){return ({byes:'Bye Week',lms:'Last Man Standing'})[section]||baseLabel(section,data)};
+ hjWireNavLabel=function(section,data){return ({byes:'Bye Week',lms:'Last Man Standing','waiver-report':'Waiver Report'})[section]||baseLabel(section,data)};
  function byeGroups(data,week){
   if(HJ_BYE_STATE.season!==Number(NFL_SEASON))return [];
   const groups=[...HJ_BYE_STATE.teams.keys()].filter(t=>hjTeamOnBye(t,week)).sort().map(team=>({team,players:[]}));
@@ -107,6 +194,7 @@
   // Keep the original pre-grouped waiver card from baseBuild, including its
   // countdown, ESPN action and shared Wire expansion/gesture behavior.
   built.cards=built.cards.filter(c=>!['byes','lms'].includes(c.section));
+  if(!built.cards.some(card=>card.section==='waivers')){const report=waiverReportCard();if(report)built.cards.push(report)}
   const week=Number(WIRE.previewWeek||hjCurrentWeek(data)),groups=byeGroups(data,week);
   if(groups.length)built.cards.push(announcement('byes',panel('byes','WEEK '+week+' · BYES','Teams on BYE this week',groupHTML(groups),'')));
   // Match the navy-and-gold live card while retaining the original waiver layout.
