@@ -19,6 +19,7 @@
  wireWaiverCard=function(data){
   const card=originalWaiverCard.apply(this,arguments);if(!card)return card;
   card.html=card.html.replace('class="wc is-red"','class="wc is-lead wc-waiver-trends"')
+   .replace(/Set claims before ESPN begins processing at <b>([^<]+)<\/b>\./,(_,deadline)=>'Submit waiver claims before <b>'+deadline.replace(':00','')+'</b>')
    .replace(/<div class="wire-hint">to set your waivers<\/div>/,'<div class="ww-trending">'+waiverTrendingHTML(data)+'</div>')
    .replace('class="wc-mgr" href="https://fantasy.espn.com/football/players/add','class="wc-mgr ww-espn-action" href="https://fantasy.espn.com/football/players/add');
   if(matchMedia('(pointer:coarse)').matches)card.html=card.html.replace('target="_blank"','target="_self"');
@@ -31,7 +32,7 @@
  .wc.wc-waiver-trends .wc-body{justify-content:space-evenly!important;gap:8px!important;padding-top:8px!important}
  .wc.wc-waiver-trends .wc-body::before,.wc.wc-waiver-trends .wc-body::after{display:none!important}
  .wc.wc-waiver-trends .wc-title{width:100%;max-width:560px;align-self:center;margin:0!important;font-size:clamp(26px,7cqw,34px)!important;line-height:1.12!important;text-wrap:balance;flex:0 0 auto}
- .wc.wc-waiver-trends .wc-copy{font-size:12px!important;line-height:1.35!important;margin:0!important;flex:0 0 auto}
+ .wc.wc-waiver-trends .wc-copy{font-size:min(12px,3.3cqw)!important;line-height:1.35!important;white-space:nowrap;margin:0!important;flex:0 0 auto}
  .wc.wc-waiver-trends .wc-count{width:100%;margin:0!important;flex:0 0 auto}
  .wc.wc-waiver-trends .wc-count .unit{min-width:0}
  .wc.wc-waiver-trends .wc-count .n{font-size:30px!important;padding:7px 2px 4px!important}
@@ -48,7 +49,7 @@
  .wc.wc-waiver-trends .wc-spacer{display:none!important}
  .wc.wc-waiver-trends .ww-espn-action{flex:0 0 auto;align-self:center;margin:0!important}
  .wc.wc-waiver-trends :is(.ww-trend-link,.ww-trend-player):focus-visible{outline:2px solid var(--brass-bright);outline-offset:3px}
- @media(max-width:360px){.wc.wc-waiver-trends .wc-body{gap:6px!important}.wc.wc-waiver-trends .wc-title{font-size:24px!important}.wc.wc-waiver-trends .wc-copy{font-size:11px!important}.wc.wc-waiver-trends .ww-trend-row{gap:4px}.wc.wc-waiver-trends .ww-espn-action{font-size:9px!important}}
+ @media(max-width:360px){.wc.wc-waiver-trends .wc-body{gap:6px!important}.wc.wc-waiver-trends .wc-title{font-size:24px!important}.wc.wc-waiver-trends .ww-trend-row{gap:4px}.wc.wc-waiver-trends .ww-espn-action{font-size:9px!important}}
  `;
  document.head.append(waiverStyle);
  document.addEventListener('hj:waiver-trends',()=>{
