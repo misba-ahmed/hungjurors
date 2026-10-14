@@ -9,6 +9,11 @@ export function prepareProfileDetails(html){
  };
  replace("cls:'is-red',badge:'!Waivers'","cls:'is-red',badge:''");
 
+ // The legacy animation-frame callback can run after the newer timed installer.
+ // Do not append a second menu when V2 has already finished installing it.
+ replace("if(!back||back.dataset.hjManagerNav==='1')return;",
+  "if(!back||back.dataset.hjManagerNav==='1'||back.dataset.hjManagerNavV2==='1')return;");
+
  // Resolve current affiliation before rendering any profile header or team section.
  replace('function pcPlayerFromTrigger(trigger){',currentTeamSource+'\nfunction pcPlayerFromTrigger(trigger){');
  replace('raw.photo=exact.photo||raw.photo}return raw;', 'raw.photo=exact.photo||raw.photo}return pcCurrentPlayer(raw);');
