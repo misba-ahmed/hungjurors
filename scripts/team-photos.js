@@ -77,7 +77,7 @@ function hjTeamPhotoAsset(entry){
  const base=HJ_TEAM_PHOTO_ASSETS[String(p.id||entry.playerId||'')];
  // Free agents use their regular/free-agent outfit, muted without injury equipment.
  const isFreeAgent=p.proTeamId!=null&&Number(p.proTeamId)===0;
- if(isFreeAgent)return base?{...base,isBye:false,isFreeAgent:true}:base;
+ if(isFreeAgent)return base?{...base,...(base.freeAgent||{}),isBye:false,isFreeAgent:true}:base;
  if(!base)return base;
  const status=String(p.injuryStatus||'').trim().toUpperCase().replace(/[ -]+/g,'_');
  const rosterStatus=String(typeof p.status==='object'?p.status?.type||p.status?.name||'':p.status||'').toUpperCase().replace(/[ -]+/g,'_');

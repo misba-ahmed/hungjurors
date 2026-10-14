@@ -1517,7 +1517,13 @@
     "heightInches": 72,
     "name": "Harrison Mevis",
     "teamId": 14,
-    "jersey": "92"
+    "jersey": "92",
+    "freeAgent": {
+      "file": "4574716-free-agent-v3.webp",
+      "width": 356,
+      "height": 850,
+      "ratio": 0.41882
+    }
   },
   "4575131": {
     "file": "4575131-faces-v2.webp",
