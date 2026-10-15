@@ -665,6 +665,12 @@
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4430027?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.212Z"
   },
+  "4430539": {
+    "name": "Brenton Strange",
+    "heightInches": 76,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4430539?lang=en&region=us",
+    "checkedAt": "2026-10-15T13:13:52.857Z"
+  },
   "4430737": {
     "name": "Kyren Williams",
     "heightInches": 69,
