@@ -1,0 +1,10 @@
+{
+  "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4596334?lang=en&region=us",
+  "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4596334.png",
+  "name": "Keaton Mitchell",
+  "height": 68.0,
+  "jersey": "34",
+  "team": {
+    "$ref": "http://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/teams/24?lang=en&region=us"
+  }
+}

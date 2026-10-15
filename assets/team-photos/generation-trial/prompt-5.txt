@@ -1,0 +1,10 @@
+Create a new KEATON MITCHELL #34 Los Angeles Chargers full-body roster portrait in SIX-HEAD FIGURE PROPORTIONS. This is a stylized sports illustration with a photographic face, not a conventional full-length sports photograph.
+
+COMPOSITION FIRST: approximately one-sixth of the complete visible standing figure is occupied by the whole head, from hair top through chin. The final acceptable range is 16–17%, targeting 16.5%. The remaining figure contains the neck, padded torso, arms, pants, legs and cleats. Deliberately give the head a prominent, larger illustration scale. Preserve natural facial shape and a naturally short neck. Do not lengthen the neck or add neck to the head measurement.
+
+Reference 1: Keaton's official headshot determines face, tied-back hair, smile, beard and skin tone.
+Reference 2: the site's existing football artwork determines clothing detail, padded athletic body style, lighting and pose. Its head size does NOT determine the new head size.
+Reference 3: independent 16.5% geometry guide. Its numerical head-to-whole-figure allocation is mandatory; ignore its angular schematic anatomy.
+
+Generate the entire connected player together: cohesive face, jaw, neck, collar and shoulders with continuous natural shading. Compact athletic running-back build; Chargers powder-blue home jersey with white number 34 outlined in gold, shoulder lightning bolts, white football pants, white gloves and cleats. Upright front-facing stance, arms beside thighs, feet slightly apart and both soles planted. Whole hair, hands and shoes visible. No helmet.
+Transparent background, isolated player, no background lighting halo, props, diagram lines, labels or ground shadow.

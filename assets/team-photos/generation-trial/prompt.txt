@@ -1,0 +1,15 @@
+Create a NEW full-body roster artwork of Isaac TeSlaa, Detroit Lions wide receiver, jersey number 18, listed height 6 feet 4 inches. Generate the complete player as one continuous image from scratch.
+
+INPUT ROLES — keep these roles separate:
+Image 1 is the site's STYLE reference: photographic face, athletic padded football body, straight-on standing pose, complete hands and cleats, crisp cutout rendering and even studio lighting. Do not copy this person's identity, uniform, skin tone, or head dimensions.
+Image 2 is Isaac's official IDENTITY reference: faithfully preserve his face, brown curly hair, smile, complexion and likeness.
+Image 3 is the independent GEOMETRY guide. Use its hair-top, chin and sole positions as the composition constraints. Its silhouette is only a schematic; render natural anatomy and proper football equipment, not the schematic's angular shapes.
+
+PRIORITY GEOMETRY REQUIREMENT:
+Compose the entire figure at 16.5% head height, within 16–17%. Head means TOP OF HAIR to BOTTOM OF CHIN, excluding all neck. Total figure means TOP OF HAIR to BOTTOM OF PLANTED SOLES, excluding padding and shadow. Hair counts inside the head allocation. Use roughly 6.06 head heights for the whole figure.
+On the 1024-by-1536 reference canvas, hair top is y=100, chin is y=320.44, and soles are y=1436: 220.44 / 1336 = 0.165. If you use another output size, preserve those relative landmark positions and the same ratio. Do not default to a 7–8-head fashion illustration or copy another player's head scale.
+Establish the face, skull, jaw, neck and shoulders together during generation. Keep a naturally short, shaded, continuous neck and normal collar placement. Keep the face's natural width-to-height proportions. Avoid bobblehead exaggeration, long necks, pasted faces, seams, compressed torsos or distorted legs.
+
+UNIFORM AND PRESENTATION:
+Detroit Lions Honolulu-blue home jersey with white number 18 on chest and shoulders, silver football pants, authentic padded athletic receiver build, white gloves and white cleats. Front-facing full-body standing pose, arms relaxed beside thighs, feet slightly apart, both soles on one baseline. No helmet; entire hair and face visible. Natural unified skin tone across face, neck and arms.
+Genuinely transparent background. One player only. Omit every guide line, ruler, label, caption and diagram shape. No ground shadow. Deliver a finished continuous full-body player image, not layers or a collage.

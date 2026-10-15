@@ -1,0 +1,10 @@
+Create a new ISAAC TESLAA #18 Detroit Lions full-body roster portrait in SIX-HEAD FIGURE PROPORTIONS. This is a stylized sports illustration with a photographic face, not a conventional full-length sports photograph.
+
+COMPOSITION FIRST: exactly one-sixth of the complete visible standing figure is occupied by the whole head, from hair top through chin. The final acceptable range is 16–17%, targeting 16.5%. The remaining five-sixths contains the neck, padded torso, arms, pants, legs and cleats. Deliberately give the head a prominent, larger illustration scale. Your preceding draft reached only about 15.7%; increase the head's allocation by about 5% relative to that draft while generating this fresh continuous figure. Preserve natural facial shape and a naturally short neck. Do not lengthen the neck or add neck to the head measurement.
+
+Reference 1: Isaac's official headshot determines face, brown curly hair, smile and skin tone.
+Reference 2: the site's existing football artwork determines clothing detail, padded athletic body style, lighting and pose. Its head size does NOT determine the new head size.
+Reference 3: independent 16.5% geometry guide. Its numerical head-to-whole-figure allocation is mandatory; ignore its angular schematic anatomy.
+
+Generate the entire connected player together: cohesive face, jaw, neck, collar and shoulders with continuous natural shading. Athletic receiver build, Honolulu-blue Lions jersey with white number 18, silver football pants, white gloves and cleats. Upright front-facing stance, arms beside thighs, feet slightly apart and both soles planted. Whole hair, hands and shoes visible. No helmet.
+Transparent background, isolated player, no background lighting halo, props, diagram lines, labels or ground shadow.

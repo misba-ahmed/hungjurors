@@ -1,0 +1,14 @@
+Use case: sketch-to-render.
+IMAGE 1 IS THE MASTER COMPOSITION TO RENDER. Replace its grey schematic figure with a finished full-body image of Isaac TeSlaa. Preserve the master composition's anatomical landmark positions. Remove all diagram lines, labels and background from the finished output.
+
+This is a new player creation from a dimensioned drawing. Do NOT freely recompose the figure to fill the canvas. Keep the 1024 x 1536 canvas and these three positions:
+- The highest hair pixel is at y=100.
+- The lowest chin point is at y=320, with the neck entirely BELOW this line.
+- Both planted shoe soles end at y=1436.
+The full hair-to-sole figure is 1336 pixels. The complete hair-to-chin head is 220 pixels. Therefore the head is 16.47% of the figure. These landmark constraints take priority over generic realistic human proportion defaults. Render a 6.06-head-tall figure. Preserve the full 220px head allocation including hair; do not shrink the face into the upper part of this allocation or count neck as head. Keep natural facial proportions and a short, anatomically connected shaded neck. The jaw, neck, shoulders and collar must form one continuous rendering. Do not paste a portrait onto a torso.
+
+IMAGE 2 supplies Isaac TeSlaa's identity, face, curly brown hair, smile and complexion.
+IMAGE 3 supplies the established site's photographic face and padded full-body football rendering style. Its player identity, uniform and head measurements do not transfer.
+
+Render Isaac in Detroit Lions Honolulu-blue home jersey, white number 18 on chest and shoulders, silver pants, white gloves and white cleats. Athletic wide receiver build. Front-facing standing pose, arms beside thighs, both feet planted slightly apart. Complete hair, hands and cleats. No helmet.
+Maintain IMAGE 1's head-top/chin/sole placements while replacing its angular schematic body with natural football anatomy. Natural coherent lighting across the whole player. Transparent background; no shadows, glow, labels, lines, rulers or extra objects.

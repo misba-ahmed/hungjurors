@@ -1,0 +1,58 @@
+{
+  "method": "Visually annotated anatomical landmarks in original 1024x1536 outputs; approximate, not automatic chin detection. No geometry changed after generation.",
+  "scope": "One-time development experiment requested by owner; not a mandatory future review workflow.",
+  "trials": [
+    {
+      "name": "TeSlaa 1",
+      "prompt": "prompt.txt",
+      "output": "teslaa-trial-1.webp",
+      "hairTopY": 16,
+      "chinY": 232,
+      "solesY": 1508,
+      "headRatio": 0.14477
+    },
+    {
+      "name": "TeSlaa 2",
+      "prompt": "prompt-2.txt",
+      "output": "teslaa-trial-2.webp",
+      "hairTopY": 47,
+      "chinY": 256,
+      "solesY": 1485,
+      "headRatio": 0.14534
+    },
+    {
+      "name": "TeSlaa 3",
+      "prompt": "prompt-3.txt",
+      "output": "teslaa-trial-3.webp",
+      "hairTopY": 16,
+      "chinY": 247,
+      "solesY": 1491,
+      "headRatio": 0.15661
+    },
+    {
+      "name": "TeSlaa 4",
+      "prompt": "prompt-4.txt",
+      "output": "teslaa-trial-4.webp",
+      "hairTopY": 16,
+      "chinY": 259,
+      "solesY": 1496,
+      "headRatio": 0.16419
+    },
+    {
+      "name": "TeSlaa fresh",
+      "prompt": "prompt-6.txt",
+      "output": "teslaa-trial-5.webp",
+      "hairTopY": 16,
+      "chinY": 240,
+      "solesY": 1482,
+      "headRatio": 0.1528
+    },
+    {
+      "name": "Mitchell fresh",
+      "prompt": "prompt-5.txt",
+      "output": "mitchell-trial-1.webp",
+      "headRatio": null,
+      "reason": "Beard obscures anatomical chin; do not infer a pass from the requested ratio or choose a convenient chin coordinate."
+    }
+  ]
+}
