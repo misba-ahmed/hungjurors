@@ -1,20 +1,28 @@
 #!/usr/bin/env python3
-"""Make a generated lineup figure's head the approved size, deterministically.
+"""Package a generated lineup figure, giving it the approved head size.
 
-One generation, no re-rolls: the image generator is asked for the right
-proportions, and whatever it returns is measured here and, if the head is
-outside the band, the head+neck is rescaled about the collar point toward the
-target (15.7% of figure height, chosen by eye by the league owner), limited so
-the face never gets wider than 0.29x the shoulders and never more than 15% in
-one pass: a head that is tall enough but too wide for its shoulders reads as a
-bobblehead. The result is
-re-cropped and written out at the catalog resolution (850px high, WebP,
-transparent). Nothing else changes: body, pose, uniform, colours.
+One generation, no re-rolls. The generator is asked for the right proportions
+(docs/lineup-artwork-protocol.md); whatever it returns is measured here and,
+if the head is smaller than the band, the WHOLE head and neck are scaled up
+uniformly about the collar point toward the target (15.7% of figure height,
+the size the league owner picked by eye on Oct 15, 2026), limited so the face
+never gets wider than 0.29x the shoulders and never more than 15% in one pass
+(a head that is tall enough but too wide for its shoulders reads as a
+bobblehead). Heads already in or above the band are left alone. The image is
+then packaged by the visible crop rule (alpha >= 128, 2px padding, 850px high,
+WebP). Nothing else changes: body, pose, uniform, colours, identity.
+
+This is not the withdrawn October 14 polygon-cutout compositor: no face/neck
+patch is cut out and pasted onto the old neck. The complete head+neck region is
+scaled as one piece with its own neck, anchored at the collar and feathered
+over the last few pixels, so the join stays continuous. Verified on dreads,
+long hair, beards, kickers and crutch poses.
 
 Usage
-  python3 scripts/fit-player-head.py IN.png OUT.webp
-    exit 0: written (head was already in band, or fitted); prints the numbers
+  python3 scripts/fit-player-head.py GENERATED.png assets/team-photos/players/<id>-faces-vN.webp
+    exit 0: written (head was already in band, or fitted); prints one line
     exit 2: no face found (regenerate; this is the only case that needs one)
+  Then set the catalog width/height/ratio from the written file and publish.
 
 Needs numpy, Pillow, opencv-python >= 4.5.4 (cv2.FaceDetectorYN).
 """
@@ -60,7 +68,7 @@ def fit(im, m, target):
     # A head that is tall enough but too wide for its shoulders looks like a
     # bobblehead, so the width limit and the per-pass cap win over the height target.
     f = min(f, MAX_FACE_TO_SHOULDER / max(1e-6, m['face_to_shoulder']), MAX_SCALE)
-    f = max(f, 1.0 / MAX_SCALE)
+    f = max(f, 1.0)                                          # enlarge only; a head that is already big is left alone
     cx = m['fx'] + m['fw'] / 2
     neck_base = m['chin'] + 0.32 * m['fh']                 # about the collar line
     half = 0.85 * m['fw']                                   # neck/jaw span to carry along below the chin
@@ -93,8 +101,13 @@ def fit(im, m, target):
     return canvas, f
 
 def finish(im):
-    """Tight crop and 850px height, like every catalog asset."""
-    im = im.crop(im.getbbox())
+    """Package like every catalog asset (visible crop rule): crop to alpha >= 128
+    plus two source pixels of padding, keep antialiasing inside, 850px high."""
+    a = np.array(im)
+    vis = a[:, :, 3] >= 128
+    rows = np.where(vis.any(1))[0]; cols = np.where(vis.any(0))[0]
+    box = (max(0, cols[0] - 2), max(0, rows[0] - 2), min(im.width, cols[-1] + 3), min(im.height, rows[-1] + 3))
+    im = im.crop(box)
     s = OUT_HEIGHT / im.height
     return im.resize((max(1, int(round(im.width * s))), OUT_HEIGHT), Image.LANCZOS)
 

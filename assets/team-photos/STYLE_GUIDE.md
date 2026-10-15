@@ -1,11 +1,11 @@
 # Player lineup artwork — mandatory style reference
 
 For every new player or revised lineup figure:
-1. Read this file BEFORE generating. Use TWO visual references: an approved existing full-body lineup asset for body style, pose, framing, lighting and proportions, plus the player's current official headshot for identity. A headshot alone is not sufficient.
+1. Read `docs/lineup-artwork-protocol.md` first; it is the only workflow (generate once → `scripts/fit-player-head.py` → catalog → publish). Use TWO visual references: the approved full-body lineup asset below for body style, pose, framing and lighting, plus the player's current official headshot for identity.
 2. Approved body reference: `players/4262921-faces-v2.webp` (Justin Jefferson; head 15.7% of figure height). Match the established athletic, padded full-body cutout style, front-facing stance, arms beside thighs, and feet apart. Do not substitute a slimmer, fashion-model or differently stylized figure. (`4047646-faces-v2.webp`, the previous reference, measures head 14.9% and must not be used as the head-size target; see `assets/ARTWORK_PROPORTIONS.md`.)
 3. Preserve the player's own face, hair and skin tone. Match exposed limbs to their skin tone. Verify current team and jersey number. Keep the whole head, hands and cleats.
-4. Produce a transparent, tightly cropped WebP at 850px high. Keep catalog width/height/ratio accurate and real heightInches metadata consistent.
-5. Generate ONCE, then run `python3 scripts/fit-player-head.py GENERATED.png assets/team-photos/players/<id>-faces-vN.webp` (it sets the head size and writes the 850px WebP), add it to the catalog, commit, publish. That is the whole artwork update: no checks, no comparison images, no approval, no regenerating (unless the script exits 2: no face found).
+4. `scripts/fit-player-head.py` writes the transparent, visibly-cropped 850px WebP; set catalog width/height/ratio from that file and keep real heightInches metadata consistent.
+5. Generate ONCE. The fit script sets the head size; do not regenerate for it (only if the script exits 2: no face found). No checks, comparison images, percentage reports or approval.
 6. Use a new versioned filename to prevent stale cached artwork. Update only that player's catalog entry and preserve all other entries and unavailable variants.
 7. For injury/status poses, retain the approved regular image and the status-driven restoration behavior. Preserve visual style and identity in the alternate pose.
 
@@ -49,16 +49,12 @@ Confirmed NFL byes share the 28% saturation treatment, including DST mascots. Us
 ## Projection recovery correction (October 7)
 A finite positive ESPN projection for the current scoring week and current NFL season restores the regular player image and clears injury tint, even when ESPN still carries an injury/inactive label. An explicit zero reapplies an available injury variant; Josh Jacobs uses his existing front-handcuff variant. A confirmed bye alone keeps regular artwork with bye tint. Missing, nonnumeric, actual, prior-week and prior-season values never count as a restored projection. When current projection data is missing, preserve the existing status-based fallback. Keep both regular and alternate assets.
 
-
 Free-agent correction (October 7): Tyreek Hill wears beach shorts with no shirt and no crutches. Free agents (explicit ESPN proTeamId 0) use 28% saturation without injury variants. The free-agent condition overrides injury/zero-projection poses and clears when ESPN assigns a team. Missing team IDs are not confirmed free agents.
 
-## Head proportion correction (October 7)
-The initial October 7 additions (Shipley/Cousins faces-v1, Hill free-agent-v1, and Barkley/Jackson/Rice crutches-v1) had undersized heads. Do not use these as proportion references. Compare revised art at equal full-figure height against the approved A.J. Brown reference, and compare enlarged head/neck crops. The 850px output size and catalog height checks cannot validate head scale. Keep the natural shaded neck continuous and preserve clothing, status behavior and physical-height metadata. Saved comparison: assets/references/player-head-proportions-20261007.webp.
-
 ## Head size (October 15)
-The old reference (A.J. Brown) measures head 14.9%, bottom tenth of the catalog, so figures generated to match it came out small-headed. Generators cannot hold a ratio on request, so `scripts/fit-player-head.py` sets it on the generated image (toward 15.7% of figure height, width-limited so it never looks like a bobblehead). Artwork update = generate once → fit script → catalog → publish. Nothing else.
+Head size is set by `scripts/fit-player-head.py` on each generated figure (see `docs/lineup-artwork-protocol.md`). The earlier October 7 additions with undersized heads and the October 14 rules (18%/16.5%/15.5% targets, head-cutout compositor, prompt-only "+15%" construction, Drake Maye reference) are superseded; do not use them or their outputs as references.
 
-## Visible crop rule — October 14 lineup-gap correction
+## Visible crop rule — October 14 lineup-gap correction (applied by `scripts/fit-player-head.py`)
 For every new or revised human lineup asset, compute the crop from visible alpha (opacity >=128), not alpha >0: nearly invisible generator noise must never determine canvas width. Keep two source pixels of edge padding, retain antialiasing within that crop, resize proportionally to 850px high, and set catalog width, height and ratio from the resulting file. Use new versioned filenames. Apply the same packaging to regular, crutch and free-agent variants. Never compensate for padded images with global spacing, negative margins, distorted bodies or physical-height changes. This is an asset-preparation rule, not a publishing check.
 
 ## Crutch artwork stance — owner correction October 14

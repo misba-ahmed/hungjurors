@@ -1,3 +1,3 @@
 # AI repository instructions
 
-Read AGENTS.md before editing this site. For EVERY lineup artwork generation or edit, read and follow docs/lineup-artwork-protocol.md and its referenced style/proportion rules. Use the actual approved full-body reference and official player headshot; preserve proportions for regular and alternate poses alike. Follow the owner's fast publish workflow. Do not add publishing gates, review-evidence files or extra approval steps.
+Read AGENTS.md before editing this site. For EVERY lineup artwork generation or edit, follow docs/lineup-artwork-protocol.md: generate once, run scripts/fit-player-head.py, update the catalog, publish. No publishing gates, proof files, percentage reports or approval steps.
