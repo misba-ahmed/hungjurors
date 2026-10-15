@@ -3,7 +3,9 @@
 
 One generation, no re-rolls. The generator is asked for the right proportions
 (docs/lineup-artwork-protocol.md); whatever it returns is measured here and,
-if the head is smaller than the band, the WHOLE head and neck are scaled up
+if the head is smaller than the band (hair-top-to-chin), or the face itself is
+small (brow-to-chin height or face width below the catalog floors, which big
+hair can hide), the WHOLE head and neck are scaled up
 uniformly about the collar point toward the target (15.7% of figure height,
 the size the league owner picked by eye on Oct 15, 2026), limited so the face
 never gets wider than 0.29x the shoulders and never more than 15% in one pass
@@ -34,6 +36,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL = os.path.join(ROOT, 'assets/references/models/face_detection_yunet_2023mar.onnx')
 BAND = (15.2, 16.2)      # accepted hair-top-to-chin, % of figure height
 TARGET = 15.7            # fitted toward this when outside the band (league owner picked it by eye, Oct 15 2026)
+FACE_MIN, FACE_TARGET = 12.8, 13.4    # brow-to-chin face height, % of figure height (hair-independent; catalog median 13.4)
+WIDTH_MIN, WIDTH_TARGET = 9.3, 9.9    # face width, % of figure height (catalog median 9.9)
 MAX_FACE_TO_SHOULDER = 0.29  # face width / shoulder width; catalog median 0.285. Above ~0.31 reads as a bobblehead.
 MAX_SCALE = 1.15         # never blow a head up more than this in one go
 OUT_HEIGHT = 850
@@ -65,6 +69,14 @@ def fit(im, m, target):
     H = m['H']; top = m['top']
     h = m['chin'] - top; t = target / 100
     f = t * (H - h) / (h * (1 - t))                         # head' / (H + growth) == target
+    if BAND[0] <= m['head'] <= BAND[1]:
+        f = 1.0                                              # hair-top-to-chin already fine; only the face may need it
+    # Big hair can make hair-top-to-chin look fine while the face itself is small
+    # (the Brenton Strange case): the face height and width have their own floors.
+    if m['face'] < FACE_MIN:
+        f = max(f, FACE_TARGET / m['face'])
+    if m['width'] < WIDTH_MIN:
+        f = max(f, WIDTH_TARGET / m['width'])
     # A head that is tall enough but too wide for its shoulders looks like a
     # bobblehead, so the width limit and the per-pass cap win over the height target.
     f = min(f, MAX_FACE_TO_SHOULDER / max(1e-6, m['face_to_shoulder']), MAX_SCALE)
@@ -123,7 +135,7 @@ def main():
         print('no face detected; regenerate the figure'); sys.exit(2)
     before = m['head']
     fitted = False; f = 1.0
-    if args.force or not (BAND[0] <= before <= BAND[1]):
+    if args.force or not (BAND[0] <= before <= BAND[1]) or m['face'] < FACE_MIN or m['width'] < WIDTH_MIN:
         im, f = fit(im, m, args.target); fitted = True
     out = finish(im)
     m2 = detect(np.array(out))
