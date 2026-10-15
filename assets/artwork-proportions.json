@@ -2077,7 +2077,9 @@
       "firstGenerationContract": "docs/lineup-artwork-protocol.md#first-generation-construction",
       "measureOutputAnatomy": false,
       "visualReference": "assets/team-photos/players/4431452-faces-v2.webp",
-      "workflow": "docs/lineup-artwork-protocol.md#fast-new-player-workflow"
+      "workflow": "docs/lineup-artwork-protocol.md#fast-new-player-workflow",
+      "firstGenerationHeadScale": 1.15,
+      "firstGenerationHeadScaleBasis": "Owner instruction 2026-10-14 21:46 America/Chicago: append a 15% larger head request to the first-generation prompt, using an assumed 14% baseline. Final target remains 15.5\u201316%. No output measurement or automatic corrective edit."
     },
     "previousBodyReference": "assets/team-photos/players/4047646-faces-v2.webp"
   }
