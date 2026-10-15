@@ -99,6 +99,16 @@
     "teamId": 22,
     "jersey": "7"
   },
+  "2969939": {
+    "file": "2969939-faces-v1.webp",
+    "width": 306,
+    "height": 850,
+    "ratio": 0.36,
+    "heightInches": 76,
+    "name": "Jameis Winston",
+    "teamId": 19,
+    "jersey": "19"
+  },
   "2971573": {
     "file": "2971573-faces-v2.webp",
     "width": 321,
@@ -326,6 +336,16 @@
     "name": "Patrick Mahomes",
     "teamId": 12,
     "jersey": "15"
+  },
+  "3150744": {
+    "file": "3150744-faces-v1.webp",
+    "width": 309,
+    "height": 850,
+    "ratio": 0.36353,
+    "heightInches": 72,
+    "name": "Chase McLaughlin",
+    "teamId": 27,
+    "jersey": "4"
   },
   "3915416": {
     "file": "3915416-faces-v2.webp",
@@ -702,6 +722,16 @@
     "name": "Christian Watson",
     "teamId": 9,
     "jersey": "9"
+  },
+  "4249087": {
+    "file": "4249087-faces-v3.webp",
+    "width": 320,
+    "height": 850,
+    "ratio": 0.37647,
+    "heightInches": 72,
+    "name": "Matt Gay",
+    "teamId": 13,
+    "jersey": "14"
   },
   "4258173": {
     "file": "4258173-faces-v2.webp",
@@ -1126,6 +1156,16 @@
       "kind": "injury"
     }
   },
+  "4428718": {
+    "file": "4428718-faces-v3.webp",
+    "width": 318,
+    "height": 850,
+    "ratio": 0.37412,
+    "heightInches": 68,
+    "name": "Tre Tucker",
+    "teamId": 13,
+    "jersey": "1"
+  },
   "4428850": {
     "file": "4428850-faces-v2.webp",
     "width": 306,
@@ -1135,6 +1175,16 @@
     "name": "Dontayvion Wicks",
     "teamId": 21,
     "jersey": "13"
+  },
+  "4429023": {
+    "file": "4429023-faces-v1.webp",
+    "width": 321,
+    "height": 850,
+    "ratio": 0.37765,
+    "heightInches": 69,
+    "name": "MarShawn Lloyd",
+    "teamId": 9,
+    "jersey": "32"
   },
   "4429025": {
     "file": "4429025-faces-v2.webp",
@@ -1152,6 +1202,16 @@
       "ratio": 0.38118,
       "kind": "injury"
     }
+  },
+  "4429059": {
+    "file": "4429059-faces-v2.webp",
+    "width": 329,
+    "height": 850,
+    "ratio": 0.38706,
+    "heightInches": 70,
+    "name": "Woody Marks",
+    "teamId": 34,
+    "jersey": "4"
   },
   "4429086": {
     "file": "4429086-faces-v2.webp",
@@ -1579,6 +1639,16 @@
       "kind": "injury"
     }
   },
+  "4599739": {
+    "file": "4599739-faces-v2.webp",
+    "width": 318,
+    "height": 850,
+    "ratio": 0.37412,
+    "heightInches": 72,
+    "name": "Kendre Miller",
+    "teamId": 18,
+    "jersey": "5"
+  },
   "4608686": {
     "file": "4608686-faces-v2.webp",
     "width": 347,
@@ -1669,6 +1739,16 @@
     "name": "Braelon Allen",
     "teamId": 20,
     "jersey": "0"
+  },
+  "4685261": {
+    "file": "4685261-faces-v2.webp",
+    "width": 306,
+    "height": 850,
+    "ratio": 0.36,
+    "heightInches": 73,
+    "name": "Germie Bernard",
+    "teamId": 23,
+    "jersey": "17"
   },
   "4685278": {
     "file": "4685278-faces-v2.webp",
@@ -1921,6 +2001,16 @@
     "teamId": 13,
     "jersey": "2"
   },
+  "5082424": {
+    "file": "5082424-faces-v3.webp",
+    "width": 308,
+    "height": 850,
+    "ratio": 0.36235,
+    "heightInches": 75,
+    "name": "Dominic Zvada",
+    "teamId": 19,
+    "jersey": "34"
+  },
   "5083076": {
     "file": "5083076-faces-v2.webp",
     "width": 321,
@@ -1940,85 +2030,5 @@
     "name": "Kenyon Sadiq",
     "teamId": 20,
     "jersey": "16"
-  },
-  "4249087": {
-    "file": "4249087-faces-v3.webp",
-    "width": 320,
-    "height": 850,
-    "ratio": 0.37647,
-    "heightInches": 72,
-    "name": "Matt Gay",
-    "teamId": 13,
-    "jersey": "14"
-  },
-  "4428718": {
-    "file": "4428718-faces-v3.webp",
-    "width": 318,
-    "height": 850,
-    "ratio": 0.37412,
-    "heightInches": 68,
-    "name": "Tre Tucker",
-    "teamId": 13,
-    "jersey": "1"
-  },
-  "4429059": {
-    "file": "4429059-faces-v2.webp",
-    "width": 329,
-    "height": 850,
-    "ratio": 0.38706,
-    "heightInches": 70,
-    "name": "Woody Marks",
-    "teamId": 34,
-    "jersey": "4"
-  },
-  "5082424": {
-    "file": "5082424-faces-v3.webp",
-    "width": 308,
-    "height": 850,
-    "ratio": 0.36235,
-    "heightInches": 75,
-    "name": "Dominic Zvada",
-    "teamId": 19,
-    "jersey": "34"
-  },
-  "2969939": {
-    "file": "2969939-faces-v1.webp",
-    "width": 306,
-    "height": 850,
-    "ratio": 0.36,
-    "heightInches": 76,
-    "name": "Jameis Winston",
-    "teamId": 19,
-    "jersey": "19"
-  },
-  "4429023": {
-    "file": "4429023-faces-v1.webp",
-    "width": 321,
-    "height": 850,
-    "ratio": 0.37765,
-    "heightInches": 69,
-    "name": "MarShawn Lloyd",
-    "teamId": 9,
-    "jersey": "32"
-  },
-  "4685261": {
-    "file": "4685261-faces-v2.webp",
-    "width": 306,
-    "height": 850,
-    "ratio": 0.36,
-    "heightInches": 73,
-    "name": "Germie Bernard",
-    "teamId": 23,
-    "jersey": "17"
-  },
-  "4599739": {
-    "file": "4599739-faces-v2.webp",
-    "width": 318,
-    "height": 850,
-    "ratio": 0.37412,
-    "heightInches": 72,
-    "name": "Kendre Miller",
-    "teamId": 18,
-    "jersey": "5"
   }
 }
