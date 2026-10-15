@@ -100,10 +100,10 @@
     "jersey": "7"
   },
   "2969939": {
-    "file": "2969939-faces-v1.webp",
-    "width": 306,
+    "file": "2969939-faces-v2.webp",
+    "width": 302,
     "height": 850,
-    "ratio": 0.36,
+    "ratio": 0.35529,
     "heightInches": 76,
     "name": "Jameis Winston",
     "teamId": 19,
@@ -338,10 +338,10 @@
     "jersey": "15"
   },
   "3150744": {
-    "file": "3150744-faces-v1.webp",
-    "width": 309,
+    "file": "3150744-faces-v2.webp",
+    "width": 303,
     "height": 850,
-    "ratio": 0.36353,
+    "ratio": 0.35647,
     "heightInches": 72,
     "name": "Chase McLaughlin",
     "teamId": 27,
@@ -972,10 +972,10 @@
     "jersey": "1"
   },
   "4366031": {
-    "file": "4366031-faces-v2.webp",
-    "width": 301,
+    "file": "4366031-faces-v3.webp",
+    "width": 302,
     "height": 850,
-    "ratio": 0.35412,
+    "ratio": 0.35529,
     "heightInches": 70,
     "name": "Tank Dell",
     "teamId": 34,
@@ -1177,10 +1177,10 @@
     "jersey": "13"
   },
   "4429023": {
-    "file": "4429023-faces-v1.webp",
-    "width": 321,
+    "file": "4429023-faces-v2.webp",
+    "width": 316,
     "height": 850,
-    "ratio": 0.37765,
+    "ratio": 0.37176,
     "heightInches": 69,
     "name": "MarShawn Lloyd",
     "teamId": 9,
@@ -1204,10 +1204,10 @@
     }
   },
   "4429059": {
-    "file": "4429059-faces-v2.webp",
-    "width": 329,
+    "file": "4429059-faces-v3.webp",
+    "width": 321,
     "height": 850,
-    "ratio": 0.38706,
+    "ratio": 0.37765,
     "heightInches": 70,
     "name": "Woody Marks",
     "teamId": 34,
