@@ -74,3 +74,6 @@ Use this short edit instruction with the measured values filled in:
 ### Timing the owner's next test
 
 Wait for the owner to name the new player. Start an elapsed-time timer when work on that player begins. Report total wall-clock time and brief preparation, generation, check/correction and packaging/publishing durations. Include the actual number of generation/edit calls and approximate final ratio. If the first image passes, report zero corrections; do not force an edit just to demonstrate one. Keep timing in the response; do not create a timing report or new publishing gate. The correction workflow is pending that test; do not claim a measured speed or successful correction before running it.
+
+## Explicit owner approval — Kendre Miller (October 14, 2026)
+The owner approved the third generated Kendre Miller image (the second correction) shown in their 7:59:57 PM screenshot and rejected the final correction as too cartoonish. Use `assets/team-photos/players/4599739-faces-v2.webp`, packaged from that intact approved image. Its prior approximate head measurement was 15.7%; do not relabel it as a measured 16–17% result. This is a specific owner-approved exception, not a change to the general target. Stop correcting an image once the owner explicitly approves it. Preserve its rendering and anatomy; do not run another numerical adjustment on it.
