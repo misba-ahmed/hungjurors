@@ -845,6 +845,12 @@
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4597500?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.289Z"
   },
+  "4599739": {
+    "name": "Kendre Miller",
+    "heightInches": 72,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4599739?lang=en&region=us",
+    "checkedAt": "2026-10-15T02:57:37.412Z"
+  },
   "4608686": {
     "name": "Kyle Monangai",
     "heightInches": 68,
