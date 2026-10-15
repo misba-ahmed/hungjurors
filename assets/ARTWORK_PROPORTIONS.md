@@ -1,7 +1,7 @@
 # Artwork proportions: durable reference
 
-## Owner update — fast generation, check and correction (October 14, 2026)
-For NEW roster players without artwork, use the existing site style and references, then follow `docs/lineup-artwork-protocol.md#fast-new-player-workflow`. Target 15.5%, accept 15–16%, and allow at most ONE corrective image edit after the first generation. Stop after its recheck; do not run a correction loop. Preserve adult facial shape and photographic texture. Do not resize existing approved artwork to match this new target. The owner now authorizes a quick image-level proportion check, a targeted correction when needed, and a recheck of that correction. This specific instruction supersedes older bans on artwork inspections for this step. Keep the remaining speed rules: no browser review, unrelated tests, proof files or extra approval rounds. Do not use the generation-trial experiments as the production workflow or resize existing approved artwork as part of this task.
+## Owner update — build the proportions into the first generation (October 14, 2026, 9:05 PM America/Chicago)
+For NEW roster players without artwork, construct the complete figure at **15.5–16% hair-to-chin / hair-to-planted-soles**, aiming at **15.75%** from the first image. Use the required first-generation prompt and landmark plan in `docs/lineup-artwork-protocol.md#first-generation-construction`. Give the generator both the approved full-body style reference and the player's official headshot. Preserve adult facial shape, photographic texture and a continuous shaded neck. Do not start with an ordinary small-headed figure and plan to enlarge its head afterward. Preserve existing approved artwork. The fast workflow permits one immediate image-level measurement and, only if needed, at most one corrective edit and recheck; no correction loop, browser review, unrelated tests, proof files or extra approval rounds. A prompt guides construction; it does not guarantee a measured result. This update supersedes the earlier 15–16% range and 15.5% target.
 
 Read together with MANAGER_ARTWORK_RULES.md and team-photos/STYLE_GUIDE.md before any artwork change.
 
@@ -19,7 +19,7 @@ Canonical Jarrett current files: managers-v8/jarrett-standing.webp and jarrett-s
 
 ## Players
 Canonical visual reference: team-photos/players/4047646-faces-v2.webp, 850 px native height. Use its actual image alongside the official individual headshot for every generation.
-Visual landmark estimates for that reference: hair top near 0; chin near 140; shirt V near 175; soles near 849. These describe that reference only. The current owner target is 15–16%, using 15.5% during controlled composition. The earlier October 14 increases to 18% and 20% are superseded. Never apply the roughly 30% manager ratio to NFL players.
+Visual landmark estimates for that reference: hair top near 0; chin near 140; shirt V near 175; soles near 849. These describe that reference only. The current owner target is 15.5–16%, using 15.75% during controlled composition. The earlier October 14 increases to 18% and 20% are superseded. Never apply the roughly 30% manager ratio to NFL players.
 Every regular player uses their own verified heightInches for RESTING height on a common baseline. The uniform 850 px asset resolution does not mean equal physical heights.
 SELECTED player figures share one enlarged target height independent of actual physical height; current target is 75% of the original enlargement. Preserve sharpness from native assets.
 The canonical player supplies body style, shoulders, pose and lighting. Identify each new player’s own landmarks and measure the actual resulting image during creation. Preserve resting physical-height behavior independently.
@@ -41,4 +41,4 @@ The owner explicitly forbids publishing checks, automated publishing gates, mand
 Head percentage reporting: A generation prompt's requested ratio is not a measured result. Use hair-top-to-chin divided by visible hair-top-to-soles height; exclude neck, transparent margins and shadows. Anatomical landmarks are approximate, so label reported values approximate. Never label an output 18% or 20% merely because that number was in its prompt. The October 14 Mevis drafts labeled 20% and 18% were rejected and must not become proportion references.
 
 ## Consistent generation source
-Use the Consistent generation contract in `docs/lineup-artwork-protocol.md`. It defines player-specific landmarks and the 15.5% target within the owner’s 15–16% range. The cutout-based layer workflow failed and is withdrawn. Anatomical landmark placement remains approximate.
+Use the Consistent generation contract in `docs/lineup-artwork-protocol.md`. It defines player-specific landmarks and the 15.75% target within the owner’s 15.5–16% range. The cutout-based layer workflow failed and is withdrawn. Anatomical landmark placement remains approximate.
