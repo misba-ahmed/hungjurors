@@ -1,7 +1,7 @@
 # Artwork proportions: durable reference
 
-## Owner update — build the proportions into the first generation (October 14, 2026, 9:05 PM America/Chicago)
-For NEW roster players without artwork, construct the complete figure at **15.5–16% hair-to-chin / hair-to-planted-soles**, aiming at **15.75%** from the first image. Use the required first-generation prompt and landmark plan in `docs/lineup-artwork-protocol.md#first-generation-construction`. Give the generator both the approved full-body style reference and the player's official headshot. Preserve adult facial shape, photographic texture and a continuous shaded neck. Do not start with an ordinary small-headed figure and plan to enlarge its head afterward. Preserve existing approved artwork. The fast workflow permits one immediate image-level measurement and, only if needed, at most one corrective edit and recheck; no correction loop, browser review, unrelated tests, proof files or extra approval rounds. A prompt guides construction; it does not guarantee a measured result. This update supersedes the earlier 15–16% range and 15.5% target.
+## Owner update — Drake Maye reference, one generation, no measurements (October 14, 2026, 9:19 PM America/Chicago)
+For NEW roster players, use the approved Drake Maye figure `assets/team-photos/players/4431452-faces-v2.webp` as the primary visual reference for head/body balance, athletic body style, stance and lighting. Attach the new player's official headshot for identity. Target **15.5–16% hair-to-chin / hair-to-planted-soles**, aiming at **15.75%**, in the first generation. Follow `docs/lineup-artwork-protocol.md#first-generation-construction`. Generate the connected figure once, perform normal asset packaging, and publish when requested. Do not measure output anatomy, calculate landmark coordinates, run proportion checks, make automatic corrective edits, create proof files, or ask for a percentage-based approval. This supersedes the earlier measurement/correction workflow and pixel-coordinate prompt. Preserve existing approved artwork. Treat the percentage as a generation target; do not report it as an achieved or verified result.
 
 Read together with MANAGER_ARTWORK_RULES.md and team-photos/STYLE_GUIDE.md before any artwork change.
 
@@ -18,11 +18,10 @@ Do not distort the approved face to hit a number: scale uniformly and retain ide
 Canonical Jarrett current files: managers-v8/jarrett-standing.webp and jarrett-seated.webp. Original body templates remain managers-v4. The v5/v6 collar repairs were rejected for neck/head proportions.
 
 ## Players
-Canonical visual reference: team-photos/players/4047646-faces-v2.webp, 850 px native height. Use its actual image alongside the official individual headshot for every generation.
-Visual landmark estimates for that reference: hair top near 0; chin near 140; shirt V near 175; soles near 849. These describe that reference only. The current owner target is 15.5–16%, using 15.75% during controlled composition. The earlier October 14 increases to 18% and 20% are superseded. Never apply the roughly 30% manager ratio to NFL players.
+Primary visual reference: Drake Maye, `team-photos/players/4431452-faces-v2.webp`. Use his actual approved image alongside the new player's official headshot. Drake supplies visual head/body balance, pose, padded body style and lighting. He is not a numerically calibrated template. The target remains 15.5–16%, aiming at 15.75% in the first-generation prompt. Do not measure the output's anatomy or run an automatic correction. Preserve the original `4047646-faces-v2.webp` as a historical style asset. Keep manager proportions separate from NFL player artwork.
 Every regular player uses their own verified heightInches for RESTING height on a common baseline. The uniform 850 px asset resolution does not mean equal physical heights.
 SELECTED player figures share one enlarged target height independent of actual physical height; current target is 75% of the original enlargement. Preserve sharpness from native assets.
-The canonical player supplies body style, shoulders, pose and lighting. Identify each new player’s own landmarks and measure the actual resulting image during creation. Preserve resting physical-height behavior independently.
+Preserve resting physical-height behavior independently of the Drake Maye visual reference. Never copy Drake's physical height into another player's metadata.
 Keep existing crutch/status variants, retained color, automatic restoration, scores, selection and roster membership behavior. Do not apply human height/injury rules to mascots.
 
 ## Update discipline
@@ -38,7 +37,7 @@ For every new or revised human lineup asset, compute the crop from visible alpha
 ## Owner instruction: no publishing checks
 The owner explicitly forbids publishing checks, automated publishing gates, mandatory test/inspection passes, proof artifacts and extra approval rounds. Do not add them or make publishing conditional on them. Apply these artwork rules while doing the requested work, then publish. This supersedes older conflicting check/proof instructions in this repository.
 
-Head percentage reporting: A generation prompt's requested ratio is not a measured result. Use hair-top-to-chin divided by visible hair-top-to-soles height; exclude neck, transparent margins and shadows. Anatomical landmarks are approximate, so label reported values approximate. Never label an output 18% or 20% merely because that number was in its prompt. The October 14 Mevis drafts labeled 20% and 18% were rejected and must not become proportion references.
+Head percentage reporting: 15.5–16% is the requested generation target. Do not measure or report an output percentage in this workflow. Do not describe a prompt target or the Drake Maye reference as a verified numeric result. The rejected Mevis drafts and withdrawn head-pasting outputs remain unsuitable references.
 
 ## Consistent generation source
-Use the Consistent generation contract in `docs/lineup-artwork-protocol.md`. It defines player-specific landmarks and the 15.75% target within the owner’s 15.5–16% range. The cutout-based layer workflow failed and is withdrawn. Anatomical landmark placement remains approximate.
+Use the Consistent generation contract in `docs/lineup-artwork-protocol.md`. It assigns Drake Maye the primary visual-reference role and the official headshot the identity role. Generate once with the 15.75% target, then package and publish as requested. No anatomical measurements, automatic corrections or extra approval steps.

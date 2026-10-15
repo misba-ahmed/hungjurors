@@ -285,7 +285,7 @@
   "players": {
     "catalog": "assets/team-photos/catalog.json",
     "heightAuthority": "assets/team-photos/height-reference.json",
-    "approvedBody": "assets/team-photos/players/4047646-faces-v2.webp",
+    "approvedBody": "assets/team-photos/players/4431452-faces-v2.webp",
     "nativeHeight": 850,
     "resting": "proportional to heightInches; common baseline",
     "selected": "uniform target size independent of heightInches; 75% of original target",
@@ -2051,7 +2051,7 @@
     "headHeightTarget": {
       "ratio": 0.1575,
       "measurement": "hair top to chin / full visible figure height",
-      "effectiveDate": "2026-10-14 21:05 America/Chicago",
+      "effectiveDate": "2026-10-14 21:19 America/Chicago",
       "scope": "new NFL roster player artwork; preserve existing approved artwork",
       "source": "explicit owner instruction",
       "supersedes": "15\u201316% range and 15.5% target; also supersedes 16\u201317%, 16.5%, 18% and 20% targets",
@@ -2066,25 +2066,19 @@
         "props"
       ],
       "calibratedHeadMaster": null,
-      "bodyReferenceRole": "Style, pose and lighting only. Use individual anatomical landmarks for numeric head size.",
-      "resultReporting": "Construct at 15.75% from the first generation, accepted range 15.5\u201316%. Measure the output; anatomical landmarks are approximate. At most one corrective image edit; report an out-of-range or distorted result as an unpublished preview unless the owner explicitly approves it.",
+      "bodyReferenceRole": "Drake Maye supplies visual head/body balance, body style, pose and lighting. The official headshot supplies player identity. No calibrated ratio claim.",
+      "resultReporting": "15.5\u201316% is the generation target, aiming at 15.75%. Generate once, package and publish as requested. No anatomical measurements, automatic corrections, timing breakdown or output-percentage claims.",
       "range": [
         0.155,
         0.16
       ],
       "withdrawnMethod": "October 14 polygon-cutout compositor: rejected for pasted-on heads and neck seams. Do not reuse its outputs or extracted layers.",
-      "maxCorrectiveEdits": 1,
+      "maxCorrectiveEdits": 0,
       "firstGenerationContract": "docs/lineup-artwork-protocol.md#first-generation-construction",
-      "firstGenerationPlan": {
-        "visibleHeight": 2000,
-        "headHeight": 315,
-        "canvasWidth": 1024,
-        "canvasHeight": 2048,
-        "hairTopY": 40,
-        "chinY": 355,
-        "solesY": 2040,
-        "role": "Requested construction coordinates only; scale together if output dimensions change. Measure actual output separately."
-      }
-    }
+      "measureOutputAnatomy": false,
+      "visualReference": "assets/team-photos/players/4431452-faces-v2.webp",
+      "workflow": "docs/lineup-artwork-protocol.md#fast-new-player-workflow"
+    },
+    "previousBodyReference": "assets/team-photos/players/4047646-faces-v2.webp"
   }
 }
