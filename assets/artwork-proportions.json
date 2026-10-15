@@ -2049,12 +2049,12 @@
       }
     },
     "headHeightTarget": {
-      "ratio": 0.165,
+      "ratio": 0.155,
       "measurement": "hair top to chin / full visible figure height",
-      "effectiveDate": "2026-10-14 evening America/Chicago",
-      "scope": "all future new or revised NFL player lineup artwork",
+      "effectiveDate": "2026-10-14 20:50 America/Chicago",
+      "scope": "new NFL roster player artwork; preserve existing approved artwork",
       "source": "explicit owner instruction",
-      "supersedes": "18% and rejected 20% targets; restores owner 16\u201317% rule",
+      "supersedes": "16\u201317% range and 16.5% target; also supersedes withdrawn 18% and 20% targets",
       "preserve": "uniform face scaling, identity, naturally shaded continuous neck, existing body style and physical-height behavior",
       "generationContract": "docs/lineup-artwork-protocol.md#consistent-generation-contract",
       "formula": "(chinY - hairTopY) / (solesY - hairTopY)",
@@ -2067,12 +2067,13 @@
       ],
       "calibratedHeadMaster": null,
       "bodyReferenceRole": "Style, pose and lighting only. Use individual anatomical landmarks for numeric head size.",
-      "resultReporting": "Target is 16\u201317%. Measure actual anatomical landmarks during creation; approximate coordinates remain approximate. No automatic construction guarantee.",
+      "resultReporting": "Target 15.5%, accepted range 15\u201316%. Anatomical landmarks are approximate. At most one corrective image edit; report an out-of-range or distorted result as an unpublished preview unless the owner explicitly approves it.",
       "range": [
-        0.16,
-        0.17
+        0.15,
+        0.16
       ],
-      "withdrawnMethod": "October 14 polygon-cutout compositor: rejected for pasted-on heads and neck seams. Do not reuse its outputs or extracted layers."
+      "withdrawnMethod": "October 14 polygon-cutout compositor: rejected for pasted-on heads and neck seams. Do not reuse its outputs or extracted layers.",
+      "maxCorrectiveEdits": 1
     }
   }
 }
