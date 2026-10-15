@@ -285,7 +285,59 @@
   "players": {
     "catalog": "assets/team-photos/catalog.json",
     "heightAuthority": "assets/team-photos/height-reference.json",
-    "approvedBody": "assets/team-photos/players/4431452-faces-v2.webp",
+    "approvedBody": "assets/team-photos/players/4262921-faces-v2.webp",
+    "headSize": {
+      "measuredBy": "scripts/check-player-heads.py (OpenCV YuNet face box; percentages of visible figure height, alpha>=128)",
+      "band": {
+        "head": [
+          15.2,
+          16.2
+        ],
+        "fitTarget": 15.7,
+        "faceMin": 12.8,
+        "widthMin": 9.3,
+        "faceToShoulderMax": 0.29,
+        "maxScalePerPass": 1.15
+      },
+      "references": {
+        "4262921-faces-v2.webp": {
+          "head": 15.7,
+          "face": 13.7,
+          "width": 10.3
+        },
+        "4040715-faces-v2.webp": {
+          "head": 15.6,
+          "face": 13.6,
+          "width": 10.2
+        },
+        "3043078-faces-v2.webp": {
+          "head": 15.8,
+          "face": 13.8,
+          "width": 10.0
+        },
+        "3121422-faces-v2.webp": {
+          "head": 15.8,
+          "face": 13.7,
+          "width": 10.1
+        }
+      },
+      "previousReference": {
+        "4047646-faces-v2.webp": {
+          "head": 14.9,
+          "face": 13.0,
+          "width": 9.8,
+          "note": "small-headed; not a head-size target"
+        }
+      },
+      "catalogMedian": {
+        "head": 16.5,
+        "face": 13.4,
+        "width": 9.9,
+        "faceToShoulder": 0.285
+      },
+      "updated": "2026-10-15",
+      "chosenByEye": "2026-10-15: league owner picked 15.7% (D) from a five-size strip of one figure; 16% fits of slim figures read as bobbleheads"
+    },
     "nativeHeight": 850,
     "resting": "proportional to heightInches; common baseline",
     "selected": "uniform target size independent of heightInches; 75% of original target",
