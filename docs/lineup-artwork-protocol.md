@@ -1,4 +1,8 @@
 # Lineup artwork rules for every AI editor
+
+## Owner update — fast generation, check and correction (October 14, 2026)
+For NEW roster players without artwork, use the existing site style and references, then follow `docs/lineup-artwork-protocol.md#fast-new-player-workflow`. The owner now authorizes a quick image-level proportion check, a targeted correction when needed, and a recheck of that correction. This specific instruction supersedes older bans on artwork inspections for this step. Keep the remaining speed rules: no browser review, unrelated tests, proof files or extra approval rounds. Do not use the generation-trial experiments as the production workflow or resize existing approved artwork as part of this task.
+
 These instructions apply to every new or edited lineup image: regular players, crutches, injury poses, trades, free agents and uniform changes. Follow them during creation; do not add publishing gates, evidence records or separate approval steps.
 
 ## Required inputs and proportions
@@ -48,3 +52,25 @@ Measure the actual hair-top, chin and sole positions as part of creating the ima
 Physical height remains independent: preserve verified heightInches for resting figures and the existing selected-size behavior. Catalog ratio means image width/height. Keep status restoration and every unrelated interaction unchanged.
 
 The owner still requests fast creation and publishing without separate browser reviews, tests, proof artifacts or approval rounds. Do not use that preference to excuse an obvious defect or invent a measurement that was never made.
+
+## Fast new-player workflow
+
+Start from this site's existing approved full-body style reference and the new player's official headshot. Keep the existing generation requirements and 16–17% range, targeting 16.5%. Do not import experimental toy/caricature prompts, replacement style references or head-pasting methods. Keep verified physical height in `heightInches`; it controls resting display size independently of the artwork's head ratio.
+
+1. **Generate once.** Create the complete connected player using the existing site style, identity, uniform and pose requirements.
+2. **Check the image immediately.** At native resolution, identify T (top of hair), C (bottom of chin, excluding neck) and S (bottom of planted soles). Calculate `r = (C-T)/(S-T)`. Use the same view to catch a visible head/neck seam, unnatural neck or obvious identity error. If r is within 0.16–0.17 and the anatomy is sound, proceed straight to normal asset packaging. Do not generate another version for a result already in range. Anatomical coordinates remain approximate; if hair or beard makes a boundary unclear, use a closer view and the official headshot rather than inventing a passing value.
+3. **Correct only when needed.** Use the new intact draft as the image-edit target, with the official headshot for identity and approved body reference for style. Give the editor the actual measured ratio and calculated correction. Preserve the body, chin position, collar, natural neck length, pose and soles. Render the head and its neck connection together with continuous shading. Never cut out and paste a scaled head, stretch the neck or compress the body. Allow transparent canvas space above the hair if necessary.
+4. **Recheck the corrected image once.** Recalculate from its actual landmarks and inspect the head/neck join in the same view. If it still fails, correct that specific remaining defect; do not launch another prompt experiment or silently publish a miss. A requested correction is not evidence that the editor achieved it.
+5. **Package and publish as requested.** Apply the existing visible-alpha crop, proportional 850px sizing, versioned filename and catalog rules. Preserve all lineup behavior. No additional site loading, browser screenshots, test suite, proof document or approval round.
+
+### Correction calculation and edit wording
+
+For a head-size correction with the chin and soles held in place, let `H = C-T` and `B = S-C`. The target head height is `Htarget = (0.165 / 0.835) * B`; the uniform head scale is `Htarget / H`; the target hair top is `C-Htarget`. This accounts for the changed total figure height when the head grows upward. Do not simply multiply by `0.165/r` while assuming the total height stays fixed. These numbers guide the image edit; they do not authorize a cutout compositor or guarantee the editor's output.
+
+Use this short edit instruction with the measured values filled in:
+
+> Edit this intact player. Its measured hair-to-chin / hair-to-soles ratio is [r]. Target 16.5%, within 16–17%. At the source resolution, hair top T=[T], chin C=[C], soles S=[S]. Keep chin and soles anchored; change head height from [H] to [Htarget] pixels, uniformly scaling facial proportions and hair by [factor]. Render the head and natural neck connection seamlessly together. Keep the collar, neck length, shoulders, torso, limbs, uniform, pose, identity and lighting consistent. Preserve transparency and add top canvas space if needed. No pasted patch, neck stretching or body compression. If output resolution changes, scale all coordinates together.
+
+### Timing the owner's next test
+
+Wait for the owner to name the new player. Start an elapsed-time timer when work on that player begins. Report total wall-clock time and brief preparation, generation, check/correction and packaging/publishing durations. Include the actual number of generation/edit calls and approximate final ratio. If the first image passes, report zero corrections; do not force an edit just to demonstrate one. Keep timing in the response; do not create a timing report or new publishing gate. The correction workflow is pending that test; do not claim a measured speed or successful correction before running it.

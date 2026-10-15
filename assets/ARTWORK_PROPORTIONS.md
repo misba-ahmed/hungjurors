@@ -1,4 +1,8 @@
 # Artwork proportions: durable reference
+
+## Owner update — fast generation, check and correction (October 14, 2026)
+For NEW roster players without artwork, use the existing site style and references, then follow `docs/lineup-artwork-protocol.md#fast-new-player-workflow`. The owner now authorizes a quick image-level proportion check, a targeted correction when needed, and a recheck of that correction. This specific instruction supersedes older bans on artwork inspections for this step. Keep the remaining speed rules: no browser review, unrelated tests, proof files or extra approval rounds. Do not use the generation-trial experiments as the production workflow or resize existing approved artwork as part of this task.
+
 Read together with MANAGER_ARTWORK_RULES.md and team-photos/STYLE_GUIDE.md before any artwork change.
 
 ## Measurement sources
