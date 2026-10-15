@@ -53,6 +53,16 @@
       "output": "mitchell-trial-1.webp",
       "headRatio": null,
       "reason": "Beard obscures anatomical chin; do not infer a pass from the requested ratio or choose a convenient chin coordinate."
+    },
+    {
+      "name": "Dart first generation",
+      "prompt": "prompt-7.txt",
+      "output": "dart-trial-1.webp",
+      "hairTopY": 10,
+      "chinY": 223,
+      "solesY": 1513,
+      "headRatio": 0.14172,
+      "note": "Approximate chin annotation; alpha>=128 bounding extent supports hair top and soles. Same prompt as Mitchell with identity, build and uniform substitutions only; no generated drafts supplied."
     }
   ]
 }
