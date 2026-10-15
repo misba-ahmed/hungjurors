@@ -2010,5 +2010,15 @@
     "name": "Germie Bernard",
     "teamId": 23,
     "jersey": "17"
+  },
+  "4599739": {
+    "file": "4599739-faces-v1.webp",
+    "width": 318,
+    "height": 850,
+    "ratio": 0.37412,
+    "heightInches": 72,
+    "name": "Kendre Miller",
+    "teamId": 18,
+    "jersey": "5"
   }
 }
