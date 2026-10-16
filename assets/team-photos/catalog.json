@@ -176,6 +176,16 @@
     "teamId": 33,
     "jersey": "22"
   },
+  "3045523": {
+    "file": "3045523-faces-v1.webp",
+    "width": 312,
+    "height": 850,
+    "ratio": 0.36706,
+    "heightInches": 73,
+    "name": "Kendrick Bourne",
+    "teamId": 22,
+    "jersey": "17"
+  },
   "3046439": {
     "file": "3046439-faces-v2.webp",
     "width": 326,
@@ -567,7 +577,14 @@
     "heightInches": 73,
     "name": "Jalen Hurts",
     "teamId": 21,
-    "jersey": "1"
+    "jersey": "1",
+    "unavailable": {
+      "file": "4040715-crutches-v1.webp",
+      "width": 326,
+      "height": 850,
+      "ratio": 0.38353,
+      "kind": "injury"
+    }
   },
   "4047365": {
     "file": "4047365-faces-v2.webp",
@@ -1980,6 +1997,23 @@
     "name": "Jeremiyah Love",
     "teamId": 22,
     "jersey": "4"
+  },
+  "4870847": {
+    "file": "4870847-faces-v1.webp",
+    "width": 295,
+    "height": 850,
+    "ratio": 0.34706,
+    "heightInches": 76,
+    "name": "Ja'Kobi Lane",
+    "teamId": 33,
+    "jersey": "6",
+    "unavailable": {
+      "file": "4870847-crutches-v1.webp",
+      "width": 305,
+      "height": 850,
+      "ratio": 0.35882,
+      "kind": "injury"
+    }
   },
   "4871023": {
     "file": "4871023-faces-v2.webp",

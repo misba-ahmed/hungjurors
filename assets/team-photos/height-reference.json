@@ -101,6 +101,12 @@
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/3043078?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:37.919Z"
   },
+  "3045523": {
+    "name": "Kendrick Bourne",
+    "heightInches": 73,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/3045523?lang=en&region=us",
+    "checkedAt": "2026-10-16T14:10:21.130Z"
+  },
   "3046439": {
     "name": "Hunter Henry",
     "heightInches": 77,
@@ -1024,6 +1030,12 @@
     "heightInches": 72,
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4870808?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.358Z"
+  },
+  "4870847": {
+    "name": "Ja'Kobi Lane",
+    "heightInches": 76,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4870847?lang=en&region=us",
+    "checkedAt": "2026-10-16T14:10:21.130Z"
   },
   "4871023": {
     "name": "Carnell Tate",
