@@ -1996,7 +1996,14 @@
     "heightInches": 72,
     "name": "Jeremiyah Love",
     "teamId": 22,
-    "jersey": "4"
+    "jersey": "4",
+    "unavailable": {
+      "file": "4870808-crutches-v1.webp",
+      "width": 327,
+      "height": 850,
+      "ratio": 0.38471,
+      "kind": "injury"
+    }
   },
   "4870847": {
     "file": "4870847-faces-v1.webp",
