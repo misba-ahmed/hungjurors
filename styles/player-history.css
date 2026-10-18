@@ -1,0 +1,9 @@
+.pc-history-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.pc-history-event{padding:12px;border:1px solid rgba(22,43,65,.14);border-radius:10px;background:rgba(255,255,255,.35)}
+.pc-history-event-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:5px 12px}
+.pc-history-event-head strong{font-size:14px;color:var(--navy,#162b41)}
+.pc-history-event-head time,.pc-history-note{font-size:12px;line-height:1.5;color:#606875}
+.pc-history-people{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:7px;font-size:12px}
+.pc-history-manager{display:inline-flex;align-items:center;gap:7px;color:inherit;font:inherit;font-weight:700;background:none;border:0;padding:0;text-align:left;cursor:pointer}
+.pc-history-manager .av{width:28px;height:28px;flex:0 0 28px;border-radius:50%;object-fit:cover}
+.pc-history-manager:focus-visible{outline:2px solid #bc963c;outline-offset:3px;border-radius:4px}

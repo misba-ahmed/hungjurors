@@ -11,3 +11,6 @@ Approved October 13, 2026:
 - Publish requested changes directly. The owner performs the review; do not run extra tests or browser verification.
 
 The original Career High bug read nonexistent high_score / career_high_score fields on manager-season rows instead of max_score, then overwrote historical highs with lower current-season results. The October 13 follow-up removes the regular-season restriction and adds year/week metadata.
+
+## Player transaction history
+History follows Splits and precedes News in both the card and its jump menu. Use the selected season’s executed ESPN league transactions and draft picks, with archived draft records as a fallback. Include dates, draft round/pick, manager names and existing manager avatars; trades identify both managers. Keep unavailable dates explicit and mark partial or failed feeds. Share requests by season, preserve History during asynchronous stat refreshes, and reject stale player/season responses. Manager links use the existing single-card lifecycle.

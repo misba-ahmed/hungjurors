@@ -1,3 +1,4 @@
+import {preparePlayerHistory} from './prepare-player-history.mjs';
 import {preparePerfectAwards} from './prepare-perfect-awards.mjs';
 import {prepareProfileDetails} from './prepare-profile-details.mjs';
 import {prepareNestedCards} from './prepare-nested-cards.mjs';
@@ -241,7 +242,7 @@ if(process.argv[2]){
  const assets=[...artwork.assets,...media.assets];
  if(assets.length)await mkdir(join(dirname(path),'assets/site-art'),{recursive:true});
  await Promise.all(assets.map(([name,bytes])=>writeFile(join(dirname(path),name),bytes)));
- await writeFile(path,prepareSite(source));
+ await writeFile(path,preparePlayerHistory(prepareSite(source)));
 }
 
 
