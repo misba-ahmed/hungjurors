@@ -413,6 +413,12 @@
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4360234?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.139Z"
   },
+  "4360238": {
+    "name": "Dameon Pierce",
+    "heightInches": 70,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4360238?lang=en&region=us",
+    "checkedAt": "2026-10-18T15:40:49.036Z"
+  },
   "4360248": {
     "name": "Kyle Pitts Sr.",
     "heightInches": 78,
