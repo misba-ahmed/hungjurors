@@ -1,6 +1,7 @@
 # Repository instructions
 
 ## Lineup artwork (every AI editor)
+When the owner says "check roster lineups" or "check rosters", check the current rosters, complete needed artwork updates, and push them to main for publication. Do not stop after reporting missing artwork.
 Read `docs/lineup-artwork-protocol.md` before EVERY player lineup artwork generation or edit, including crutches and all alternate poses. It is the only workflow: generate ONCE (Justin Jefferson reference + official headshot) → `python3 scripts/fit-player-head.py GENERATED.png OUT.webp` (sets head size, packages the 850px WebP) → catalog → publish. The owner forbids publishing checks, test passes for artwork-only updates, proof/comparison files, percentage reports and approval rounds. Older head-size targets, prompt-only constructions and measurement loops in this repository's history are superseded.
 
 Before ANY roster lineup code or styling update, read `assets/team-photos/STYLE_GUIDE.md` and preserve all original requirements. Resting figures use relative real heights; selected figures intentionally share one enlarged size. Run the lineup checks before publishing code or styling changes (never for artwork-only updates).

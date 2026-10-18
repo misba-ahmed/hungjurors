@@ -1025,6 +1025,16 @@
     "teamId": 7,
     "jersey": "17"
   },
+  "4373626": {
+    "file": "4373626-faces-v1.webp",
+    "width": 315,
+    "height": 850,
+    "ratio": 0.37059,
+    "heightInches": 70,
+    "name": "Tyler Allgeier",
+    "teamId": 22,
+    "jersey": "22"
+  },
   "4373678": {
     "file": "4373678-faces-v2.webp",
     "width": 320,
@@ -1627,7 +1637,14 @@
     "heightInches": 71,
     "name": "Jacory Croskey-Merritt",
     "teamId": 28,
-    "jersey": "22"
+    "jersey": "22",
+    "unavailable": {
+      "file": "4575131-crutches-v1.webp",
+      "width": 365,
+      "height": 850,
+      "ratio": 0.42941,
+      "kind": "injury"
+    }
   },
   "4595348": {
     "file": "4595348-faces-v2.webp",

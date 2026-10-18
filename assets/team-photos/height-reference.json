@@ -527,6 +527,12 @@
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4372016?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.178Z"
   },
+  "4373626": {
+    "name": "Tyler Allgeier",
+    "heightInches": 70,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4373626?lang=en&region=us",
+    "checkedAt": "2026-10-18T14:57:25.964Z"
+  },
   "4373678": {
     "name": "Khalil Shakir",
     "heightInches": 72,
