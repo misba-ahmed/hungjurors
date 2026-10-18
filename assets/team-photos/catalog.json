@@ -1402,7 +1402,14 @@
     "heightInches": 78,
     "name": "Tyler Warren",
     "teamId": 11,
-    "jersey": "84"
+    "jersey": "84",
+    "unavailable": {
+      "file": "4431459-crutches-v1.webp",
+      "width": 329,
+      "height": 850,
+      "ratio": 0.38706,
+      "kind": "injury"
+    }
   },
   "4431545": {
     "file": "4431545-faces-v2.webp",
@@ -1859,7 +1866,14 @@
     "heightInches": 72,
     "name": "Quinshon Judkins",
     "teamId": 5,
-    "jersey": "10"
+    "jersey": "10",
+    "unavailable": {
+      "file": "4685702-crutches-v1.webp",
+      "width": 341,
+      "height": 850,
+      "ratio": 0.40118,
+      "kind": "injury"
+    }
   },
   "4685720": {
     "file": "4685720-faces-v2.webp",
@@ -1937,6 +1951,16 @@
     "name": "Tyler Loop",
     "teamId": 33,
     "jersey": "33"
+  },
+  "4697815": {
+    "file": "4697815-faces-v1.webp",
+    "width": 309,
+    "height": 850,
+    "ratio": 0.36353,
+    "heightInches": 72,
+    "name": "Rachaad White",
+    "teamId": 28,
+    "jersey": "1"
   },
   "4701936": {
     "file": "4701936-faces-v2.webp",

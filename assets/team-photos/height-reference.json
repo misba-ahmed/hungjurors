@@ -995,6 +995,12 @@
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4697745?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.330Z"
   },
+  "4697815": {
+    "name": "Rachaad White",
+    "heightInches": 72,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4697815?lang=en&region=us",
+    "checkedAt": "2026-10-18T20:00:38.947Z"
+  },
   "4701936": {
     "name": "Matthew Golden",
     "heightInches": 71,
