@@ -19,3 +19,5 @@ Visual (October 19): History matches the profile's compact scale, not the site's
 
 ## Manager profile schedule cards (October 19)
 Each 2026 Schedule card shows the all-time H2H record on the left and the all-time point differential on the right of the bottom row (`managerScheduleHTML`). Played weeks are tinted by result: won light green (`is-win`, #eef7ef), lost light red (`is-loss`, #fcf4f1, the same tint as unsuccessful waiver claims). Styles: end of `styles/live-display.css`.
+
+Schedule navigation: only the opponent avatar opens that manager’s profile. Clicking the week, name, score, H2H line or card background closes the profile and opens the selected week and matchup in League HQ. Keyboard activation follows the same destinations. Keep `data-manager` off the schedule card itself so the profile’s delegated manager handler cannot intercept matchup navigation.
