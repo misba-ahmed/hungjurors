@@ -9,6 +9,16 @@
 #hq-panel-activity .hj-activity-filters label{gap:3px;font:900 7.5px/1.2 var(--sans);letter-spacing:.11em;text-transform:uppercase;color:#6b7a88}
 #hq-panel-activity .hj-activity-filters select,#hq-panel-activity .hj-activity-filters input{height:32px;border-color:rgba(20,50,79,.2);border-radius:6px;background:#fff;font:650 11px var(--sans);color:var(--navy,#14324F)}
 #hq-panel-activity .hj-activity-reset{height:32px;padding:0 12px;border:1px solid var(--navy,#14324F);border-radius:6px;background:transparent;color:var(--navy,#14324F);font:900 8px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase}
+/* One row at every width: the fields share the space, Reset keeps its size. */
+#hq-panel-activity .hj-activity-filters{flex-wrap:nowrap}
+#hq-panel-activity .hj-activity-filters label,#hq-panel-activity .hj-activity-filters .hj-activity-search{flex:1 1 0;min-width:0}
+#hq-panel-activity .hj-activity-filters .hj-activity-search{flex-grow:1.5}
+#hq-panel-activity .hj-activity-reset{flex:none}
+@media(max-width:500px){
+ #hq-panel-activity .hj-activity-filters{gap:4px;padding:7px 6px}
+ #hq-panel-activity .hj-activity-filters select,#hq-panel-activity .hj-activity-filters input{padding:6px 5px;font-size:10px;text-overflow:ellipsis}
+ #hq-panel-activity .hj-activity-reset{padding:0 7px;font-size:7px}
+}
 
 /* Metrics: navy scoreboard tiles; the active filter carries a brass underline. */
 #hq-panel-activity .hj-activity-metrics{gap:6px;margin:0 0 6px}
