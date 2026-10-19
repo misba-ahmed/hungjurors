@@ -350,39 +350,58 @@
  if(typeof setInterval==='function')setInterval(()=>{const card=document.querySelector('#wire-scroll [data-wire-key^="waiver-report-"]');if(card&&card.dataset.wireKey!=='waiver-report-'+wireCentralDateKey(Date.now()))wireRender(false);},60000);
 
  // League Activity: the latest waiver report stays here until the next Wednesday run.
- let activityReportOpen=true,activityReportDate=null,activityReportScroll=0;
+ // League Activity has two sub-tabs: the live feed and the Waiver Reports history.
+ let activityView='feed',activityReportDate=null,activityReportScroll=0;
+ const ctDate=at=>new Date(at).toLocaleDateString('en-US',{timeZone:'America/Chicago',weekday:'short',month:'short',day:'numeric'});
  function activityWaiverHTML(){
-  const history=waiverReportHistory();if(!history.length)return '';
+  const history=waiverReportHistory();
+  if(!history.length)return '<div class="hj-activity-empty">No waiver reports yet. Each Wednesday run appears here once ESPN processes it.</div>';
   const report=history.find(r=>r.date===activityReportDate)||history[0];
   const day=r=>new Date(r.at).toLocaleDateString('en-US',{timeZone:'America/Chicago',month:'short',day:'numeric'});
-  const date=new Date(report.at).toLocaleDateString('en-US',{timeZone:'America/Chicago',weekday:'short',month:'short',day:'numeric'});
   const successful=report.items.filter(row=>row.status==='EXECUTED').length,failed=report.items.length-successful;
   const chips=history.map(r=>'<button type="button" data-waiver-report="'+esc(r.date)+'" aria-pressed="'+(r===report)+'"><small>'+(r===history[0]?'Latest':r.week?'Week '+r.week:'Wed')+'</small><b>'+esc(day(r))+'</b></button>').join('');
-  return '<details class="hj-wr" data-activity-waivers'+(activityReportOpen?' open':'')+'><summary><span class="hj-wr-head"><span class="hj-wr-kicker">'+(report.week?'Week '+report.week+' · ':'')+'Processed '+esc(date)+'</span><span class="hj-wr-title">Waiver Reports</span></span><span class="hj-wr-summary"><span class="is-ok"><b>'+successful+'</b> successful</span><span class="is-fail"><b>'+failed+'</b> unsuccessful</span></span><span class="hj-wr-chevron" aria-hidden="true"></span></summary><div class="hj-wr-history" role="group" aria-label="Waiver report history">'+chips+'</div><div class="wr-list" role="list">'+waiverClaimRows(report)+'</div></details>';
+  return '<div class="hj-wr" role="region" aria-label="Waiver reports"><div class="hj-wr-history" role="group" aria-label="Choose a Wednesday">'+chips+'</div><div class="hj-wr-card"><header class="hj-wr-bar"><span class="hj-wr-head"><span class="hj-wr-kicker">'+(report.week?'Week '+report.week+' · ':'')+'Processed '+esc(ctDate(report.at))+'</span><span class="hj-wr-title">Waiver Report</span></span><span class="hj-wr-summary"><span class="is-ok"><b>'+successful+'</b> successful</span><span class="is-fail"><b>'+failed+'</b> unsuccessful</span></span></header><div class="wr-list" role="list">'+waiverClaimRows(report)+'</div></div></div>';
  }
- // Presentation only: manager portraits, short times, day counts, active metric.
+ function activityTabsHTML(feedCount){
+  const history=waiverReportHistory(),fresh=history[0]&&history[0].date===wireCentralDateKey(Date.now());
+  const tab=(id,label,count,dot)=>'<button type="button" role="tab" data-activity-view="'+id+'" aria-selected="'+(activityView===id)+'">'+label+(count!=null?'<span class="hj-act-count">'+count+'</span>':'')+(dot?'<span class="hj-act-new">New</span>':'')+'</button>';
+  return '<div class="hj-act-tabs" role="tablist" aria-label="League Activity views">'+tab('feed','Activity',feedCount)+tab('waivers','Waiver Reports',history.length,fresh)+'</div>';
+ }
+ // Transaction card: manager portrait + name and kind on the left, date over
+ // time on the right; one row per player with the move on the right.
+ const KIND_LABEL={trade:'Trade',waiver:'Waiver claim',swap:'Add / drop',add:'Free-agent add',drop:'Drop'};
+ function activityCardHTML(g){
+  const managers=g.managers.length?g.managers:['League'];
+  const face=name=>Object.prototype.hasOwnProperty.call(AV,name)?av(name):'<span class="hj-txc-initials">'+esc(hjInitials(name))+'</span>';
+  const at=new Date(g.at),date=at.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}),time=at.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+  const order={Add:0,Drop:1};
+  const rows=g.rows.slice().sort((a,b)=>(order[a.type]??2)-(order[b.type]??2)).map(r=>{
+   const p=r.player||{},pos=String(p.position||'').replace('D/ST','DST'),name=String(p.name||'Player').replaceAll('D/ST','DST'),type=String(r.type||'').toLowerCase();
+   const act=r.type==='Add'?'Added':r.type==='Drop'?'Dropped':'To '+esc(r.to||'');
+   return '<li><button class="hj-txc-player pc-player-trigger is-'+esc(type)+'" type="button" '+ffnPlayerDataAttrs(p)+' aria-label="Open '+esc(name)+' player profile">'+(p.photo?'<img src="'+esc(p.photo)+'" alt="" loading="lazy" onerror="ffnImageFallback(this)">':'<span class="hj-tx-initials">'+esc(hjInitials(name))+'</span>')+'<span class="hj-tx-player-copy"><b>'+esc(name)+'</b><small>'+esc([p.team,pos].filter(Boolean).join(' · '))+'</small></span><span class="hj-txc-act">'+act+'</span></button></li>';
+  }).join('');
+  return '<article class="hj-transaction hj-txc is-'+esc(g.kind)+'" data-transaction-id="'+esc(g.key)+'"><header class="hj-txc-head"><span class="hj-txc-faces">'+managers.slice(0,2).map(face).join('')+'</span><span class="hj-txc-who"><b>'+managers.map(esc).join(' <i>⇄</i> ')+'</b><span class="hj-txc-meta"><span class="hj-txc-kind">'+(KIND_LABEL[g.kind]||'Roster move')+'</span></span></span><time class="hj-txc-when" datetime="'+at.toISOString()+'" title="'+esc(at.toLocaleString())+'"><span>'+esc(date)+'</span><span>'+esc(time)+'</span></time></header><ul class="hj-txc-moves">'+rows+'</ul></article>';
+ }
+ if(typeof hjActivityCard==='function')window.hjActivityCard=hjActivityCard=activityCardHTML;
  function decorateActivity(html){
   const template=document.createElement('template');template.innerHTML=html;
   const root=template.content.querySelector('.hj-activity-dashboard');if(!root)return html;
-  root.insertAdjacentHTML('afterbegin',activityWaiverHTML());
+  const total=Number((root.querySelector('.hj-activity-count')?.textContent.match(/\d+/g)||[]).pop());
+  if(activityView==='waivers'){root.innerHTML=activityTabsHTML(Number.isFinite(total)?total:null)+activityWaiverHTML();root.classList.add('is-waivers');return template.innerHTML;}
+  root.insertAdjacentHTML('afterbegin',activityTabsHTML(Number.isFinite(total)?total:null));
   root.querySelector('[data-activity-metric="'+HJ_ACTIVITY_VIEW.type+'"]')?.setAttribute('aria-pressed','true');
   root.querySelectorAll('.hj-activity-day').forEach(day=>{const h=day.querySelector(':scope>h4'),n=day.querySelectorAll('.hj-transaction').length;h?.insertAdjacentHTML('beforeend','<span class="hj-day-count">'+n+(n===1?' move':' moves')+'</span>');});
-  root.querySelectorAll('.hj-transaction').forEach(card=>{
-   const h=card.querySelector('header h4'),time=card.querySelector('header time');
-   if(h&&!h.querySelector('.hj-tx-mgr')){const names=h.textContent.split(' ↔ ').filter(Boolean);h.innerHTML=names.map(name=>'<span class="hj-tx-mgr">'+(Object.prototype.hasOwnProperty.call(AV,name)?av(name):'')+'<span>'+esc(name)+'</span></span>').join('<span class="hj-tx-swap" aria-label="with">⇄</span>');}
-   if(time){const at=new Date(time.getAttribute('datetime'));if(!isNaN(at))time.textContent=at.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});}
-  });
   return template.innerHTML;
  }
  if(typeof hjActivityHTML==='function'){
   const activityBase=hjActivityHTML;
   window.hjActivityHTML=hjActivityHTML=function(){return decorateActivity(activityBase.apply(this,arguments))};
  }
- document.addEventListener('toggle',event=>{if(event.target.matches?.('[data-activity-waivers]'))activityReportOpen=event.target.open;},true);
  document.addEventListener('scroll',event=>{if(event.target.matches?.('.hj-wr-history'))activityReportScroll=event.target.scrollLeft;},true);
  document.addEventListener('click',event=>{
-  const chip=event.target.closest?.('[data-waiver-report]');if(!chip)return;
-  activityReportDate=chip.dataset.waiverReport;hjRenderActivityPanelV24();
+  const view=event.target.closest?.('[data-activity-view]'),chip=event.target.closest?.('[data-waiver-report]');
+  if(view){activityView=view.dataset.activityView;hjRenderActivityPanelV24();return;}
+  if(chip){activityReportDate=chip.dataset.waiverReport;hjRenderActivityPanelV24();}
  });
  // Keep the history strip where the reader left it across 30-second refreshes.
  if(typeof hjRenderActivityPanelV24==='function'){
