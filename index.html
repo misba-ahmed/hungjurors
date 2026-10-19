@@ -14558,10 +14558,12 @@ const AWARD24_VIEWS = {
       const result=scheduleResultLabel(name,g.week);
       const series=scheduleAllTimeSeries(name,g.opponent);
       const diff=series.aPF-series.bPF;
+      // H2H record on the left, all-time point differential on the right.
       const h2h=series.games
-        ? `H2H ${series.aWins}–${series.bWins}${series.ties?`–${series.ties}`:''} · ${diff>=0?'+':''}${num(diff,2)} PTS`
-        : 'H2H · NO PRIOR MEETINGS';
-      return `<div class="profile-schedule-node manager-profile-trigger${g.week>=10?' rematch':''}${g.week===current?' current':''}" data-manager="${esc(g.opponent)}" tabindex="0" role="button" aria-label="Open ${esc(g.opponent)} profile"><span class="profile-schedule-week">W${g.week}${g.week>=10?' ↻':''}</span>${av(g.opponent,'mini')}<span class="profile-schedule-opp"><span class="profile-schedule-vs">VS</span><span class="profile-schedule-opp-name">${esc(g.opponent)}</span></span>${result?`<span class="profile-schedule-result">${esc(result)}</span>`:''}<span class="profile-schedule-h2h">${esc(h2h)}</span></div>`;
+        ? `<span>H2H ${series.aWins}–${series.bWins}${series.ties?`–${series.ties}`:''}</span><span class="profile-schedule-diff">${diff>=0?'+':''}${num(diff,2)} PTS</span>`
+        : '<span>H2H · NO PRIOR MEETINGS</span>';
+      const outcome=/^W /.test(result)?' is-win':/^L /.test(result)?' is-loss':'';
+      return `<div class="profile-schedule-node manager-profile-trigger${g.week>=10?' rematch':''}${g.week===current?' current':''}${outcome}" data-manager="${esc(g.opponent)}" tabindex="0" role="button" aria-label="Open ${esc(g.opponent)} profile"><span class="profile-schedule-week">W${g.week}${g.week>=10?' ↻':''}</span>${av(g.opponent,'mini')}<span class="profile-schedule-opp"><span class="profile-schedule-vs">VS</span><span class="profile-schedule-opp-name">${esc(g.opponent)}</span></span>${result?`<span class="profile-schedule-result">${esc(result)}</span>`:''}<span class="profile-schedule-h2h">${h2h}</span></div>`;
     }).join('');
     return `<div class="profile-section profile-schedule-compact">
       <div class="profile-schedule-compact-head">

@@ -188,3 +188,10 @@ html body .league-roster-lineup-head-total .hq-adjusted-projection{
 @media(max-width:450px){
  html body .league-roster-lineup-head-total .hq-match-team-score{font-size:14px!important}
 }
+
+/* Manager profile schedule: H2H left, point differential right; won games
+   light green, lost games light red (same tint as unsuccessful waiver claims). */
+html body .profile-schedule-compact .profile-schedule-h2h{display:flex!important;justify-content:space-between!important;align-items:baseline;gap:6px}
+html body .profile-schedule-compact .profile-schedule-h2h>span{white-space:nowrap}
+html body .profile-schedule-compact .profile-schedule-node.is-win{background:#eef7ef!important}
+html body .profile-schedule-compact .profile-schedule-node.is-loss{background:#fcf4f1!important}
