@@ -162,3 +162,144 @@ function ffnEnsureBuffer(){
   else if(session.retryAt>Date.now())ffnBufferTimer=setTimeout(ffnEnsureBuffer,session.retryAt-Date.now()+100);
  },80);
 }
+
+/* News audit (October 19, 2026).
+ * 1. Current NFL teams. The news roster starts from a built-in preseason
+ *    snapshot (FFN_BOOTSTRAP_ROSTER) and was never refreshed, so traded or
+ *    released players kept their old team, game line, logo and "related"
+ *    teammates, and players signed later never got news. ESPN's fantasy player
+ *    list (one request, cached 30 minutes) now corrects every team, marks
+ *    released players FA and adds rostered or ≥1%-owned players the snapshot lacks.
+ * 2. The game line follows the live week. Cards drawn before league data
+ *    loaded stored week 1 and kept showing that week's game and stats.
+ * 3. Weekly stats and fantasy points for every news player (also free agents),
+ *    from one league-scored ESPN request per refresh. */
+const HJ_NEWS_LIVE={teams:null,teamsAt:0,teamsPending:null,pool:new Map(),poolKey:'',poolAt:0,poolPending:null};
+const HJ_NEWS_TEAMS_KEY='hj:news-teams:v1:'+(typeof NFL_SEASON!=='undefined'?NFL_SEASON:'');
+const HJ_NEWS_POSITIONS={1:'QB',2:'RB',3:'WR',4:'TE',5:'K'};
+function hjNewsWeek(){
+ if(typeof HJ_LEAGUE_STATE!=='undefined'&&HJ_LEAGUE_STATE.data)return hjCurrentWeek();
+ return Number((typeof NFL_WEEK1!=='undefined'?NFL_WEEK1:[]).find(g=>Number(g?.week))?.week)||1;
+}
+function hjNewsTeamAbbr(proTeamId){
+ if(!Number(proTeamId))return 'FA';
+ const abbr=String((typeof HJ_PRO_TEAM_BY_ID!=='undefined'&&HJ_PRO_TEAM_BY_ID[String(proTeamId)])||'').toUpperCase();
+ return abbr==='WSH'?'WAS':abbr;
+}
+async function hjNewsLoadTeams(){
+ if(HJ_NEWS_LIVE.teams&&Date.now()-HJ_NEWS_LIVE.teamsAt<30*60000)return HJ_NEWS_LIVE.teams;
+ if(!HJ_NEWS_LIVE.teams){try{const saved=JSON.parse(localStorage.getItem(HJ_NEWS_TEAMS_KEY)||'null');if(saved?.rows?.length&&Date.now()-saved.at<30*60000){HJ_NEWS_LIVE.teams=saved.rows;HJ_NEWS_LIVE.teamsAt=saved.at;return saved.rows}}catch(_){}}
+ if(HJ_NEWS_LIVE.teamsPending)return HJ_NEWS_LIVE.teamsPending;
+ HJ_NEWS_LIVE.teamsPending=(async()=>{
+  try{
+   const list=await hjDataJson('https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/'+NFL_SEASON+'/players?view=players_wl',{headers:{'x-fantasy-filter':JSON.stringify({filterActive:{value:true}})}});
+   if(!Array.isArray(list)||list.length<500)throw Error('Incomplete ESPN player list');
+   const rows=list.filter(p=>HJ_NEWS_POSITIONS[p.defaultPositionId]).map(p=>[String(p.id),p.fullName||'',hjNewsTeamAbbr(p.proTeamId),HJ_NEWS_POSITIONS[p.defaultPositionId],Math.round(Number(p.ownership?.percentOwned)||0)]);
+   HJ_NEWS_LIVE.teams=rows;HJ_NEWS_LIVE.teamsAt=Date.now();
+   try{localStorage.setItem(HJ_NEWS_TEAMS_KEY,JSON.stringify({at:HJ_NEWS_LIVE.teamsAt,rows}))}catch(_){}
+  }catch(error){console.warn('ESPN player teams unavailable; news keeps the saved teams.',error)}
+  finally{HJ_NEWS_LIVE.teamsPending=null}
+  return HJ_NEWS_LIVE.teams;
+ })();
+ return HJ_NEWS_LIVE.teamsPending;
+}
+// Correct teams in place and add missing relevant players. Returns true on change.
+function hjNewsApplyTeams(){
+ const rows=HJ_NEWS_LIVE.teams;if(!rows?.length||!Array.isArray(ffnRosterPlayers))return false;
+ const live=new Map(rows.map(r=>[r[0],r])),byId=new Map(ffnRosterPlayers.map(p=>[String(p.id),p]));
+ let rostered=new Set();
+ try{(HJ_LEAGUE_STATE.data?.teams||[]).forEach(t=>hjRosterEntries(t).forEach(e=>rostered.add(String(hjPlayer(e)?.id||e.playerId||''))))}catch(_){}
+ let changed=false;
+ for(const p of ffnRosterPlayers){const r=live.get(String(p.id));if(r&&r[2]&&p.team!==r[2]){p.team=r[2];changed=true}}
+ for(const r of rows){
+  if(byId.has(r[0])||r[2]==='FA'||!(rostered.has(r[0])||r[4]>=1))continue;
+  ffnRosterPlayers.push({id:r[0],name:r[1],team:r[2],position:r[3],photo:nflHeadshot(r[0]),norm:ffnNorm(r[1])});changed=true;
+ }
+ if(!changed)return false;
+ ffnRosterByTeam=new Map();
+ for(const p of ffnRosterPlayers){if(!ffnRosterByTeam.has(p.team))ffnRosterByTeam.set(p.team,[]);ffnRosterByTeam.get(p.team).push(p)}
+ for(const team of ffnRosterByTeam.values())ffnAssignPositionRanks(team).sort(ffnDepthCompare);
+ return true;
+}
+if(typeof ffnBuildRoster==='function'&&typeof ffnCardHTML==='function'){
+ const baseBuild=ffnBuildRoster;
+ ffnBuildRoster=async function(){
+  const players=await baseBuild.apply(this,arguments);
+  // First visit waits up to 5 s for the team list; later visits use the cache.
+  await Promise.race([hjNewsLoadTeams(),new Promise(r=>setTimeout(r,5000))]);
+  hjNewsApplyTeams();
+  return ffnRosterPlayers||players;
+ };
+ hjNewsLoadTeams().then(()=>{if(hjNewsApplyTeams()&&typeof ffnRebuildRail==='function'&&ffnItems?.length){ffnUpdateFilterOptions();ffnRebuildRail()}});
+ // Every card is drawn with the player's current team and teammates.
+ const baseCard=ffnCardHTML;
+ ffnCardHTML=function(item){
+  const p=item&&ffnRosterPlayers?.find(x=>String(x.id)===String(item.espn_id));
+  if(p&&p.team&&p.team!==item.team){item.team=p.team;item.related=ffnRelatedFor(item)}
+  // Meta line: HOU · WR5 · score — one separator per item, rank like the rest of the site.
+  const tpl=document.createElement('template');tpl.innerHTML=baseCard.apply(this,arguments);
+  const meta=tpl.content.querySelector('.ffn-meta'),seps=meta?[...meta.querySelectorAll(':scope>.ffn-meta-sep')]:[];
+  if(meta&&seps.length>=2){
+   const pos=seps[0].nextElementSibling;seps[1].remove();
+   if(pos){const player={id:item.espn_id,name:item.player,team:item.team,position:item.position};pos.classList.add('hj-news-rank');pos.dataset.hjNewsRank=JSON.stringify(player);pos.textContent=hjNewsRankLabel(player)}
+  }
+  return tpl.innerHTML;
+ };
+}
+// Weekly ESPN entries (league scoring: actual + projection) for news players.
+async function hjNewsLoadPool(){
+ const week=hjNewsWeek(),ids=[...new Set([...document.querySelectorAll('#ffn-scroll [data-hj-game-player]')].map(el=>{try{return String(JSON.parse(el.dataset.hjGamePlayer).id||'')}catch(_){return ''}}).filter(Boolean))].slice(0,150);
+ if(!ids.length||HJ_NEWS_LIVE.poolPending)return;
+ const key=week+':'+ids.slice().sort().join(','),live=[...document.querySelectorAll('#ffn-scroll .hj-game-status')].some(el=>/\bQ\d|\bHT\b|\bOT\b|LIVE/.test(el.textContent));
+ if(key===HJ_NEWS_LIVE.poolKey&&Date.now()-HJ_NEWS_LIVE.poolAt<(live?60000:600000))return;
+ HJ_NEWS_LIVE.poolPending=(async()=>{
+  try{
+   const url='https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/'+NFL_SEASON+'/segments/0/leagues/'+ESPN_FANTASY_LEAGUE_ID+'?scoringPeriodId='+week+'&view=kona_player_info';
+   const data=await hjDataJson(url,{headers:{'x-fantasy-filter':JSON.stringify({players:{filterIds:{value:ids.map(Number)},filterStatsForSourceIds:{value:[0,1]},filterStatsForSplitTypeIds:{value:[1]},filterStatsForScoringPeriodIds:{value:[week]}}})}});
+   if(!Array.isArray(data?.players))throw Error('ESPN player stats unavailable');
+   data.players.forEach(entry=>{const id=String(entry?.player?.id||entry?.id||'');if(id)HJ_NEWS_LIVE.pool.set(id,entry)});
+   HJ_NEWS_LIVE.poolKey=key;HJ_NEWS_LIVE.poolAt=Date.now();
+   hjRefreshGameContexts();
+  }catch(error){console.warn('News player stats unavailable',error);HJ_NEWS_LIVE.poolAt=Date.now()-540000}
+  finally{HJ_NEWS_LIVE.poolPending=null}
+ })();
+}
+globalThis.hjNewsPoolEntry=id=>HJ_NEWS_LIVE.pool.get(String(id))||null;
+// Team · position rank · fantasy score (coloured against the ESPN projection)
+// or, before kickoff, the ESPN projection in plain italics ("3.58 proj.").
+function hjNewsPointsHTML(player,week){
+ let entry=null;try{entry=hjContextEntry(player,week)}catch(_){}
+ const actual=entry?hjNumber(hjWeeklyStat(entry,week,0)?.appliedTotal):null,proj=entry?hjNumber(hjWeeklyStat(entry,week,1)?.appliedTotal):null;
+ let started=false;try{const g=hjUpcomingForWeek(player.team,Number(week))?.game;started=!!g&&(g.state==='in'||g.state==='post'||!!g.completed)}catch(_){}
+ // A player who sat shows no points; the game line says "Did not play".
+ const record=entry?hjWeeklyStat(entry,week,0):null;
+ if(started&&record&&!Object.values(record.stats||{}).some(v=>Number(v)))return '';
+ // One number: the fantasy score once the game starts, otherwise the projection.
+ const sep='<span class="ffn-meta-sep">·</span>';
+ if(started&&actual!==null)return sep+'<b class="hj-news-pts-value" '+hjPerformanceAttrs(actual,proj??NaN)+'>'+pcFpts(actual)+' PTS</b>';
+ if(proj!==null&&proj>0)return sep+'<i>'+pcFpts(proj)+' proj.</i>';
+ return '';
+}
+if(typeof hjNewsGameHTML==='function')hjNewsGameHTML=function(item){
+ const player={id:item.espn_id,name:item.player,team:item.team,position:item.position},week=hjNewsWeek();
+ let context;
+ try{context=hjGameContextHTML({...player,live:true},week).replace('data-hj-game-player="'+esc(JSON.stringify({id:player.id,name:player.name,team:player.team,position:player.position,week}))+'"','data-hj-game-player="'+esc(JSON.stringify({id:player.id,name:player.name,team:player.team,position:player.position,week,live:true}))+'"')}
+ catch(_){context='<span class="hj-game-context" data-hj-game-player="'+esc(JSON.stringify({...player,week,live:true}))+'"><span class="hj-game-status">'+esc(item.next_game||'Next game TBD')+'</span></span>'}
+ let pts='';try{pts=hjNewsPointsHTML(player,week)}catch(_){}
+ return '<span class="hj-news-pts" data-hj-news-pts="'+esc(JSON.stringify(player))+'">'+pts+'</span>'+context;
+};
+function hjNewsRankLabel(player){
+ const position=String(player.position||'').replace('D/ST','DST');
+ let rank=null;try{rank=hjFantasyRankForPlayer(player)}catch(_){}
+ return position+(Number(rank)>0?rank:'');
+}
+function hjRefreshNewsPoints(){
+ const week=hjNewsWeek();
+ document.querySelectorAll('#ffn-scroll [data-hj-news-rank]').forEach(el=>{try{const label=hjNewsRankLabel(JSON.parse(el.dataset.hjNewsRank));if(el.textContent!==label)el.textContent=label}catch(_){}});
+ if(typeof HJ_FANTASY_RANKS!=='undefined'&&!HJ_FANTASY_RANKS.ready&&typeof hjEnsureFantasyRanks==='function')hjEnsureFantasyRanks().then(()=>hjRefreshGameContexts()).catch(()=>{});
+ document.querySelectorAll('#ffn-scroll [data-hj-news-pts]').forEach(el=>{
+  try{const html=hjNewsPointsHTML(JSON.parse(el.dataset.hjNewsPts),week);if(el.innerHTML!==html)el.innerHTML=html}catch(_){}
+ });
+ hjNewsLoadPool();
+}
+globalThis.hjRefreshNewsPoints=hjRefreshNewsPoints;

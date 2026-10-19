@@ -8530,7 +8530,7 @@ function hjPerformanceAttrs(actual,projection){
 }
 function hjContextEntry(player,week){
  const id=String(player.id||'');
- return hjLiveScoringEntries(HJ_LEAGUE_STATE.data,week).get(id)||pcFindLeagueProjectionEntry(player)||(typeof HJ_ESPN_HQ_POOL!=='undefined'?HJ_ESPN_HQ_POOL.byId?.get(id):null)||null;
+  return hjLiveScoringEntries(HJ_LEAGUE_STATE.data,week).get(id)||pcFindLeagueProjectionEntry(player)||window.hjNewsPoolEntry?.(id)||(typeof HJ_ESPN_HQ_POOL!=='undefined'?HJ_ESPN_HQ_POOL.byId?.get(id):null)||null;
 }
 function hjGameContextData(player,week,entry){
  const upcoming=hjUpcomingForWeek(player.team,Number(week)),g=upcoming?.game;
@@ -8552,7 +8552,11 @@ function hjGameContextData(player,week,entry){
  }
  const resolved=entry||hjContextEntry(player,week),started=g.state==='in'||g.state==='post'||g.completed;
  const stats=(resolved?window.hjLiveFantasyStatLine?.(resolved,week,player.position,player.team)||'':'')||hjCachedFantasyStats(player,week);
- return {game,stats:stats||(started?'Stats pending':''),title,opponent:opp,rank:rank?.rank,season:rank?.season||Number(NFL_SEASON),position:player.position};
+ // News cards only. Finished game: ESPN's week record with no non-zero stat (or no record at all
+ // once ESPN has returned this week for the player) means the player sat.
+ const final=g.state==='post'||!!g.completed,record=resolved?hjWeeklyStat(resolved,week,0):null;
+ const sat=!!player.live&&final&&resolved&&(record?!Object.values(record.stats||{}).some(v=>Number(v)):(hjPlayer(resolved).stats||[]).some(s=>Number(s.scoringPeriodId)===Number(week)));
+ return {game,stats:sat?'Did not play':stats||(started?'Stats pending':''),title,opponent:opp,rank:rank?.rank,season:rank?.season||Number(NFL_SEASON),position:player.position};
 }
 function hjGameContextHTML(player,week,entry=null){
  const c=hjGameContextData(player,week,entry);
@@ -8583,6 +8587,7 @@ function hjRefreshGameContexts(){
    if(el.title!==title)el.title=title;
   }catch(_){}
  });
+ window.hjRefreshNewsPoints?.();
 }
 document.addEventListener('DOMContentLoaded',()=>{
  let queued=false;

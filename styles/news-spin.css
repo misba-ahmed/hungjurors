@@ -13,3 +13,9 @@
 #ffn-scroll .ffn-text{font-size:var(--ffn-news-size)}
 #ffn-scroll .hj-game-context,#ffn-scroll .hj-game-status,#ffn-scroll .hj-game-stats{font-size:var(--ffn-news-size)!important}
 @media(max-width:640px){#ffn-scroll .ffn-card{--ffn-news-size:10.2px}}
+/* Team · position rank · fantasy score (or projection) on one line, spaced dots. */
+#ffn-scroll .ffn-meta-sep{margin:0 .3em}
+#ffn-scroll .hj-news-pts{white-space:nowrap}
+#ffn-scroll .hj-news-pts:empty{display:none}
+#ffn-scroll .hj-news-pts b{font-weight:800}
+#ffn-scroll .hj-news-pts i{font-style:italic;font-weight:400;color:inherit;text-transform:none}

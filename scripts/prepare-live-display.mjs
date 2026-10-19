@@ -46,7 +46,7 @@ const patches=[
     "label": "update live row state",
     "source": "   const p=JSON\\.parse\\(el\\.dataset\\.hjGamePlayer\\),c=hjGameContextData\\(p,p\\.week\\);",
     "flags": "g",
-    "replacement": "   const p=JSON.parse(el.dataset.hjGamePlayer),c=hjGameContextData(p,p.week);\n   const row=el.closest('.hj-player-v3');\n   if(row){const live=hjUpcomingForWeek(p.team,Number(p.week))?.game?.state==='in';\n    if(row.dataset.gameInProgress!==String(live))row.dataset.gameInProgress=String(live);}"
+    "replacement": "   const p=JSON.parse(el.dataset.hjGamePlayer);\n   // News cards follow the live week instead of the week they were drawn in.\n   if(p.live&&typeof hjNewsWeek==='function')p.week=hjNewsWeek();\n   const c=hjGameContextData(p,p.week);\n   const row=el.closest('.hj-player-v3');\n   if(row){const live=hjUpcomingForWeek(p.team,Number(p.week))?.game?.state==='in';\n    if(row.dataset.gameInProgress!==String(live))row.dataset.gameInProgress=String(live);}"
   },
   {
     "label": "remove width-dependent placement",
