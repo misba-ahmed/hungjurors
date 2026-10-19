@@ -1,6 +1,7 @@
 /* Preserve native focus zoom, then undo only the zoom from this search session. */
 (function(){
- const selector='#hq-fa-search',viewport=window.visualViewport;
+ // Players tab search and the Fantasy Football News player-name filter.
+ const selector='#hq-fa-search,#ffn-player-filter',viewport=window.visualViewport;
  let session=null,reset=null;
  const isSearch=target=>target?.matches?.(selector);
  const scale=()=>viewport?.scale||1;
