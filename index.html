@@ -14568,7 +14568,7 @@ const AWARD24_VIEWS = {
         ? `<span>H2H ${series.aWins}–${series.bWins}${series.ties?`–${series.ties}`:''}</span><span class="profile-schedule-diff">${diff>=0?'+':''}${num(diff,2)} PTS</span>`
         : '<span>H2H · NO PRIOR MEETINGS</span>';
       const outcome=/^W /.test(result)?' is-win':/^L /.test(result)?' is-loss':'';
-      return `<div class="profile-schedule-node manager-profile-trigger${g.week>=10?' rematch':''}${g.week===current?' current':''}${outcome}" data-manager="${esc(g.opponent)}" tabindex="0" role="button" aria-label="Open ${esc(g.opponent)} profile"><span class="profile-schedule-week">W${g.week}${g.week>=10?' ↻':''}</span>${av(g.opponent,'mini')}<span class="profile-schedule-opp"><span class="profile-schedule-vs">VS</span><span class="profile-schedule-opp-name">${esc(g.opponent)}</span></span>${result?`<span class="profile-schedule-result">${esc(result)}</span>`:''}<span class="profile-schedule-h2h">${h2h}</span></div>`;
+      return `<div class="profile-schedule-node${g.week>=10?' rematch':''}${g.week===current?' current':''}${outcome}" data-profile-matchup-week="${g.week}" data-profile-matchup-owner="${esc(name)}" data-profile-matchup-opponent="${esc(g.opponent)}" tabindex="0" role="button" aria-label="Open Week ${g.week} ${esc(name)} vs ${esc(g.opponent)} in Matchup Center"><span class="profile-schedule-week">W${g.week}${g.week>=10?' ↻':''}</span><button type="button" class="profile-schedule-avatar manager-profile-trigger" data-manager="${esc(g.opponent)}" aria-label="Open ${esc(g.opponent)} manager profile">${av(g.opponent,'mini')}</button><span class="profile-schedule-opp"><span class="profile-schedule-vs">VS</span><span class="profile-schedule-opp-name">${esc(g.opponent)}</span></span>${result?`<span class="profile-schedule-result">${esc(result)}</span>`:''}<span class="profile-schedule-h2h">${h2h}</span></div>`;
     }).join('');
     return `<div class="profile-section profile-schedule-compact">
       <div class="profile-schedule-compact-head">
@@ -14762,10 +14762,19 @@ const AWARD24_VIEWS = {
     const head=document.createElement('div');head.className='manager-modal-head';head.innerHTML=`${av(name)}<div class="manager-modal-heading"><div class="manager-modal-kicker">${currentManagers.has(name)?'Current Manager':'League Alum'}</div><h2 class="manager-modal-title">${esc(name)}</h2></div>`;
     const close=document.createElement('button');close.type='button';close.className='manager-modal-close';close.setAttribute('aria-label','Close manager profile');close.textContent='×';head.appendChild(close);
     const scroll=document.createElement('div');scroll.className='manager-modal-scroll';scroll.innerHTML=managerProfileHTML(name);back.append(head,scroll);flip.append(front,back);stage.appendChild(flip);overlay.appendChild(stage);document.body.appendChild(overlay);
+    const openSchedule=e=>{
+      const card=e.target.closest?.('[data-profile-matchup-week]');
+      if(!card||!scroll.contains(card)||e.target.closest('.profile-schedule-avatar'))return false;
+      e.preventDefault();e.stopImmediatePropagation();
+      hjOpenProfileScheduleMatchup(back,card.dataset.profileMatchupOwner,card.dataset.profileMatchupOpponent,Number(card.dataset.profileMatchupWeek));
+      return true;
+    };
+    scroll.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')openSchedule(e)});
     const onKey=e=>{if(e.key==='Escape'){e.stopImmediatePropagation();closeManagerModal();}};
     activeManagerModal={overlay,stage,origin,rect,onKey};document.body.classList.add('manager-modal-open');document.addEventListener('keydown',onKey,true);
     close.addEventListener('click',()=>closeManagerModal());overlay.addEventListener('click',e=>{if(e.target===overlay)closeManagerModal();});
     scroll.addEventListener('click',e=>{
+      if(openSchedule(e))return;
       const season=e.target.closest('[data-profile-season]'); if(season){const year=Number(season.dataset.profileSeason);closeManagerModal();setTimeout(()=>document.querySelector(`.history-jump[data-year="${year}"]`)?.click(),700);return;}
       const mgr=e.target.closest('[data-manager]'); if(mgr&&mgr.dataset.manager&&mgr.dataset.manager!==name){const next=mgr.dataset.manager;closeManagerModal(true);setTimeout(()=>openManagerModal(next,mgr),0);}
     });
@@ -19055,35 +19064,6 @@ function hjOpenProfileScheduleMatchup(back,owner,opponent,week){
     requestAnimationFrame(()=>{const cards=[...document.querySelectorAll('[data-hq-matchup]')],target=teamId?cards.find(c=>String(c.dataset.hqTeamA)===String(teamId)||String(c.dataset.hqTeamB)===String(teamId)):null;cards.forEach(c=>c.classList.toggle('is-focused',c===target));document.querySelector('#league-hq')?.scrollIntoView({behavior:'smooth',block:'start'});if(target)setTimeout(()=>target.scrollIntoView({behavior:'smooth',block:'center'}),260)})
   },180);
 }
-function hjPatchManagerSchedule(back,name){
-  if(!back)return;
-  back.querySelectorAll('.profile-schedule-node').forEach(node=>{
-    if(node.dataset.profileMatchupPatched==='1')return;
-    const opponent=node.dataset.manager||node.querySelector('.profile-schedule-opp-name')?.textContent?.trim()||'';
-    const week=Number((node.querySelector('.profile-schedule-week')?.textContent||'').match(/\d+/)?.[0])||0;
-    node.dataset.profileMatchupPatched='1';
-    node.dataset.profileMatchupWeek=String(week);
-    node.classList.remove('manager-profile-trigger');
-    // The profile's delegated handler follows any data-manager ancestor.
-    // Keep that attribute exclusively on the avatar button.
-    node.removeAttribute('data-manager');
-    node.setAttribute('aria-label',`Open Week ${week} ${name} vs ${opponent} in Matchup Center`);
-    const avatar=node.querySelector('.av');
-    if(avatar){
-      const button=document.createElement('button');
-      button.type='button';button.className='profile-schedule-avatar manager-profile-trigger';
-      button.dataset.manager=opponent;button.setAttribute('aria-label',`Open ${opponent} manager profile`);
-      avatar.replaceWith(button);button.appendChild(avatar);
-    }
-    const open=e=>{
-      if(e.target.closest('.profile-schedule-avatar'))return;
-      e.preventDefault();e.stopPropagation();
-      hjOpenProfileScheduleMatchup(back,name,opponent,week);
-    };
-    node.addEventListener('click',open);
-    node.addEventListener('keydown',e=>{if(e.target===node&&(e.key==='Enter'||e.key===' '))open(e)});
-  });
-}
 
 /* -------------------- Draft DNA yearly archive -------------------- */
 function hjAllDraftHistoryRows(data=HJ_LEAGUE_STATE?.data){
@@ -19104,7 +19084,7 @@ function hjPatchDraftDNA(back,name){
 /* -------------------- Precise manager menu -------------------- */
 function hjInstallManagerProfileNavV2(back){
   if(!back)return;const head=back.querySelector('.manager-modal-head'),scroll=back.querySelector('.manager-modal-scroll'),profile=scroll?.querySelector('.manager-profile');if(!head||!scroll||!profile)return;const name=head.querySelector('.manager-modal-title')?.textContent?.trim()||'';
-  try{hjPatchManagerLiveSeason(back,name);hjPatchManagerSchedule(back,name);hjPatchDraftDNA(back,name)}catch(error){console.warn('Manager profile live patch failed',error)}
+  try{hjPatchManagerLiveSeason(back,name);hjPatchDraftDNA(back,name)}catch(error){console.warn('Manager profile live patch failed',error)}
   const titleToKey=title=>/Schedule$/i.test(title)?'schedule':/Roster$/i.test(title)?'roster':/Season History/i.test(title)?'seasons':/Roster Management/i.test(title)?'management':/Head-to-Head/i.test(title)?'h2h':/Draft DNA/i.test(title)?'dna':/Official Season Awards/i.test(title)?'awards':'';
   let anchor=profile.querySelector('[data-manager-section="overview"]');if(!anchor){anchor=document.createElement('div');anchor.className='manager-profile-anchor';anchor.dataset.managerSection='overview';profile.prepend(anchor)}
   [...profile.querySelectorAll('.profile-section')].forEach(section=>{const title=section.querySelector('.profile-section-title')?.textContent?.trim()||'',key=titleToKey(title);if(key)section.dataset.managerSection=key});
