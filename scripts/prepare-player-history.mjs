@@ -5,5 +5,5 @@ export function preparePlayerHistory(html){
  html=html.replace("const news=template.content.querySelector('[data-pc-section=\"news\"]');","const news=template.content.querySelector('[data-pc-section=\"history\"], [data-pc-section=\"news\"]');");
  html=html.replace('pcRenderPlayerNews(active.player,scroll,token).catch(()=>{});','pcRenderPlayerNews(active.player,scroll,token).catch(()=>{});\n    pcRenderHistory(active.player,season,scroll,token).catch(()=>{});');
  html=html.replace("(root.querySelector('[data-pc-section=\"news\"]')||root).insertAdjacentElement(root.querySelector('[data-pc-section=\"news\"]')?","(root.querySelector('[data-pc-section=\"history\"], [data-pc-section=\"news\"]')||root).insertAdjacentElement(root.querySelector('[data-pc-section=\"history\"], [data-pc-section=\"news\"]')?");
- return html.replace('</body>','<link rel="stylesheet" href="styles/player-history.css?v=1"><script src="scripts/player-history.js?v=1"></script>\n</body>');
+ return html.replace('</body>','<link rel="stylesheet" href="styles/player-history.css?v=2"><script src="scripts/player-history.js?v=2"></script>\n</body>');
 }

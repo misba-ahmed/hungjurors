@@ -1,9 +1,26 @@
-.pc-history-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
-.pc-history-event{padding:12px;border:1px solid rgba(22,43,65,.14);border-radius:10px;background:rgba(255,255,255,.35)}
-.pc-history-event-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:5px 12px}
-.pc-history-event-head strong{font-size:14px;color:var(--navy,#162b41)}
-.pc-history-event-head time,.pc-history-note{font-size:12px;line-height:1.5;color:#606875}
-.pc-history-people{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:7px;font-size:12px}
-.pc-history-manager{display:inline-flex;align-items:center;gap:7px;color:inherit;font:inherit;font-weight:700;background:none;border:0;padding:0;text-align:left;cursor:pointer}
-.pc-history-manager .av{width:28px;height:28px;flex:0 0 28px;border-radius:50%;object-fit:cover}
-.pc-history-manager:focus-visible{outline:2px solid #bc963c;outline-offset:3px;border-radius:4px}
+/* History uses the profile's compact scale (see Team depth tiles and Latest Updates):
+   7–9.5px labels, 7px radius cards, a 3px left accent and the shared pill tags. */
+.pc-history-list{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.pc-history-event{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;column-gap:8px;min-height:34px;margin:0;padding:5px 9px 5px 8px;border:1px solid var(--line,rgba(20,50,79,.18));border-left:3px solid var(--brass,#b98a2e);border-radius:7px;background:#fff;color:var(--navy-ink,#1e3a57);box-sizing:border-box}
+.pc-history-event.is-add{border-left-color:var(--win-green,#2f7d4e)}
+.pc-history-event.is-drop{border-left-color:var(--verdict-red,#b54e41)}
+.pc-history-event.is-trade{border-left-color:var(--navy,#14324f)}
+.pc-history-tag{justify-self:start;padding:4px 6px;border:1px solid rgba(185,138,46,.2);border-radius:999px;background:#fff9ea;color:var(--brass,#b98a2e);font:900 7px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.is-add>.pc-history-tag{color:var(--win-green,#2f7d4e);border-color:rgba(47,125,78,.18);background:#f3faf5}
+.is-drop>.pc-history-tag{color:var(--verdict-red,#b54e41);border-color:rgba(181,78,65,.18);background:#fff4f1}
+.is-trade>.pc-history-tag{color:var(--navy,#14324f);border-color:rgba(20,50,79,.16);background:var(--paper-dim,#efe9d8)}
+.pc-history-main{min-width:0}
+.pc-history-people{display:flex;align-items:center;gap:5px;min-width:0}
+.pc-history-manager{display:inline-flex;align-items:center;gap:5px;min-width:0;margin:0;padding:0;border:0;background:none;color:var(--navy,#14324f);font:800 9.5px/1.15 var(--sans);text-align:left;cursor:pointer}
+.pc-history-manager>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc-history-manager .av{width:20px!important;height:20px!important;min-width:20px!important;flex:0 0 20px;margin:0!important;border-radius:50%;object-fit:cover}
+.pc-history-manager:focus-visible{outline:2px solid var(--brass-bright,#d9a93f);outline-offset:2px;border-radius:4px}
+.pc-history-arrow{color:var(--brass,#b98a2e);font:800 9px/1 var(--sans)}
+.pc-history-detail{display:block;margin-top:2px;color:#718092;font:700 7.5px/1.15 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.pc-history-event time{display:grid;justify-items:end;gap:2px;color:var(--navy-ink,#1e3a57);font:750 7.5px/1.1 var(--mono);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;opacity:.6}
+.pc-history-event time b{font-weight:800}
+.pc-history-event time.is-unknown{opacity:.45}
+.pc-history-note{margin:0 0 6px;color:#718092;font:700 8px/1.35 var(--sans)}
+.pc-history-list+.pc-history-note,.pc-history-note:last-child{margin-bottom:0}
+/* Next-game empty state used the section's 16px base; match the profile notes. */
+.pc-next-context:not(:has(.pc-next-context-head)){color:#718092;font:700 8.5px/1.35 var(--sans)}

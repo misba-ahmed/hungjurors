@@ -54,9 +54,17 @@ function pcHistoryManager(name){
 }
 function pcHistoryHTML(rows,partial,error){
  const note=error?'Transaction history is temporarily unavailable. Reopen this card to retry.':partial?'Some transaction records could not load. This history may be incomplete.':'';
+ // Compact rows in the profile's own type scale: tag · manager(s) · date.
+ const kind=type=>type==='Drafted'?'draft':type==='Dropped'?'drop':type==='Traded'?'trade':'add';
+ const label=type=>type==='Claimed on waivers'?'Waivers':type==='Picked up'?'Added':type;
+ const day=new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',timeZone:'America/Chicago'});
+ const clock=new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/Chicago'});
+ const full=new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/Chicago',timeZoneName:'short'});
  return `${note?`<p class="pc-history-note">${esc(note)}</p>`:''}${rows.length?`<ol class="pc-history-list">${rows.map(row=>{
-  const date=row.at?new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/Chicago',timeZoneName:'short'}).format(new Date(row.at)):'Date unavailable';
-  return `<li class="pc-history-event"><div class="pc-history-event-head"><strong>${esc(row.type)}</strong><time${row.at?` datetime="${new Date(row.at).toISOString()}"`:''}>${esc(date)}</time></div>${row.detail?`<div class="pc-history-note">${esc(row.detail)}</div>`:''}<div class="pc-history-people">${row.type==='Traded'?`${pcHistoryManager(row.from)}<span aria-label="to">→</span>${pcHistoryManager(row.to)}`:`<span>by</span>${pcHistoryManager(row.to||row.from)}`}</div></li>`;
+  const when=row.at?new Date(row.at):null;
+  const time=when?`<time datetime="${when.toISOString()}" title="${esc(full.format(when))}"><b>${esc(day.format(when))}</b>${row.draft?'':`<span>${esc(clock.format(when))}</span>`}</time>`:'<time class="is-unknown"><b>Date n/a</b></time>';
+  const people=row.type==='Traded'?`${pcHistoryManager(row.from)}<span class="pc-history-arrow" aria-label="to">→</span>${pcHistoryManager(row.to)}`:pcHistoryManager(row.to||row.from);
+  return `<li class="pc-history-event is-${kind(row.type)}"><span class="pc-history-tag">${esc(label(row.type))}</span><div class="pc-history-main"><div class="pc-history-people">${people}</div>${row.detail?`<small class="pc-history-detail">${esc(row.detail)}</small>`:''}</div>${time}</li>`;
  }).join('')}</ol>`:!note?'<p class="pc-history-note">No recorded transactions for this player in this season.</p>':''}`;
 }
 async function pcRenderHistory(player,season,root,token){
