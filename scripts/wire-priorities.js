@@ -368,21 +368,18 @@
   return '<div class="hj-act-tabs" role="tablist" aria-label="League Activity views">'+tab('feed','Activity',feedCount)+tab('waivers','Waiver Reports',history.length,fresh)+'</div>';
  }
  // Transaction card: manager portrait + name and kind on the left, date over
- // time on the right; one row per player with the move on the right.
+ // time on the right; the original player rows below.
  const KIND_LABEL={trade:'Trade',waiver:'Waiver claim',swap:'Add / drop',add:'Free-agent add',drop:'Drop'};
  function activityCardHTML(g){
   const managers=g.managers.length?g.managers:['League'];
   const face=name=>Object.prototype.hasOwnProperty.call(AV,name)?av(name):'<span class="hj-txc-initials">'+esc(hjInitials(name))+'</span>';
   const at=new Date(g.at),date=at.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}),time=at.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
-  const order={Add:0,Drop:1};
-  const rows=g.rows.slice().sort((a,b)=>(order[a.type]??2)-(order[b.type]??2)).map(r=>{
-   const p=r.player||{},pos=String(p.position||'').replace('D/ST','DST'),name=String(p.name||'Player').replaceAll('D/ST','DST'),type=String(r.type||'').toLowerCase();
-   const act=r.type==='Add'?'Added':r.type==='Drop'?'Dropped':'To '+esc(r.to||'');
-   return '<li><button class="hj-txc-player pc-player-trigger is-'+esc(type)+'" type="button" '+ffnPlayerDataAttrs(p)+' aria-label="Open '+esc(name)+' player profile">'+(p.photo?'<img src="'+esc(p.photo)+'" alt="" loading="lazy" onerror="ffnImageFallback(this)">':'<span class="hj-tx-initials">'+esc(hjInitials(name))+'</span>')+'<span class="hj-tx-player-copy"><b>'+esc(name)+'</b><small>'+esc([p.team,pos].filter(Boolean).join(' · '))+'</small></span><span class="hj-txc-act">'+act+'</span></button></li>';
-  }).join('');
-  return '<article class="hj-transaction hj-txc is-'+esc(g.kind)+'" data-transaction-id="'+esc(g.key)+'"><header class="hj-txc-head"><span class="hj-txc-faces">'+managers.slice(0,2).map(face).join('')+'</span><span class="hj-txc-who"><b>'+managers.map(esc).join(' <i>⇄</i> ')+'</b><span class="hj-txc-meta"><span class="hj-txc-kind">'+(KIND_LABEL[g.kind]||'Roster move')+'</span></span></span><time class="hj-txc-when" datetime="'+at.toISOString()+'" title="'+esc(at.toLocaleString())+'"><span>'+esc(date)+'</span><span>'+esc(time)+'</span></time></header><ul class="hj-txc-moves">'+rows+'</ul></article>';
+  // Player rows come from the original card unchanged (adds and drops side by side).
+  const tpl=document.createElement('template');tpl.innerHTML=activityCardBase(g);const rows=tpl.content.querySelector('.hj-tx-moves')?.outerHTML||'';
+  return '<article class="hj-transaction hj-txc is-'+esc(g.kind)+'" data-transaction-id="'+esc(g.key)+'"><header class="hj-txc-head"><span class="hj-txc-faces">'+managers.slice(0,2).map(face).join('')+'</span><span class="hj-txc-who"><b>'+managers.map(esc).join(' <i>⇄</i> ')+'</b><span class="hj-txc-meta"><span class="hj-txc-kind">'+(KIND_LABEL[g.kind]||'Roster move')+'</span></span></span><time class="hj-txc-when" datetime="'+at.toISOString()+'" title="'+esc(at.toLocaleString())+'"><span>'+esc(date)+'</span><span>'+esc(time)+'</span></time></header>'+rows+'</article>';
  }
- if(typeof hjActivityCard==='function')window.hjActivityCard=hjActivityCard=activityCardHTML;
+ const activityCardBase=typeof hjActivityCard==='function'?hjActivityCard:null;
+ if(activityCardBase)window.hjActivityCard=hjActivityCard=activityCardHTML;
  function decorateActivity(html){
   const template=document.createElement('template');template.innerHTML=html;
   const root=template.content.querySelector('.hj-activity-dashboard');if(!root)return html;
