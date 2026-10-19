@@ -27,3 +27,10 @@ The former headless `Input.synthesizePinchGesture` check returned successfully w
 
 ## Phone rendering load (see docs/render-stability.md)
 The lineup's horizontal finger sweep claims `touchmove` (one finger, horizontally dominant, started on the lineup) so iOS cannot hand it to the roster rail; vertical scrolling and pinch stay native. Only a layout-width change interrupts an active sweep. Do not reintroduce `left`/layout-property endless animations, per-second childList churn, or resize work during pinch zoom; run `scripts/test-render-stability.mjs`.
+
+## Visible page decides the selection (October 19)
+The user reported rosters that randomly went blank after a swipe, a matchup/roster menu highlight that did not follow the swipe, Side Challenges cut off at the bottom, and matchups stopping half way. Cause: `touchend` issued its own smooth `scrollTo` to the next page on every horizontal swipe, and `settle` then trusted that target. On iOS the programmatic scroll is ignored or cut short while the finger/momentum owns the rail, so the code selected a page that was not on screen: the visible roster was pruned (empty and inert), the tab highlight ran ahead, and the rail took the other page's height.
+Now native scrolling and snap own ordinary swipes; `touchend` only performs the circular wrap at either end. `settle` selects the page actually on screen; an explicit target (tab, arrow key, wrap) counts once the rail arrives, is re-issued once if dropped, and a rail left between pages is aligned once after it is idle. `scripts/test-swipe-selection.mjs` reproduces the iOS behaviour by ignoring programmatic scrolls during swipes.
+
+## Folder tab artwork
+Released (offscreen) folder canvases no longer leave `hj-layer-ready` on the tab, which hid the tab's own artwork. The repaint observer fires 300px before the release distance, and a `pageshow`/`visibilitychange` repaints canvases whose pixels Safari discarded.

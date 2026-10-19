@@ -23,6 +23,8 @@
   if(bounds.bottom < -600 || bounds.top > window.innerHeight+600){
    nav.querySelectorAll('.hj-folder-layer').forEach(canvas=>{
     if(canvas.width||canvas.height){canvas.width=canvas.height=0;canvas._paintKey=null;}
+    // An emptied layer must never hide the tab's own artwork.
+    canvas.parentElement?.classList.remove('hj-layer-ready');
    });
    return;
   }
@@ -97,7 +99,13 @@
  nav.addEventListener('scroll',schedule,{passive:true});
  window.addEventListener('resize',schedule);document.fonts?.ready.then(schedule);
  new ResizeObserver(schedule).observe(nav);
- new IntersectionObserver(schedule,{rootMargin:'600px'}).observe(nav);
+ // Repaint well before the 600px release distance so the observer never fires
+ // while the tabs still count as offscreen (which left them blank).
+ new IntersectionObserver(schedule,{rootMargin:'900px'}).observe(nav);
+ // Safari may discard canvas pixels for a backgrounded or restored page.
+ const repaint=()=>{if(document.hidden)return;nav.querySelectorAll('.hj-folder-layer').forEach(c=>{c._paintKey=null;});schedule();};
+ document.addEventListener('visibilitychange',repaint);window.addEventListener('pageshow',repaint);
+ window.addEventListener('scroll',()=>{if(nav.querySelector('.hq-tab:not(.hj-layer-ready)'))schedule();},{passive:true});
  new MutationObserver(records=>{if(records.some(r=>r.type==='childList'||r.attributeName==='aria-selected'||r.target.classList?.contains('hq-folder-art')))schedule()}).observe(nav,{childList:true,subtree:true,attributes:true,attributeFilter:['src','aria-selected']});
  schedule();
 })();

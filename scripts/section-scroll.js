@@ -62,15 +62,28 @@ function hjSectionRail(deck,options){
  function settle(deck){
   const s=states.get(deck);if(!s||s.touch||s.nestedTouch||zoomed()||s.sliding||s.wheeling||!deck.isConnected)return;
   clearTimeout(s.timer);
-  const index=clamp(deck,s.target??nearest(deck)),card=cards(deck)[index];if(!card)return;
-  const left=offset(deck,card);
-  s.moving=false;s.target=null;
-  // Native scrolling/snap owns user scroll position; only explicit navigation
-  // has a target. Never jump the rail to a rounded page in a scroll callback.
+  // The page actually on screen decides the selection. iOS can ignore or cut
+  // short a programmatic scroll while native scrolling owns the rail; selecting
+  // a page that is not visible emptied the visible roster, left the tab
+  // highlight behind and sized the rail to the wrong page.
+  const here=nearest(deck),at=i=>Math.abs(offset(deck,cards(deck)[i])-deck.scrollLeft)<=2;
+  let index=here;
+  if(s.target!=null){
+   const wanted=clamp(deck,s.target);
+   // Explicit navigation (tab, arrow key, circular wrap): finish the trip once
+   // if the scroll was dropped or has not started yet.
+   if(at(wanted))index=wanted;
+   else if(!s.aligning){s.aligning=true;deck.scrollTo({left:offset(deck,cards(deck)[wanted]),behavior:'instant'});later(deck);return;}
+  }else if(!at(here)&&!s.aligning){
+   // Resting between two pages (an interrupted snap) is finished once, after
+   // the rail is idle; never from inside a scroll callback.
+   s.aligning=true;deck.scrollTo({left:offset(deck,cards(deck)[here]),behavior:'smooth'});later(deck);return;
+  }
+  s.aligning=false;s.moving=false;s.target=null;
   choose(deck,index);options.settled?.(index);fit(deck,index);
  }
- function later(deck){
-  const s=states.get(deck);clearTimeout(s.timer);s.timer=setTimeout(()=>settle(deck),180);
+ function later(deck,delay=180){
+  const s=states.get(deck);clearTimeout(s.timer);s.timer=setTimeout(()=>settle(deck),delay);
  }
  function stopWheel(deck,s){
   clearTimeout(s.wheelTimer);cancelAnimationFrame(s.wheelFrame);
@@ -87,7 +100,7 @@ function hjSectionRail(deck,options){
   const s=states.get(deck),card=cards(deck)[wrapped];if(!s||!card)return;stopWheel(deck,s);
   options.prepare?.(wrapped);
   const previous=cards(deck)[nearest(deck)];
-  s.target=wrapped;s.moving=true;choose(deck,wrapped);
+  s.target=wrapped;s.moving=true;s.aligning=false;choose(deck,wrapped);
   if(wraps&&animate){
    s.sliding=true;
    void slideSwap(previous,deck.parentElement,()=>deck.scrollTo({left:offset(deck,card),behavior:'instant'}),()=>card,index<0?-1:1,startX).then(()=>{
@@ -96,7 +109,7 @@ function hjSectionRail(deck,options){
    return;
   }
   deck.scrollTo({left:offset(deck,card),behavior:animate&&!matchMedia('(prefers-reduced-motion: reduce)').matches?'smooth':'instant'});
-  later(deck);
+  later(deck,animate?600:180);
  }
  function install(){
   {
@@ -140,7 +153,7 @@ function hjSectionRail(deck,options){
      if(nested?.style)nested.style.overscrollBehaviorX='contain';
      s.touch=null;s.target=null;return;
     }
-    const t=event.touches[0];s.touch={x:t.clientX,y:t.clientY,index:nearest(deck),axis:'',dx:0};s.target=null;
+    const t=event.touches[0];s.touch={x:t.clientX,y:t.clientY,index:nearest(deck),axis:'',dx:0};s.target=null;s.aligning=false;
    },{passive:true});
    deck.addEventListener('touchmove',event=>{
     const start=s.touch;if(!start)return;
@@ -158,7 +171,11 @@ function hjSectionRail(deck,options){
     const start=s.touch,t=event.changedTouches[0];s.touch=null;if(!start||!t)return;
     cards(deck)[start.index]?.style.removeProperty('translate');
     const dx=t.clientX-start.x,dy=t.clientY-start.y;
-    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>24)go(deck,start.index+(dx<0?1:-1),true,start.dx||0);
+    // Between pages, native scrolling and snap already move the rail; issuing a
+    // second programmatic scroll here fights iOS momentum (half swipes, a tab
+    // highlight that runs ahead). Only the circular wrap at either end needs help.
+    const wrap=start.index===0&&dx>0||start.index===cards(deck).length-1&&dx<0;
+    if(wrap&&Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>24)go(deck,start.index+(dx<0?1:-1),true,start.dx||0);
     else later(deck);
    },{passive:true});
    deck.addEventListener('touchcancel',()=>{if(s.touch)cards(deck)[s.touch.index]?.style.removeProperty('translate');s.touch=null;s.nestedTouch=false;s.target=null;later(deck)},{passive:true});
