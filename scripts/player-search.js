@@ -35,7 +35,16 @@
   let settled=false;
   const settle=()=>{
    if(reset!==current||settled)return;settled=true;clearTimeout(current.fallback);
-   setScale(target);current.timer=setTimeout(releaseReset,350);
+   setScale(target);
+   // Keep the bounds until the page has actually zoomed out. A busy main thread
+   // (the news rail re-renders on every keystroke) can delay Safari applying
+   // them; releasing on a fixed timer then left the page zoomed in.
+   const started=performance.now(),check=()=>{
+    if(reset!==current)return;
+    if(scale()<=target+.02||performance.now()-started>2000){current.timer=setTimeout(releaseReset,200);return}
+    current.frame=requestAnimationFrame(check);
+   };
+   current.frame=requestAnimationFrame(check);
   };
   current.frame=requestAnimationFrame(()=>{current.frame=requestAnimationFrame(settle)});
   current.fallback=setTimeout(settle,80);
