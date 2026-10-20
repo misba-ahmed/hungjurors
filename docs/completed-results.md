@@ -6,7 +6,7 @@ Undecided fantasy matchups receive calculated winners only when every matchup ha
 
 Regular-season wins, losses, ties, PF, PA and streaks are rebuilt from a complete schedule, never added to potentially updated ESPN aggregates. Missing or duplicate history leaves the official aggregates intact. For this league's one-division, points-for seeding rule, changed totals also update standings order. Repeating a refresh is idempotent; score corrections replace previous results.
 
-`completed-results-live.js` supplies this view to standings, completed-week recap rows, Wire cards, record snapshots and manager result helpers. It checks completion through the shared schedule cache every 15 seconds while visible (the schedule cache can be up to 60 seconds old). It uses the latest available ESPN fantasy scores; the ordinary league refresh continues supplying score corrections.
+`completed-results-live.js` supplies this view to standings, completed-week recap rows, Wire cards, record snapshots and manager result helpers. The manager lineup beside the logo also reads this view for ordering on its existing refresh timer; its score bubbles continue to use the raw league payload. It checks completion through the shared schedule cache every 15 seconds while visible (the schedule cache can be up to 60 seconds old). It uses the latest available ESPN fantasy scores; the ordinary league refresh continues supplying score corrections.
 
 The shared raw league payload, roster objects and scoring periods are not modified. Matchups still use the existing previous-week-until-Wednesday rule. The NFL games schedule strip keeps its current source and behavior. No card markup, gestures or layout are changed.
 

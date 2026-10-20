@@ -3,7 +3,8 @@ class El{constructor(){this.attrs={};this.children=[];this.events={};}setAttribu
 const logo=new El();logo.src='logo';const listeners={},document={readyState:'complete',hidden:false,querySelector:()=>logo,getElementById:()=>null,createElement:()=>new El(),createElementNS:()=>new El(),addEventListener:(k,f)=>listeners[k]=f};
 const names=['MISBA','BRYAN','TYLER','NATHAN M','WASI','CESAR','NATHAN T','GARRETT','JARRETT','KAT'];
 const data={status:{currentMatchupPeriod:1},teams:names.map((name,id)=>({id,name,record:{overall:{wins:id,pointsFor:id}}})),schedule:[]};
-const ctx=vm.createContext({document,HJ_LEAGUE_STATE:{data},hjMatchManager:t=>t.name,NFL_WEEK1:[],setInterval(){}});
+let tick;
+const ctx=vm.createContext({document,HJ_LEAGUE_STATE:{data},hjMatchManager:t=>t.name,NFL_WEEK1:[],setInterval(fn){tick=fn}});
 vm.runInContext(fs.readFileSync('scripts/manager-hero.js','utf8'),ctx);
 const svg=logo.replacement.children[0],g=svg.children.find(c=>c.attrs['data-hero-manager']),bubble=svg.children.at(-1);
 g.events.click();assert.equal(bubble.attrs.visibility,'visible');
@@ -11,3 +12,19 @@ listeners.pointerdown({target:g.children[0],pointerType:'touch'});assert.equal(b
 listeners.pointerdown({target:new El(),pointerType:'touch'});assert.equal(bubble.attrs.visibility,'hidden');
 g.events.click();assert.equal(bubble.attrs.visibility,'visible');listeners.keydown({key:'Escape'});assert.equal(bubble.attrs.visibility,'hidden');
 console.log('Mobile outside tap dismisses score; selecting another manager still works');
+// Results may arrive after header boot. Only ordering should use the results view;
+// score bubbles must continue reading the original scoring-week payload.
+const misba=svg.children.find(c=>c.attrs['data-hero-manager']==='MISBA');
+assert.equal(misba.attrs['data-standing-rank'],'10');
+data.schedule=[{matchupPeriodId:1,winner:'HOME',home:{teamId:0,totalPoints:7},away:{teamId:1,totalPoints:3}}];
+const before=JSON.stringify(data);
+ctx.hjResultsView=raw=>({...raw,teams:raw.teams.map(t=>t.name==='MISBA'?{...t,record:{overall:{wins:99,pointsFor:999}}}:t),schedule:[]});
+tick();
+assert.equal(misba.attrs['data-standing-rank'],'1');
+misba.events.click();
+assert.equal(bubble.children.find(c=>c.textContent!==undefined)?.textContent,'7.00');
+assert.equal(JSON.stringify(data),before);
+ctx.hjResultsView=raw=>raw;
+tick();
+assert.equal(misba.attrs['data-standing-rank'],'10');
+console.log('Header follows corrected results ordering while score bubbles retain raw scores');

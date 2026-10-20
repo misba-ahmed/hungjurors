@@ -34,6 +34,7 @@ const originalCenters=figures.map(f=>f.cx),slots=[...originalCenters];
 let orderKey='';
 function syncStandings(){
  let data;try{data=HJ_LEAGUE_STATE.data;}catch{return;}
+ if(typeof hjResultsView==='function')data=hjResultsView(data);
  if(!data?.teams?.length||typeof hjMatchManager!=='function')return;
  const rows=data.teams.map(t=>({short:hjMatchManager(t,data),w:Number(t.record?.overall?.wins)||0,pf:Number(t.record?.overall?.pointsFor)||0}));
  if(!Array.isArray(rows)||!rows.length)return;
