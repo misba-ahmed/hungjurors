@@ -1,0 +1,38 @@
+name: Verify side bets
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/*bet*.js'
+      - 'scripts/*bet*.mjs'
+      - 'styles/side-bets.css'
+      - 'scripts/prepare-site.mjs'
+      - '.github/workflows/test-side-bets.yml'
+  pull_request:
+    paths:
+      - 'scripts/*bet*.js'
+      - 'scripts/*bet*.mjs'
+      - 'styles/side-bets.css'
+      - 'scripts/prepare-site.mjs'
+      - '.github/workflows/test-side-bets.yml'
+permissions:
+  contents: read
+jobs:
+  side-bets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Install browser tools
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium webkit
+      - name: Verify payouts and surfaces
+        run: node --test scripts/test-free-throw-bet.mjs
+      - name: Verify card in Chromium and WebKit
+        env:
+          PW_TEST_SCREENSHOT_NO_FONTS_READY: '1'
+        run: node scripts/test-free-throw-bet-browser.mjs

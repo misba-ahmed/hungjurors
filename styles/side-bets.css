@@ -1,4 +1,41 @@
 /* Side Bet — shares the site's navy, paper and brass palette. */
+.sb-wire-intro.sb-ft-intro{gap:8px}
+.sb-ft-intro .wc-title{font-size:25px;margin:0;text-align:left;line-height:1.05}
+.sb-ft-court{position:relative;width:100%;height:65px;flex:none}
+.sb-ft-court .wc-title{position:absolute;left:0;top:0;z-index:1}
+.sb-ft-court .wc-title small{display:block;font:800 8px/1.8 var(--mono);letter-spacing:1.3px;color:var(--brass-bright)}
+.sb-ft-court svg{width:100%;height:100%;overflow:hidden}
+.sb-ft-floor{fill:none;stroke:#f7f3e830;stroke-width:1.5}
+.sb-ft-board{fill:#f7f3e816;stroke:#f7f3e8;stroke-width:2}
+.sb-ft-target{fill:none;stroke:#f7f3e899;stroke-width:1.5}
+.sb-ft-net{fill:none;stroke:#f7f3e899;stroke-width:1}
+.sb-ft-rim{fill:none;stroke:#ed8a40;stroke-width:3}
+.sb-ft-ball circle{fill:#ee8b3b;stroke:#b95a25;stroke-width:1}
+.sb-ft-ball path{fill:none;stroke:#482c21;stroke-width:.7}
+.sb-ft-ball{transform:translate(178px,60px);animation:sb-ft-swish 4.8s ease-in-out infinite;animation-play-state:paused}
+.sb-ft-ball.is-missed{animation-name:sb-ft-clank;animation-delay:-2.4s}
+.sb-ft-wire.is-scroll-active .sb-ft-ball,.wire-expanded-stage .sb-ft-ball{animation-play-state:running}
+@keyframes sb-ft-swish{0%,8%{transform:translate(170px,65px);opacity:0}12%{opacity:1}35%{transform:translate(211px,9px)}54%{transform:translate(260px,44px);opacity:1}68%{transform:translate(260px,72px);opacity:0}100%{transform:translate(260px,72px);opacity:0}}
+@keyframes sb-ft-clank{0%,8%{transform:translate(182px,65px);opacity:0}12%{opacity:1}35%{transform:translate(226px,10px)}52%{transform:translate(275px,44px);opacity:1}65%{transform:translate(299px,25px)}85%,100%{transform:translate(317px,75px);opacity:0}}
+.sb-ft-wire .sb-ft-intro .sb-faces{gap:18px}
+.sb-ft-shooter{text-align:center;min-width:0}
+.sb-ft-shooter .sb-manager{flex-direction:row;justify-content:center;font-size:12px}
+.wc.sb-ft-wire .sb-manager .av{width:32px!important;height:32px!important;min-width:32px!important;flex-basis:32px!important}
+.sb-ft-shooter>small{display:block;font:500 11px/1.4 var(--sans);white-space:nowrap}
+.sb-ft-shotchart{display:grid;grid-template-columns:repeat(10,5px);gap:2px;justify-content:center;margin:6px auto 0}
+.sb-ft-shotchart i{height:5px;border-radius:50%;background:#b98979;opacity:.55}
+.sb-ft-shotchart i.is-made{background:#dba748;opacity:1;box-shadow:0 0 3px #dba74840}
+.sb-ft-stakes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;margin:2px 0}
+.sb-ft-stakes>div{display:flex;flex-direction:column;gap:4px;text-align:center;padding:10px 6px;border:1px solid var(--brass);border-radius:7px;background:rgba(185,138,46,.08)}
+.sb-ft-stakes small{font:500 11px/1.4 var(--sans)}
+.sb-ft-stakes b{font:800 15px/1.3 var(--sans)}
+.sb-ft-copy,.sb-ft-option{margin:0;text-align:center;font:500 12px/1.5 var(--sans)}
+.sb-ft-option{color:var(--brass-bright)}
+.sb-ft-wire .sb-result{font-size:13px;margin:0}
+.sb-ft-wire .sb-open{padding:9px 13px;font-size:12px}
+.sb-ft-detail .sb-rules{font-size:12px}
+@media(max-width:520px){.sb-wire-intro.sb-ft-intro{gap:7px}}
+@media(prefers-reduced-motion:reduce){.sb-ft-ball{animation:none;opacity:1}.sb-ft-ball.is-made{transform:translate(260px,52px)}.sb-ft-ball.is-missed{transform:translate(303px,66px)}}
 .sb-detail{margin:10px 0;border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:9px;background:var(--paper);color:var(--navy);min-width:0}
 .sb-detail>summary{display:flex;align-items:center;gap:8px;list-style:none;padding:9px 12px;cursor:pointer;font:700 13px/1.35 var(--sans)}
 .sb-detail>summary::-webkit-details-marker{display:none}
