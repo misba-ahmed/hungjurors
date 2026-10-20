@@ -146,7 +146,8 @@
  WIRE_SECTION_LABELS.sidebet='Side Bet';
  const sideBetIndex=HJ_WIRE_ORDER.indexOf('sidebet');
  if(sideBetIndex>=0)HJ_WIRE_ORDER.splice(sideBetIndex,1);
- HJ_WIRE_ORDER.splice(HJ_WIRE_ORDER.indexOf('recap')+1,0,'sidebet');
+ const beforeByes=HJ_WIRE_ORDER.indexOf('byes');
+ HJ_WIRE_ORDER.splice(beforeByes>=0?beforeByes:HJ_WIRE_ORDER.indexOf('recap')+1,0,'sidebet');
  wireBuild=function(data){
   const built=baseBuild.apply(this,arguments);
   // This promotion belongs to the Week 3 recap and leaves the carousel with it.

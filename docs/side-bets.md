@@ -1,8 +1,8 @@
 # Manager side bets
 
-The original 2026 Week 3 MISBA/GARRETT roulette agreement lives in `scripts/side-bets.js`. It appears beside its matchup, in the Week 3 recap, and after that recap in the Wire. Its rules and historical behavior remain intact.
+The original 2026 Week 3 MISBA/GARRETT roulette agreement lives in `scripts/side-bets.js`. It appears beside its matchup, in the Week 3 recap, and in the Wire. Its rules and historical behavior remain intact.
 
-The Week 7 MISBA/BRYAN agreement lives in `scripts/free-throw-bet.js` and uses those same three surfaces and the shared carousel interactions. It is announced during Weeks 6–7, remains with the Week 7 recap, then leaves the main carousel. The matchup and historical recap retain it.
+The Week 7 MISBA/BRYAN agreement lives in `scripts/free-throw-bet.js` and uses those same three surfaces and the shared carousel interactions. It is announced during Weeks 6–7, remains with the Week 7 recap, then leaves the main carousel. The matchup and historical recap retain it. The Side Bet carousel section appears immediately before Bye Week.
 
 - MISBA: 21/50 made, 29 missed. If MISBA loses, MISBA pays BRYAN $29.
 - BRYAN: 28/50 made, 22 missed. If BRYAN loses, BRYAN pays MISBA $22.
