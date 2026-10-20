@@ -8,6 +8,8 @@ export function prepareProfileDetails(html){
   html=html.replace(from,()=>to);
  };
  replace("cls:'is-red',badge:'!Waivers'","cls:'is-red',badge:''");
+ // This updater runs outside the historical profile renderer's local num helper.
+ replace("set('Avg Adds / Season',num(tx.avgAdds,1),null);","set('Avg Adds / Season',Number(tx.avgAdds).toFixed(1),null);");
 
  // The legacy animation-frame callback can run after the newer timed installer.
  // Do not append a second menu when V2 has already finished installing it.

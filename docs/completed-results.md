@@ -11,3 +11,19 @@ Regular-season wins, losses, ties, PF, PA and streaks are rebuilt from a complet
 The shared raw league payload, roster objects and scoring periods are not modified. Matchups still use the existing previous-week-until-Wednesday rule. The NFL games schedule strip keeps its current source and behavior. No card markup, gestures or layout are changed.
 
 Validation: `node --test scripts/test-completed-results.mjs` covers finality, missing data, rollover, ties, corrections, ranking, postseason separation and production result consumers. The publication workflow runs this alongside the existing record, challenge and matchup checks.
+
+## Result-consumer audit
+
+| Surface | Source / refresh |
+| --- | --- |
+| Standings, ranks, form, power and league schedule results | `hjApplyLiveSeason` supplies result totals and `DATA.weeks`; existing renderers recompute |
+| Header manager order | `syncStandings` reads the results view; score bubbles retain raw data |
+| Roster manager tabs and identity card | Result-team adapters for records/PF/rank; targeted text refresh when completion arrives, without rendering the player lineup |
+| Weekly recap and top carousel | Completed weeks / recap / Wire builders receive results view |
+| Record book and record announcements | Rebuilt record snapshots; existing record events redraw the book |
+| Manager current-season and career record/high | Result-team and weekly-score helpers; open profiles refresh |
+| Head-to-head and profile schedule results | Historical baseline plus completed current-season regular-season games; no accumulation across refreshes |
+| Historical seasons, draft history, transactions and official annual awards | Preserve their archived/independent sources; no invented current-year awards |
+| Roster scores, Matchups selected week and NFL schedule strip | Preserve raw payload, week-selection functions and existing render behavior |
+
+ESPN simulation odds cannot be derived from final scores alone. When result totals differ from ESPN's aggregates, the existing PF-rank fallback replaces stale odds until ESPN reconciles. The raw simulation data is untouched.

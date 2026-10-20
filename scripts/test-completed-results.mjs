@@ -56,20 +56,22 @@ test('production standings, recap rows, Wire and record consumers share results 
  const {prepareSite}=await import('./prepare-site.mjs');
  const html=prepareSite(readFileSync(new URL('../index.html',import.meta.url),'utf8'));
  const extract=(from,to)=>html.slice(html.indexOf(from),html.indexOf(to,html.indexOf(from)));
- const raw=fixture();raw.draftDetail={drafted:true};raw.teams.forEach(t=>t.name='Manager '+t.id);
+ const raw=fixture();raw.draftDetail={drafted:true};raw.teams.forEach(t=>{t.name='Manager '+t.id;t.playoffSeed=t.id});Object.assign(raw.settings.scheduleSettings,{playoffSeedingRule:'TOTAL_POINTS_SCORED',divisions:[{id:0}]});
  const c=vm.createContext({console,Map,Date,JSON,Number,Math,Set,
   HJ_LEAGUE_STATE:{data:raw},HJ_HQ_STATE:{matchupWeek:1},NFL_WEEK1:[{week:2,state:'post'}],NFL_SEASON:2026,
   HJ_DATA:{history:new Map()},DATA:{draft:{when:'2026-09-01'}},LEAGUE_SCHEDULE_2026:{},WIRE:{},
-  document:{hidden:true,querySelectorAll:()=>[],addEventListener:()=>{}},window:{},setInterval:()=>{},
+  document:{hidden:true,querySelector:()=>null,querySelectorAll:()=>[],addEventListener:()=>{}},window:{},setInterval:()=>{},
   hjMatchManager:t=>t.name,hjOwnerName:t=>t.name,hjNumber:v=>v==null?null:Number(v),
   hjHistoricalEntries:()=>[],hjDataRollover:()=>{},renderStandingsDashboard:()=>{},renderLeagueSchedule:()=>{},hjEnsureCompletedHistory:()=>{},
+  HIST:{metadata:{completed_through:2025},head_to_head_regular_season:[]},hjPatchManagerLiveSeason:()=>{},pcFpts:v=>v.toFixed(2),av:()=>'',hjTeamName:t=>t.name,
   hjRecapHTML:d=>d,hjCareerWeeklyRows:()=>[],hjCurrentManagerTeam:(name,d)=>d.teams.find(t=>t.name===name),
   wireTeamMap:d=>new Map(d.teams.map(t=>[t.id,t])),wireManager:t=>t.name,wireWaiverCard:()=>null,wireKickoffCard:()=>null,
   wireDraftCards:()=>[],wireLoadBox:()=>{},wireRecapCards:(d,w)=>[{section:'recap',week:w}],wireLiveCards:()=>[{section:'live'}],wirePreviewCards:()=>[{section:'preview'}],esc:s=>s,
  });
  for(const f of ['challenge-engine.js','record-book-engine.js','completed-results.js'])vm.runInContext(readFileSync(new URL(f,import.meta.url),'utf8'),c);
- for(const [from,to] of [['function hjCurrentWeek(','function hjCurrentMatchup('],['function hjSideScore(','function hjWeeklyStat('],['function hjCompletedWeeks(','async function hjEnsureCompletedHistory('],['function hjApplyLiveSeason(','function hjRenderLeague('],['function wireWeekResults(','function wireScoreboardHTML('],['function wireBuild(','const WIRE_SECTION_LABELS=']])vm.runInContext(extract(from,to),c);
+ for(const [from,to] of [['function hjTeamRecord(','function hjRosterEntries('],['function hjManagerBusinessCard(','function hjEffectiveRoster('],['function scheduleAllTimeSeries(','function scheduleSeriesLabel('],['function hjScheduleMatrixHTML(','function hjMatchupScheduleButtonsHTML('],['function hjCurrentWeek(','function hjCurrentMatchup('],['function hjSideScore(','function hjWeeklyStat('],['function hjCompletedWeeks(','async function hjEnsureCompletedHistory('],['function hjApplyLiveSeason(','function hjRenderLeague('],['function wireWeekResults(','function wireScoreboardHTML('],['function wireBuild(','const WIRE_SECTION_LABELS=']])vm.runInContext(extract(from,to),c);
  vm.runInContext(readFileSync(new URL('recap-live.js',import.meta.url),'utf8').split('function hjRcGameFinal(')[1].split('function hjRecapHTML(')[0].replace(/^/,'function hjRcGameFinal('),c);
+ vm.runInContext(html.match(/function hjCurrentStandingRank\(team,data\)\{[^\n]+\}/)[0],c);
  vm.runInContext(readFileSync(new URL('completed-results-live.js',import.meta.url),'utf8'),c);
  const before=JSON.stringify(raw),strip=JSON.stringify(c.NFL_WEEK1);
  assert.equal(c.wireBuild(raw).cards[0].section,'live');
@@ -80,6 +82,18 @@ test('production standings, recap rows, Wire and record consumers share results 
  assert.equal(c.wireBuild(raw).cards[0].section,'recap');assert.equal(c.WIRE.recapWeek,2);
  assert.equal(c.hjRecordSnapshot(raw,2026,t=>t.name).games[1].final,true);
  assert.equal(c.hjCurrentManagerTeam('Manager 1').record.overall.pointsFor,180);
+ assert.equal(c.hjTeamRecord(raw.teams[0]),'1-1');assert.equal(c.hjTeamRecordIfPlayed(raw.teams[0]),'1-1');
+ assert.equal(c.hjCurrentStandingRank(raw.teams[0],raw),2);
+ const tab=c.hjTeamTabHTML(raw.teams[0],raw),identity=c.hjManagerBusinessCard(raw.teams[0],raw,'Manager 1','Manager 1');
+ assert.match(tab,/1-1 · PF 180.00/);assert.match(tab,/standing 2/);
+ assert.match(identity,/POINTS FOR<\/small><b>180.00/);assert.match(identity,/RECORD<\/small><b>1-1/);assert.match(identity,/data-results-team="1"/);
+ assert.equal(c.hjResultsTeam({...raw.teams[0],record:{overall:{wins:10}}}).record.overall.wins,10,'historical objects are not replaced by current IDs');
+ const standing={},summary={},attributes={},values=[{},{},{}],tabNode={querySelector:s=>s==='.hj-manager-standing'?standing:summary,setAttribute:(k,v)=>{attributes[k]=v}},cardNode={querySelectorAll:()=>values};
+ c.document.querySelectorAll=selector=>selector==='.league-team-tab[data-league-team="1"]'?[tabNode]:selector==='.hj-business-card[data-results-team="1"]'?[cardNode]:[];
+ c.hjRefreshRosterResultMetadata();assert.equal(summary.textContent,'1-1 · PF 180.00');assert.equal(standing.textContent,'#2');assert.deepEqual(values.map(v=>v.textContent),['1-1','180.00','#2']);assert.match(attributes['aria-label'],/record 1-1/);
+
+ const series=c.scheduleAllTimeSeries('Manager 1','Manager 2');assert.equal(series.games,2);assert.equal(series.aWins,1);assert.equal(series.bWins,1);assert.equal(series.aPF,180);
+ assert.deepEqual(c.scheduleAllTimeSeries('Manager 1','Manager 2'),series,'head-to-head refresh does not accumulate');
  assert.equal(c.hjCurrentWeek(raw),2);assert.equal(c.HJ_HQ_STATE.matchupWeek,1);
  assert.equal(c.HJ_LEAGUE_STATE.data,raw);assert.equal(JSON.stringify(raw),before);assert.equal(JSON.stringify(c.NFL_WEEK1),strip);
 });
@@ -89,4 +103,11 @@ test('standings reorder using the league points-for tiebreak, retaining official
  raw.teams[0].playoffSeed=1;raw.teams[1].playoffSeed=2;
  const out=view(raw);assert.equal(out.teams[0].playoffSeed,2);assert.equal(out.teams[1].playoffSeed,1);
  assert.equal(raw.teams[0].playoffSeed,1);assert.deepEqual(json(view(out)),json(out));
+});
+
+test('stale playoff simulations use the existing PF-rank fallback until official aggregates catch up',()=>{
+ const raw=fixture();raw.teams[0].currentSimulationResults={playoffPct:.75};
+ const out=view(raw);assert.equal(out.teams[0].currentSimulationResults.playoffPct,null);assert.equal(raw.teams[0].currentSimulationResults.playoffPct,.75);
+ raw.schedule=out.schedule;raw.teams=out.teams.map(t=>({...t,currentSimulationResults:{playoffPct:.8}}));
+ assert.equal(view(raw).teams[0].currentSimulationResults.playoffPct,.8);
 });

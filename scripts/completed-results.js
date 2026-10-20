@@ -46,6 +46,9 @@ function hjCompletedResultData(data,scoreboards){
  // This league uses overall record, then points for (one division). Preserve
  // ESPN's ordering for exact ties and for any unsupported league settings.
  const totalsChanged=teams.some((team,i)=>['wins','losses','ties','pointsFor','pointsAgainst'].some(key=>number(team.record.overall[key])!==number(data.teams[i].record?.overall?.[key])));
+ // ESPN's simulation still describes its old standings. Use the site's existing
+ // PF-rank fallback until ESPN supplies odds for the reconciled records.
+ if(totalsChanged)teams.forEach(team=>{if(team.currentSimulationResults)team.currentSimulationResults={...team.currentSimulationResults,playoffPct:null}});
  if(totalsChanged&&settings.playoffSeedingRule==='TOTAL_POINTS_SCORED'&&(settings.divisions||[]).length===1){
   const ranked=[...teams].sort((a,b)=>b.record.overall.percentage-a.record.overall.percentage||b.record.overall.pointsFor-a.record.overall.pointsFor||(number(a.playoffSeed)??Infinity)-(number(b.playoffSeed)??Infinity)||Number(a.id)-Number(b.id));
   ranked.forEach((team,i)=>{team.playoffSeed=i+1});
