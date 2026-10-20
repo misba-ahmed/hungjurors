@@ -92,6 +92,7 @@ test('production standings, recap rows, Wire and record consumers share results 
  c.document.querySelectorAll=selector=>selector==='.league-team-tab[data-league-team="1"]'?[tabNode]:selector==='.hj-business-card[data-results-team="1"]'?[cardNode]:[];
  c.hjRefreshRosterResultMetadata();assert.equal(summary.textContent,'1-1 · PF 180.00');assert.equal(standing.textContent,'#2');assert.deepEqual(values.map(v=>v.textContent),['1-1','180.00','#2']);assert.match(attributes['aria-label'],/record 1-1/);
 
+ const profileRecord={};c.hjRefreshProfileResultDetails({querySelector:()=>profileRecord,querySelectorAll:()=>[]},'Manager 1');assert.equal(profileRecord.textContent,'1-1');
  const series=c.scheduleAllTimeSeries('Manager 1','Manager 2');assert.equal(series.games,2);assert.equal(series.aWins,1);assert.equal(series.bWins,1);assert.equal(series.aPF,180);
  assert.deepEqual(c.scheduleAllTimeSeries('Manager 1','Manager 2'),series,'head-to-head refresh does not accumulate');
  assert.equal(c.hjCurrentWeek(raw),2);assert.equal(c.HJ_HQ_STATE.matchupWeek,1);

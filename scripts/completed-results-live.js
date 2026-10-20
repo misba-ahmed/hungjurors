@@ -26,6 +26,8 @@ function hjRefreshRosterResultMetadata(){
  }
 }
 function hjRefreshProfileResultDetails(back,name){
+ const team=hjCurrentManagerTeam(name),rosterRecord=back.querySelector('.profile-live-roster-head > span');
+ if(team&&rosterRecord)rosterRecord.textContent=hjTeamRecordIfPlayed(team);
  const record=s=>`${s.aWins}–${s.bWins}${s.ties?'–'+s.ties:''}`,diff=s=>`${s.aPF-s.bPF>=0?'+':''}${(s.aPF-s.bPF).toFixed(2)}`;
  back.querySelectorAll('.profile-rival').forEach(row=>{
   const opponent=row.querySelector('[data-manager]')?.dataset.manager;if(!opponent)return;
