@@ -48,7 +48,7 @@ function hjFreeThrowBetSnapshot(data,agreement=HJ_FREE_THROW_BET){
   return '<div class="sb-rules"><p>Both managers shot 50 free throws. The Week 7 matchup loser pays the winner $1 for each shot they missed: MISBA made 21 and missed 29; BRYAN made 28 and missed 22.</p>'+
    '<p><b>Optional extra shots:</b> Both managers can agree at any time that the loser must shoot additional free throws equal to their losing margin, rounded up to a whole shot. A 12.6-point loss means 13 extra shots. Every extra miss adds $1 to the base payment.</p>'+
    '<p><b>'+ (BET.extra.agreed?'Extra-shot option agreed.':'Extra-shot option is not active; both managers must agree.')+'</b></p>'+
-   '<p class="sb-invite">Share mutual agreement and any extra-shot results in the group chat or with the commissioner to update this bet.</p></div>';
+   '<p class="sb-invite">Agreed on a side bet? Share it in the group chat or text the commissioner to have it posted here. The commissioner is always open to side bets on his own matchups—text him to discuss.</p></div>';
  }
  function stakes(){
   return '<div class="sb-ft-stakes"><div><small>If MISBA loses</small><b>$29 to BRYAN</b></div><div><small>If BRYAN loses</small><b>$22 to MISBA</b></div></div>';
