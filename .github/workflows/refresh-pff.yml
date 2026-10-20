@@ -33,6 +33,7 @@ jobs:
           node scripts/test-vegas-feed.mjs
           node scripts/test-challenges.mjs
           node scripts/test-record-book.mjs
+          node --test scripts/test-completed-results.mjs
           node scripts/test-sleeper-trends.mjs
           node scripts/test-player-stat-bars.mjs
           node scripts/test-defense-fantasy-ranks.mjs
