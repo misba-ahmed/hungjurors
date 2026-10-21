@@ -47,7 +47,14 @@
     "heightInches": 73,
     "name": "Davante Adams",
     "teamId": 14,
-    "jersey": "17"
+    "jersey": "17",
+    "unavailable": {
+      "file": "16800-crutches-v1.webp",
+      "width": 335,
+      "height": 850,
+      "ratio": 0.39412,
+      "kind": "injury"
+    }
   },
   "17372": {
     "file": "17372-faces-v2.webp",
@@ -1159,6 +1166,16 @@
     "teamId": 14,
     "jersey": "12"
   },
+  "4427095": {
+    "file": "4427095-faces-v1.webp",
+    "width": 303,
+    "height": 850,
+    "ratio": 0.35647,
+    "heightInches": 68,
+    "name": "DeMario Douglas",
+    "teamId": 17,
+    "jersey": "3"
+  },
   "4427366": {
     "file": "4427366-faces-v2.webp",
     "width": 314,
@@ -1549,6 +1566,16 @@
     "name": "Emeka Egbuka",
     "teamId": 27,
     "jersey": "2"
+  },
+  "4568263": {
+    "file": "4568263-faces-v1.webp",
+    "width": 303,
+    "height": 850,
+    "ratio": 0.35647,
+    "heightInches": 71,
+    "name": "Ryan Fitzgerald",
+    "teamId": 29,
+    "jersey": "10"
   },
   "4568490": {
     "file": "4568490-faces-v2.webp",
@@ -2019,6 +2046,16 @@
     "teamId": 3,
     "jersey": "84"
   },
+  "4723820": {
+    "file": "4723820-faces-v1.webp",
+    "width": 300,
+    "height": 850,
+    "ratio": 0.35294,
+    "heightInches": 72,
+    "name": "Omar Cooper Jr.",
+    "teamId": 20,
+    "jersey": "11"
+  },
   "4832800": {
     "file": "4832800-faces-v2.webp",
     "width": 296,
@@ -2083,6 +2120,23 @@
     "teamId": 10,
     "jersey": "14"
   },
+  "4880281": {
+    "file": "4880281-faces-v1.webp",
+    "width": 285,
+    "height": 850,
+    "ratio": 0.33529,
+    "heightInches": 74,
+    "name": "Jordyn Tyson",
+    "teamId": 18,
+    "jersey": "0",
+    "unavailable": {
+      "file": "4880281-crutches-v1.webp",
+      "width": 349,
+      "height": 850,
+      "ratio": 0.41059,
+      "kind": "injury"
+    }
+  },
   "4882093": {
     "file": "4882093-faces-v2.webp",
     "width": 323,
@@ -2144,3 +2198,4 @@
     "jersey": "16"
   }
 }
+
