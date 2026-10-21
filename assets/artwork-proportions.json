@@ -1,7 +1,7 @@
 {
   "managerGenerationContract": {
     "scope": "manager artwork only",
-    "effectiveDate": "2026-10-20 America/Chicago — later owner correction",
+    "effectiveDate": "2026-10-20 America/Chicago \u2014 later owner correction",
     "rule": "NEVER cut out, paste, composite, fit, or independently resize separate heads onto bodies.",
     "generation": "Generate each complete manager pose as one coherent image with head, naturally shaded neck, collar, shoulders, and body together.",
     "references": "Approved portrait for identity; original approved whole figure of the same pose for build, clothing, proportions, and framing; Garrett and Kat for illustration style only.",
@@ -2127,7 +2127,7 @@
       "effectiveDate": "2026-10-14 21:19 America/Chicago",
       "scope": "new NFL roster player artwork; preserve existing approved artwork",
       "source": "explicit owner instruction",
-      "supersedes": "15–16% range and 15.5% target; also supersedes 16–17%, 16.5%, 18% and 20% targets",
+      "supersedes": "15\u201316% range and 15.5% target; also supersedes 16\u201317%, 16.5%, 18% and 20% targets",
       "preserve": "uniform face scaling, identity, naturally shaded continuous neck, existing body style and physical-height behavior",
       "generationContract": "docs/lineup-artwork-protocol.md#consistent-generation-contract",
       "formula": "(chinY - hairTopY) / (solesY - hairTopY)",
@@ -2140,7 +2140,7 @@
       ],
       "calibratedHeadMaster": null,
       "bodyReferenceRole": "Drake Maye supplies visual head/body balance, body style, pose and lighting. The official headshot supplies player identity. No calibrated ratio claim.",
-      "resultReporting": "15.5–16% is the generation target, aiming at 15.75%. Generate once, package and publish as requested. No anatomical measurements, automatic corrections, timing breakdown or output-percentage claims.",
+      "resultReporting": "15.5\u201316% is the generation target, aiming at 15.75%. Generate once, package and publish as requested. No anatomical measurements, automatic corrections, timing breakdown or output-percentage claims.",
       "range": [
         0.155,
         0.16
@@ -2152,7 +2152,7 @@
       "visualReference": "assets/team-photos/players/4431452-faces-v2.webp",
       "workflow": "docs/lineup-artwork-protocol.md#fast-new-player-workflow",
       "firstGenerationHeadScale": 1.15,
-      "firstGenerationHeadScaleBasis": "Owner instruction 2026-10-14 21:46 America/Chicago: append a 15% larger head request to the first-generation prompt, using an assumed 14% baseline. Final target remains 15.5–16%. No output measurement or automatic corrective edit."
+      "firstGenerationHeadScaleBasis": "Owner instruction 2026-10-14 21:46 America/Chicago: append a 15% larger head request to the first-generation prompt, using an assumed 14% baseline. Final target remains 15.5\u201316%. No output measurement or automatic corrective edit."
     },
     "previousBodyReference": "assets/team-photos/players/4047646-faces-v2.webp"
   },
@@ -2161,50 +2161,50 @@
       "updated": "2026-10-21",
       "build": "medium",
       "buildReference": "wasi",
-      "identityReference": "Owner-approved final October 21 cartoon portrait after cheek-mole correction",
-      "avatar": "assets/avatars/cesar-20261021-final.webp",
+      "identityReference": "Unknown-15.png original supplied headshot; preserve head shape and cheek moles",
+      "avatar": "assets/avatars/cesar-20261021-consistent.webp",
       "generation": "Each complete pose generated coherently; only whole-image uniform resizing and canvas placement used for packaging.",
       "standing": {
-        "source": "assets/managers-cesar-20261021-final/cesar-standing.webp",
+        "source": "assets/managers-cesar-20261021-consistent/cesar-standing.webp",
         "canvasWidth": 360,
         "canvasHeight": 720,
         "alphaBounds": {
-          "left": 30,
+          "left": 34,
           "top": 9,
-          "right": 328,
+          "right": 324,
           "bottom": 668
         },
         "visibleHeight": 660,
-        "visibleWidth": 299
+        "visibleWidth": 291
       },
       "seated": {
-        "source": "assets/managers-cesar-20261021-final/cesar-seated.webp",
+        "source": "assets/managers-cesar-20261021-consistent/cesar-seated.webp",
         "canvasWidth": 360,
         "canvasHeight": 720,
         "alphaBounds": {
-          "left": 8,
+          "left": 12,
           "top": 99,
-          "right": 351,
-          "bottom": 715
+          "right": 346,
+          "bottom": 716
         },
-        "visibleHeight": 617,
-        "visibleWidth": 344
+        "visibleHeight": 618,
+        "visibleWidth": 335
       },
       "eliminated": {
-        "source": "assets/managers-cesar-20261021-final/cesar-eliminated.webp",
+        "source": "assets/managers-cesar-20261021-consistent/cesar-eliminated.webp",
         "canvasWidth": 350,
         "canvasHeight": 376,
         "alphaBounds": {
-          "left": 54,
-          "top": 18,
-          "right": 294,
-          "bottom": 332
+          "left": 45,
+          "top": 8,
+          "right": 303,
+          "bottom": 353
         },
-        "visibleHeight": 315,
-        "visibleWidth": 241
+        "visibleHeight": 346,
+        "visibleWidth": 259
       },
       "avatarFraming": {
-        "source": "assets/avatars/cesar-20261021-final.webp",
+        "source": "assets/avatars/cesar-20261021-consistent.webp",
         "canvasWidth": 640,
         "canvasHeight": 640,
         "method": "Uniform whole-bust export of approved portrait, preserving connected neck, collar and shoulders."

@@ -1,5 +1,8 @@
+# Cesar consistency correction — October 21, 2026
+The owner explicitly requested publication after detailed comparison against every manager. Current set uses Unknown-15.png for facial identity and Wasi whole poses for medium-build proportions. No conspicuous shirt buttons. Standing and seated heads follow their respective original pose proportions. All three figures are coherent generated images; only uniform whole-image export and canvas placement were used. The final and reference sets are superseded; do not restore them.
+
 # Latest approved Cesar artwork — October 21, 2026
-The owner approved the final cartoon portrait after the cheek-mole correction and explicitly requested all remaining figures and publication. The approved portrait has a close pair of moles on the viewer-left cheek and one on the viewer-right. Preserve that identity, smooth colored shadows, short swept hair, and light moustache shadow. It supersedes Unknown-6 as the identity master. Canonical portrait: `assets/avatars/cesar-20261021-final.webp`; coherent full poses: `assets/managers-cesar-20261021-final/cesar-{standing,seated,eliminated}.webp`. Cesar remains medium build, using Wasi as the whole-pose proportion reference. No head/body compositing.
+The owner approved the final cartoon portrait after the cheek-mole correction and explicitly requested all remaining figures and publication. The approved portrait has a close pair of moles on the viewer-left cheek and one on the viewer-right. Preserve that identity, smooth colored shadows, short swept hair, and light moustache shadow. It supersedes Unknown-6 as the identity master. Canonical portrait: `assets/avatars/cesar-20261021-consistent.webp`; coherent full poses: `assets/managers-cesar-20261021-consistent/cesar-{standing,seated,eliminated}.webp`. Cesar remains medium build, using Wasi as the whole-pose proportion reference. No head/body compositing.
 
 # Manager artwork: mandatory generation rules
 
@@ -7,7 +10,7 @@ Read before any manager portrait or figure update.
 
 ## Site avatar framing — October 21, 2026 correction
 - An isolated face is an identity reference, not a finished site avatar. Every manager avatar must include a naturally connected shaded neck, shirt collar, and shoulders that reach the frame's lower edge. Compare against Garrett's current site avatar in both the circular selectors/matchups and the oval roster card. Reject a floating chin or a face filling the entire frame.
-- Cesar's current avatar is `assets/avatars/cesar-20261021-final.webp`. It uses the owner-approved October 21 final coherent bust, including its connected neck, collar, and shoulders. It does not attach a head to a body or independently resize any body part.
+- Cesar's current avatar is `assets/avatars/cesar-20261021-consistent.webp`. It uses the owner-approved October 21 final coherent bust, including its connected neck, collar, and shoulders. It does not attach a head to a body or independently resize any body part.
 - `assets/avatars/cesar-20261021-medium.png` is the rejected isolated-face site avatar. Keep it out of the production avatar map.
 - Before publishing manager artwork, inspect the rendered placements: homepage figures, roster selectors and identity cards, matchup portraits, standings, manager profiles, every challenge pose, and applicable history/award portraits. File existence, asset hashes, image dimensions, and successful deployment are not visual validation.
 - Keep shared avatar frame dimensions and other managers unchanged. Fix the asset framing through the common avatar source so all site placements receive the correction.
@@ -15,7 +18,7 @@ Read before any manager portrait or figure update.
 ## Current Cesar set and body-size rule — October 21, 2026
 - Managers have different body sizes. Cesar has a MEDIUM build, matching Wasi's body-size category. Preserve those differences; never give every manager one generic body. Use Wasi's approved whole figures as Cesar's build and proportion references, while keeping Cesar's blue suit, pale lavender-blue shirt, brown shoes, and own facial identity.
 - The owner selected the final October 21 cartoon portrait as the identity/style baseline, superseding `Unknown-6(2).png`. Preserve the longer oval/soft rectangular face, low swept-back black hair, heavier eyelids, longer nose, cheek moles, sparse stubble, and warm tan skin. Do not revert to a rounder generic head or a photographic rendering.
-- Current assets: `assets/avatars/cesar-20261021-final.webp` and `assets/managers-cesar-20261021-final/cesar-{standing,seated,eliminated}.webp`. Each full pose was generated coherently, with a connected shaded neck and collar; packaging used only uniform whole-image resizing and transparent canvas placement.
+- Current assets: `assets/avatars/cesar-20261021-consistent.webp` and `assets/managers-cesar-20261021-consistent/cesar-{standing,seated,eliminated}.webp`. Each full pose was generated coherently, with a connected shaded neck and collar; packaging used only uniform whole-image resizing and transparent canvas placement.
 - Standing and bench-seated canvases remain 360 x 720; eliminated remains 350 x 376 in the original LMS viewport. Match the pose-specific head-to-body balance and original site baselines. Keep the standing jacket buttoned, seated jackets open, and the eliminated figure sad, cross-legged on the floor, and fully colored.
 - The owner explicitly authorized pushing and publishing this complete set once proportions matched, with no further approval pause. This supersedes the earlier review-only instructions below for this set. Earlier rejected assets remain rejected. Future requests to review before publication still require review.
 - Keep all four integration sources synchronized: `prepare-manager-avatars.mjs`, `challenge-live.js`, `manager-hero.js`, and `prepare-manager-hero.mjs`. No global sizing, crown, seating, or animation changes are needed for this set.
@@ -47,7 +50,7 @@ Commit `bc874cd57265f7538829216dcd4ccb2ab6cf26e3` updates four distinct assets: 
 - Original approved standing/seated whole-figure references: assets/managers-v4/{manager}-standing.webp and -seated.webp.
 - Current approved Jarrett figures: assets/managers-v8/jarrett-standing.webp and jarrett-seated.webp.
 - Approved Jarrett portrait: assets/avatars/jarrett-20261005.png.
-- Current Cesar assets: assets/avatars/cesar-20261021-final.webp and assets/managers-cesar-20261021-final/cesar-{standing,seated,eliminated}.webp. His medium build uses Wasi's original whole figures as the body-size reference.
+- Current Cesar assets: assets/avatars/cesar-20261021-consistent.webp and assets/managers-cesar-20261021-consistent/cesar-{standing,seated,eliminated}.webp. His medium build uses Wasi's original whole figures as the body-size reference.
 - All existing manager assets must be inspected visually before editing. Never use rejected generated bodies as references.
 
 ## Geometry references
