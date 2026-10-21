@@ -1,7 +1,7 @@
 {
   "managerGenerationContract": {
     "scope": "manager artwork only",
-    "effectiveDate": "2026-10-20 America/Chicago \u2014 later owner correction",
+    "effectiveDate": "2026-10-20 America/Chicago — later owner correction",
     "rule": "NEVER cut out, paste, composite, fit, or independently resize separate heads onto bodies.",
     "generation": "Generate each complete manager pose as one coherent image with head, naturally shaded neck, collar, shoulders, and body together.",
     "references": "Approved portrait for identity; original approved whole figure of the same pose for build, clothing, proportions, and framing; Garrett and Kat for illustration style only.",
@@ -334,7 +334,7 @@
         "3043078-faces-v2.webp": {
           "head": 15.8,
           "face": 13.8,
-          "width": 10.0
+          "width": 10
         },
         "3121422-faces-v2.webp": {
           "head": 15.8,
@@ -345,7 +345,7 @@
       "previousReference": {
         "4047646-faces-v2.webp": {
           "head": 14.9,
-          "face": 13.0,
+          "face": 13,
           "width": 9.8,
           "note": "small-headed; not a head-size target"
         }
@@ -2127,7 +2127,7 @@
       "effectiveDate": "2026-10-14 21:19 America/Chicago",
       "scope": "new NFL roster player artwork; preserve existing approved artwork",
       "source": "explicit owner instruction",
-      "supersedes": "15\u201316% range and 15.5% target; also supersedes 16\u201317%, 16.5%, 18% and 20% targets",
+      "supersedes": "15–16% range and 15.5% target; also supersedes 16–17%, 16.5%, 18% and 20% targets",
       "preserve": "uniform face scaling, identity, naturally shaded continuous neck, existing body style and physical-height behavior",
       "generationContract": "docs/lineup-artwork-protocol.md#consistent-generation-contract",
       "formula": "(chinY - hairTopY) / (solesY - hairTopY)",
@@ -2140,7 +2140,7 @@
       ],
       "calibratedHeadMaster": null,
       "bodyReferenceRole": "Drake Maye supplies visual head/body balance, body style, pose and lighting. The official headshot supplies player identity. No calibrated ratio claim.",
-      "resultReporting": "15.5\u201316% is the generation target, aiming at 15.75%. Generate once, package and publish as requested. No anatomical measurements, automatic corrections, timing breakdown or output-percentage claims.",
+      "resultReporting": "15.5–16% is the generation target, aiming at 15.75%. Generate once, package and publish as requested. No anatomical measurements, automatic corrections, timing breakdown or output-percentage claims.",
       "range": [
         0.155,
         0.16
@@ -2152,7 +2152,7 @@
       "visualReference": "assets/team-photos/players/4431452-faces-v2.webp",
       "workflow": "docs/lineup-artwork-protocol.md#fast-new-player-workflow",
       "firstGenerationHeadScale": 1.15,
-      "firstGenerationHeadScaleBasis": "Owner instruction 2026-10-14 21:46 America/Chicago: append a 15% larger head request to the first-generation prompt, using an assumed 14% baseline. Final target remains 15.5\u201316%. No output measurement or automatic corrective edit."
+      "firstGenerationHeadScaleBasis": "Owner instruction 2026-10-14 21:46 America/Chicago: append a 15% larger head request to the first-generation prompt, using an assumed 14% baseline. Final target remains 15.5–16%. No output measurement or automatic corrective edit."
     },
     "previousBodyReference": "assets/team-photos/players/4047646-faces-v2.webp"
   },
@@ -2162,7 +2162,7 @@
       "build": "medium",
       "buildReference": "wasi",
       "identityReference": "Owner-selected Unknown-6(2).png / Unknown-6.png illustration",
-      "avatar": "assets/avatars/cesar-20261021-medium.png",
+      "avatar": "assets/avatars/cesar-20261021-bust.svg",
       "generation": "Each complete pose generated coherently; only whole-image uniform resizing and canvas placement used for packaging.",
       "standing": {
         "source": "assets/managers-cesar-20261021-medium/cesar-standing.webp",
@@ -2202,6 +2202,14 @@
         },
         "visibleHeight": 315,
         "visibleWidth": 237
+      },
+      "avatarFraming": {
+        "source": "assets/managers-cesar-20261021-medium/cesar-standing.webp",
+        "viewBox": "45 -6 270 270",
+        "canvasWidth": 512,
+        "canvasHeight": 512,
+        "method": "Viewport crop of the complete coherent standing illustration; connected neck, collar, and shoulders remain visible. No independent head transforms.",
+        "rejectedSiteAvatar": "assets/avatars/cesar-20261021-medium.png"
       }
     }
   }
