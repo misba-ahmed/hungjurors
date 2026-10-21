@@ -1,30 +1,40 @@
-# Manager artwork: mandatory preservation rules
+# Manager artwork: mandatory generation rules
 
-Read before any manager portrait or figure update. User-approved bodies are immutable templates, not prompts to regenerate.
+Read before any manager portrait or figure update.
+
+## HARD RULE: never fit separate heads onto bodies — owner correction October 20, 2026
+- NEVER cut out, paste, composite, fit, or independently resize a separate head onto a body. This ban applies to standing, bench-seated, ground-seated/eliminated, alternate-pose, and header manager artwork.
+- Never use jaw-shaped cutout masks, pasted face layers, cloned neck pixels, neck patches, or head-fitting scripts to assemble or repair a manager figure. Matching measurements or preserving body pixels does not make this method acceptable.
+- Generate each complete pose as ONE coherent image. Draw the head, naturally shaded neck, collar, shoulders, and body together so the anatomy, perspective, shading, and illustration style agree.
+- Use the approved portrait as a facial-identity reference. Use the original approved full figure of the SAME pose as the visual reference for build, clothing, hands, stance, head-to-body scale, canvas framing, and foot baseline. Use Garrett and Kat for rendering style only. Do not copy their facial anatomy.
+- Preserve the established visual proportions and pose through whole-image generation. Do not paste original body pixels back into a generated figure. After generation, whole-image export, uniform resizing, and transparent canvas placement are allowed; independent head transforms and body-part recombination are forbidden.
+- Reject a figure with a detached chin, neck/collar mismatch, pasted edge, or incorrect body proportions. Correct it through a new coherent whole-figure generation, never through head replacement or neck patching.
+- This correction supersedes ALL older manager instructions to keep body pixels immutable, replace only a head, fit a head to pixel coordinates, or repair a bounded head/neck join. Historical assets and measurements below remain visual references, not permission to reuse those techniques. This manager rule does not change the separate NFL player workflow.
+- The owner rejected the current Cesar head-composited standing, seated, and eliminated drafts. Do not publish, repair, reuse, or treat those drafts as approved references. The newly approved isolated Cesar portrait remains the identity reference.
+- For the current Cesar request, show the avatar and all three complete pose previews before publishing. Wait for the owner's explicit approval of the full set. A portrait approval alone does not approve the body artwork.
 
 ## Cesar rollback and rejected update — October 20, 2026
 - After viewing the published figures alongside the other managers, the owner rejected the October 20 update: the face did not match the established illustration style and the head looked smaller. The owner requested a revert. This rejection supersedes the earlier isolated-head approval and publication authorization.
 - Restore Cesar's original avatar from the index.html AV map, standing/seated figures from `assets/managers-v4/cesar-{standing,seated}.webp`, and elimination frame from `assets/managers-lms-v1/ground-seated-sad.png` with its original frames.json geometry.
 - The entire `managers-cesar-20261020-approved` set and `avatars/cesar-20261020-approved.png` are rejected despite their filenames. Do not restore them or treat their head as the current identity master. All earlier October 20/21 drafts remain non-production.
-- Cause: the generated portrait retained fine photographic features and shading that differ from the simplified Garrett/Kat illustration style. Generating complete pose images also changed the original bodies and head-to-body scale. Matching canvas size, overall alpha bounds and foot baseline did not preserve anatomical head size or original body pixels.
-- For any future attempt, preserve the actual original body pixels outside the bounded head/neck repair region. Use the existing manager-specific head geometry. Whole-figure resizing cannot correct a smaller head relative to the body. Keep the original neck shading and a continuous jaw/collar join. Use Garrett and Kat for rendering style only, without copying facial anatomy.
+- Cause: the earlier portrait retained photographic details that differed from Garrett/Kat's illustration style. Those figure drafts also changed the established build and head-to-body scale. A matching canvas or alpha bounding box does not establish matching anatomical proportions.
+- Future attempts must follow the hard rule above: generate the complete figure coherently from the approved portrait and original whole-pose reference. Match the original manager-specific visual geometry, build, clothing, and naturally shaded neck. Never assemble a new face with an old body.
 - Keep prepare-manager-avatars.mjs, challenge-live.js, manager-hero.js and prepare-manager-hero.mjs synchronized. Do not change global sizing, crowns, seating or animations to compensate for artwork differences.
-- The current request authorizes restoration and diagnosis, not another replacement design. Leave the original Cesar artwork live until the owner requests a new attempt.
+- That rollback kept Cesar's original artwork live. The owner has now requested a new full set for review before publication; keep the live originals until the owner approves the new complete set.
 
 ## Kat update precedent — October 15, 2026
 Commit `bc874cd57265f7538829216dcd4ccb2ab6cf26e3` updates four distinct assets: `assets/avatars/kat-20261015.png` and `assets/managers-kat-20261015/kat-{standing,seated,eliminated}.webp`. Inspect those actual images, including the sad elimination expression and connected shaded neck, rather than inferring the work from the commit title. The commit changes all four integration paths: `scripts/prepare-manager-avatars.mjs`, `scripts/challenge-live.js`, `scripts/manager-hero.js`, and `scripts/prepare-manager-hero.mjs`. The bundled header source must stay synchronized with the live source. This update does not authorize resurrecting Kat's retired trophy pose.
 
 ## Canonical assets
-- Original approved standing/seated bodies: assets/managers-v4/{manager}-standing.webp and -seated.webp.
-- Jarrett updated head: assets/managers-v8/jarrett-standing.webp and jarrett-seated.webp.
+- Original approved standing/seated whole-figure references: assets/managers-v4/{manager}-standing.webp and -seated.webp.
+- Current approved Jarrett figures: assets/managers-v8/jarrett-standing.webp and jarrett-seated.webp.
 - Approved Jarrett portrait: assets/avatars/jarrett-20261005.png.
 - All existing manager assets must be inspected visually before editing. Never use rejected generated bodies as references.
 
-## Exact Jarrett geometry
-Both canvases remain 360 x 720 pixels. Keep the original body pixels, original transparent padding, feet baseline, hands, suit, trousers, shoes, shoulder width, torso length and leg length. Do not trim or normalize the completed canvas.
-Standing replacement head: top 9px, height 200px, horizontally centered at x=180. Seated replacement head: top 99px, height 215px, centered at x=180. Source head is aspect-ratio preserved.
-The v5 tapered head cut FAILED: it removed collar/neck pixels and left a visible background wedge below the jaw. Never reuse that mask as a finished result. Preserve the continuous jaw-to-neck-to-shirt junction; repair that bounded junction when replacing a head. Preserve all body pixels outside the explicitly repaired neck/collar region. Do not treat a numeric head boundary as permission to erase collar pixels.
-Changing head appearance is not authorization to enlarge the head or change body proportions. Do not describe these figures as chibi, bobblehead, or use approximate one-third-head recipes.
+## Geometry references
+Standing and bench-seated site canvases remain 360 x 720 pixels. Match each manager's original transparent margins, foot baseline, shoulder width, torso and leg lengths, hands, suit, trousers, shoes, and pose. Use the complete original image to judge these relationships.
+Jarrett's original standing hair top is approximately 9px and chin approximately 208px; his seated hair top is approximately 99px and chin approximately 310px. These historical visual landmarks describe scale only. NEVER turn them into head-placement coordinates or cutout masks. The old 215px standing replacement and v5/v6/v7 neck repairs failed and must not guide new generation.
+Changing facial identity does not authorize changing the established head-to-body balance. Do not use chibi, bobblehead, or approximate one-third-head recipes. Generate a naturally connected shaded neck and collar as part of the complete figure.
 
 ## Appearance
 Exact approved facial identity; frontal; closed-mouth smile; full hair and ears; preserve skin tone and matching hands. No ties. Standing jacket buttoned, seated jacket unbuttoned. Preserve each manager's original jacket/shirt colors and pose.
@@ -32,10 +42,10 @@ Exact approved facial identity; frontal; closed-mouth smile; full hair and ears;
 ## Integration and proof
 Portraits flow through scripts/prepare-manager-avatars.mjs. Standing/seated figures flow through scripts/challenge-live.js; header standing figures through scripts/manager-hero.js. Update all three entry points with versioned asset URLs.
 Do not alter header geometry, crowns, seating position, challenge animations or dimensions for an avatar change.
-Compare old/new at the same rendered size AND inspect both poses enlarged against the site's cream background. Reject any visible background wedge, detached chin, hard pasted edge, or mismatched neck skin. A transparent preview alone is insufficient. Check neck/collar joins and alpha edges; verify original opaque body pixels below the edited head match before/after. Use lossless encoding when preserving body pixels.
+Compare original and new complete figures at the same rendered size and inspect the head/neck/collar relationship against the site's cream background. Reject any visible background wedge, detached chin, hard pasted edge, mismatched neck skin, or changed visual proportions. A transparent preview alone is insufficient. Never use a body-pixel preservation check as a reason to composite a separate head.
 The rejected October 5 regenerated bodies were too short/wide and must never be published or reused.
 
-Read `assets/ARTWORK_PROPORTIONS.md` and `assets/artwork-proportions.json` for measured baselines. The 215px head and v5/v6 neck repairs are rejected. Preserve the original shaded neck; do not regenerate it as a flat shape. See `assets/references/jarrett-proportions-20261005.png` for equal-scale comparison.
+Read `assets/ARTWORK_PROPORTIONS.md` and `assets/artwork-proportions.json` for measured baselines. The 215px head and v5/v6 neck repairs are rejected. Generate a naturally shaded neck connected to the head and collar in the same whole-figure image; never draw a flat neck patch. See `assets/references/jarrett-proportions-20261005.png` for equal-scale comparison.
 
 October 5 correction: v7 was rejected for a floating head. Preserve the continuous shaded neck silhouette up both jaw sides; head-height checks alone do not validate the join. Current comparison: assets/references/jarrett-neck-comparison-20261005.png. Do not reuse the v7 proof as approved artwork.
 

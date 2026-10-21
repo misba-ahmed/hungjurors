@@ -4,15 +4,15 @@ Read together with MANAGER_ARTWORK_RULES.md and team-photos/STYLE_GUIDE.md befor
 
 ## Measurement sources
 artwork-proportions.json records actual canvas dimensions and alpha bounds for all 20 original manager figures, plus a snapshot of every player catalog entry (resolution, aspect ratio and listed physical height). Alpha bounds use opacity >=128. These bounds measure image extent, NOT anatomical landmarks.
-Original full-body files are the geometry templates. Never infer a new body from a text description or a portrait alone.
+Original full-body files are visual geometry references. Never infer a manager body from a text description or portrait alone, and never use an original body as a layer for a separate head.
 
 ## Managers
-360 x 720 original canvases. Preserve transparent margins, foot baseline, shoulder width, torso/leg lengths, pose and garment colors. Preserve each individual's build. Standing jackets buttoned; seated jackets open; no ties.
-Jarrett original standing: visually measured hair top approximately 9, chin approximately 208, shirt opening approximately 260. Hair-to-chin approximately 200 px. Approved new face must fit this scale, not the rejected 215 px head.
-Jarrett original seated: hair top approximately 99, chin approximately 310, shirt opening approximately 353. Hair-to-chin approximately 210 px. The seated source has its own geometry; do not force its head size to the standing source in native pixels.
-These facial landmarks are visual estimates; compare directly with the source image. Do not crop away the visible neck or move the collar upward. Preserve original neck shading. A neck silhouette drawn as a flat shape is not an acceptable replacement.
-Do not distort the approved face to hit a number: scale uniformly and retain identity. Keep heads comparable within each rendered challenge. Do not globally resize other managers.
-Canonical Jarrett current files: managers-v8/jarrett-standing.webp and jarrett-seated.webp. Original body templates remain managers-v4. The v5/v6 collar repairs were rejected for neck/head proportions.
+HARD RULE — owner correction October 20, 2026: NEVER cut out, paste, composite, fit, or independently resize a separate head onto a body. Never use jaw masks, neck patches, or head-fitting scripts. Generate every complete manager pose as one coherent image, including the head, naturally shaded neck, collar, and body. Read `MANAGER_ARTWORK_RULES.md` for the current workflow. This supersedes older manager instructions to preserve body pixels or replace only the head.
+
+Use the approved portrait for identity and the original complete image of the same pose for clothing, build, visual proportions, pose, and framing. Standing and bench-seated canvases remain 360 x 720. Match transparent margins, foot baseline, shoulder width, torso and leg lengths, and garment colors. Standing jackets stay buttoned; seated jackets stay open; no ties.
+Jarrett's original standing landmarks are approximately hair top 9px, chin 208px, shirt opening 260px. His seated landmarks are approximately hair top 99px, chin 310px, shirt opening 353px. These are historical visual estimates, never instructions for positioning or scaling an isolated head. Each pose has its own visual geometry.
+Retain facial identity, the established head-to-body balance, and a continuous naturally shaded neck through coherent generation. Whole-image uniform resizing and canvas packaging are allowed; body-part assembly and independent head transforms are forbidden. Do not resize other managers or change site geometry to compensate for a mismatched image.
+Canonical Jarrett current files: managers-v8/jarrett-standing.webp and jarrett-seated.webp. Original whole-figure references remain managers-v4. The v5/v6/v7 neck-repair drafts remain rejected.
 
 ## Players
 Head size and packaging are set by `scripts/fit-player-head.py` on the generated image; the workflow is `docs/lineup-artwork-protocol.md` (generate once → fit script → catalog → publish; nothing else). Band 15.2–16.2% hair-top-to-chin over visible figure height, fitted toward 15.7% (the owner's pick, October 15, 2026) by scaling the whole head+neck about the collar, never more than +15% and never past a face width of 0.29× the shoulders (a bobblehead). Heads already in or above the band are left alone.

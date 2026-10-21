@@ -6,7 +6,7 @@ Read `docs/lineup-artwork-protocol.md` before EVERY player lineup artwork genera
 
 Before ANY roster lineup code or styling update, read `assets/team-photos/STYLE_GUIDE.md` and preserve all original requirements. Resting figures use relative real heights; selected figures intentionally share one enlarged size. Run the lineup checks before publishing code or styling changes (never for artwork-only updates).
 
-Before ANY manager avatar or figure update, read `assets/MANAGER_ARTWORK_RULES.md`. Preserve the approved original bodies and exact geometry; an avatar change updates the head only, never regenerates the body.
+Before ANY manager avatar or figure update, read `assets/MANAGER_ARTWORK_RULES.md`. HARD RULE: NEVER cut out, paste, composite, fit, or independently resize a separate head onto a body. Never use jaw masks, neck patches, or head-fitting scripts to assemble manager figures. Generate each complete pose as one coherent image, with the head, naturally shaded neck, collar, and body drawn together. Use approved portraits for identity and approved whole figures for pose, clothing, build, head-to-body scale, and framing. This owner correction supersedes all older instructions to preserve original body pixels or replace only the head. If the owner asks to see artwork before publishing, show the complete set and wait for approval.
 
 Before ANY manager or player image update, read `assets/ARTWORK_PROPORTIONS.md` and `assets/artwork-proportions.json`. Use the named original image templates; do not guess proportions from prose. Preserve visible shaded necks. Manager artwork keeps its own rules; player figures are finalized by `scripts/fit-player-head.py` with no inspection or approval round.
 

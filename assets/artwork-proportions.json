@@ -1,4 +1,24 @@
 {
+  "managerGenerationContract": {
+    "scope": "manager artwork only",
+    "effectiveDate": "2026-10-20 America/Chicago — later owner correction",
+    "rule": "NEVER cut out, paste, composite, fit, or independently resize separate heads onto bodies.",
+    "generation": "Generate each complete manager pose as one coherent image with head, naturally shaded neck, collar, shoulders, and body together.",
+    "references": "Approved portrait for identity; original approved whole figure of the same pose for build, clothing, proportions, and framing; Garrett and Kat for illustration style only.",
+    "forbidden": [
+      "head cutouts",
+      "pasted face layers",
+      "jaw masks",
+      "neck patches",
+      "cloned neck pixels",
+      "independent head scaling",
+      "head-fitting scripts",
+      "restoring original body pixels into generated figures"
+    ],
+    "allowedPackaging": "Whole-image uniform resize, transparent canvas placement, and file export only.",
+    "supersedes": "All older manager instructions to preserve original body pixels, replace only the head, fit a head to numeric coordinates, or repair a bounded head/neck join.",
+    "currentCesarStatus": "Head-composited standing, seated, and eliminated previews rejected. Keep approved isolated portrait as identity reference. Show all complete pose previews and wait for owner approval before publication."
+  },
   "measurementMethod": "Exact alpha bounds at alpha >=128. Facial landmarks in markdown are visual estimates, not detection.",
   "managers": {
     "misba": {
