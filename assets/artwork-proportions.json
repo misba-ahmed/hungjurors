@@ -2161,55 +2161,53 @@
       "updated": "2026-10-21",
       "build": "medium",
       "buildReference": "wasi",
-      "identityReference": "Owner-selected Unknown-6(2).png / Unknown-6.png illustration",
-      "avatar": "assets/avatars/cesar-20261021-bust.svg",
+      "identityReference": "Owner-approved final October 21 cartoon portrait after cheek-mole correction",
+      "avatar": "assets/avatars/cesar-20261021-final.webp",
       "generation": "Each complete pose generated coherently; only whole-image uniform resizing and canvas placement used for packaging.",
       "standing": {
-        "source": "assets/managers-cesar-20261021-medium/cesar-standing.webp",
+        "source": "assets/managers-cesar-20261021-final/cesar-standing.webp",
         "canvasWidth": 360,
         "canvasHeight": 720,
         "alphaBounds": {
-          "left": 33,
-          "top": 8,
-          "right": 326,
+          "left": 30,
+          "top": 9,
+          "right": 328,
           "bottom": 668
         },
-        "visibleHeight": 661,
-        "visibleWidth": 294
+        "visibleHeight": 660,
+        "visibleWidth": 299
       },
       "seated": {
-        "source": "assets/managers-cesar-20261021-medium/cesar-seated.webp",
+        "source": "assets/managers-cesar-20261021-final/cesar-seated.webp",
         "canvasWidth": 360,
         "canvasHeight": 720,
         "alphaBounds": {
-          "left": 6,
+          "left": 8,
           "top": 99,
-          "right": 353,
+          "right": 351,
           "bottom": 715
         },
         "visibleHeight": 617,
-        "visibleWidth": 348
+        "visibleWidth": 344
       },
       "eliminated": {
-        "source": "assets/managers-cesar-20261021-medium/cesar-eliminated.webp",
+        "source": "assets/managers-cesar-20261021-final/cesar-eliminated.webp",
         "canvasWidth": 350,
         "canvasHeight": 376,
         "alphaBounds": {
-          "left": 56,
+          "left": 54,
           "top": 18,
-          "right": 292,
+          "right": 294,
           "bottom": 332
         },
         "visibleHeight": 315,
-        "visibleWidth": 237
+        "visibleWidth": 241
       },
       "avatarFraming": {
-        "source": "assets/managers-cesar-20261021-medium/cesar-standing.webp",
-        "viewBox": "45 -6 270 270",
-        "canvasWidth": 512,
-        "canvasHeight": 512,
-        "method": "Viewport crop of the complete coherent standing illustration; connected neck, collar, and shoulders remain visible. No independent head transforms.",
-        "rejectedSiteAvatar": "assets/avatars/cesar-20261021-medium.png"
+        "source": "assets/avatars/cesar-20261021-final.webp",
+        "canvasWidth": 640,
+        "canvasHeight": 640,
+        "method": "Uniform whole-bust export of approved portrait, preserving connected neck, collar and shoulders."
       }
     }
   }
