@@ -2217,33 +2217,33 @@
       "avatar": "assets/avatars/wasi-20261021.webp",
       "generation": "Coherent whole-pose generation; uniform whole-image export only. Avatar crops complete approved figure without separate body-part transforms.",
       "standing": {
-        "source": "assets/managers-wasi-20261021/wasi-standing.webp",
+        "source": "assets/managers-wasi-20261021-proportions/wasi-standing.webp",
         "canvasWidth": 360,
         "canvasHeight": 720,
         "alphaBounds": {
-          "left": 32,
+          "left": 35,
           "top": 9,
-          "right": 327,
+          "right": 323,
           "bottom": 668
         },
         "visibleHeight": 660,
-        "visibleWidth": 296
+        "visibleWidth": 289
       },
       "seated": {
-        "source": "assets/managers-wasi-20261021/wasi-seated.webp",
+        "source": "assets/managers-wasi-20261021-proportions/wasi-seated.webp",
         "canvasWidth": 360,
         "canvasHeight": 720,
         "alphaBounds": {
-          "left": 12,
+          "left": 17,
           "top": 99,
-          "right": 347,
+          "right": 342,
           "bottom": 716
         },
         "visibleHeight": 618,
-        "visibleWidth": 336
+        "visibleWidth": 326
       },
       "eliminated": {
-        "source": "assets/managers-wasi-20261021/wasi-eliminated.webp",
+        "source": "assets/managers-wasi-20261021-proportions/wasi-eliminated.webp",
         "canvasWidth": 350,
         "canvasHeight": 376,
         "alphaBounds": {
