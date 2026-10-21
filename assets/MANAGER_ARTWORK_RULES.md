@@ -2,6 +2,17 @@
 
 Read before any manager portrait or figure update. User-approved bodies are immutable templates, not prompts to regenerate.
 
+## Cesar approved update — October 20, 2026
+- The owner approved the final smiling illustrated head after two small eye-size increases and instructed: "perfect. now make the figures and update the site". This supersedes the earlier preview-only hold for this final set.
+- Identity master: `assets/managers-cesar-20261020-approved/cesar-head.webp`. Preserve this selected face, its small closed-mouth smile, hooded almond eyes, soft jaw and proportions. Garrett and Kat supply rendering style only; never copy their facial anatomy. Earlier Cesar heads and all preview folders are superseded and must not serve as identity masters or production assets.
+- Current portrait: `assets/avatars/cesar-20261020-approved.png`. Current figures: `assets/managers-cesar-20261020-approved/cesar-{standing,seated,eliminated}.webp`. Standing and ordinary seated keep the normal smile. ONLY the cross-legged Last Man Standing elimination figure is sad.
+- The original managers-v4 poses remain the body/canvas references. The new assets keep the 360x720 standing/seated canvases and original visible floor alignment; elimination keeps the original 350x376 individual frame. Preserve the natural shaded jaw-to-neck-to-collar connection. Do not hard-paste a detached head or flatten the neck.
+- Keep all four integration paths synchronized: prepare-manager-avatars.mjs, challenge-live.js, manager-hero.js and prepare-manager-hero.mjs. Do not alter global dimensions, crowns, seating, or animations for a portrait change.
+- Rejected October20/21 pasted-head, overly angular, wide-face, photo-like, and sad normal-seated drafts remain non-production. Never publish the old local `managers-cesar-20261021` draft directory or old `cesar-20261021-circle` files.
+
+## Kat update precedent — October 15, 2026
+Commit `bc874cd57265f7538829216dcd4ccb2ab6cf26e3` updates four distinct assets: `assets/avatars/kat-20261015.png` and `assets/managers-kat-20261015/kat-{standing,seated,eliminated}.webp`. Inspect those actual images, including the sad elimination expression and connected shaded neck, rather than inferring the work from the commit title. The commit changes all four integration paths: `scripts/prepare-manager-avatars.mjs`, `scripts/challenge-live.js`, `scripts/manager-hero.js`, and `scripts/prepare-manager-hero.mjs`. The bundled header source must stay synchronized with the live source. This update does not authorize resurrecting Kat's retired trophy pose.
+
 ## Canonical assets
 - Original approved standing/seated bodies: assets/managers-v4/{manager}-standing.webp and -seated.webp.
 - Jarrett updated head: assets/managers-v8/jarrett-standing.webp and jarrett-seated.webp.
