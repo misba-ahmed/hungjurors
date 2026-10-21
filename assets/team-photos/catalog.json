@@ -184,10 +184,10 @@
     "jersey": "22"
   },
   "3045523": {
-    "file": "3045523-faces-v1.webp",
-    "width": 312,
+    "file": "3045523-faces-v2.webp",
+    "width": 309,
     "height": 850,
-    "ratio": 0.36706,
+    "ratio": 0.36353,
     "heightInches": 73,
     "name": "Kendrick Bourne",
     "teamId": 22,
@@ -586,10 +586,10 @@
     "teamId": 21,
     "jersey": "1",
     "unavailable": {
-      "file": "4040715-crutches-v1.webp",
-      "width": 326,
+      "file": "4040715-crutches-v2.webp",
+      "width": 323,
       "height": 850,
-      "ratio": 0.38353,
+      "ratio": 0.38,
       "kind": "injury"
     }
   },
@@ -822,10 +822,10 @@
     "jersey": "2"
   },
   "4360238": {
-    "file": "4360238-faces-v1.webp",
-    "width": 317,
+    "file": "4360238-faces-v2.webp",
+    "width": 312,
     "height": 850,
-    "ratio": 0.37294,
+    "ratio": 0.36706,
     "heightInches": 70,
     "name": "Dameon Pierce",
     "teamId": 21,
@@ -1568,10 +1568,10 @@
     "jersey": "2"
   },
   "4568263": {
-    "file": "4568263-faces-v1.webp",
-    "width": 303,
+    "file": "4568263-faces-v2.webp",
+    "width": 306,
     "height": 850,
-    "ratio": 0.35647,
+    "ratio": 0.36,
     "heightInches": 71,
     "name": "Ryan Fitzgerald",
     "teamId": 29,
@@ -2047,10 +2047,10 @@
     "jersey": "84"
   },
   "4723820": {
-    "file": "4723820-faces-v1.webp",
-    "width": 300,
+    "file": "4723820-faces-v2.webp",
+    "width": 302,
     "height": 850,
-    "ratio": 0.35294,
+    "ratio": 0.35529,
     "heightInches": 72,
     "name": "Omar Cooper Jr.",
     "teamId": 20,
@@ -2086,10 +2086,10 @@
     "teamId": 22,
     "jersey": "4",
     "unavailable": {
-      "file": "4870808-crutches-v1.webp",
-      "width": 327,
+      "file": "4870808-crutches-v2.webp",
+      "width": 323,
       "height": 850,
-      "ratio": 0.38471,
+      "ratio": 0.38,
       "kind": "injury"
     }
   },
@@ -2121,19 +2121,19 @@
     "jersey": "14"
   },
   "4880281": {
-    "file": "4880281-faces-v1.webp",
-    "width": 285,
+    "file": "4880281-faces-v2.webp",
+    "width": 292,
     "height": 850,
-    "ratio": 0.33529,
+    "ratio": 0.34353,
     "heightInches": 74,
     "name": "Jordyn Tyson",
     "teamId": 18,
     "jersey": "0",
     "unavailable": {
-      "file": "4880281-crutches-v1.webp",
-      "width": 349,
+      "file": "4880281-crutches-v2.webp",
+      "width": 359,
       "height": 850,
-      "ratio": 0.41059,
+      "ratio": 0.42235,
       "kind": "injury"
     }
   },

@@ -19,10 +19,10 @@ Measurements (all as a percentage of the figure's visible height, alpha >= 128)
   face   detected face box height (brow to chin), hair-independent
   width  detected face box width
 
-Band (see assets/ARTWORK_PROPORTIONS.md): head 15.2-16.2 (fit target 15.7),
-face >= 12.8, width >= 9.6. "head" is the number the league owner asks for;
-"face" and "width" stop big hair or a long neck from faking it. Approved
-catalog figures outside the band stay as they are.
+Rule (same as scripts/fit-player-head.py): head 15.2-16.2 (fit target 15.7);
+above that only for big hair on a normal face (head <= 21.0, face <= 14.6).
+"head" is the number the league owner asks for; "face" tells hair from a big
+head.
 
 Needs numpy, Pillow and opencv-python >= 4.5.4 (cv2.FaceDetectorYN). The face
 model is assets/references/models/face_detection_yunet_2023mar.onnx (OpenCV
@@ -36,7 +36,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL = os.path.join(ROOT, 'assets/references/models/face_detection_yunet_2023mar.onnx')
 PLAYERS = os.path.join(ROOT, 'assets/team-photos/players')
 DEFAULT_REFERENCE = os.path.join(PLAYERS, '4262921-faces-v2.webp')  # Justin Jefferson, head 15.7%
-BAND = {'head': (15.2, 16.2), 'face': (12.8, 99), 'width': (9.3, 99)}
+HEAD_BAND = (15.2, 16.2)   # hair-top-to-chin, % of figure height (fit target 15.7)
+HAIR_MAX = 21.0            # above the band only for big hair on a normal face
+HAIR_FACE_MAX = 14.6       # brow-to-chin (catalog p90); a bigger face over the band is a big head, not hair
 
 def detector():
     import cv2
@@ -75,20 +77,27 @@ def measure(path, cv2=None, det=None):
            'face': round(float(100 * fh / H), 1),
            'width': round(float(100 * fw / H), 1),
            'box': (int(x0 + 0), int(top), int(fx), int(top + fy), int(fw), int(fh))}
-    res['pass'] = all(BAND[k][0] <= res[k] <= BAND[k][1] for k in BAND)
+    res['pass'] = not head_notes(res)
     return res
 
 def verdict(r):
     if 'error' in r:
         return 'FAIL  ' + r['error']
-    notes = []
-    for k, (lo, hi) in BAND.items():
-        v = r[k]
-        if v < lo:
-            notes.append(f'{k} {v}% is below {lo}% (too small)')
-        elif v > hi:
-            notes.append(f'{k} {v}% is above {hi}% (too big)')
-    return ('PASS' if r['pass'] else 'FAIL') + ('  ' + '; '.join(notes) if notes else '')
+    notes = head_notes(r)
+    hair = not notes and r['head'] > HEAD_BAND[1]
+    return ('PASS' if r['pass'] else 'FAIL') + ('  ' + '; '.join(notes) if notes else '  big hair, normal face' if hair else '')
+
+def head_notes(r):
+    """Same rule as scripts/fit-player-head.py: hair-top-to-chin in the band, or
+    above it only by hair (face no bigger than normal, at most HAIR_MAX)."""
+    head, face = r['head'], r['face']
+    if head < HEAD_BAND[0]:
+        return [f'head {head}% is below {HEAD_BAND[0]}% (too small)']
+    if head > HAIR_MAX:
+        return [f'head {head}% is above {HAIR_MAX}% (too big)']
+    if head > HEAD_BAND[1] and face > HAIR_FACE_MAX:
+        return [f'head {head}% is above {HEAD_BAND[1]}% with a big face ({face}%) (too big)']
+    return []
 
 def proof(candidate, reference, out, rc, rr):
     """Candidate beside reference at equal figure height, plus head crops taken
@@ -116,7 +125,7 @@ def proof(candidate, reference, out, rc, rr):
         d.text((x, H + 50), 'head at the same figure scale (2x)', fill=(0, 0, 0, 255))
         x += colw
     y = H + WIN[1] * 2 + 85
-    d.text((20, y), f"band: head {BAND['head'][0]}-{BAND['head'][1]}% (fit 15.7)  face >= {BAND['face'][0]}%  width >= {BAND['width'][0]}%", fill=(0, 0, 0, 255))
+    d.text((20, y), f"band: head {HEAD_BAND[0]}-{HEAD_BAND[1]}% (fit 15.7); up to {HAIR_MAX}% for big hair with face <= {HAIR_FACE_MAX}%", fill=(0, 0, 0, 255))
     d.text((20, y + 18), 'verdict: ' + verdict(rc), fill=(0, 0, 0, 255))
     canvas.save(out)
 
