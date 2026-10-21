@@ -515,6 +515,12 @@
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4362628?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.161Z"
   },
+  "4363538": {
+    "name": "Chad Ryland",
+    "heightInches": 72,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4363538?lang=en&region=us",
+    "checkedAt": "2026-10-21T15:12:50.470Z"
+  },
   "4366031": {
     "name": "Tank Dell",
     "heightInches": 70,
