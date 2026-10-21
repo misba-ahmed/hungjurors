@@ -1,7 +1,7 @@
 {
   "managerGenerationContract": {
     "scope": "manager artwork only",
-    "effectiveDate": "2026-10-20 America/Chicago — later owner correction",
+    "effectiveDate": "2026-10-20 America/Chicago \u2014 later owner correction",
     "rule": "NEVER cut out, paste, composite, fit, or independently resize separate heads onto bodies.",
     "generation": "Generate each complete manager pose as one coherent image with head, naturally shaded neck, collar, shoulders, and body together.",
     "references": "Approved portrait for identity; original approved whole figure of the same pose for build, clothing, proportions, and framing; Garrett and Kat for illustration style only.",
@@ -17,7 +17,8 @@
     ],
     "allowedPackaging": "Whole-image uniform resize, transparent canvas placement, and file export only.",
     "supersedes": "All older manager instructions to preserve original body pixels, replace only the head, fit a head to numeric coordinates, or repair a bounded head/neck join.",
-    "currentCesarStatus": "Head-composited standing, seated, and eliminated previews rejected. Keep approved isolated portrait as identity reference. Show all complete pose previews and wait for owner approval before publication."
+    "currentCesarStatus": "Owner authorized publication of the complete October 21 medium-build set once proportions matched, without further approval. Identity/style follows the owner-selected Unknown-6 illustration. Previous head-composited and photorealistic drafts remain rejected.",
+    "bodySizes": "Managers have different body sizes. Cesar is medium build, matching Wasi; preserve manager-specific builds rather than standardizing all bodies."
   },
   "measurementMethod": "Exact alpha bounds at alpha >=128. Facial landmarks in markdown are visual estimates, not detection.",
   "managers": {
@@ -2154,5 +2155,54 @@
       "firstGenerationHeadScaleBasis": "Owner instruction 2026-10-14 21:46 America/Chicago: append a 15% larger head request to the first-generation prompt, using an assumed 14% baseline. Final target remains 15.5\u201316%. No output measurement or automatic corrective edit."
     },
     "previousBodyReference": "assets/team-photos/players/4047646-faces-v2.webp"
+  },
+  "currentManagerAssets": {
+    "cesar": {
+      "updated": "2026-10-21",
+      "build": "medium",
+      "buildReference": "wasi",
+      "identityReference": "Owner-selected Unknown-6(2).png / Unknown-6.png illustration",
+      "avatar": "assets/avatars/cesar-20261021-medium.png",
+      "generation": "Each complete pose generated coherently; only whole-image uniform resizing and canvas placement used for packaging.",
+      "standing": {
+        "source": "assets/managers-cesar-20261021-medium/cesar-standing.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 33,
+          "top": 8,
+          "right": 326,
+          "bottom": 668
+        },
+        "visibleHeight": 661,
+        "visibleWidth": 294
+      },
+      "seated": {
+        "source": "assets/managers-cesar-20261021-medium/cesar-seated.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 6,
+          "top": 99,
+          "right": 353,
+          "bottom": 715
+        },
+        "visibleHeight": 617,
+        "visibleWidth": 348
+      },
+      "eliminated": {
+        "source": "assets/managers-cesar-20261021-medium/cesar-eliminated.webp",
+        "canvasWidth": 350,
+        "canvasHeight": 376,
+        "alphaBounds": {
+          "left": 56,
+          "top": 18,
+          "right": 292,
+          "bottom": 332
+        },
+        "visibleHeight": 315,
+        "visibleWidth": 237
+      }
+    }
   }
 }

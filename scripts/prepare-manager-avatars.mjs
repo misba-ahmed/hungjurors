@@ -7,6 +7,7 @@ export function prepareManagerAvatars(html){
   if(!avatars.MISBA)throw Error('Misba avatar missing');
   avatars.MISBA='/assets/avatars/misba-20260929-v2.png';
   avatars.KAT='/assets/avatars/kat-20261015.png';
+  avatars.CESAR='/assets/avatars/cesar-20261021-medium.png';
   avatars.JARRETT='/assets/avatars/jarrett-20261006-circle-v4.svg';
   return 'const AV = '+JSON.stringify(avatars)+';';
  });
@@ -24,3 +25,4 @@ export function prepareManagerAvatars(html){
 };
 const av = `).replace('</head>','<style id="manager-avatar-framing">.av[data-manager="MISBA"],img.av[src*="/assets/avatars/misba-"],.lms-natural-head{filter:saturate(.8)}#league-hq #league-sync-content .league-team-tab>.av,#league-hq #hq-panel-matchups .hq-matchup-jump .hq-matchup-jump-avatar{border-color:#000!important}</style>\n</head>');
 }
+

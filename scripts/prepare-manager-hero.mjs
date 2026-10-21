@@ -5,16 +5,17 @@ import {readFileSync} from 'node:fs';
 export function prepareManagerHero(html){
  const slugs=['misba','bryan','tyler','nathan-m','wasi','cesar','nathan-t','garrett','jarrett','kat'];
  const images=Object.fromEntries(slugs.map(slug=>{
-  const folder=slug==='kat'?'managers-kat-20261015':slug==='jarrett'?'managers-v8':'managers-v4';
+  const folder=slug==='cesar'?'managers-cesar-20261021-medium':slug==='kat'?'managers-kat-20261015':slug==='jarrett'?'managers-v8':'managers-v4';
   const bytes=readFileSync(new URL(`../assets/${folder}/${slug}-standing.webp`,import.meta.url));
   if(bytes.length<100||bytes.toString('ascii',0,4)!=='RIFF'||bytes.toString('ascii',8,12)!=='WEBP')throw Error('Missing or invalid original manager figure: '+slug);
   return [slug,'data:image/webp;base64,'+bytes.toString('base64')];
  }));
  const source=readFileSync(new URL('./manager-hero.js',import.meta.url),'utf8');
- const path="'/assets/'+(f.slug==='kat'?'managers-kat-20261015':f.slug==='jarrett'?'managers-v8':'managers-v4')+'/'+f.slug+'-standing.webp'";
+ const path="'/assets/'+(f.slug==='cesar'?'managers-cesar-20261021-medium':f.slug==='kat'?'managers-kat-20261015':f.slug==='jarrett'?'managers-v8':'managers-v4')+'/'+f.slug+'-standing.webp'";
  if(source.split(path).length!==2)throw Error('Manager banner image renderer changed');
  const bundled='const HJ_HERO_FIGURES='+JSON.stringify(images)+';\n'+source.replace(path,'HJ_HERO_FIGURES[f.slug]');
  const script=/<script src="scripts\/manager-hero\.js\?[^"<>]+"><\/script>/g;
  if([...html.matchAll(script)].length!==1)throw Error('Manager banner script missing');
  return html.replace(script,()=>'<script id="hj-manager-hero-bundled">'+bundled+'</script>');
 }
+

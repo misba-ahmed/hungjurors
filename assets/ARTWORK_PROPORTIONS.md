@@ -7,6 +7,8 @@ artwork-proportions.json records actual canvas dimensions and alpha bounds for a
 Original full-body files are visual geometry references. Never infer a manager body from a text description or portrait alone, and never use an original body as a layer for a separate head.
 
 ## Managers
+Owner correction October 21, 2026: managers have different body sizes. Cesar uses a medium build, matching Wasi's build category. Preserve Cesar's selected illustrated identity and compare each complete pose against Wasi's corresponding original figure; do not standardize other managers' bodies. The current Cesar assets and measured canvas bounds are recorded separately in `currentManagerAssets` in artwork-proportions.json. The original `managers` snapshot remains unchanged as a historical reference.
+
 HARD RULE — owner correction October 20, 2026: NEVER cut out, paste, composite, fit, or independently resize a separate head onto a body. Never use jaw masks, neck patches, or head-fitting scripts. Generate every complete manager pose as one coherent image, including the head, naturally shaded neck, collar, and body. Read `MANAGER_ARTWORK_RULES.md` for the current workflow. This supersedes older manager instructions to preserve body pixels or replace only the head.
 
 Use the approved portrait for identity and the original complete image of the same pose for clothing, build, visual proportions, pose, and framing. Standing and bench-seated canvases remain 360 x 720. Match transparent margins, foot baseline, shoulder width, torso and leg lengths, and garment colors. Standing jackets stay buttoned; seated jackets stay open; no ties.
@@ -33,3 +35,4 @@ October 5 correction: v7 was rejected for a floating head. Preserve the continuo
 
 ## Visible crop rule — October 14 lineup-gap correction (applied by `scripts/fit-player-head.py`)
 For every new or revised human lineup asset, compute the crop from visible alpha (opacity >=128), not alpha >0: nearly invisible generator noise must never determine canvas width. Keep two source pixels of edge padding, retain antialiasing within that crop, resize proportionally to 850px high, and set catalog width, height and ratio from the resulting file. Use new versioned filenames. Apply the same packaging to regular, crutch and free-agent variants. Never compensate for padded images with global spacing, negative margins, distorted bodies or physical-height changes. This is an asset-preparation rule, not a publishing check.
+
