@@ -599,6 +599,12 @@
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4426515?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.206Z"
   },
+  "4427095": {
+    "name": "DeMario Douglas",
+    "heightInches": 68,
+    "source": "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/4427095",
+    "checkedAt": "2026-10-21"
+  },
   "4427366": {
     "name": "Breece Hall",
     "heightInches": 71,
@@ -790,6 +796,12 @@
     "heightInches": 73,
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4567750?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.233Z"
+  },
+  "4568263": {
+    "name": "Ryan Fitzgerald",
+    "heightInches": 71,
+    "source": "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/4568263",
+    "checkedAt": "2026-10-21"
   },
   "4568490": {
     "name": "RJ Harvey",
@@ -1031,6 +1043,12 @@
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4723086?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.326Z"
   },
+  "4723820": {
+    "name": "Omar Cooper Jr.",
+    "heightInches": 72,
+    "source": "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/4723820",
+    "checkedAt": "2026-10-21"
+  },
   "4832800": {
     "name": "Denzel Boston",
     "heightInches": 76,
@@ -1060,6 +1078,12 @@
     "heightInches": 74,
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4871023?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.358Z"
+  },
+  "4880281": {
+    "name": "Jordyn Tyson",
+    "heightInches": 74,
+    "source": "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/4880281",
+    "checkedAt": "2026-10-21"
   },
   "4882093": {
     "name": "Bhayshul Tuten",
