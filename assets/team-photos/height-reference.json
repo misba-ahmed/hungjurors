@@ -431,6 +431,12 @@
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4360310?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.120Z"
   },
+  "4360516": {
+    "name": "Tyrone Tracy Jr.",
+    "heightInches": 71,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4360516?lang=en&region=us",
+    "checkedAt": "2026-10-21T16:23:16.357Z"
+  },
   "4360569": {
     "name": "Jordan Mason",
     "heightInches": 71,
