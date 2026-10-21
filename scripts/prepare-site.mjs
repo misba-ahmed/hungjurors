@@ -56,6 +56,9 @@ function replaceOnce(html,pattern,replacement){
 }
 const folderArtwork=readFileSync(new URL('./folder-artwork.js',import.meta.url),'utf8');
 export function prepareSite(html){
+ // Legacy template insertions left literal "\\n" text between these blocks.
+ // Normalize only those three separators so they cannot render below the footer.
+ html=html.replace(/(<\/script>)\s*\\n\s*(?=<(?:script id="hj-projection-math-audit-script"|style id="hj-strength-v4-styles"|script id="hj-strength-v4-fast-expand"))/g,'$1\n');
  html=preparePerfectAwards(html);
  html=prepareProfileDetails(html);
  html=prepareNestedCards(html);
