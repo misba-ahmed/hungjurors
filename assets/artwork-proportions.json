@@ -2209,6 +2209,52 @@
         "canvasHeight": 640,
         "method": "Uniform whole-bust export of approved portrait, preserving connected neck, collar and shoulders."
       }
+    },
+    "wasi": {
+      "updated": "2026-10-21",
+      "build": "medium",
+      "identityReference": "Owner-approved softly shaded standing Wasi revision, after rejecting realistic and flat-vector drafts",
+      "avatar": "assets/avatars/wasi-20261021.webp",
+      "generation": "Coherent whole-pose generation; uniform whole-image export only. Avatar crops complete approved figure without separate body-part transforms.",
+      "standing": {
+        "source": "assets/managers-wasi-20261021/wasi-standing.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 32,
+          "top": 9,
+          "right": 327,
+          "bottom": 668
+        },
+        "visibleHeight": 660,
+        "visibleWidth": 296
+      },
+      "seated": {
+        "source": "assets/managers-wasi-20261021/wasi-seated.webp",
+        "canvasWidth": 360,
+        "canvasHeight": 720,
+        "alphaBounds": {
+          "left": 12,
+          "top": 99,
+          "right": 347,
+          "bottom": 716
+        },
+        "visibleHeight": 618,
+        "visibleWidth": 336
+      },
+      "eliminated": {
+        "source": "assets/managers-wasi-20261021/wasi-eliminated.webp",
+        "canvasWidth": 350,
+        "canvasHeight": 376,
+        "alphaBounds": {
+          "left": 42,
+          "top": 16,
+          "right": 306,
+          "bottom": 361
+        },
+        "visibleHeight": 346,
+        "visibleWidth": 265
+      }
     }
   }
 }

@@ -1,3 +1,6 @@
+# Wasi approved face update — October 21, 2026
+The owner approved the softly shaded standing Wasi revision after rejecting the realistic portrait and flat vector portrait drafts, then requested site publication. Current portrait: `assets/avatars/wasi-20261021.webp`. Current figures: `assets/managers-wasi-20261021/wasi-{standing,seated,eliminated}.webp`. Preserve the approved fuller cheeks, rounded jaw, swept dark hair, restrained eyes and faint moustache/chin shadow. Retain the original medium build, pose-specific head/body proportions, teal suit, ivory shirt, brown shoes and naturally shaded neck. All figures were generated coherently; no separate head transforms. Avatar is a uniform viewport crop of the complete approved illustration. Do not use earlier rejected Wasi portraits as identity/style references.
+
 # Cesar consistency correction — October 21, 2026
 The owner explicitly requested publication after detailed comparison against every manager. Current set uses Unknown-15.png for facial identity and Wasi whole poses for medium-build proportions. No conspicuous shirt buttons. Standing and seated heads follow their respective original pose proportions. All three figures are coherent generated images; only uniform whole-image export and canvas placement were used. The final and reference sets are superseded; do not restore them.
 
