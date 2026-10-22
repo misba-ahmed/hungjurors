@@ -2043,6 +2043,16 @@
       "kind": "injury"
     }
   },
+  "4710855": {
+    "file": "4710855-faces-v1.webp",
+    "width": 309,
+    "height": 850,
+    "ratio": 0.36353,
+    "heightInches": 73,
+    "name": "Konata Mumpfield",
+    "teamId": 14,
+    "jersey": "4"
+  },
   "4711533": {
     "file": "4711533-faces-v2.webp",
     "width": 336,
