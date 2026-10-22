@@ -41,6 +41,12 @@
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/2473037?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:37.871Z"
   },
+  "2573401": {
+    "name": "Tyler Higbee",
+    "heightInches": 78,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/2573401?lang=en&region=us",
+    "checkedAt": "2026-10-22T23:15:28.499Z"
+  },
   "2576925": {
     "name": "Darren Waller",
     "heightInches": 78,
