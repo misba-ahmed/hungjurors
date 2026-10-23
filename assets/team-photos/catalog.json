@@ -2243,5 +2243,25 @@
     "name": "Kenyon Sadiq",
     "teamId": 20,
     "jersey": "16"
+  },
+  "8439": {
+    "file": "8439-faces-v1.webp",
+    "width": 304,
+    "height": 850,
+    "ratio": 0.35765,
+    "heightInches": 74,
+    "name": "Aaron Rodgers",
+    "teamId": 23,
+    "jersey": "8"
+  },
+  "4686468": {
+    "file": "4686468-faces-v1.webp",
+    "width": 316,
+    "height": 850,
+    "ratio": 0.37176,
+    "heightInches": 72,
+    "name": "Seth McGowan",
+    "teamId": 11,
+    "jersey": "20"
   }
 }
