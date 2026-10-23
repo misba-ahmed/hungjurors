@@ -1201,7 +1201,14 @@
     "heightInches": 74,
     "name": "Puka Nacua",
     "teamId": 14,
-    "jersey": "12"
+    "jersey": "12",
+    "unavailable": {
+      "file": "4426515-crutches-v1.webp",
+      "width": 324,
+      "height": 850,
+      "ratio": 0.38118,
+      "kind": "injury"
+    }
   },
   "4427095": {
     "file": "4427095-faces-v1.webp",
@@ -1602,7 +1609,14 @@
     "heightInches": 73,
     "name": "Emeka Egbuka",
     "teamId": 27,
-    "jersey": "2"
+    "jersey": "2",
+    "unavailable": {
+      "file": "4567750-crutches-v1.webp",
+      "width": 321,
+      "height": 850,
+      "ratio": 0.37765,
+      "kind": "injury"
+    }
   },
   "4568263": {
     "file": "4568263-faces-v2.webp",
