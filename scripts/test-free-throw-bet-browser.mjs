@@ -41,7 +41,7 @@ const art=extractSiteArtwork(source).assets;
 const engines=process.env.HJ_BROWSER==='chromium'?[['chromium',chromium]]:process.env.HJ_BROWSER==='webkit'?[['webkit',webkit]]:[['chromium',chromium],['webkit',webkit]];
 for(const [name,engine]of engines){
  const browser=await engine.launch({headless:true});
- try{for(const width of [1365,390]){
+ try{for(const width of [1365,320,390,430]){
   const context=await browser.newContext({viewport:{width,height:900},isMobile:width<500,hasTouch:width<500});
   await context.route('**/*',async route=>{
    const u=new URL(route.request().url());if(u.hostname!=='hj.test')return route.abort();
@@ -74,6 +74,12 @@ for(const [name,engine]of engines){
   assert.match(await card.innerText(),/\$29 to BRYAN/);assert.match(await card.innerText(),/\$22 to MISBA/);
   const sizes=await page.evaluate(()=>{const bet=document.querySelector('.sb-ft-wire'),ordinary=document.querySelector('#wire-scroll .wc:not(.sb-ft-wire)');return {bet:bet.getBoundingClientRect().height,ordinary:ordinary.getBoundingClientRect().height,overflow:bet.scrollWidth-bet.clientWidth,bodyOverflow:bet.querySelector('.wc-body').scrollHeight-bet.querySelector('.wc-body').clientHeight,animation:getComputedStyle(bet.querySelector('.sb-ft-ball')).animationPlayState}});
   assert(Math.abs(sizes.bet-sizes.ordinary)<2,JSON.stringify(sizes));assert(sizes.overflow<2,JSON.stringify(sizes));assert(sizes.bodyOverflow<2,JSON.stringify(sizes));assert.equal(sizes.animation,'running');
+  const headingGap=await card.evaluate(el=>{
+   const title=el.querySelector('.sb-ft-court .wc-title').getBoundingClientRect();
+   const faces=el.querySelector('.sb-faces').getBoundingClientRect();
+   return faces.top-title.bottom;
+  });
+  assert(headingGap>=4,`Title/subtitle overlaps portraits at ${name} ${width}: gap ${headingGap}`);
   await card.screenshot({animations:'disabled',path:path.join(tmpdir(),`free-throw-${name}-${width}.png`),timeout:15000});
   await card.locator('.wc-title').click({force:true});await page.waitForSelector('.wire-expanded-stage .sb-ft-wire');
   assert.match(await page.locator('.wire-expanded-stage').innerText(),/12.6-point loss means 13 extra shots/);

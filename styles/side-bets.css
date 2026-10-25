@@ -146,4 +146,7 @@
 .sb-ft-wire .sb-ft-stakes>div{padding:6px}
 .sb-ft-detail .sb-ft-pressure{margin:10px 0}
 
-.sb-ft-wire .sb-ft-court{height:48px}
+/* Keep the heading in normal flow so it reserves space above the portraits. */
+.sb-ft-wire .sb-ft-court{height:auto;min-height:48px}
+.sb-ft-wire .sb-ft-court .wc-title{position:relative;top:auto;left:auto;width:65%;font-size:22px;line-height:1.1;text-align:left}
+.sb-ft-wire .sb-ft-court svg{position:absolute;inset:0;pointer-events:none}
