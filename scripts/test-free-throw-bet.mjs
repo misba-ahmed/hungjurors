@@ -21,7 +21,7 @@ test('only the Week 7 Misba/Bryan matchup qualifies; pending scores do not settl
  d.schedule[0].winner='AWAY';d.schedule[0].home.totalPoints=null;assert.equal(c.hjFreeThrowBetSnapshot(d).final,false);
 });
 test('the loser pays their own misses: Misba $29, Bryan $22, tie $0',()=>{
- const c=setup();let s=c.hjFreeThrowBetSnapshot(fixture('AWAY'));
+ const c=setup();c.bet.extra.agreed=false;let s=c.hjFreeThrowBetSnapshot(fixture('AWAY'));
  assert.equal(s.loser.name,'MISBA');assert.equal(s.winner.name,'BRYAN');assert.equal(s.total,29);assert.equal(s.extraShots,null);
  s=c.hjFreeThrowBetSnapshot(fixture('HOME',120,112.6));assert.equal(s.loser.name,'BRYAN');assert.equal(s.total,22);
  s=c.hjFreeThrowBetSnapshot(fixture('TIE',100,100));assert.equal(s.total,0);assert.equal(s.winner,null);
@@ -57,6 +57,16 @@ test('Wire, correct matchup and Week 7 recap all display the same agreement and 
 });
 test('results use the completed-results overlay while preserving the raw matchup',()=>{
  const c=setup(),d=fixture();c.hjResultsView=raw=>({...raw,schedule:[{...raw.schedule[0],winner:'AWAY'}]});
- assert.equal(c.hjFreeThrowBetSnapshot(d).total,29);assert.equal(d.schedule[0].winner,'UNDECIDED');
+ assert.equal(c.hjFreeThrowBetSnapshot(d).base,29);assert.equal(c.hjFreeThrowBetSnapshot(d).total,null);assert.equal(d.schedule[0].winner,'UNDECIDED');
  assert.match(c.hjMatchupCardHTML(d.schedule[0],d,d,false),/BRYAN \$29/);
+});
+
+test('confirmed agreement shows a provisional live counter without settling money',()=>{
+ const c=setup();assert.equal(c.bet.extra.agreed,true);
+ const d=fixture('UNDECIDED',54.24,0),s=c.hjFreeThrowBetSnapshot(d);
+ assert.equal(s.liveTrailer.name,'BRYAN');assert.equal(s.liveMargin,54.24);assert.equal(s.total,null);assert.equal(s.extraShots,null);
+ let html=c.wireBuild(d).cards[1].html;assert.match(html,/LOCKED IN/);assert.match(html,/If it ended now/);assert.match(html,/BRYAN shoots/);assert.match(html,/>55<small>EXTRA SHOTS/);assert.doesNotMatch(html,/Optional extra shots/);
+ html=c.wireBuild(fixture('UNDECIDED',100.1,112.1)).cards[1].html;assert.match(html,/MISBA shoots/);assert.match(html,/>12<small>EXTRA SHOTS/);
+ html=c.wireBuild(fixture('TIE',100,100)).cards[1].html;assert.match(html,/Final · tie game/);assert.match(html,/>0<small>EXTRA SHOTS/);
+ const unknown=fixture();unknown.schedule[0].home.totalPoints=null;html=c.wireBuild(unknown).cards[1].html;assert.match(html,/>—<small>EXTRA SHOTS/);assert.doesNotMatch(html,/MISBA shoots|BRYAN shoots/);
 });

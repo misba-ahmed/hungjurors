@@ -1,7 +1,7 @@
 /* Week 7 agreement. Changes to extra.agreed/made require commissioner confirmation. */
 const HJ_FREE_THROW_BET={
  id:'2026-w7-misba-bryan-free-throws',season:2026,week:7,
- shots:50,made:{MISBA:21,BRYAN:28},extra:{agreed:false,attempted:null,made:null,shooter:null}
+ shots:50,made:{MISBA:21,BRYAN:28},extra:{agreed:true,attempted:null,made:null,shooter:null}
 };
 function hjFreeThrowBetSnapshot(data,agreement=HJ_FREE_THROW_BET){
  if(Number(data?.seasonId)!==agreement.season)return null;
@@ -20,7 +20,10 @@ function hjFreeThrowBetSnapshot(data,agreement=HJ_FREE_THROW_BET){
  // A corrected winner invalidates any attempts recorded for the previous loser.
  const extraMade=agreement.extra.made,extraKnown=extraShots!==null&&agreement.extra.shooter===loser.name&&agreement.extra.attempted===extraShots&&Number.isInteger(extraMade)&&extraMade>=0&&extraMade<=extraShots;
  const extraOwed=extraKnown?extraShots-extraMade:null;
- return {sides,final,tie,winner,loser,base,margin,extraShots,extraOwed,
+ const scoresKnown=sides.every(s=>Number.isFinite(s.score));
+ const liveMargin=scoresKnown?Math.round(Math.abs(sides[0].score-sides[1].score)*100)/100:null;
+ const liveTrailer=scoresKnown&&liveMargin>0?sides.find(s=>s.score===Math.min(...sides.map(s=>s.score))):null;
+ return {sides,final,tie,winner,loser,base,margin,extraShots,extraOwed,liveMargin,liveTrailer,
   total:tie?0:base===null?null:agreement.extra.agreed?(extraKnown?base+extraOwed:null):base,
   key:`${agreement.week}:${game.home.teamId}:${game.away.teamId}`};
 }
@@ -44,9 +47,17 @@ function hjFreeThrowBetSnapshot(data,agreement=HJ_FREE_THROW_BET){
   else text+=' for '+(BET.shots-BET.made[view.loser.name])+' missed free throws.';
   return '<p class="sb-result">'+text+'</p>';
  }
+ function extraPanel(view){
+  if(!BET.extra.agreed)return '<p class="sb-ft-option">Optional extra shots · both must agree</p>';
+  const count=view.final?(view.tie?0:view.extraShots):view.liveMargin===null?null:Math.ceil(view.liveMargin);
+  const shooter=view.final?view.loser:view.liveTrailer;
+  const label=view.final?(view.tie?'Final · tie game':view.extraOwed===null?'Final · shots to take':'Extra shots completed'):'If it ended now';
+  const copy=shooter?esc(shooter.name)+(view.final&&view.extraOwed!==null?' shot':' shoots'):'No shooter'+(view.final?'':' yet');
+  return '<div class="sb-ft-pressure"><div class="sb-ft-lock"><span aria-hidden="true">✓</span> EXTRA SHOTS · LOCKED IN</div><div class="sb-ft-pressure-row"><div><small>'+label+'</small><b>'+copy+'</b></div><strong>'+(count===null?'—':count)+'<small>EXTRA SHOTS</small></strong></div><p>'+(view.final&&view.extraOwed!==null?money(view.extraOwed)+' in extra misses':'Losing margin rounded up · $1 per miss')+'</p></div>';
+ }
  function rules(){
   return '<div class="sb-rules"><p>Both managers shot 50 free throws. The Week 7 matchup loser pays the winner $1 for each shot they missed: MISBA made 21 and missed 29; BRYAN made 28 and missed 22.</p>'+
-   '<p><b>Optional extra shots:</b> Both managers can agree at any time that the loser must shoot additional free throws equal to their losing margin, rounded up to a whole shot. A 12.6-point loss means 13 extra shots. Every extra miss adds $1 to the base payment.</p>'+
+   '<p><b>'+ (BET.extra.agreed?'Extra shots are locked in:':'Optional extra shots:')+'</b> '+(BET.extra.agreed?'MISBA and BRYAN both agreed. The loser must shoot':'Both managers must agree before the loser shoots')+' additional free throws equal to their losing margin, rounded up to a whole shot. A 12.6-point loss means 13 extra shots. Every extra miss adds $1 to the base payment.</p>'+
    '<p><b>'+ (BET.extra.agreed?'Extra-shot option agreed.':'Extra-shot option is not active; both managers must agree.')+'</b></p>'+
    '<p class="sb-invite">Agreed on a side bet? Share it in the group chat or text the commissioner to have it posted here. The commissioner is always open to side bets on his own matchups—text him to discuss.</p></div>';
  }
@@ -55,13 +66,12 @@ function hjFreeThrowBetSnapshot(data,agreement=HJ_FREE_THROW_BET){
  }
  function detail(view,surface){
   const key=BET.id+':'+surface;
-  return '<details class="sb-detail sb-ft-detail" data-ft-bet-detail="'+key+'"'+(opened.has(key)?' open':'')+'><summary><b>Side Bet · Free Throws</b><span class="sb-detail-label">$29 / $22</span><span class="sb-chevron" aria-hidden="true">⌄</span></summary><div class="sb-detail-body">'+
-   (surface==='matchup'?'':faces())+stakes()+result(view)+rules()+'</div></details>';
+  return '<details class="sb-detail sb-ft-detail" data-ft-bet-detail="'+key+'"'+(opened.has(key)?' open':'')+'><summary><b>Side Bet · Free Throws</b><span class="sb-detail-label">$29 / $22'+(BET.extra.agreed?' + extra shots':'')+'</span><span class="sb-chevron" aria-hidden="true">⌄</span></summary><div class="sb-detail-body">'+
+   (surface==='matchup'?'':faces())+stakes()+extraPanel(view)+result(view)+rules()+'</div></details>';
  }
  function card(view){
   const body='<div class="sb-wire-intro sb-ft-intro">'+court()+faces()+stakes()+
-   (view.final?result(view):'<p class="sb-ft-copy">Matchup loser pays $1 per missed free throw.</p>')+
-   '<p class="sb-ft-option">'+(BET.extra.agreed?'Extra shots agreed · losing margin rounded up':'Optional extra shots · both must agree')+'</p>'+
+   extraPanel(view)+(view.final?'<div class="sb-wire-expanded">'+result(view)+'</div>':'')+
    '<div class="sb-wire-expanded">'+rules()+'</div><button type="button" class="sb-open" data-wire-matchup="'+esc(view.key)+'">View Week 7 matchup <span aria-hidden="true">→</span></button></div>';
   return wireCard({kicker:'Side Bet',tag:'Week 7 · MISBA vs BRYAN',cls:'is-lead sb-wire sb-ft-wire',body}).replace('data-wire-card','data-wire-key="'+BET.id+'" data-wire-card');
  }

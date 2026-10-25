@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import {tmpdir} from 'node:os';
 import {chromium,webkit} from 'playwright';
 import {prepareSite} from './prepare-site.mjs';
 import {extractSiteArtwork} from './site-artwork.mjs';
@@ -69,10 +70,11 @@ for(const [name,engine]of engines){
   await page.waitForFunction(()=>document.querySelector('.sb-ft-wire')?.classList.contains('is-scroll-active'));
   assert.equal(await card.locator('.sb-ft-shotchart i.is-made').count(),49);
   assert.equal(await card.locator('.sb-ft-shotchart i.is-missed').count(),51);
+  assert.match(await card.innerText(),/LOCKED IN/);assert.match(await card.innerText(),/If it ended now/);
   assert.match(await card.innerText(),/\$29 to BRYAN/);assert.match(await card.innerText(),/\$22 to MISBA/);
   const sizes=await page.evaluate(()=>{const bet=document.querySelector('.sb-ft-wire'),ordinary=document.querySelector('#wire-scroll .wc:not(.sb-ft-wire)');return {bet:bet.getBoundingClientRect().height,ordinary:ordinary.getBoundingClientRect().height,overflow:bet.scrollWidth-bet.clientWidth,bodyOverflow:bet.querySelector('.wc-body').scrollHeight-bet.querySelector('.wc-body').clientHeight,animation:getComputedStyle(bet.querySelector('.sb-ft-ball')).animationPlayState}});
   assert(Math.abs(sizes.bet-sizes.ordinary)<2,JSON.stringify(sizes));assert(sizes.overflow<2,JSON.stringify(sizes));assert(sizes.bodyOverflow<2,JSON.stringify(sizes));assert.equal(sizes.animation,'running');
-  await card.screenshot({animations:'disabled',path:`/tmp/free-throw-${name}-${width}.png`,timeout:15000});
+  await card.screenshot({animations:'disabled',path:path.join(tmpdir(),`free-throw-${name}-${width}.png`),timeout:15000});
   await card.locator('.wc-title').click({force:true});await page.waitForSelector('.wire-expanded-stage .sb-ft-wire');
   assert.match(await page.locator('.wire-expanded-stage').innerText(),/12.6-point loss means 13 extra shots/);
   await page.keyboard.press('Escape');await page.waitForSelector('.wire-expanded-stage',{state:'detached'});
