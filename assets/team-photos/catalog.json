@@ -2277,5 +2277,15 @@
     "name": "Seth McGowan",
     "teamId": 11,
     "jersey": "20"
+  },
+  "4715355": {
+    "file": "4715355-faces-v1.webp",
+    "width": 310,
+    "height": 850,
+    "ratio": 0.36471,
+    "heightInches": 71,
+    "name": "Darius Cooper",
+    "teamId": 21,
+    "jersey": "80"
   }
 }
