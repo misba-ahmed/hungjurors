@@ -29,22 +29,30 @@ function hjDegenerateBetSnapshot(data){
  function manager(name){return '<button type="button" class="sb-manager manager-profile-trigger" data-manager="'+name+'" aria-label="Open '+name+' profile">'+av(name)+'<b>'+name+'</b></button>'}
  function blackjack(){return '<svg class="dg-blackjack" viewBox="0 0 90 65" aria-hidden="true" focusable="false"><g transform="translate(7 9) rotate(-17 22 27)"><rect x="0" y="0" width="39" height="53" rx="4" fill="#fff8e4" stroke="#c8b88d"/><text x="5" y="13" fill="#172832" font-family="Georgia,serif" font-size="12" font-weight="700">A</text><text x="5" y="24" fill="#172832" font-size="12">♠</text><path d="M20 19C16 25 9 27 10 32C11 37 17 37 20 33C23 37 29 37 30 32C31 27 24 25 20 19M20 32L16 41H24Z" fill="#172832"/></g><g transform="translate(41 3) rotate(14 20 27)"><rect x="0" y="0" width="39" height="53" rx="4" fill="#fff8e4" stroke="#c8b88d"/><text x="5" y="13" fill="#ab3037" font-family="Georgia,serif" font-size="12" font-weight="700">K</text><text x="5" y="24" fill="#ab3037" font-size="12">♥</text><rect x="12" y="18" width="20" height="29" rx="2" fill="#f0d797" stroke="#b48b48"/><path d="M15 24L18 28L22 22L26 28L29 24V32H15Z" fill="#ab3037"/><path d="M16 36H28M18 40H26" stroke="#ab3037" stroke-width="2"/></g></svg>'}
  function table(){return '<div class="dg-table"><div class="dg-table-scene">'+manager('MISBA')+wheel()+manager('CESAR')+'</div><span class="dg-chips dg-chips-left" aria-hidden="true"><i></i><i></i><i></i></span><span class="dg-chips dg-chips-right" aria-hidden="true"><i></i><i></i><i></i><i></i></span>'+blackjack()+'</div>'}
+ const weeklyAmount=view=>view?.known&&view?.started?'$'+view.margin.toFixed(2):'—';
  function weeks(view){
-  const amount=view?.known&&view?.started?'$'+view.margin.toFixed(2):'—';
+  const amount=weeklyAmount(view);
   return '<div class="dg-weeks"><div class="dg-week-heading"><b>4 weekly casino visits</b></div><ol class="dg-tickets" aria-label="Amount per profitable week">'+Array.from({length:4},(_,i)=>'<li class="dg-ticket"><b>WEEK '+(i+1)+'</b><strong>'+amount+'</strong></li>').join('')+'</ol></div>';
  }
- function stakes(view){
+ function stakesContent(view){
   let label='WEEK 8 DECIDES WHO PAYS',who='Loser → winner',amount='Final margin',note='Each profitable week: pay $1 per point lost, from those profits.';
   if(view?.final&&view.tied){label='FINAL · TIED MATCHUP';who='No matchup loser';amount='No payment';note='The loser-pays condition does not apply to a tie.'}
   else if(view?.loser){label=view.final?'FINAL · AMOUNT PER PROFITABLE WEEK':'IF IT ENDED NOW · PER PROFITABLE WEEK';who=view.loser.name+' → '+view.winner.name;amount='$'+view.margin.toFixed(2);note='Only if the loser makes a gambling profit that week.'}
-  return '<div class="dg-stakes"><div class="dg-stakes-label">'+label+'</div><div class="dg-stakes-row"><b>'+who+'</b><strong>'+amount+'</strong></div><p>'+note+'</p></div>';
+  return '<div class="dg-stakes-label">'+label+'</div><div class="dg-stakes-row"><b>'+who+'</b><strong>'+amount+'</strong></div><p>'+note+'</p>';
+ }
+ function stakes(view){return '<div class="dg-stakes">'+stakesContent(view)+'</div>'}
+ function refreshExpanded(view){
+  const card=document.querySelector('.wire-expanded-stage .sb-dg-wire');if(!card)return;
+  const amount=weeklyAmount(view);card.querySelectorAll('.dg-ticket strong').forEach(el=>{if(el.textContent!==amount)el.textContent=amount});
+  const panel=card.querySelector('.dg-stakes'),html=stakesContent(view);
+  if(panel&&panel.innerHTML!==html){if(typeof hjPatchLiveContent==='function')hjPatchLiveContent(panel,html);else panel.innerHTML=html}
  }
  function detail(view,surface){return '<details class="sb-detail dg-detail" data-dg-detail="'+surface+'"'+(opened.has(surface)?' open':'')+'><summary><b>Degenerate Side Bet</b><span class="sb-chevron" aria-hidden="true">⌄</span></summary><div class="sb-detail-body">'+weeks(view)+stakes(view)+copy()+'</div></details>'}
  const render=hjMatchupCardHTML;
  hjMatchupCardHTML=function(game,source,data,placeholder){const html=render.apply(this,arguments),view=hjDegenerateBetSnapshot(source);return !placeholder&&view&&view.key===`${game.matchupPeriodId}:${game.home?.teamId}:${game.away?.teamId}`?html.replace('<div class="hq-edge-grid">',detail(view,'matchup')+'<div class="hq-edge-grid">'):html};
  const build=wireBuild;
  wireBuild=function(data){
-  const result=build.apply(this,arguments),view=hjDegenerateBetSnapshot(data);if(!view||!(hjCurrentWeek(data)<=8||Number(WIRE.recapWeek)===8))return result;
+  const result=build.apply(this,arguments),view=hjDegenerateBetSnapshot(data);if(view)refreshExpanded(view);if(!view||!(hjCurrentWeek(data)<=8||Number(WIRE.recapWeek)===8))return result;
   const body='<div class="sb-wire-intro dg-intro"><div class="wc-title">Degenerate Side Bet</div>'+table()+weeks(view)+stakes(view)+'<div class="sb-wire-expanded">'+copy()+'</div><button type="button" class="sb-open" data-wire-matchup="'+view.key+'">View Week 8 matchup <span aria-hidden="true">→</span></button></div>';
   const html=wireCard({kicker:'Side Bet',tag:'Week 8 · MISBA vs CESAR',cls:'is-lead sb-wire sb-dg-wire',body}).replace('data-wire-card','data-wire-key="'+BET.id+'" data-wire-card');
   result.cards.unshift({section:'sidebet',html});return result;

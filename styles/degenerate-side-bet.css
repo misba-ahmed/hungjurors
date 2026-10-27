@@ -15,6 +15,7 @@
 .dg-week-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;font:800 11px/1.2 var(--sans)}
 .dg-tickets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0;padding:0;list-style:none}
 .dg-ticket{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-sizing:border-box;min-width:0;padding:7px 4px;border:1px solid #d2b06a;border-radius:4px;background:#f1e7c9;color:#173c35;position:relative}
+.dg-ticket strong{font:800 14px/1.2 var(--sans);font-variant-numeric:tabular-nums;white-space:nowrap}
 .dg-ticket b{font:900 9px/1.2 var(--mono);letter-spacing:.5px}
 .dg-stakes{box-sizing:border-box;width:100%;border:1px solid #b99045;border-radius:6px;overflow:hidden;background:#0a232b;color:#f7e6bd;text-align:left}
 .dg-stakes-label{background:#ca9e4a;color:#112f34;font:900 8px/1.3 var(--sans);letter-spacing:.6px;padding:4px 9px}

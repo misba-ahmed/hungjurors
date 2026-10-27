@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 const code=await readFile(new URL('./degenerate-side-bet.js',import.meta.url),'utf8');
 function harness(){
- const context={hjMatchManager:t=>t.name,hjOwnerName:t=>t.name,hjSideScore:s=>s.totalPoints,hjCurrentWeek:()=>8,esc:s=>String(s),av:n=>'<img alt="'+n+'">',hjMatchupCardHTML:()=>'<div class="hq-edge-grid">',wireBuild:()=>({cards:[]}),wireCard:({body})=>'<div data-wire-card>'+body+'</div>',hjRcStories:()=>'',WIRE:{recapWeek:7},document:{addEventListener(){}}};
+ const context={hjMatchManager:t=>t.name,hjOwnerName:t=>t.name,hjSideScore:s=>s.totalPoints,hjCurrentWeek:()=>8,esc:s=>String(s),av:n=>'<img alt="'+n+'">',hjMatchupCardHTML:()=>'<div class="hq-edge-grid">',wireBuild:()=>({cards:[]}),wireCard:({body})=>'<div data-wire-card>'+body+'</div>',hjRcStories:()=>'',WIRE:{recapWeek:7},document:{addEventListener(){},querySelector(){return null}}};
  vm.createContext(context);vm.runInContext(code,context);return context;
 }
 function data(home=0,away=0,winner='UNDECIDED'){return {seasonId:2026,teams:[{id:1,name:'MISBA'},{id:2,name:'CESAR'}],schedule:[{matchupPeriodId:8,home:{teamId:1,totalPoints:home},away:{teamId:2,totalPoints:away},winner}]}}
@@ -21,3 +21,5 @@ test('weekly cards repeat the live margin and retain the final amount on all sur
 });
 test('a scoreless game displays zero dollars after kickoff, with no premature amount before kickoff',()=>{const c=harness();c.NFL_WEEK1=[{week:7,state:'post'},{week:8,state:'pre'}];assert.equal(c.hjDegenerateBetSnapshot(data()).started,false);c.NFL_WEEK1[1].state='in';const v=c.hjDegenerateBetSnapshot(data());assert.equal(v.started,true);assert.equal(v.margin,0);assert.equal((c.wireBuild(data()).cards[0].html.match(/<strong>\$0\.00<\/strong>/g)||[]).length,4);});
 test('history stays scoped to the correct week, managers and season',()=>{const c=harness();assert.equal(c.hjDegenerateBetSnapshot({...data(),seasonId:2025}),null);let d=data();d.schedule[0].matchupPeriodId=7;assert.equal(c.hjDegenerateBetSnapshot(d),null);d=data();d.teams[1].name='BRYAN';assert.equal(c.hjDegenerateBetSnapshot(d),null);});
+
+test('an already-open card updates all weekly dollars and condition without replacing the graphic',()=>{const c=harness(),amounts=Array.from({length:4},()=>({textContent:'—'})),panel={innerHTML:''};c.document.querySelector=()=>({querySelectorAll:()=>amounts,querySelector:()=>panel});c.wireBuild(data(14,19.25));assert(amounts.every(e=>e.textContent==='$5.25'));assert.match(panel.innerHTML,/IF IT ENDED NOW/);c.wireBuild(data(20,19.25,'HOME'));assert(amounts.every(e=>e.textContent==='$0.75'));assert.match(panel.innerHTML,/CESAR → MISBA/);assert.match(panel.innerHTML,/FINAL/);});
