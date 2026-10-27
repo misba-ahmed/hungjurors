@@ -50,7 +50,7 @@ const byeStatus=readFileSync(new URL('./bye-status.js',import.meta.url),'utf8');
 const teamPhotoScript=readFileSync(new URL('./team-photos.js',import.meta.url),'utf8');
 const teamPhotoAssets=readFileSync(new URL('../assets/team-photos/catalog.json',import.meta.url),'utf8');
 const dstMascots=readFileSync(new URL('../assets/team-photos/mascots.json',import.meta.url),'utf8');
-const sideBets=['side-bets.js','free-throw-bet.js'].map(file=>readFileSync(new URL(file,import.meta.url),'utf8')).join('\n');
+const sideBets=['side-bets.js','free-throw-bet.js','degenerate-side-bet.js'].map(file=>readFileSync(new URL(file,import.meta.url),'utf8')).join('\n');
 const challengeScripts=['challenge-engine.js','perfect-lineup.js','challenge-live.js'].map(file=>readFileSync(new URL(file,import.meta.url),'utf8')).join('\n');
 function replaceOnce(html,pattern,replacement){
  if([...html.matchAll(pattern)].length!==1)throw Error('Source markup changed; review site preparation');
@@ -58,6 +58,7 @@ function replaceOnce(html,pattern,replacement){
 }
 const folderArtwork=readFileSync(new URL('./folder-artwork.js',import.meta.url),'utf8');
 export function prepareSite(html){
+ html=html.replace('</head>','<style>.sb-dg-wire .sb-wire-intro{gap:10px}.sb-dg-wire .wc-title{font-size:26px;line-height:1.15;margin:0;text-align:center}.sb-dg-wire .sb-rules{font-size:12px;line-height:1.5}.sb-dg-wire .sb-rules p+p{margin-top:14px}</style></head>');
  html=prepareDepthRefresh(html);
  // Legacy template insertions left literal "\\n" text between these blocks.
  // Normalize only those three separators so they cannot render below the footer.
