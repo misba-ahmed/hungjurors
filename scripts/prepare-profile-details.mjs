@@ -20,7 +20,6 @@ export function prepareProfileDetails(html){
  replace('scroll.scrollTop=0;state.ready=true;pcBindProfileNav(scroll);','scroll.scrollTop=0;state.ready=true;pcBindProfileNav(scroll);pcRefreshProfileDepth(active);');
  // Apply the shared ESPN injury badges to every player trigger, including self-hosted names.
  replace("const host=node.querySelector('.hj-v3-meta,.hj-player-v2-meta,.hq-player-name,.pc-modal-title,.hj-tx-player-copy b,.wire-row-name,.depth-player-name,.n,b');", "if(node.dataset.pcPosition==='D/ST')return;\n  const host=node.querySelector('.pc-depth-slot,.hj-v3-meta,.hj-player-v2-meta,.hq-player-name,.pc-modal-meta,.hj-tx-player-copy b,.wire-row-name,.depth-player-name,.n,b')||(!node.querySelector('[data-pc-id]')?node:null);");
- replace("new MutationObserver(hjScheduleStatuses).observe(document.body,{childList:true,subtree:true});", "new MutationObserver(hjScheduleStatuses).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['data-pc-id']});");
  // Resolve current affiliation before rendering any profile header or team section.
  replace('function pcPlayerFromTrigger(trigger){',currentTeamSource+'\n'+liveDepthSource+'\nfunction pcPlayerFromTrigger(trigger){');
  replace('raw.photo=exact.photo||raw.photo}return raw;', 'raw.photo=exact.photo||raw.photo}return pcCurrentPlayer(raw);');
