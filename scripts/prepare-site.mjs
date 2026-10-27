@@ -51,6 +51,8 @@ const teamPhotoScript=readFileSync(new URL('./team-photos.js',import.meta.url),'
 const teamPhotoAssets=readFileSync(new URL('../assets/team-photos/catalog.json',import.meta.url),'utf8');
 const dstMascots=readFileSync(new URL('../assets/team-photos/mascots.json',import.meta.url),'utf8');
 const degenerateBetStyle=readFileSync(new URL('../styles/degenerate-side-bet.css',import.meta.url),'utf8');
+const rosterWeeks=readFileSync(new URL('./roster-weeks.js',import.meta.url),'utf8');
+const rosterWeeksStyle=readFileSync(new URL('../styles/roster-weeks.css',import.meta.url),'utf8');
 const sideBets=['side-bets.js','free-throw-bet.js','degenerate-side-bet.js'].map(file=>readFileSync(new URL(file,import.meta.url),'utf8')).join('\n');
 const challengeScripts=['challenge-engine.js','perfect-lineup.js','challenge-live.js'].map(file=>readFileSync(new URL(file,import.meta.url),'utf8')).join('\n');
 function replaceOnce(html,pattern,replacement){
@@ -59,7 +61,7 @@ function replaceOnce(html,pattern,replacement){
 }
 const folderArtwork=readFileSync(new URL('./folder-artwork.js',import.meta.url),'utf8');
 export function prepareSite(html){
- html=html.replace('</head>',()=>'<style>'+degenerateBetStyle+'</style></head>');
+ html=html.replace('</head>',()=>'<style>'+degenerateBetStyle+rosterWeeksStyle+'</style></head>');
  html=prepareDepthRefresh(html);
  // Legacy template insertions left literal "\\n" text between these blocks.
  // Normalize only those three separators so they cannot render below the footer.
@@ -251,7 +253,7 @@ function hjRefreshGameContexts(){`);
  // Phone memory: sized ESPN images, unchanged injury feed reuse (see prepare-phone-memory.mjs).
  return preparePhoneMemory(prepareManagerAvatars(html.replace(old,'Date.now()-at<36*60*60*1000&&data.updated')
   .replace('</head>','<link rel="stylesheet" href="/styles/section-scroll.css?v=20261007-paint-bounds">\n<link rel="stylesheet" href="/styles/wire-priorities.css?v=20261007-compact">\n<link rel="stylesheet" href="/styles/player-stat-bars.css?v=20260929-stable2">\n<link rel="stylesheet" href="/styles/team-photos.css?v=20261009-crown-34deg-diagonal">\n<link rel="stylesheet" href="/styles/player-search.css?v=20260924a">\n<link rel="stylesheet" href="/styles/wire-interaction.css?v=20260923b">\n<link rel="stylesheet" href="/styles/news-spin.css?v=20261019-points">\n<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v='+seasonChallengesVersion+'">\n<link rel="stylesheet" href="/styles/perfect-lineup.css?v='+perfectLineupVersion+'">\n<link rel="stylesheet" href="/styles/standings.css?v=20261007-details">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20261005-avatar-crop">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3"><link rel="stylesheet" href="/styles/player-value.css?v=20260923-a3">\n<link rel="stylesheet" href="/styles/trade-desk.css?v=20260929-lineup-spacing4">\n<link rel="stylesheet" href="/styles/side-bets.css?v=20261025-extra-shots3">\n<link rel="stylesheet" href="/styles/live-display.css?v=20261019-schedule-results">\n</head>')
-  .replace(/<\/body>\s*<\/html>\s*$/,()=>'<link rel="stylesheet" href="/styles/league-activity.css?v=20261019">\n<script id="hj-player-search">'+playerSearch+'</script>\n<script>ffnInstallSpin();</script>\n<script id="hj-record-engine">'+recordEngine+'</script>\n<script id="hj-record-live">'+recordLive+'</script>\n<script id="hj-direct-links">'+directLinks+'</script>\n<script id="hj-wire-live">'+wireLive+'</script>\n<script id="hj-wire-priorities">'+wirePriorities+'</script>\n<script id="hj-player-value">'+playerValue+'</script>\n<script id="hj-trade-desk">'+tradeDesk+'</script>\n<script id="hj-side-bets">'+sideBets+'</script>\n<script id="hj-completed-results">'+completedResults+'</script>\n<script id="hj-layout-guard">'+layoutGuard+'</script>\n</body>\n</html>\n')));
+  .replace(/<\/body>\s*<\/html>\s*$/,()=>'<link rel="stylesheet" href="/styles/league-activity.css?v=20261019">\n<script id="hj-player-search">'+playerSearch+'</script>\n<script>ffnInstallSpin();</script>\n<script id="hj-record-engine">'+recordEngine+'</script>\n<script id="hj-record-live">'+recordLive+'</script>\n<script id="hj-direct-links">'+directLinks+'</script>\n<script id="hj-wire-live">'+wireLive+'</script>\n<script id="hj-wire-priorities">'+wirePriorities+'</script>\n<script id="hj-player-value">'+playerValue+'</script>\n<script id="hj-trade-desk">'+tradeDesk+'</script>\n<script id="hj-side-bets">'+sideBets+'</script>\n<script id="hj-completed-results">'+completedResults+'</script>\n<script id="hj-layout-guard">'+layoutGuard+'</script>\n<script id="hj-roster-weeks">'+rosterWeeks+'</script>\n</body>\n</html>\n')));
 }
 if(process.argv[2]){
  const path=process.argv[2],source=await readFile(path,'utf8'),artwork=extractSiteArtwork(source),media=extractSiteMedia(source);
