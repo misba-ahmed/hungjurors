@@ -14,5 +14,13 @@ export function prepareProfileScoreColors(html){
  html=html.replace("<td class=\"pc-points-cell pc-group-start\">${status===",()=>"<td class=\"pc-points-cell pc-group-start\" ${pcWeeklyPerformanceAttrs(row,row.points)}>${status===");
  html=html.replace("<td class=\"pc-rank-cell\">${esc(rank)}</td>","<td class=\"pc-rank-cell\" ${status==='UPCOMING'?pcWeeklyPerformanceAttrs(row,null):''}>${status==='UPCOMING'?pcLogRankText(row):esc(rank)}</td>");
  html=html.replace("<td class=\"pc-rank-cell\">${row.rank?`#${row.rank}`:'\u2014'}</td>","<td class=\"pc-rank-cell\" ${status==='UPCOMING'?pcWeeklyPerformanceAttrs(row,null):''}>${status==='UPCOMING'?pcLogRankText(row):row.rank?`#${row.rank}`:'\u2014'}</td>");
+ html=html.replace("return `<tr${rowClass}>${cells.join('')}</tr>`","return `<tr${rowClass} data-pc-log-week=\"${Number(row.week)}\">${cells.join('')}</tr>`");
+ html=html.replace("return `<tr class=\"${status==='BYE'?'pc-bye-row':status?'pc-missed-row':''}\">","return `<tr data-pc-log-week=\"${Number(row.week)}\" class=\"${status==='BYE'?'pc-bye-row':status?'pc-missed-row':''}\">");
+ html=html.replace('</head>',`<style id="pc-playoff-outline">
+ [data-pc-section="game-log"] .pc-table tr[data-pc-log-week="14"]>td,
+ [data-pc-section="game-log"] .pc-table tr[data-pc-log-week="16"]>td{border-bottom-color:#b4872c}
+ [data-pc-section="game-log"] .pc-table tr:is([data-pc-log-week="15"],[data-pc-log-week="16"])>td:first-child{box-shadow:inset 1px 0 #b4872c}
+ [data-pc-section="game-log"] .pc-table tr:is([data-pc-log-week="15"],[data-pc-log-week="16"])>td:last-child{box-shadow:inset -1px 0 #b4872c}
+ </style></head>`);
  return html;
 }
