@@ -51,4 +51,6 @@
   else errors.delete(Number(data.seasonId||HJ_LEAGUE_SEASON)+':'+button.dataset.rosterWeekRetry);
   repaint();
  });
+ // Cached league data may have rendered before this final module was installed.
+ requestAnimationFrame(()=>{if(HJ_LEAGUE_STATE.data)repaint()});
 })();
