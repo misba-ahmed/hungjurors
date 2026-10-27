@@ -98,7 +98,7 @@ export function prepareRenderStability(html){
  html=once(html,countdown,countdownText,'wire countdown');
  html=once(html,nflLogo,nflLogoSized,'NFL logo source');
  html=once(html,decoratorObserver,`new MutationObserver(records=>{if(${added})schedule()}).observe(document.body,{childList:true,subtree:true});`,'decorator observer');
- html=once(html,statusObserver,`new MutationObserver(records=>{if(records.some(r=>r.type==='attributes'||r.addedNodes.length))hjScheduleStatuses()}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['data-pc-id','data-pc-position']});`,'status observer');
+ html=once(html,statusObserver,`new MutationObserver(records=>{if(records.some(r=>r.type==='attributes'||r.addedNodes.length||[...r.removedNodes].some(n=>n.nodeType===1&&n.matches('.hj-espn-status,.hj-v3-injury,.hj-player-v2-injury,.depth-injury'))))hjScheduleStatuses()}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['data-pc-id','data-pc-position']});`,'status observer');
  html=once(html,contextObserver,` new MutationObserver(records=>{if(${added}&&!queued){queued=true;requestAnimationFrame(update)}}).observe(document.body,{childList:true,subtree:true});`,'game context observer');
  if(html.split(repairObserver).length!==3)throw Error('Render stability source changed (layout repair observers)');
  html=html.split(repairObserver).join(`new MutationObserver(records=>{if(${added})schedule()}).observe(document.body,{childList:true,subtree:true});schedule();`);

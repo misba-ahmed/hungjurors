@@ -34,3 +34,13 @@ for(const prefix of ['ffn','rc-feat','rc-mini','rc-pcard']){
  assert.equal(document.querySelector('.'+prefix+'-photo').querySelectorAll(badges).length,0,'No badge inside paired photo');
 }
 console.log(`PASS ${fixtures.length} actual player surfaces: IR, healthy recovery, node reuse, DST exclusion, duplicate cleanup and stable refresh; 4 photo/name pairs`);
+
+// A roster refresh can remove only the badge while retaining the row and metadata.
+const observerSource=built.match(/new MutationObserver\(records=>\{if\(records.some\(r=>r.type==='attributes'[\s\S]+?attributeFilter:\['data-pc-id','data-pc-position'\]\}\);/)?.[0];
+assert(observerSource,'Status observer exists in published output');
+let callback,scheduled=0;
+vm.runInNewContext(observerSource,{document,MutationObserver:class{constructor(fn){callback=fn}observe(){}},hjScheduleStatuses(){scheduled++}});
+const removed=document.createElement('span');removed.className='hj-espn-status';
+callback([{type:'childList',addedNodes:[],removedNodes:[removed]}]);
+assert.equal(scheduled,1,'Badge-only removal must reschedule injury decoration');
+console.log('PASS badge-only live-refresh removal triggers restoration');
