@@ -16,3 +16,13 @@ A gold “EXTRA SHOTS · LOCKED IN” panel shows the rounded current score gap 
 The basketball graphics use CSS/SVG; original manager portraits are reused. Gold dots represent makes and muted dots misses, with exactly 50 dots per manager. Decorative swish/rim-out animations run on the active or expanded Wire card and stop for reduced-motion preferences.
 
 Checks: `node --test scripts/test-free-throw-bet.mjs`; `node scripts/test-free-throw-bet-browser.mjs` checks the isolated production Wire component (prepared styles, markup and shared interaction functions) in Chromium and WebKit at desktop/phone widths. Existing Wire/card gesture checks still apply.
+
+## Week 8 · Degenerate Side Bet
+
+`scripts/degenerate-side-bet.js` and `styles/degenerate-side-bet.css` present MISBA and CESAR's agreement on the Wire, matchup and recap. The closed card shows a casino felt table, animated roulette wheel/ball, four weekly admission tickets and the profit condition. Full terms, the owner's closing joke and the standard commissioner invitation appear in the expanded card and agreement details.
+
+The amount panel follows the current actual matchup margin; it says “If it ended now” until the result becomes final. Missing scores and pre-game zeroes show “Final margin” without inventing a loser or amount. Final ties show no payment. Amounts retain cents. A score correction updates the displayed payer, recipient and amount through normal Wire refreshes.
+
+`HJ_DEGENERATE_BET.visits` contains four unrecorded entries. Only record `{attended:true}` after commissioner confirmation. A date passing, a fantasy result, or a decorative animation never marks a visit complete. This log does not collect gambling results or process money. The roulette animation is decorative and pauses off-screen and under reduced-motion preferences. Existing manager portraits, shared card dimensions and expansion/gesture behavior remain in use.
+
+Check: `node --test scripts/test-degenerate-side-bet.mjs scripts/test-wire-priorities.mjs`.
