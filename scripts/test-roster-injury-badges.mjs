@@ -25,7 +25,7 @@ const now=Date.now();
 ctx.ffnRosterPlayers=[{...bigsby,_hjStatusAt:now}];ctx.pcLiveDepth.clear();
 ctx.HJ_INJURY_REPORT={at:new Date(now-30*86400000).toISOString(),rows:[{id:bigsby.id,code:null,label:'ACTIVE'}]};
 assert.equal(ctx.hjStatusIndex().get(bigsby.id)?.code,'IR','Old shipped report cannot clear a fresh IR record');
-ctx.HJ_INJURY_REPORT={at:new Date(now-600000).toISOString(),rows:[{id:bigsby.id,code:'O',label:'OUT'}]};
+ctx.HJ_INJURY_REPORT={at:new Date(now-2*86400000).toISOString(),rows:[{id:bigsby.id,code:'O',label:'OUT'}]};
 ctx.ffnRosterPlayers=[{id:bigsby.id,status:'Active',injuries:[],_hjStatusAt:now}];
 assert.equal(ctx.hjStatusIndex().get(bigsby.id),null,'New roster activation supersedes an older report');
 ctx.HJ_INJURY_REPORT.at=new Date(now-1000).toISOString();

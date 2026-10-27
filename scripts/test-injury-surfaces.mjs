@@ -44,3 +44,13 @@ const removed=document.createElement('span');removed.className='hj-espn-status';
 callback([{type:'childList',addedNodes:[],removedNodes:[removed]}]);
 assert.equal(scheduled,1,'Badge-only removal must reschedule injury decoration');
 console.log('PASS badge-only live-refresh removal triggers restoration');
+
+const liveSource=fs.readFileSync('scripts/live-updates.js','utf8');
+vm.runInContext(liveSource.slice(liveSource.indexOf(' function key('),liveSource.indexOf(' function update(')),ctx);
+document.body.innerHTML='<div class="hj-v3-meta">NYJ · <span class="hj-v3-rank">RB39</span><span class="hj-espn-status">O</span></div>';
+const current=document.body.firstElementChild,badge=current.querySelector('.hj-espn-status');
+for(let i=0;i<5;i++){
+ const fresh=document.createElement('div');fresh.className='hj-v3-meta';fresh.innerHTML='NYJ · <span class="hj-v3-rank">RB39</span>';
+ ctx.patch(current,fresh);assert.equal(current.querySelector('.hj-espn-status'),badge,'Score-only refresh retains the same badge node');
+}
+console.log('PASS repeated score refreshes preserve the existing badge node');

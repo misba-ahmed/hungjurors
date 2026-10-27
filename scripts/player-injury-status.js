@@ -30,9 +30,8 @@ function hjStatusIndex(){
  if(Date.now()-reportAt<86400000)HJ_INJURY_REPORT.rows.forEach(r=>{
   const status=r.code?{code:r.code,label:r.label}:null;
   // Active on a roster is not a game-day clearance. A freshly fetched injury
-  // report remains authoritative until its next refresh or the five-minute grace expires.
-  if(Date.now()-reportAt<300000&&r.id)records.set(String(r.id),{status,at:reportAt});
-  else putStatus(r.id,status,reportAt);
+  // report remains authoritative while its next background refresh is pending.
+  if(r.id)records.set(String(r.id),{status,at:reportAt});
  });
  return new Map([...records].map(([id,record])=>[id,record.status]));
 }

@@ -12,8 +12,12 @@
  function compatible(a,b){return a.nodeType===b.nodeType&&(a.nodeType!==1||(a.tagName===b.tagName&&key(a)===key(b)&&(!key(a)?a.classList[0]===b.classList[0]:true)))}
  function patch(current,fresh){
   if(current.nodeType!==1){if(current.nodeValue!==fresh.nodeValue)current.nodeValue=fresh.nodeValue;return}
+  // Keep managed injury badges attached during score-only patches. The status updater owns clearing them.
+  for(const badge of current.querySelectorAll(':scope > .hj-espn-status')){
+   fresh.querySelectorAll(':scope > .hj-espn-status,:scope > .hj-v3-injury,:scope > .hj-player-v2-injury,:scope > .depth-injury').forEach(n=>n.remove());fresh.append(badge.cloneNode(true));
+  }
   // Renderers own data; layout installers own these persistent measurements.
-  for(const name of ['data-hj-fit-height','data-columns','data-hj-projection-section','data-hj-possession']){
+  for(const name of ['data-hj-status-player','data-hj-fit-height','data-columns','data-hj-projection-section','data-hj-possession']){
    if(current.hasAttribute(name)&&!fresh.hasAttribute(name))fresh.setAttribute(name,current.getAttribute(name));
   }
   for(const name of ['--hj-section-height','--hj-matchup-height','--hj-row-room','font-family']){
