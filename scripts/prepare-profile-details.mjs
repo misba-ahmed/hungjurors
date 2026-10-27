@@ -18,6 +18,11 @@ export function prepareProfileDetails(html){
   "if(!back||back.dataset.hjManagerNav==='1'||back.dataset.hjManagerNavV2==='1')return;");
 
  replace('scroll.scrollTop=0;state.ready=true;pcBindProfileNav(scroll);','scroll.scrollTop=0;state.ready=true;pcBindProfileNav(scroll);pcRefreshProfileDepth(active);');
+ // Roster injury records include reserve players omitted from the weekly injury report.
+ replace("const raw=[player?.injuryStatus,p.injuryStatus,", "const rosterInjury=[...(Array.isArray(p.injuries)?p.injuries:[])].sort((a,b)=>(Date.parse(b.date)||0)-(Date.parse(a.date)||0))[0];\n const raw=[typeof rosterInjury?.status==='string'?rosterInjury.status:rosterInjury?.status?.name,player?.injuryStatus,p.injuryStatus,");
+ replace(".toUpperCase().replaceAll('_',' ').trim();", ".toUpperCase().replace(/[_-]/g,' ').trim();");
+ replace("id,name,norm:ffnNorm(name),team,position:pos,", "id,name,norm:ffnNorm(name),team,position:pos,injuries:p.injuries,status:p.status,");
+ replace(" HJ_STATUS_LIVE.forEach(record=>", " if(typeof ffnRosterPlayers!=='undefined')ffnRosterPlayers.forEach(put);\n if(typeof pcLiveDepth!=='undefined')pcLiveDepth.forEach(data=>data.rows.forEach(put));\n HJ_STATUS_LIVE.forEach(record=>");
  // Apply the shared ESPN injury badges to every player trigger, including self-hosted names.
  replace("const host=node.querySelector('.hj-v3-meta,.hj-player-v2-meta,.hq-player-name,.pc-modal-title,.hj-tx-player-copy b,.wire-row-name,.depth-player-name,.n,b');", "if(node.dataset.pcPosition==='D/ST')return;\n  const host=node.querySelector('.pc-depth-slot,.hj-v3-meta,.hj-player-v2-meta,.hq-player-name,.pc-modal-meta,.hj-tx-player-copy b,.wire-row-name,.depth-player-name,.n,b')||(!node.querySelector('[data-pc-id]')?node:null);");
  // Resolve current affiliation before rendering any profile header or team section.
