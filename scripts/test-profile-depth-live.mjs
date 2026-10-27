@@ -1,6 +1,10 @@
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
 import {prepareDepthRefresh} from './prepare-depth-refresh.mjs';
+import {prepareProfileDetails} from './prepare-profile-details.mjs';
 const source=prepareDepthRefresh(fs.readFileSync('index.html','utf8'));
+const built=prepareProfileDetails(source);
+assert(built.includes(fs.readFileSync('scripts/profile-depth-live.js','utf8')),'Published HTML must include the live loader, not just its call');
+assert(built.includes('pcBindProfileNav(scroll);pcRefreshProfileDepth(active);'));
 const slice=(a,b)=>source.slice(source.indexOf(a),source.indexOf(b,source.indexOf(a)));
 let calls=0,fail=false;const roster={athletes:[{items:[{id:'1',displayName:'Starter',position:{abbreviation:'RB'}},{id:'2',displayName:'Backup',position:{abbreviation:'RB'}}]}]};
 const chart={depthchart:[{positions:Object.fromEntries(['QB','RB','WR','TE'].map(p=>[p.toLowerCase(),{athletes:[{id:'1',displayName:'Starter'},{id:'2',displayName:'Backup'}]}]))}]};

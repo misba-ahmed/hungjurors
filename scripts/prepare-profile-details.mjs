@@ -19,7 +19,7 @@ export function prepareProfileDetails(html){
 
  replace('scroll.scrollTop=0;state.ready=true;pcBindProfileNav(scroll);','scroll.scrollTop=0;state.ready=true;pcBindProfileNav(scroll);pcRefreshProfileDepth(active);');
  // Resolve current affiliation before rendering any profile header or team section.
- replace('function pcPlayerFromTrigger(trigger){',currentTeamSource+'\nfunction pcPlayerFromTrigger(trigger){');
+ replace('function pcPlayerFromTrigger(trigger){',currentTeamSource+'\n'+liveDepthSource+'\nfunction pcPlayerFromTrigger(trigger){');
  replace('raw.photo=exact.photo||raw.photo}return raw;', 'raw.photo=exact.photo||raw.photo}return pcCurrentPlayer(raw);');
  replace('pcActive={overlay,player,returnFocus:trigger,token:0};', 'pcActive={overlay,player,returnFocus:trigger,token:0};pcRefreshCurrentTeam(pcActive);');
  replace('const teamLogo=ffnTeamLogo(player.team);', "const teamLogo=player.team==='FA'?'':ffnTeamLogo(player.team);");
