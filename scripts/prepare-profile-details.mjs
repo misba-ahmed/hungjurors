@@ -18,6 +18,8 @@ export function prepareProfileDetails(html){
   "if(!back||back.dataset.hjManagerNav==='1'||back.dataset.hjManagerNavV2==='1')return;");
 
  replace('scroll.scrollTop=0;state.ready=true;pcBindProfileNav(scroll);','scroll.scrollTop=0;state.ready=true;pcBindProfileNav(scroll);pcRefreshProfileDepth(active);');
+ // Roster membership statuses such as Practice Squad are not injury designations.
+ replace("return {code:codes[value]||value,label:value};", "return codes[value]||['Q','D','O','IR','SUSP','PUP','DTD','P'].includes(value)?{code:codes[value]||value,label:value}:null;");
  // Roster injury records include reserve players omitted from the weekly injury report.
  replace("const raw=[player?.injuryStatus,p.injuryStatus,", "const rosterInjury=[...(Array.isArray(p.injuries)?p.injuries:[])].sort((a,b)=>(Date.parse(b.date)||0)-(Date.parse(a.date)||0))[0];\n const raw=[typeof rosterInjury?.status==='string'?rosterInjury.status:rosterInjury?.status?.name,player?.injuryStatus,p.injuryStatus,");
  replace(".toUpperCase().replaceAll('_',' ').trim();", ".toUpperCase().replace(/[_-]/g,' ').trim();");

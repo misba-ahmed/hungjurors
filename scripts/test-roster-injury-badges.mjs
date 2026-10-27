@@ -6,6 +6,7 @@ const html=prepareProfileDetails(fs.readFileSync('index.html','utf8'));
 const code=html.slice(html.indexOf('function hjOfficialStatus('),html.indexOf('function hjApplyOfficialStatuses('));
 const ctx=vm.createContext({HJ_STATUS_LIVE:new Map(),HJ_INJURY_REPORT:{rows:[]},ffnRosterPlayers:[],pcLiveDepth:new Map()});
 vm.runInContext(code,ctx);
+assert.equal(ctx.hjOfficialStatus({status:{type:'practice-squad'}}),null);
 const bigsby={id:'4429013',status:{type:'active'},injuries:[{status:'Injured Reserve',date:'2026-10-06T23:17Z'}]};
 const shipley={id:'4431545',status:{type:'day-to-day'},injuries:[{status:'Injured Reserve',date:'2026-10-16T20:07Z'}]};
 ctx.ffnRosterPlayers.push(bigsby);ctx.pcLiveDepth.set('PHI',{rows:[shipley]});
