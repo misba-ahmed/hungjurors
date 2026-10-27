@@ -8,3 +8,10 @@ vm.createContext(c);vm.runInContext(code,c);assert.equal(typeof firstPaint,'func
 let h=c.hjTeamViewHTML(team,data);assert.match(h,/WEEK 3/);for(const label of ['ACTUAL','ESPN','VEGAS','E\/V COMBO'])assert(h.includes(label));assert.doesNotMatch(h,/optimal/i);
 function choose(scope,week){click({preventDefault(){},target:{closest:()=>({dataset:{rosterWeek:week},hasAttribute:n=>n==='data-roster-week',closest:()=>({dataset:{rosterWeekScope:scope}})})}})}
 choose('hq',2);h=c.hjTeamViewHTML(team,data);assert.match(h,/Former:2/);assert.match(h,/hq-match-team-score/);assert.doesNotMatch(h,/Current:2/);assert.equal(data.scoringPeriodId,3);assert.match(c.hjManagerRosterHTML('MISBA'),/WEEK 3/);choose('manager:1',2);assert.match(c.hjManagerRosterHTML('MISBA'),/Former:2/);choose('hq',0);assert.match(c.hjTeamViewHTML(team,data),/WEEK 1/);assert.match(c.hjTeamViewHTML(team,data),/Loading Week 1/);console.log('PASS roster labels, saved historical membership, independent scope, bounds, no current-roster fallback, unchanged live clock');
+
+// The middle label returns only its own surface to the live week, and resumes rollover.
+choose('hq','current');assert.match(c.hjTeamViewHTML(team,data),/WEEK 3/);assert.match(c.hjManagerRosterHTML('MISBA'),/WEEK 2/);
+choose('manager:1','current');assert.match(c.hjManagerRosterHTML('MISBA'),/WEEK 3/);
+data.scoringPeriodId=4;assert.match(c.hjTeamViewHTML(team,data),/WEEK 4/);assert.match(c.hjManagerRosterHTML('MISBA'),/WEEK 4/);
+assert.match(c.hjTeamViewHTML(team,data),/class="hj-roster-week-current" data-roster-week="current"/);
+console.log('PASS return to current week in both scopes and follow live week rollover');
