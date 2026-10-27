@@ -236,25 +236,25 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
   if(typeof CHALLENGES==='undefined'||typeof HJ_CHALLENGE_STATE==='undefined')return '';
   const cm=HJ_CHALLENGE_STATE.model;if(!cm)return '';
   const names=model.managers.map(m=>m.short),v=x=>Number.isInteger(Number(x))?String(x):Number(x).toFixed(1);
-  const card=(ch,body)=>body?`<article class="rcx-pot"><div class="rcx-pot-hd"><b>${esc(ch.label)}</b>${ch.prize?`<span class="rcx-prize">${esc(ch.prize)}</span>`:''}</div>${body}</article>`:'';
+  const chip=(n,val='')=>`<span class="rcx-tk-chip">${face(n,'rcx-av-sm')}${val!==''?`<b>${esc(val)}</b>`:''}</span>`;
+  const card=(ch,who,line,tone,footLabel,foot)=>`<article class="rcx-tk${tone?` is-${tone}`:''}${ch.id==='raffle'||ch.id==='lms'?' is-wide':''}"><div class="rcx-tk-top"><span>${esc(ch.label)}</span>${ch.prize?`<em>${esc(ch.prize)}</em>`:''}</div><div class="rcx-tk-main">${face(who,'rcx-av-mid')}<div><b>${esc(who)}</b><small>${line}</small></div></div>${foot?`<div class="rcx-tk-foot"><span>${footLabel}</span><div>${foot}</div></div>`:''}</article>`;
   const items=CHALLENGES.map(ch=>{
    if(ch.id==='raffle'){
     const won=(cm.raffle||[]).find(r=>Number(r.week)===model.week),t=[...(cm.tickets||[])].filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
-    const winner=won?`<div class="rcx-pot-win">${won.winners.map(w=>`<span class="rcx-pot-crowned">${face(w.short,'rcx-av-mid')}<i aria-hidden="true">★</i></span>`).join('')}<span><small>Week ${model.week} high score</small><b>${won.winners.map(w=>esc(w.short)).join(' & ')} · ${fmt(won.score)}</b></span></div>`:'';
-    const tix=t.length?`<div class="rcx-pot-tix">${t.map(x=>`<span class="rcx-pot-tick">${face(x.short)}<b>${esc(x.short)}</b><em>${'🎟'.repeat(Math.min(3,x.total))}${x.total>3?`×${x.total}`:''}</em></span>`).join('')}</div>`:'';
-    return card(ch,winner+tix);
+    const who=won?.winners?.[0]?.short||t[0]?.short;if(!who)return '';
+    const line=won?`${won.winners.length>1?`Tied with ${won.winners.slice(1).map(w=>esc(w.short)).join(', ')} · `:''}Week ${model.week} high score · ${fmt(won.score)}`:`Most tickets · ${t[0].total}`;
+    return card(ch,who,line,'gold','Tickets',t.map(x=>chip(x.short,x.total)).join(''));
    }
    if(ch.id==='lms'){
-    const elim=new Map((cm.eliminations||[]).filter(e=>Number(e.week)<=model.week).map(e=>[e.short,Number(e.week)]));
-    const order=[...names].sort((a,b)=>(elim.has(a)?1:0)-(elim.has(b)?1:0)||(elim.get(b)||0)-(elim.get(a)||0));
-    const alive=names.filter(n=>!elim.has(n)).length;
-    return card(ch,`<div class="rcx-pot-lms">${order.map(n=>{const w=elim.get(n);return `<span class="rcx-pot-man${w?' is-out':''}${w===model.week?' is-new':''}">${face(n,'rcx-av-mid')}<b>${esc(n)}</b><small>${w?`out W${w}`:'alive'}</small></span>`}).join('')}</div><p class="rcx-pot-line">${alive} still standing after Week ${model.week}</p>`);
+    const gone=new Set((cm.eliminations||[]).filter(e=>Number(e.week)<=model.week).map(e=>e.short)),out=(cm.eliminations||[]).filter(e=>Number(e.week)===model.week).map(e=>e.short),alive=names.filter(n=>!gone.has(n));
+    if(out.length)return card(ch,out[0],`Eliminated in Week ${model.week}`,'out',`${alive.length} left`,alive.map(n=>chip(n)).join(''));
+    return card(ch,alive[0]||names[0],`${alive.length} still standing`,'','Alive',alive.slice(1).map(n=>chip(n)).join(''));
    }
    const list=cm.totals?.[ch.id];if(!Array.isArray(list)||!list.length)return '';
-   const top=list.slice(0,3);
-   return card(ch,`<div class="rcx-pot-podium">${top.map((x,i)=>`<span class="rcx-pot-step is-${i+1}">${face(x.short,i===0?'rcx-av-big':'rcx-av-mid')}<b>${esc(x.short)}</b><em>${v(x.total)}</em><i>${i+1}</i></span>`).join('')}</div>`);
+   const [top,...rest]=list;
+   return card(ch,top.short,`Leads with ${v(top.total)}`,'',rest.length?'Chasing':'',rest.slice(0,3).map(x=>chip(x.short,v(x.total))).join(''));
   }).join('');
-  return items?section('ticker','Side-challenge ticker',`where the side pots stand after Week ${model.week}`,`<div class="rcx-pots">${items}</div><a class="rcx-link" href="#challenges">Open Side Challenges →</a>`):'';
+  return items?section('ticker','Side-challenge ticker',`where the side pots stand after Week ${model.week}`,`<div class="rcx-tks">${items}</div><a class="rcx-link" href="#challenges">Open Side Challenges →</a>`):'';
  }
 
  /* ---------- placement ---------- */
