@@ -37,6 +37,7 @@ jobs:
           node scripts/test-record-book.mjs
           node scripts/test-roster-injury-badges.mjs
           node scripts/test-injury-surfaces.mjs
+          node scripts/test-injury-runtime.mjs
           node scripts/test-profile-depth-live.mjs
           node scripts/test-depth-refresh.mjs
           node --test scripts/test-completed-results.mjs scripts/test-free-throw-bet.mjs

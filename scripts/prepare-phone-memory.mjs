@@ -1,3 +1,5 @@
+import {readFileSync} from 'node:fs';
+const injuryRuntime=readFileSync(new URL('./injury-runtime.js',import.meta.url),'utf8');
 /* Phone memory (measured with Safari Web Inspector on the user's iPhone: the
  * page held ~1 GB, about half JavaScript data and half page structure, before
  * any zoom; images and layer backing live in Safari's separate GPU process).
@@ -23,16 +25,7 @@ const apiFields=[
  ['headshot:item?.headshot?.href || (id ? nflHeadshot(id) : \'\')','headshot:hjEspnImg(item?.headshot?.href) || (id ? nflHeadshot(id) : \'\')']
 ];
 const recapFeature='aria-label="Open ${esc(p.name)} player card"><img src="${esc(photo)}"';
-// The league-wide ESPN injury feed (~8.8 MB) is re-downloaded every minute and
-// reduced to a short list of player statuses. Between updates only its leading
-// "timestamp" changes. When everything after the timestamp is identical, keep
-// the statuses already derived from that same text instead of parsing ~8.8 MB
-// of JSON again; the report time still advances exactly as before.
-const injuryParse="const payload=await response.json(),rows=hjParseInjuryFeed(payload);\n  HJ_INJURY_REPORT.rows=rows;HJ_INJURY_REPORT.at=payload.timestamp||new Date().toISOString();";
-const injuryReuse="const text=await response.text(),stamp=text.match(/^\\{\"timestamp\":\"([^\"]*)\",/),body=stamp?text.slice(stamp[0].length):null;\n  if(body===null||body!==HJ_INJURY_REPORT.feedBody){const payload=JSON.parse(text),rows=hjParseInjuryFeed(payload);HJ_INJURY_REPORT.rows=rows;HJ_INJURY_REPORT.feedBody=body;HJ_INJURY_REPORT.at=payload.timestamp||new Date().toISOString();}\n  else HJ_INJURY_REPORT.at=stamp[1]||new Date().toISOString();";
 export function preparePhoneMemory(html){
- if(html.split(injuryParse).length!==2)throw Error('Injury refresh source changed; review feed reuse');
- html=html.replace(injuryParse,()=>injuryReuse);
  const before=(html.match(literal)||[]).length;
  if(before<20)throw Error('ESPN headshot URLs changed; review headshot sizing');
  html=html.replace(literal,(_,id)=>'https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/'+id+'.png'+HEADSHOT_SIZE);
@@ -46,5 +39,7 @@ export function preparePhoneMemory(html){
  if(html.split(viewportMeta).length!==2)throw Error('Viewport meta changed; review ESPN image helper');
  html=html.replace(viewportMeta,()=>viewportMeta+'\n'+helper);
  if(html.includes(FULL+'${'))throw Error('Unsized headshot template remains');
- return html;
+ const start=html.indexOf('const HJ_STATUS_LIVE=new Map();'),end=html.indexOf('</script>',start);
+ if(start<0||end<0)throw Error('Injury runtime anchor missing');
+ return html.slice(0,start)+injuryRuntime+html.slice(end);
 }

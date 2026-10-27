@@ -10,31 +10,17 @@ function hjOfficialStatus(player){
  const codes={QUESTIONABLE:'Q',Q:'Q',DOUBTFUL:'D',D:'D',OUT:'O',O:'O','INJURY RESERVE':'IR','INJURED RESERVE':'IR',IR:'IR',SUSPENSION:'SUSP',SUSPENDED:'SUSP',SUSP:'SUSP','PHYSICALLY UNABLE TO PERFORM':'PUP','RESERVE/PUP':'PUP',PUP:'PUP','NON FOOTBALL INJURY':'NFI','NON FOOTBALL ILLNESS':'NFI','RESERVE/NFI':'NFI',NFI:'NFI',INACTIVE:'Inactive','DAY TO DAY':'DTD',DTD:'DTD',PROBABLE:'P',P:'P'};
  return codes[value]?{code:codes[value],label:value}:undefined;
 }
-function hjStatusIndex(){
- const records=new Map();
- const putStatus=(id,status,at=0)=>{id=String(id||'');if(!id||status===undefined)return;at=Number(at)||0;const old=records.get(id);if(!old||at>=old.at)records.set(id,{status,at})};
- const put=(entry,at=0)=>{if(entry?._pcSeason&&typeof NFL_SEASON!=='undefined'&&Number(entry._pcSeason)!==Number(NFL_SEASON))return;const p=entry?.playerPoolEntry?.player||entry?.player||entry||{};putStatus(p.id||entry?.playerId||entry?.id,hjOfficialStatus(entry),entry?._hjStatusAt||p._hjStatusAt||at)};
- // Undated directory entries are fallbacks, never newer than fetched roster data.
- if(typeof HJ_PLAYER_DIRECTORY!=='undefined'){
-  (HJ_PLAYER_DIRECTORY.rows||[]).forEach(e=>put(e));
-  HJ_PLAYER_DIRECTORY.espnCache?.forEach(e=>{if(e)put(e)});
- }
- if(typeof HJ_ESPN_HQ_POOL!=='undefined')HJ_ESPN_HQ_POOL.byId?.forEach(e=>put(e));
- if(typeof HJ_LEAGUE_STATE!=='undefined')(HJ_LEAGUE_STATE.data?.teams||[]).forEach(t=>(t.roster?.entries||[]).forEach(e=>put(e,HJ_LEAGUE_STATE.syncedAt)));
- if(typeof ffnRosterPlayers!=='undefined')ffnRosterPlayers.forEach(e=>put(e));
- if(typeof pcLiveDepth!=='undefined')pcLiveDepth.forEach(data=>data.rows.forEach(e=>put(e,data.at)));
- if(typeof pcCurrentTeamCache!=='undefined')pcCurrentTeamCache.forEach(data=>put(data.player,data.at));
- HJ_STATUS_LIVE.forEach(record=>put(record.entry,record.at));
- const reportAt=Date.parse(HJ_INJURY_REPORT.at)||0;
- // The shipped report is only a short-lived fallback; a months-old snapshot cannot clear IR.
- if(Date.now()-reportAt<86400000)HJ_INJURY_REPORT.rows.forEach(r=>{
-  const status=r.code?{code:r.code,label:r.label}:null;
-  // Active on a roster is not a game-day clearance. A freshly fetched injury
-  // report remains authoritative while its next background refresh is pending.
-  if(r.id)records.set(String(r.id),{status,at:reportAt});
- });
- return new Map([...records].map(([id,record])=>[id,record.status]));
+function hjCreateHealthStore(){
+ const records=new Map(),statuses=new Map();
+ return {records,statuses,accept(id,status,at){
+  id=String(id||'');at=Number(at);
+  if(!/^\d+$/.test(id)||status===undefined||!Number.isFinite(at)||at<=0)return false;
+  const old=records.get(id);if(old&&at<old.at)return false;
+  const changed=!old||old.status?.code!==status?.code;
+  records.set(id,{id,status,at});statuses.set(id,status);return changed;
+ }};
 }
+function hjStatusIndex(){return HJ_HEALTH.statuses}
 function hjStatusHost(node){
  // A photo and name in the same card represent one player. Decorate the name once.
  if(node.matches('.ffn-photo,.rc-feat-photo,.rc-mini-photo,.rc-pcard-photo')){
@@ -43,13 +29,14 @@ function hjStatusHost(node){
  }
  return node.querySelector('.pc-depth-slot,.hj-v3-meta,.hj-player-v2-meta,.hq-player-name,.pc-modal-meta,.hj-tx-player-copy b,.wire-row-name,.depth-player-name,.n,b')||(!node.querySelector('[data-pc-id]')?node:null);
 }
-function hjApplyOfficialStatuses(){
+function hjApplyOfficialStatuses(root=document){
  const statuses=hjStatusIndex();
- document.querySelectorAll('[data-pc-id]').forEach(node=>{
+ const nodes=[...(root.matches?.('[data-pc-id]')?[root]:[]),...root.querySelectorAll('[data-pc-id]')];
+ nodes.forEach(node=>{
   const badges=[...node.querySelectorAll('.hj-espn-status,.hj-v3-injury,.hj-player-v2-injury,.depth-injury')].filter(b=>b.closest('[data-pc-id]')===node);
   const host=node.dataset.pcPosition==='D/ST'?null:hjStatusHost(node);
   if(!host){badges.forEach(b=>b.remove());return}
-  if(!statuses.has(node.dataset.pcId)){if(node.dataset.hjStatusPlayer&&node.dataset.hjStatusPlayer!==node.dataset.pcId)badges.forEach(b=>b.remove());return}
+  if(!statuses.has(node.dataset.pcId)){badges.forEach(b=>b.remove());return}
   node.dataset.hjStatusPlayer=node.dataset.pcId;
   const status=statuses.get(node.dataset.pcId);
   if(!status){badges.forEach(b=>b.remove());return}

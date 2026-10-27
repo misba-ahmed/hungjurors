@@ -29,9 +29,6 @@ export function prepareProfileDetails(html){
  if(injuryStart<0||injuryEnd<0)throw Error('Shared injury status source changed');
  html=html.slice(0,injuryStart)+injuryStatusSource+'\n'+html.slice(injuryEnd);
  replace("code:status?(injury.type?.abbreviation||status.code):null", "code:status?status.code:null");
- // Restore a small recent report synchronously; refresh it without blocking the page.
- replace("const HJ_INJURY_REPORT={rows:HJ_INJURY_SNAPSHOT.rows,at:HJ_INJURY_SNAPSHOT.at,loading:false,lastAttempt:0};", "const HJ_INJURY_REPORT={rows:HJ_INJURY_SNAPSHOT.rows,at:HJ_INJURY_SNAPSHOT.at,loading:false,lastAttempt:0};\ntry{const saved=JSON.parse(localStorage.getItem('hj-injury-status-v1')||'null');if(saved&&Array.isArray(saved.rows)&&Date.parse(saved.at)>Date.parse(HJ_INJURY_REPORT.at)&&Date.now()-Date.parse(saved.at)<86400000)Object.assign(HJ_INJURY_REPORT,saved)}catch(_){}");
- replace("HJ_INJURY_REPORT.loading=false;hjApplyOfficialStatuses()", "HJ_INJURY_REPORT.loading=false;try{localStorage.setItem('hj-injury-status-v1',JSON.stringify({rows:HJ_INJURY_REPORT.rows,at:HJ_INJURY_REPORT.at}))}catch(_){}hjApplyOfficialStatuses()");
  // Resolve current affiliation before rendering any profile header or team section.
  replace('function pcPlayerFromTrigger(trigger){',currentTeamSource+'\n'+liveDepthSource+'\nfunction pcPlayerFromTrigger(trigger){');
  replace('raw.photo=exact.photo||raw.photo}return raw;', 'raw.photo=exact.photo||raw.photo}return pcCurrentPlayer(raw);');

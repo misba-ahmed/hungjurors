@@ -1,0 +1,14 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+const {parseHTML}=await import(process.env.INJURY_DOM_MODULE||'linkedom');
+const {document}=parseHTML('<html><body>'+Array.from({length:24},(_,i)=>`<button data-pc-id="${i+1}"><b>Player ${i+1}</b></button>`).join('')+'</body></html>');
+for(const n of document.querySelectorAll('button'))n.getBoundingClientRect=()=>({width:100,height:30,top:100,bottom:130,left:0,right:100});
+let mode='same',calls=0,active=0,max=0;const saved=new Map();
+const ctx=vm.createContext({document,innerHeight:900,innerWidth:400,NFL_SEASON:2026,Date,AbortSignal,HJ_INJURY_SNAPSHOT:{at:new Date().toISOString(),rows:Array.from({length:24},(_,i)=>({id:String(i+1),code:'IR',label:'INJURED RESERVE'}))},localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)},MutationObserver:class{observe(){}},window:{addEventListener(){}},requestAnimationFrame:()=>1,setInterval(){},setTimeout:()=>1,fetch:async url=>{calls++;active++;max=Math.max(max,active);await Promise.resolve();active--;if(mode==='failure')throw Error('offline');const id=url.match(/athletes\/(\d+)/)[1];return {ok:true,json:async()=>({id,status:'Active',injuries:mode==='healthy'?[]:[{status:'Injured Reserve'}]})}}});
+vm.runInContext(fs.readFileSync('scripts/player-injury-status.js','utf8')+'\n'+fs.readFileSync('scripts/injury-runtime.js','utf8'),ctx);
+assert.equal(calls,0);assert.equal(document.querySelectorAll('.hj-espn-status').length,24,'All initial badges render before network');
+await ctx.hjRefreshOfficialStatuses();assert.equal(calls,24);assert(max<=4);assert.equal(document.querySelectorAll('.hj-espn-status').length,24);
+await ctx.hjRefreshOfficialStatuses();assert.equal(calls,24,'Repeated renders cannot refetch fresh IDs');
+mode='failure';vm.runInContext('hjHealthAttempts.clear()',ctx);await ctx.hjRefreshOfficialStatuses();assert.equal(document.querySelectorAll('.hj-espn-status').length,24,'Network failure preserves every badge');
+mode='healthy';vm.runInContext('hjHealthAttempts.clear()',ctx);await ctx.hjRefreshOfficialStatuses();assert.equal(document.querySelectorAll('.hj-espn-status').length,0,'Explicit recovery clears every badge');
+assert(!fs.readFileSync('scripts/injury-runtime.js','utf8').includes('/nfl/injuries'),'No league-wide injury download');
+console.log('PASS 24-player runtime: zero-network first render, bounded live requests, deduplication, offline retention and healthy recovery');
