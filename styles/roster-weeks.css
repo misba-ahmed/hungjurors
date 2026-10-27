@@ -1,4 +1,4 @@
-.hj-roster-week-tools{display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:8px;margin:10px 0;min-width:0;container-type:inline-size;overflow-x:hidden;scrollbar-width:none}
+.hj-roster-week-tools{display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:8px;margin:0;min-width:0;container-type:inline-size;overflow-x:hidden;scrollbar-width:none}
 .hj-roster-week-tools::-webkit-scrollbar{display:none}
 .hj-roster-week-nav{display:flex;align-items:center;gap:2px;flex:0 0 auto;color:var(--navy);font:800 13px/1 var(--sans);white-space:nowrap}
 .hj-roster-week-nav button.hj-roster-week-current{flex:0 0 auto;width:auto;min-width:64px;height:44px;font:inherit;white-space:nowrap}
