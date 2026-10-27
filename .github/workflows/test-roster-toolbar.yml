@@ -1,0 +1,38 @@
+name: Verify roster toolbar layout
+on:
+  push:
+    branches: [main, fix-roster-toolbar-layout]
+    paths:
+      - styles/roster-weeks.css
+      - scripts/roster-weeks.js
+      - scripts/test-roster-toolbar-layout.mjs
+      - .github/workflows/test-roster-toolbar.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  layout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright
+      - run: npx playwright install chromium webkit --with-deps
+      - name: Check roster toolbar at phone, tablet and desktop widths
+        run: node scripts/test-roster-toolbar-layout.mjs
+      - name: Check existing lineup behavior
+        run: |
+          node scripts/test-roster-weeks.mjs
+          node scripts/test-lineup-rules.mjs
+          node scripts/test-lineup-status.mjs
+          node scripts/test-lineup-live-scores.mjs
+          node scripts/test-lineup-spotlight.mjs
+          node scripts/test-roster-swipe.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: roster-toolbar-proof
+          path: roster-toolbar-proof/

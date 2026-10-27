@@ -6,7 +6,7 @@
  const weekFor=(key,data)=>selected.get(key)||hjCurrentWeek(data);
  function toolbar(team,week,profile){
   const key=scope(team,profile),mode=HJ_HQ_STATE.lineupModes.get(hjRosterModeKey(team.id,week))||'actual';
-  return `<div class="hj-roster-week-tools" data-roster-week-scope="${esc(key)}"><div class="hj-roster-week-nav" aria-label="Roster week"><button type="button" data-roster-week="${week-1}" ${week<=1?'disabled':''} aria-label="Previous roster week">‹</button><b aria-live="polite">WEEK ${week}</b><button type="button" data-roster-week="${week+1}" ${week>=18?'disabled':''} aria-label="Next roster week">›</button></div><div class="league-roster-modes">${Object.entries(labels).map(([id,label])=>`<button type="button" class="league-roster-mode${mode===id?' active':''}" data-roster-view-mode="${id}" data-roster-team="${team.id}" data-roster-view-week="${week}" aria-pressed="${mode===id}">${label}</button>`).join('')}</div></div>`;
+  return `<div class="hj-roster-week-tools" data-roster-week-scope="${esc(key)}"><div class="hj-roster-week-nav" aria-label="Roster week"><button type="button" data-roster-week="${week-1}" ${week<=1?'disabled':''} aria-label="Previous roster week"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button><b aria-live="polite">WEEK ${week}</b><button type="button" data-roster-week="${week+1}" ${week>=18?'disabled':''} aria-label="Next roster week"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div class="league-roster-modes">${Object.entries(labels).map(([id,label])=>`<button type="button" class="league-roster-mode${mode===id?' active':''}" data-roster-view-mode="${id}" data-roster-team="${team.id}" data-roster-view-week="${week}" aria-pressed="${mode===id}">${label}</button>`).join('')}</div></div>`;
  }
  function repaint(){hjRenderLeague();}
  function ensure(week,data){
@@ -27,10 +27,11 @@
   if(entries===null)return `<div class="hq-empty" role="status">${errors.has(key)?'Unable to load this week. <button type="button" data-roster-week-retry="'+week+'">Retry</button>':'Loading Week '+week+'…'}</div>`;
   if(!entries.length)return '<div class="hq-empty">No saved lineup for this week.</div>';
   const mode=HJ_HQ_STATE.lineupModes.get(hjRosterModeKey(team.id,week))||'actual',plan=hjLineupPlan(data),selection=hjSelectionForMode(entries,plan,week,mode),bench=hjRemainingBench(entries,selection),ir=entries.filter(e=>Number(e.lineupSlotId)===21);
-  let starters=hjRosterSelectedGroupHTML('Starting lineup',selection,plan,week,season,mode);
+  let starters=hjRosterSelectedGroupHTML('Starting lineup',selection,plan,week,season,mode,team.id);
   if(week!==hjCurrentWeek(data)){
    const values=selection.filter(Boolean).map(e=>hjNumber(hjWeeklyStat(e,week,0,season)?.appliedTotal)),totals=hjSelectionTotals(selection,week),total=week<hjCurrentWeek(data)?(values.length&&values.every(Number.isFinite)?values.reduce((a,b)=>a+b,0):null):totals[mode==='actual'?'espn':mode];
-   starters='<div class="league-roster-group"><div class="league-roster-group-head"><span>Starting lineup</span>'+(Number.isFinite(total)?'<b>'+pcFpts(total)+'</b>':'')+'</div><div class="league-player-list">'+selection.map((e,i)=>e?hjPlayerHTML({...e,lineupSlotId:Number(plan[i]?.slotId)},week,season):'').join('')+'</div></div>';
+   const past=week<hjCurrentWeek(data),status=past?'<span class="hq-lineup-live-label league-roster-total-status">FINAL</span>':'',totalHTML=hjRosterTotalHTML(total,past,status,selection,week,mode,team.id,totals.espn,past);
+   starters='<div class="league-roster-group"><div class="league-roster-group-head"><span>Starting lineup</span>'+totalHTML+'</div><div class="league-player-list">'+selection.map((e,i)=>e?hjPlayerHTML({...e,lineupSlotId:Number(plan[i]?.slotId)},week,season):'').join('')+'</div></div>';
   }
   return '<div class="league-roster-groups">'+starters+hjRosterBenchGroupHTML(bench,week,season)+'</div>'+(ir.length?'<div class="league-ir-wrap">'+hjRosterGroupHTML('Injured reserve',ir,week,'',season)+'</div>':'');
  }
