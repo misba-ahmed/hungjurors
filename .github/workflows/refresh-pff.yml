@@ -24,6 +24,8 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
+      - name: Install injury display test dependency
+        run: npm install --no-save --package-lock=false linkedom@0.18.14
       - name: Verify projection feed contracts
         run: |
           node scripts/test-manager-hero-scores.mjs
@@ -33,6 +35,10 @@ jobs:
           node scripts/test-vegas-feed.mjs
           node scripts/test-challenges.mjs
           node scripts/test-record-book.mjs
+          node scripts/test-roster-injury-badges.mjs
+          node scripts/test-injury-surfaces.mjs
+          node scripts/test-profile-depth-live.mjs
+          node scripts/test-depth-refresh.mjs
           node --test scripts/test-completed-results.mjs scripts/test-free-throw-bet.mjs
           node scripts/test-sleeper-trends.mjs
           node scripts/test-player-stat-bars.mjs

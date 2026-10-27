@@ -1,5 +1,6 @@
 import {readFileSync} from 'node:fs';
 const currentTeamSource=readFileSync(new URL('./profile-current-team.js',import.meta.url),'utf8');
+const injuryStatusSource=readFileSync(new URL('./player-injury-status.js',import.meta.url),'utf8');
 const liveDepthSource=readFileSync(new URL('./profile-depth-live.js',import.meta.url),'utf8');
 const careerSource=readFileSync(new URL('./profile-career-high.js',import.meta.url),'utf8');
 // Keep profile summaries tied to the same records and award cards as the site.
@@ -18,15 +19,16 @@ export function prepareProfileDetails(html){
   "if(!back||back.dataset.hjManagerNav==='1'||back.dataset.hjManagerNavV2==='1')return;");
 
  replace('scroll.scrollTop=0;state.ready=true;pcBindProfileNav(scroll);','scroll.scrollTop=0;state.ready=true;pcBindProfileNav(scroll);pcRefreshProfileDepth(active);');
- // Roster membership statuses such as Practice Squad are not injury designations.
- replace("return {code:codes[value]||value,label:value};", "return codes[value]||['Q','D','O','IR','SUSP','PUP','DTD','P'].includes(value)?{code:codes[value]||value,label:value}:null;");
- // Roster injury records include reserve players omitted from the weekly injury report.
- replace("const raw=[player?.injuryStatus,p.injuryStatus,", "const rosterInjury=[...(Array.isArray(p.injuries)?p.injuries:[])].sort((a,b)=>(Date.parse(b.date)||0)-(Date.parse(a.date)||0))[0];\n const raw=[typeof rosterInjury?.status==='string'?rosterInjury.status:rosterInjury?.status?.name,player?.injuryStatus,p.injuryStatus,");
- replace(".toUpperCase().replaceAll('_',' ').trim();", ".toUpperCase().replace(/[_-]/g,' ').trim();");
- replace("id,name,norm:ffnNorm(name),team,position:pos,", "id,name,norm:ffnNorm(name),team,position:pos,injuries:p.injuries,status:p.status,");
- replace(" HJ_STATUS_LIVE.forEach(record=>", " if(typeof ffnRosterPlayers!=='undefined')ffnRosterPlayers.forEach(put);\n if(typeof pcLiveDepth!=='undefined')pcLiveDepth.forEach(data=>data.rows.forEach(put));\n HJ_STATUS_LIVE.forEach(record=>");
- // Apply the shared ESPN injury badges to every player trigger, including self-hosted names.
- replace("const host=node.querySelector('.hj-v3-meta,.hj-player-v2-meta,.hq-player-name,.pc-modal-title,.hj-tx-player-copy b,.wire-row-name,.depth-player-name,.n,b');", "if(node.dataset.pcPosition==='D/ST')return;\n  const host=node.querySelector('.pc-depth-slot,.hj-v3-meta,.hj-player-v2-meta,.hq-player-name,.pc-modal-meta,.hj-tx-player-copy b,.wire-row-name,.depth-player-name,.n,b')||(!node.querySelector('[data-pc-id]')?node:null);");
+ // Keep the fetch time on live fantasy responses, including free agents.
+ replace("return payload.players.map(entry=>({...entry,_pcSeason:season,", "return payload.players.map(entry=>({...entry,_hjStatusAt:Date.now(),_pcSeason:season,");
+ replace("      return entries;\n    }catch(error){lastError=error}", "      return entries.map(entry=>({...entry,_hjStatusAt:Date.now(),_pcSeason:season}));\n    }catch(error){lastError=error}");
+ replace("if(!entries.length)throw new Error('ESPN player pool was empty');return entries", "if(!entries.length)throw new Error('ESPN player pool was empty');return entries.map(entry=>({...entry,_hjStatusAt:Date.now()}))");
+ // Keep roster status provenance when saving and refreshing player lists.
+ replace("id,name,norm:ffnNorm(name),team,position:pos,", "id,name,norm:ffnNorm(name),team,position:pos,injuries:p.injuries,status:p.status,_hjStatusAt:Date.now(),");
+ const injuryStart=html.indexOf('function hjOfficialStatus('),injuryEnd=html.indexOf('const HJ_STATUS_LIVE=',injuryStart);
+ if(injuryStart<0||injuryEnd<0)throw Error('Shared injury status source changed');
+ html=html.slice(0,injuryStart)+injuryStatusSource+'\n'+html.slice(injuryEnd);
+ replace("code:status?(injury.type?.abbreviation||status.code):null", "code:status?status.code:null");
  // Resolve current affiliation before rendering any profile header or team section.
  replace('function pcPlayerFromTrigger(trigger){',currentTeamSource+'\n'+liveDepthSource+'\nfunction pcPlayerFromTrigger(trigger){');
  replace('raw.photo=exact.photo||raw.photo}return raw;', 'raw.photo=exact.photo||raw.photo}return pcCurrentPlayer(raw);');
