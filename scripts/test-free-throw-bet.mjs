@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 const read=file=>readFileSync(new URL(file,import.meta.url),'utf8');
-function setup(){
+function setup(cards=[{section:'recap',html:'ordinary recap'}]){
  const c=vm.createContext({console,Map,Set,Math,Number,
   hjMatchManager:t=>t.name,hjOwnerName:t=>t.name,hjSideScore:(s,w)=>s.pointsByScoringPeriod?.[w]??s.totalPointsLive??s.totalPoints??null,
   hjCurrentWeek:d=>d?.scoringPeriodId||1,esc:s=>String(s),av:n=>'<img alt="'+n+'">',
-  wireCard:({body})=>'<article data-wire-card>'+body+'</article>',wireBuild:()=>({cards:[{section:'recap',html:'ordinary recap'}]}),
+  wireCard:({body})=>'<article data-wire-card>'+body+'</article>',wireBuild:()=>({cards:cards.map(card=>({...card}))}),
   hjMatchupCardHTML:()=>'<div class="hq-edge-grid">normal matchup</div>',hjRcStories:()=>'<div>normal recap</div>',
   WIRE:{recapWeek:6},document:{addEventListener:()=>{}},
  });
@@ -69,4 +69,20 @@ test('confirmed agreement shows a provisional live counter without settling mone
  html=c.wireBuild(fixture('UNDECIDED',100.1,112.1)).cards[1].html;assert.match(html,/MISBA shoots/);assert.match(html,/>12<small>EXTRA SHOTS/);
  html=c.wireBuild(fixture('TIE',100,100)).cards[1].html;assert.match(html,/Final · tie game/);assert.match(html,/>0<small>EXTRA SHOTS/);
  const unknown=fixture();unknown.schedule[0].home.totalPoints=null;html=c.wireBuild(unknown).cards[1].html;assert.match(html,/>—<small>EXTRA SHOTS/);assert.doesNotMatch(html,/MISBA shoots|BRYAN shoots/);
+});
+
+test('completed Week 7 side bet stays last in recap after final carousel section sorting',()=>{
+ const c=setup([{section:'sidebet',html:'Week 8 bet'},{section:'recap',html:'recap first'},{section:'preview',html:'preview'},{section:'recap',html:'recap last'}]);
+ c.WIRE.recapWeek=7;
+ const sorter=read('../index.html').match(/function hjWireOrdered\(cards\)\{[^\n]+/)[0];
+ vm.runInContext("const HJ_WIRE_ORDER=['sidebet','recap','preview'];"+sorter,c);
+ const built=c.wireBuild({...fixture('AWAY'),scoringPeriodId:8});
+ const sorted=c.hjWireOrdered(built.cards);
+ assert.equal(sorted[0].html,'Week 8 bet');
+ assert.equal(sorted[2].html,'recap last');
+ assert.match(sorted[3].html,/2026-w7-misba-bryan-free-throws/);
+ assert.equal(sorted[3].section,'recap');
+ assert.equal(sorted[4].section,'preview');
+ c.WIRE.recapWeek=8;
+ assert.equal(c.wireBuild({...fixture('AWAY'),scoringPeriodId:9}).cards.length,4);
 });

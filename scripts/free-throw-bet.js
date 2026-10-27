@@ -90,7 +90,8 @@ function hjFreeThrowBetSnapshot(data,agreement=HJ_FREE_THROW_BET){
   if(!(week>=6&&(week<=7||Number(WIRE.recapWeek)===7)))return built;
   const view=hjFreeThrowBetSnapshot(data);if(!view)return built;
   const afterRecap=built.cards.reduce((last,c,i)=>c.section==='recap'?i+1:last,0);
-  built.cards.splice(afterRecap,0,{section:'sidebet',html:card(view)});
+  // Keep the completed bet in the recap group when the carousel sorts sections.
+  built.cards.splice(afterRecap,0,{section:Number(WIRE.recapWeek)===BET.week?'recap':'sidebet',html:card(view)});
   return built;
  };
  const stories=hjRcStories;
