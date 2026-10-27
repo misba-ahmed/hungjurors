@@ -1,29 +1,21 @@
-/* Casino felt, a roulette wheel and four admission stubs explain this agreement. */
+/* Casino felt, a roulette wheel and four weekly amounts explain this agreement. */
 .wc.sb-wire.sb-dg-wire{background:radial-gradient(ellipse at 50% 35%,#25463e,#0c2430 75%)!important}
 .sb-dg-wire .sb-wire-intro.dg-intro{gap:8px;max-width:570px}
 .sb-dg-wire .dg-intro>.wc-title{margin:0;color:#f7e4b0;text-align:center;font:900 clamp(22px,2.5vw,30px)/1.1 var(--serif)}
 .sb-dg-wire .dg-table{position:relative;isolation:isolate;box-sizing:border-box;width:100%;max-width:440px;height:132px;border:5px solid #795734;border-radius:70px;background:radial-gradient(ellipse,#1e7157,#104b3c);box-shadow:inset 0 0 0 1px #d8b77a,inset 0 0 22px #001e1a,0 3px 7px #0004;color:#f9e6ba;flex:none}
-.sb-dg-wire .dg-table-rail{position:absolute;top:7px;left:27%;right:27%;display:flex;justify-content:space-between;font:700 7px/1 var(--mono);letter-spacing:1px;opacity:.8}
 .sb-dg-wire .dg-table-scene{height:110px;display:flex;align-items:center;justify-content:center;gap:24px}
 .sb-dg-wire .dg-table .sb-manager{padding:3px;gap:4px;font-size:11px;width:65px;z-index:2;color:#fff1ce}
 .sb-dg-wire .dg-wheel{width:100px;height:100px;flex:0 0 100px;filter:drop-shadow(0 4px 4px #001b17aa)}
-.sb-dg-wire .dg-felt-caption{position:absolute;bottom:5px;left:0;right:0;text-align:center;letter-spacing:1.5px;font:800 7px/1 var(--mono);color:#d7c18c}
 .sb-dg-wire .dg-chips{position:absolute;bottom:15px;display:flex;flex-direction:column;width:25px;pointer-events:none;z-index:-1}
 .sb-dg-wire .dg-chips-left{left:20px;transform:rotate(-15deg)}
 .sb-dg-wire .dg-chips-right{right:20px;transform:rotate(15deg)}
 .sb-dg-wire .dg-chips i{display:block;height:9px;margin-top:-3px;border:2px dashed #fff0d1;border-radius:50%;background:#a72e32;box-shadow:0 2px 0 #661a20}
 .sb-dg-wire .dg-chips-right i{background:#17334f;box-shadow:0 2px 0 #061d2e}
-.dg-visits{width:100%;box-sizing:border-box}
-.dg-visit-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;font:800 11px/1.2 var(--sans)}
-.dg-visit-heading>span{font:500 9px/1.2 var(--mono);opacity:.75;white-space:nowrap}
+.dg-weeks{width:100%;box-sizing:border-box}
+.dg-week-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;font:800 11px/1.2 var(--sans)}
 .dg-tickets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0;padding:0;list-style:none}
-.dg-ticket{display:flex;align-items:center;justify-content:center;gap:7px;box-sizing:border-box;min-width:0;padding:7px 4px;border:1px solid #d2b06a;border-radius:4px;background:#f1e7c9;color:#173c35;position:relative}
-.dg-ticket>span:last-child{min-width:0}
-.dg-ticket b,.dg-ticket small{display:block;white-space:nowrap}
+.dg-ticket{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-sizing:border-box;min-width:0;padding:7px 4px;border:1px solid #d2b06a;border-radius:4px;background:#f1e7c9;color:#173c35;position:relative}
 .dg-ticket b{font:900 9px/1.2 var(--mono);letter-spacing:.5px}
-.dg-ticket small{font:500 9px/1.4 var(--sans);color:#59695d}
-.dg-ticket-punch{display:grid;place-items:center;flex:0 0 13px;height:13px;border:1px dashed #897b56;border-radius:50%;font-size:10px;color:#175c45}
-.dg-ticket.is-used{background:#b8d2b7}.dg-ticket.is-used .dg-ticket-punch{border-style:solid}
 .dg-stakes{box-sizing:border-box;width:100%;border:1px solid #b99045;border-radius:6px;overflow:hidden;background:#0a232b;color:#f7e6bd;text-align:left}
 .dg-stakes-label{background:#ca9e4a;color:#112f34;font:900 8px/1.3 var(--sans);letter-spacing:.6px;padding:4px 9px}
 .dg-stakes-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 9px 2px;font:800 12px/1.25 var(--sans)}
@@ -31,17 +23,16 @@
 .dg-stakes p{font:400 10px/1.35 var(--sans);margin:0;padding:0 9px 6px;color:#dedcc9}
 .sb-dg-wire .sb-open{font-size:11px;padding:7px 14px}
 .sb-dg-wire .dg-copy{font-size:14px;line-height:1.55;width:100%;color:#f2ead8}
-.dg-copy .dg-joke{border-left:2px solid #c6a35a;padding:8px 12px;margin-top:15px;font-style:italic;background:#b38a3a0c}
+.dg-copy .dg-joke{margin-top:15px;font-style:normal}
 .sb-dg-wire .dg-copy .sb-invite{color:#c0cbc6;border-top:1px solid #b8c5ba40;padding-top:12px;margin-top:15px}
-.dg-detail .dg-visits{margin:10px 0}.dg-detail .dg-stakes{margin-bottom:14px}
+.dg-detail .dg-weeks{margin:10px 0}.dg-detail .dg-stakes{margin-bottom:14px}
 .wire-expanded-stage .sb-dg-wire .dg-intro{gap:15px}
 .wire-expanded-stage .sb-dg-wire .dg-table{height:166px;max-width:510px;border-radius:85px}
 .wire-expanded-stage .sb-dg-wire .dg-table-scene{height:145px;gap:42px}
 .wire-expanded-stage .sb-dg-wire .dg-wheel{width:130px;height:130px;flex-basis:130px}
-.wire-expanded-stage .sb-dg-wire .dg-visit-heading{font-size:13px}
+.wire-expanded-stage .sb-dg-wire .dg-week-heading{font-size:13px}
 .wire-expanded-stage .sb-dg-wire .dg-ticket{padding:10px 5px}
 .wire-expanded-stage .sb-dg-wire .dg-ticket b{font-size:11px}
-.wire-expanded-stage .sb-dg-wire .dg-ticket small{font-size:11px}
 .wire-expanded-stage .sb-dg-wire .dg-stakes-row{font-size:15px;padding-top:8px}
 .wire-expanded-stage .sb-dg-wire .dg-stakes p{font-size:12px;padding-bottom:9px}
 .sb-dg-wire .dg-wheel-rotor,.sb-dg-wire .dg-wheel-ball{transform-origin:60px 60px;animation:dg-wheel-turn 22s linear infinite;animation-play-state:paused}
@@ -51,3 +42,7 @@
 @keyframes dg-ball-orbit{to{transform:rotate(-360deg)}}
 @media(max-width:520px){.sb-dg-wire .sb-wire-intro.dg-intro{gap:7px}.sb-dg-wire .dg-table{height:122px}.sb-dg-wire .dg-table-scene{height:101px;gap:12px}.sb-dg-wire .dg-wheel{height:92px;width:92px;flex-basis:92px}.dg-tickets{gap:4px}.dg-ticket{gap:4px}.sb-dg-wire .dg-chips-left{left:13px}.sb-dg-wire .dg-chips-right{right:13px}.wire-expanded-stage .sb-dg-wire .dg-table-scene{gap:14px}.wire-expanded-stage .sb-dg-wire .dg-wheel{width:112px;height:112px;flex-basis:112px}.wire-expanded-stage .sb-dg-wire .dg-table{height:144px}.wire-expanded-stage .sb-dg-wire .dg-table-scene{height:124px}.wire-expanded-stage .sb-dg-wire .dg-intro{gap:12px}}
 @media(prefers-reduced-motion:reduce){.sb-dg-wire .dg-wheel-rotor,.sb-dg-wire .dg-wheel-ball{animation:none!important}}
+
+.sb-dg-wire .dg-blackjack{position:absolute;bottom:-2px;left:50%;width:76px;height:55px;transform:translateX(-50%);filter:drop-shadow(0 2px 2px #001b17aa);pointer-events:none}
+.wire-expanded-stage .sb-dg-wire .dg-blackjack{width:90px;height:65px}
+@media(max-width:520px){.sb-dg-wire .dg-blackjack{width:66px;height:48px}.wire-expanded-stage .sb-dg-wire .dg-blackjack{width:76px;height:55px}}

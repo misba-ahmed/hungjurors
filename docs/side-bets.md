@@ -19,10 +19,12 @@ Checks: `node --test scripts/test-free-throw-bet.mjs`; `node scripts/test-free-t
 
 ## Week 8 · Degenerate Side Bet
 
-`scripts/degenerate-side-bet.js` and `styles/degenerate-side-bet.css` present MISBA and CESAR's agreement on the Wire, matchup and recap. The closed card shows a casino felt table, animated roulette wheel/ball, four weekly admission tickets and the profit condition. Full terms, the owner's closing joke and the standard commissioner invitation appear in the expanded card and agreement details.
+`scripts/degenerate-side-bet.js` and `styles/degenerate-side-bet.css` present MISBA and CESAR's agreement on the Wire, matchup and recap. The closed card shows casino felt, an animated roulette wheel and ball, blackjack cards, four weekly amount cards and the profit condition. Full terms, the owner's closing joke as a plain paragraph and the standard commissioner invitation appear in the expanded card and agreement details.
 
-The amount panel follows the current actual matchup margin; it says “If it ended now” until the result becomes final. Missing scores and pre-game zeroes show “Final margin” without inventing a loser or amount. Final ties show no payment. Amounts retain cents. A score correction updates the displayed payer, recipient and amount through normal Wire refreshes.
+All four weekly cards display the same running actual Week 8 score difference in dollars once games start. Before kickoff or when either score is missing, they show a dash. A live tie shows $0.00. Once the matchup ends, all four keep the final margin, including later score corrections. These are amounts per profitable week, not attendance or payment records.
 
-`HJ_DEGENERATE_BET.visits` contains four unrecorded entries. Only record `{attended:true}` after commissioner confirmation. A date passing, a fantasy result, or a decorative animation never marks a visit complete. This log does not collect gambling results or process money. The roulette animation is decorative and pauses off-screen and under reduced-motion preferences. Existing manager portraits, shared card dimensions and expansion/gesture behavior remain in use.
+The amount panel says “If it ended now” until the result becomes final. Missing scores and pre-game zeroes show “Final margin” without inventing a loser or amount. Final ties show no payment. Amounts retain cents. A score correction updates the displayed payer, recipient and amount through normal Wire refreshes.
+
+The roulette animation is decorative and pauses off-screen and under reduced-motion preferences. Existing manager portraits, shared card dimensions and expansion/gesture behavior remain in use.
 
 Check: `node --test scripts/test-degenerate-side-bet.mjs scripts/test-wire-priorities.mjs`.
