@@ -1,5 +1,6 @@
 import {readFileSync} from 'node:fs';
 const currentTeamSource=readFileSync(new URL('./profile-current-team.js',import.meta.url),'utf8');
+const liveDepthSource=readFileSync(new URL('./profile-depth-live.js',import.meta.url),'utf8');
 const careerSource=readFileSync(new URL('./profile-career-high.js',import.meta.url),'utf8');
 // Keep profile summaries tied to the same records and award cards as the site.
 export function prepareProfileDetails(html){
@@ -16,6 +17,7 @@ export function prepareProfileDetails(html){
  replace("if(!back||back.dataset.hjManagerNav==='1')return;",
   "if(!back||back.dataset.hjManagerNav==='1'||back.dataset.hjManagerNavV2==='1')return;");
 
+ replace('scroll.scrollTop=0;state.ready=true;pcBindProfileNav(scroll);','scroll.scrollTop=0;state.ready=true;pcBindProfileNav(scroll);pcRefreshProfileDepth(active);');
  // Resolve current affiliation before rendering any profile header or team section.
  replace('function pcPlayerFromTrigger(trigger){',currentTeamSource+'\nfunction pcPlayerFromTrigger(trigger){');
  replace('raw.photo=exact.photo||raw.photo}return raw;', 'raw.photo=exact.photo||raw.photo}return pcCurrentPlayer(raw);');
