@@ -1,0 +1,150 @@
+/* Weekly Recap extras (October 27, 2026) — scripts/recap-extras.js.
+ * Same paper cards, navy/brass type and mono numbers as the rest of the recap. */
+.rcx{--rcx-good:#2f8a57;--rcx-bad:#b64d48;--rcx-card:#fff;--rcx-line:var(--line,rgba(20,50,79,.18))}
+.rcx .rcx-av{width:26px;height:26px;flex:0 0 26px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(20,50,79,.22);object-fit:cover}
+.rcx .rcx-av-mid{width:38px;height:38px;flex:0 0 38px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(20,50,79,.25);object-fit:cover}
+.rcx-mgr{display:inline-flex;align-items:center;gap:5px;vertical-align:middle;cursor:pointer}
+.rcx-mgr b{font:800 11px/1 var(--sans)}
+.rcx-note{margin:8px 2px 0;font:500 10.5px/1.45 var(--sans);color:#6f7d8a}
+.rcx-photo{flex:none;width:34px;height:34px;padding:0;border:0;border-radius:50%;overflow:hidden;background:var(--paper-dim,#EFE9D8);cursor:pointer}
+.rcx-photo img{width:100%;height:100%;object-fit:cover}
+.rcx-photo.is-logo img{object-fit:contain;padding:3px;box-sizing:border-box}
+.rcx-pname{padding:0;border:0;background:none;color:var(--navy,#14324F);font:800 12px/1.2 var(--sans);cursor:pointer;text-align:left}
+.rcx-sub{display:flex;align-items:baseline;gap:6px;margin:4px 0 6px;font:900 8.5px/1.2 var(--sans);letter-spacing:.11em;text-transform:uppercase}
+.rcx-sub small{font:600 9px/1.2 var(--sans);letter-spacing:0;text-transform:none;color:#7a8794}
+.rcx-sub.is-good{color:var(--rcx-good)}.rcx-sub.is-bad{color:var(--rcx-bad)}
+.rcx .is-pos{color:var(--rcx-good)}.rcx .is-neg{color:var(--rcx-bad)}
+.rcx-two,.rcx-calls{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+.rcx-link{display:inline-block;margin-top:8px;font:900 9px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:#8a6620;text-decoration:none}
+
+/* Report card */
+.rcx-grades{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}
+.rcx-grade{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 10px;background:var(--rcx-card);border:1px solid var(--rcx-line);border-left:4px solid var(--g,#7a8794);border-radius:10px}
+.rcx-grade-copy{min-width:0}.rcx-grade-copy b{display:block;font:850 12px/1.2 var(--sans);text-transform:uppercase;cursor:pointer}
+.rcx-grade-copy small{display:block;font:600 8.5px/1.35 var(--mono);color:#7a8794;letter-spacing:.02em}
+.rcx-grade strong{font:900 26px/1 var(--serif);color:var(--g,#7a8794)}
+.rcx-grade.is-a{--g:#2f8a57}.rcx-grade.is-b{--g:#B98A2E}.rcx-grade.is-c{--g:#c47a2c}.rcx-grade.is-d{--g:#b64d48}
+
+/* Playoff odds */
+.rcx-odds{display:grid;gap:4px}
+.rcx-odds-row{display:grid;grid-template-columns:26px 74px 38px minmax(0,1fr) 34px;grid-template-rows:auto auto;align-items:center;column-gap:7px;padding:6px 9px;background:var(--rcx-card);border:1px solid var(--rcx-line);border-radius:9px}
+.rcx-odds-row b{font:850 11px/1.1 var(--sans);text-transform:uppercase;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rcx-odds-row>small{font:600 9px/1 var(--mono);color:#7a8794}
+.rcx-odds-bar{position:relative;height:18px;border-radius:5px;background:var(--paper,#F7F3E8);overflow:hidden}
+.rcx-odds-bar i{position:absolute;inset:0 auto 0 0;border-radius:5px;background:linear-gradient(90deg,#c9bfa6,#b8ab8c)}
+.rcx-odds-row.is-in .rcx-odds-bar i{background:linear-gradient(90deg,var(--navy,#14324F),#2a5a86)}
+.rcx-odds-bar span{position:absolute;left:7px;top:0;bottom:0;display:flex;align-items:center;font:800 10px/1 var(--mono);color:var(--navy-deep,#0C2238)}
+.rcx-odds-row.is-in .rcx-odds-bar span{color:#fff;text-shadow:0 0 3px rgba(0,0,0,.45)}
+.rcx-odds-row>:nth-child(1){grid-area:1/1}.rcx-odds-row>:nth-child(2){grid-area:1/2}.rcx-odds-row>:nth-child(3){grid-area:1/3}.rcx-odds-row>:nth-child(4){grid-area:1/4}.rcx-odds-row>:nth-child(5){grid-area:1/5}
+.rcx-odds-row em{font:800 9.5px/1 var(--mono);font-style:normal;text-align:right;color:#7a8794}
+.rcx-odds-row em.is-up{color:var(--rcx-good)}.rcx-odds-row em.is-down{color:var(--rcx-bad)}
+.rcx-odds-row>.rcx-odds-top{grid-area:2/4/3/6;font:600 8px/1.2 var(--mono)!important;color:#8a6620!important;padding-top:2px}
+.rcx-odds-top:empty{display:none}
+
+/* Luck meter */
+.rcx-luck{display:grid;gap:4px}
+.rcx-luck-row{display:grid;grid-template-columns:26px 74px minmax(0,1fr) 40px;grid-template-rows:auto auto;align-items:center;column-gap:7px;padding:6px 9px;background:var(--rcx-card);border:1px solid var(--rcx-line);border-radius:9px}
+.rcx-luck-row b{font:850 11px/1.1 var(--sans);text-transform:uppercase;cursor:pointer}
+.rcx-luck-bar{position:relative;height:12px;border-radius:6px;background:var(--paper,#F7F3E8)}
+.rcx-luck-mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:rgba(20,50,79,.35)}
+.rcx-luck-bar i{position:absolute;top:0;bottom:0;border-radius:6px}
+.rcx-luck-bar i.is-lucky{background:var(--rcx-good)}.rcx-luck-bar i.is-unlucky{background:var(--rcx-bad)}
+.rcx-luck-row em{font:800 11px/1 var(--mono);font-style:normal;text-align:right}
+.rcx-luck-row em.is-lucky{color:var(--rcx-good)}.rcx-luck-row em.is-unlucky{color:var(--rcx-bad)}
+.rcx-luck-row>small{grid-column:2/5;font:600 8.5px/1.3 var(--mono);color:#7a8794;padding-top:2px}
+
+/* Series update */
+.rcx-series-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px}
+.rcx-series{display:grid;grid-template-columns:38px minmax(0,1fr) 38px;align-items:center;gap:8px;padding:8px 10px;background:var(--rcx-card);border:1px solid var(--rcx-line);border-radius:10px}
+.rcx-series-copy{text-align:center;min-width:0}
+.rcx-series-copy b{display:block;font:800 13px/1.2 var(--serif);color:var(--navy,#14324F)}
+.rcx-series-copy small{display:block;font:600 8.5px/1.4 var(--mono);color:#7a8794}
+
+/* Matchup flow */
+.rcx-flows{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:8px}
+.rcx-flow-card{padding:9px 10px 8px;background:var(--rcx-card);border:1px solid var(--rcx-line);border-radius:12px}
+.rcx-flow-head{display:flex;justify-content:space-between;gap:8px;font:800 11px/1 var(--mono)}
+.rcx-flow-key{display:inline-flex;align-items:center;gap:5px}
+.rcx-flow-key b{font:850 10.5px/1 var(--sans);text-transform:uppercase}
+.rcx-flow-key.is-w{color:var(--navy,#14324F)}.rcx-flow-key.is-l{color:#9a7428}
+.rcx-flow{display:block;width:100%;height:auto;margin:4px 0 2px}
+.rcx-flow polyline{fill:none;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}
+.rcx-flow-w{stroke:var(--navy,#14324F)}.rcx-flow-l{stroke:var(--brass-bright,#D9A93F)}
+.rcx-flow-tick{stroke:rgba(20,50,79,.12);stroke-width:1}
+.rcx-flow text{font:700 7px/1 var(--mono);fill:#8b98a4;text-transform:uppercase}
+.rcx-flow-card>small{display:block;font:600 8.5px/1.35 var(--mono);color:#7a8794}
+
+/* When you scored */
+.rcx-legend{display:flex;flex-wrap:wrap;gap:4px 10px;margin:0 0 6px;font:700 8.5px/1 var(--sans);color:#5d6b78}
+.rcx-legend span{display:inline-flex;align-items:center;gap:4px}
+.rcx-legend i{width:10px;height:10px;border-radius:3px}
+.rcx-stack-list{display:grid;gap:4px}
+.rcx-stack-row{display:grid;grid-template-columns:26px 74px minmax(0,1fr) 40px;align-items:center;column-gap:7px}
+.rcx-stack-row b{font:850 10.5px/1 var(--sans);text-transform:uppercase}
+.rcx-stack{display:flex;height:16px;border-radius:5px;overflow:hidden;min-width:4px}
+.rcx-stack i{display:block;min-width:2px}
+.rcx-stack-row em{font:800 10px/1 var(--mono);font-style:normal;text-align:right;grid-column:4}
+.rcx-slot-thu{background:#6a5fa8}.rcx-slot-early{background:var(--navy,#14324F)}.rcx-slot-late{background:#3f7cac}.rcx-slot-night{background:var(--brass,#B98A2E)}.rcx-slot-mon{background:#b64d48}.rcx-slot-other{background:#8b98a4}
+
+/* Horizontal bars (garbage time, TD luck) */
+.rcx-bars{display:grid;gap:5px}
+.rcx-bar-row{display:grid;grid-template-columns:26px 74px minmax(0,1fr);align-items:center;column-gap:7px}
+.rcx-bar-row b{font:850 10.5px/1 var(--sans);text-transform:uppercase}
+.rcx-hbar{position:relative;height:18px;border-radius:5px;background:var(--paper,#F7F3E8);overflow:hidden}
+.rcx-hbar i{position:absolute;inset:0 auto 0 0;border-radius:5px;background:linear-gradient(90deg,var(--brass,#B98A2E),var(--brass-bright,#D9A93F))}
+.rcx-hbar.is-split i{background:linear-gradient(90deg,#b64d48,#d0716c)}
+.rcx-hbar span{position:absolute;left:7px;top:0;bottom:0;display:flex;align-items:center;font:800 9.5px/1 var(--mono);color:var(--navy-deep,#0C2238);text-shadow:0 0 3px rgba(255,255,255,.7)}
+.rcx-bar-who{grid-column:2/4;display:flex;align-items:center;gap:6px;padding:2px 0 4px}
+.rcx-bar-who .rcx-photo{width:22px;height:22px}
+.rcx-bar-who small{font:600 9px/1.2 var(--mono);color:#7a8794}
+.rcx-bar-who .rcx-pname{font-size:10.5px}
+
+/* Lists (casualty, boom/bust) */
+.rcx-list{display:grid;gap:4px}
+.rcx-item{display:grid;grid-template-columns:34px minmax(0,1fr) auto auto;align-items:center;gap:8px;padding:6px 9px;margin-bottom:4px;background:var(--rcx-card);border:1px solid var(--rcx-line);border-radius:9px}
+.rcx-item-copy{min-width:0}.rcx-item-copy small{display:block;font:600 8.5px/1.35 var(--mono);color:#7a8794}
+.rcx-item-pts{font:800 11px/1.1 var(--mono);text-align:right}.rcx-item-pts small{display:block;font:600 8px/1.2 var(--mono);color:#8b98a4}
+.rcx-item strong{font:900 13px/1 var(--mono)}
+.rcx-tag{display:inline-block;margin-left:4px;padding:1px 4px;border-radius:3px;background:#fff0ed;color:#b22e36;font:800 8px/1.25 var(--sans);vertical-align:middle}
+
+/* Where the points came from / ESPN vs Vegas tables */
+.rcx-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--rcx-line);border-radius:10px;background:var(--rcx-card)}
+.rcx-table{width:100%;border-collapse:collapse;font:700 10.5px/1.2 var(--mono)}
+.rcx-table th,.rcx-table td{padding:6px 6px;text-align:center;border-bottom:1px solid rgba(20,50,79,.08);white-space:nowrap}
+.rcx-table thead th{font:900 8px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:#7a8794}
+.rcx-table tbody th{text-align:left;font:850 10px/1 var(--sans);text-transform:uppercase}
+.rcx-table tbody th .manager-profile-trigger{display:inline-block;vertical-align:middle;margin-right:5px}
+.rcx-table td.is-pos{background:rgba(47,138,87,calc(.06 + .3*var(--k)));color:var(--navy,#14324F)}
+.rcx-table td.is-neg{background:rgba(182,77,72,calc(.05 + .28*var(--k)));color:var(--navy,#14324F)}
+.rcx-table .rcx-total{font-weight:900}
+.rcx-table tr.rcx-avg th,.rcx-table tr.rcx-avg td{font-size:9px;color:#7a8794;background:var(--paper,#F7F3E8)}
+.rcx-ev tr.is-espn .c-e,.rcx-ev tr.is-vegas .c-v{color:var(--rcx-good);font-weight:900}
+.rcx-ev td small{color:#8b98a4;font-size:8.5px}
+
+/* Good call / bad call */
+.rcx-call{display:grid;grid-template-columns:26px minmax(0,1fr) auto;align-items:center;gap:8px;padding:7px 9px;margin-bottom:4px;background:var(--rcx-card);border:1px solid var(--rcx-line);border-left:3px solid var(--c);border-radius:9px}
+.rcx-call.is-good{--c:var(--rcx-good)}.rcx-call.is-bad{--c:var(--rcx-bad)}
+.rcx-call-copy b{display:block;font:700 11px/1.35 var(--sans)}
+.rcx-call-copy b .rcx-pname{font-size:11px}
+.rcx-call-copy b span{font:800 10px/1 var(--mono);color:#7a8794}
+.rcx-call-copy small{display:block;font:600 8.5px/1.35 var(--mono);color:#7a8794}
+.rcx-call strong{font:900 13px/1 var(--mono);color:var(--c)}
+
+/* Side-challenge ticker */
+.rcx-ticker{margin:0;padding:0;list-style:none;display:grid;gap:4px}
+.rcx-ticker li{padding:8px 10px;background:var(--rcx-card);border:1px solid var(--rcx-line);border-left:3px solid var(--brass,#B98A2E);border-radius:9px}
+.rcx-ticker b{font:850 11px/1.2 var(--sans);color:var(--navy,#14324F)}
+.rcx-prize{margin-left:4px;padding:1px 5px;border-radius:999px;background:rgba(185,138,46,.15);color:#8a6620;font:900 8px/1.3 var(--sans)}
+.rcx-ticker small{display:block;margin-top:2px;font:600 9.5px/1.4 var(--sans);color:#5d6b78}
+
+@media(max-width:520px){
+ .rcx-odds-row{grid-template-columns:22px 58px 32px minmax(0,1fr) 30px}
+ .rcx-luck-row,.rcx-stack-row{grid-template-columns:22px 58px minmax(0,1fr) 34px}
+ .rcx-bar-row{grid-template-columns:22px 58px minmax(0,1fr)}
+ .rcx-odds-row b,.rcx-luck-row b,.rcx-stack-row b,.rcx-bar-row b{font-size:9.5px}
+ .rcx .rcx-av{width:22px;height:22px;flex-basis:22px}
+ .rcx-grades{grid-template-columns:1fr 1fr}
+ .rcx-grade{grid-template-columns:30px minmax(0,1fr) auto;padding:7px 8px;gap:6px}
+ .rcx .rcx-grade .rcx-av-mid{width:30px;height:30px;flex-basis:30px}
+ .rcx-grade strong{font-size:22px}
+}
