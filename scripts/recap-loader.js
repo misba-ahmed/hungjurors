@@ -40,3 +40,15 @@ async function hjRecapLoadExtra(chosen){
  });
  HJ_RECAP_EXTRA.jobs.set(week,job);return job;
 }
+/* Storyline order (Oct 27): hjRecapStories freezes its 12 storylines on the
+   first paint, which now comes from cached league data before the play-by-play
+   loads, so the half-by-half and late-game stories always missed the cut.
+   Keep the order unfrozen until the play-by-play pass has finished. */
+if(typeof hjRecapStories==='function'){
+ const hjRecapStoriesBase=hjRecapStories;
+ hjRecapStories=function(chosen){
+  const result=hjRecapStoriesBase.apply(this,arguments),extra=HJ_RECAP_EXTRA.weeks.get(chosen.week);
+  if(!(extra&&!extra.loading&&extra.games?.size))HJ_RECAP_EXTRA.order.delete(chosen.week);
+  return result;
+ };
+}

@@ -20,3 +20,5 @@ Immediately below Benchwarmers, The High Five ranks the five highest actual week
 
 ## October 13 — zero-point historical roster entries
 ESPN can omit the detailed actual-stat row for bye or inactive players while returning an explicit appliedStatTotal of zero in the requested week's roster. Normalize that explicit total into the selected week's actual stats before computing recap efficiency and ownership completeness. Never convert a missing total into zero or borrow current-week roster totals for another week. This applies to seeded history and each fetched historical week.
+
+- Storyline order (Oct 27): the order is frozen only after the play-by-play pass finishes (wrapper at the end of `scripts/recap-loader.js`). Freezing on the first paint from cached league data shut out the half-by-half and late-game stories that arrive with the play-by-play.
