@@ -1,6 +1,6 @@
 /* Weekly Recap extras (October 27, 2026).
- * Fourteen extra cards, all computed from data the recap already loads:
- * Report card, Playoff picture, Luck meter, Series update, Matchup flow,
+ * Thirteen extra cards, all computed from data the recap already loads:
+ * Report card, Playoff picture, Series update, Matchup flow,
  * When you scored, Garbage time, Casualty report, Where the points came from,
  * TD luck, Good call / bad call, Boom and bust, ESPN vs Vegas and the
  * side-challenge ticker. Lives in its own file so index.html stays untouched.
@@ -74,15 +74,6 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
    const pct=v=>v>=.995?'>99%':v<=.005&&v>0?'<1%':`${Math.round(100*v)}%`;
    return `<div class="rcx-odds-row${t.odds>=.5?' is-in':''}">${face(t.short)}<b class="manager-profile-trigger" data-manager="${esc(t.short)}" role="button" tabindex="0">${esc(t.short)}</b><small>${t.w}–${t.l}${t.t?`–${t.t}`:''}</small><div class="rcx-odds-bar"><i style="width:${(100*t.odds).toFixed(1)}%"></i><span>${pct(t.odds)}</span></div><em class="${d===null||Math.abs(d)<.005?'':d>0?'is-up':'is-down'}">${d===null||Math.abs(d)<.005?'—':`${d>0?'▲':'▼'}${Math.round(Math.abs(100*d))}`}</em><small class="rcx-odds-top">${t.top>=.005?`#1 seed ${pct(t.top)}`:''}</small></div>`}).join('');
   return section('playoffs','Playoff picture',`odds after Week ${model.week} from 4,000 simulated seasons · top ${now.slots} make it · ${now.left} week${now.left===1?'':'s'} left`,`<div class="rcx-odds">${rows}</div><p class="rcx-note">Each team's remaining games are simulated from its season scoring (pulled toward the league average early on). Ties go to points for, like ESPN. ▲▼ is the change from last week.</p>`);
- }
-
- /* ---------- 3. Luck meter ---------- */
- function luckMeter(model){
-  const played=weeksThrough(model,model.week);if(played.length<2)return '';
-  const t=new Map();
-  for(const w of played){const n=w.scores.length;for(const r of w.scores){const o=t.get(r.short)||{short:r.short,act:0,exp:0,apw:0,apl:0};const ap=hjRecapAllPlay(r,w.scores);o.act+=r.pts>r.oppPts+.005?1:Math.abs(r.pts-r.oppPts)<=.005?.5:0;o.exp+=(ap.wins+.5*ap.ties)/Math.max(1,n-1);o.apw+=ap.wins;o.apl+=ap.losses;t.set(r.short,o)}}
-  const rows=[...t.values()].map(o=>({...o,luck:o.act-o.exp})).sort((a,b)=>b.luck-a.luck),max=Math.max(1,...rows.map(o=>Math.abs(o.luck)));
-  return section('luck','Luck meter',`season wins against wins expected from playing everyone every week, through Week ${model.week}`,`<div class="rcx-luck">${rows.map(o=>`<div class="rcx-luck-row">${face(o.short)}<b class="manager-profile-trigger" data-manager="${esc(o.short)}" role="button" tabindex="0">${esc(o.short)}</b><div class="rcx-luck-bar"><span class="rcx-luck-mid"></span><i class="${o.luck>=0?'is-lucky':'is-unlucky'}" style="${o.luck>=0?'left:50%':`right:50%`};width:${(50*Math.abs(o.luck)/max).toFixed(1)}%"></i></div><em class="${o.luck>=0?'is-lucky':'is-unlucky'}">${hjRcSigned(o.luck,1)}</em><small>${o.act.toFixed(o.act%1?1:0)} W · ${o.exp.toFixed(1)} expected · all-play ${o.apw}–${o.apl}</small></div>`).join('')}</div>`);
  }
 
  /* ---------- 4. Series update ---------- */
@@ -186,7 +177,8 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
     if(s.points>b.points+.01&&Number.isFinite(b.projection)&&Number.isFinite(s.projection)&&b.projection>s.projection)good.push({m,s,b,gap:s.points-b.points})}}
   const best=list=>{const seen=new Set();return list.sort((a,b)=>b.gap-a.gap).filter(x=>{const k=x.m.short;if(seen.has(k))return false;seen.add(k);return true}).slice(0,3)};
   const g=best(good),bd=best(bad);if(!g.length&&!bd.length)return '';
-  const row=(x,kind)=>`<div class="rcx-call ${kind}">${face(x.m.short)}<div class="rcx-call-copy"><b>${esc(x.m.short)} started ${pname(x.s)} <span>${fmt1(x.s.points)}</span> over ${pname(x.b)} <span>${fmt1(x.b.points)}</span></b><small>${kind==='is-good'?`ESPN had ${esc(x.b.name)} projected higher (${fmt1(x.b.projection)} vs ${fmt1(x.s.projection)})`:`${esc(x.b.name)} was on the bench and eligible for that spot`}</small></div><strong>${kind==='is-good'?'+':'−'}${fmt1(x.gap)}</strong></div>`;
+  const chip=(p,label)=>`<span class="rcx-call-p">${head(p)}<span><small>${label}</small>${pname(p)}<b>${fmt1(p.points)}</b></span></span>`;
+  const row=(x,kind)=>`<div class="rcx-call ${kind}"><div class="rcx-call-top">${mgr(x.m.short)}<strong>${kind==='is-good'?'+':'−'}${fmt1(x.gap)}</strong></div><div class="rcx-call-pair">${chip(x.s,'Started')}<span class="rcx-call-vs">over</span>${chip(x.b,'Benched')}</div><small class="rcx-call-why">${kind==='is-good'?`ESPN projected the benched player higher (${fmt1(x.b.projection)} vs ${fmt1(x.s.projection)})`:'The benched player was eligible for that spot'}</small></div>`;
   return section('calls','Good call / bad call','the lineup decisions that mattered most',`<div class="rcx-calls"><div><h4 class="rcx-sub is-good">Good calls <small>went against the projection and won</small></h4>${g.map(x=>row(x,'is-good')).join('')||'<p class="rcx-note">None this week.</p>'}</div><div><h4 class="rcx-sub is-bad">Bad calls <small>the bench outscored the starter</small></h4>${bd.map(x=>row(x,'is-bad')).join('')||'<p class="rcx-note">None this week.</p>'}</div></div>`);
  }
 
@@ -236,21 +228,33 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
   let se=0,sv=0;for(let wk=1;wk<=model.week;wk++){const list=wk===model.week?rows:compare(model,wk);if(!list||list.failed)continue;const e=list.reduce((n,r)=>n+r.eErr,0)/Math.max(1,list.length),v=list.reduce((n,r)=>n+r.vErr,0)/Math.max(1,list.length);if(!list.length)continue;if(e<v)se++;else if(v<e)sv++}
   const split=[...rows].sort((a,b)=>Math.abs(b.espn-b.vegas)-Math.abs(a.espn-a.vegas))[0];
   const winner=l=>l.e<l.v-.005?'is-espn':l.v<l.e-.005?'is-vegas':'';
-  return section('vegas','ESPN vs. Vegas','average miss on started players; lower is better',`<div class="rcx-table-wrap"><table class="rcx-table rcx-ev"><thead><tr><th></th><th>Players</th><th>ESPN miss</th><th>Vegas miss</th><th>Closer</th></tr></thead><tbody>${lines.map(l=>`<tr class="${winner(l)}"><th>${esc(l.k)}</th><td>${l.n}</td><td class="c-e">${fmt1(l.e)}</td><td class="c-v">${fmt1(l.v)}</td><td>${l.e<l.v-.005?'ESPN':l.v<l.e-.005?'Vegas':'Even'} <small>${l.espnCloser}–${l.closer}</small></td></tr>`).join('')}</tbody></table></div>${split?`<div class="rcx-item">${head(split)}<div class="rcx-item-copy">${pname(split)} <small>biggest disagreement: ESPN ${fmt1(split.espn)}, Vegas ${fmt1(split.vegas)}, actual ${fmt1(split.points)} · ${split.eErr<split.vErr?'ESPN':'Vegas'} was closer</small></div></div>`:''}${se+sv?`<p class="rcx-note">Season so far: ESPN closer in ${se} week${se===1?'':'s'}, Vegas in ${sv}. Vegas = the last WinWithOdds projection collected before Sunday kickoff.</p>`:''}`);
+  return section('vegas','ESPN vs. Vegas','average miss on started players; lower is better',`<div class="rcx-table-wrap"><table class="rcx-table rcx-ev"><thead><tr><th></th><th>Players</th><th>ESPN miss</th><th>Vegas miss</th><th>Closer</th></tr></thead><tbody>${lines.map(l=>`<tr class="${winner(l)}"><th>${esc(l.k)}</th><td>${l.n}</td><td class="c-e">${fmt1(l.e)}</td><td class="c-v">${fmt1(l.v)}</td><td>${l.e<l.v-.005?'ESPN':l.v<l.e-.005?'Vegas':'Even'} <small>${l.espnCloser}–${l.closer}</small></td></tr>`).join('')}</tbody></table></div>${split?`<div class="rcx-item">${head(split)}<div class="rcx-item-copy">${pname(split)} <small>biggest disagreement: ESPN ${fmt1(split.espn)}, Vegas ${fmt1(split.vegas)}, actual ${fmt1(split.points)} · ${split.eErr<split.vErr?'ESPN':'Vegas'} was closer</small></div></div>`:''}${se+sv?`<p class="rcx-note">Season so far: ESPN closer in ${se} week${se===1?'':'s'}, Vegas in ${sv}.</p>`:''}`);
  }
 
  /* ---------- 14. Side-challenge ticker ---------- */
  function ticker(model){
   if(typeof CHALLENGES==='undefined'||typeof HJ_CHALLENGE_STATE==='undefined')return '';
   const cm=HJ_CHALLENGE_STATE.model;if(!cm)return '';
+  const names=model.managers.map(m=>m.short),v=x=>Number.isInteger(Number(x))?String(x):Number(x).toFixed(1);
+  const card=(ch,body)=>body?`<article class="rcx-pot"><div class="rcx-pot-hd"><b>${esc(ch.label)}</b>${ch.prize?`<span class="rcx-prize">${esc(ch.prize)}</span>`:''}</div>${body}</article>`:'';
   const items=CHALLENGES.map(ch=>{
-   let line='';
-   if(ch.id==='raffle'){const won=(cm.raffle||[]).find(r=>Number(r.week)===model.week);const t=[...(cm.tickets||[])].sort((a,b)=>b.total-a.total),top=t[0];line=`${won?`Week ${model.week}: ${won.winners.map(w=>w.short).join(' & ')} took the high score. `:''}${top?`Most tickets: ${t.filter(x=>x.total===top.total).map(x=>x.short).join(', ')} (${top.total})`:'No tickets yet'}`}
-   else if(ch.id==='lms'){const out=(cm.eliminations||[]).filter(e=>Number(e.week)===model.week).map(e=>e.short),gone=new Set((cm.eliminations||[]).filter(e=>Number(e.week)<=model.week).map(e=>e.short)),alive=model.managers.map(m=>m.short).filter(n=>!gone.has(n));line=`${out.length?`${out.join(', ')} eliminated in Week ${model.week}. `:''}${alive.length?`${alive.length} still standing: ${alive.join(', ')}`:''}`}
-   else{const list=cm.totals?.[ch.id];if(Array.isArray(list)&&list.length){const top=list[0],second=list[1],v=x=>Number.isInteger(x)?String(x):Number(x).toFixed(1);line=`${top.short} leads with ${v(top.total)}${second?`, ${second.short} next at ${v(second.total)}`:''}`}}
-   return line?`<li><b>${esc(ch.label)}</b>${ch.prize?` <span class="rcx-prize">${esc(ch.prize)}</span>`:''}<small>${esc(line)}</small></li>`:'';
+   if(ch.id==='raffle'){
+    const won=(cm.raffle||[]).find(r=>Number(r.week)===model.week),t=[...(cm.tickets||[])].filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
+    const winner=won?`<div class="rcx-pot-win">${won.winners.map(w=>`<span class="rcx-pot-crowned">${face(w.short,'rcx-av-mid')}<i aria-hidden="true">★</i></span>`).join('')}<span><small>Week ${model.week} high score</small><b>${won.winners.map(w=>esc(w.short)).join(' & ')} · ${fmt(won.score)}</b></span></div>`:'';
+    const tix=t.length?`<div class="rcx-pot-tix">${t.map(x=>`<span class="rcx-pot-tick">${face(x.short)}<b>${esc(x.short)}</b><em>${'🎟'.repeat(Math.min(3,x.total))}${x.total>3?`×${x.total}`:''}</em></span>`).join('')}</div>`:'';
+    return card(ch,winner+tix);
+   }
+   if(ch.id==='lms'){
+    const elim=new Map((cm.eliminations||[]).filter(e=>Number(e.week)<=model.week).map(e=>[e.short,Number(e.week)]));
+    const order=[...names].sort((a,b)=>(elim.has(a)?1:0)-(elim.has(b)?1:0)||(elim.get(b)||0)-(elim.get(a)||0));
+    const alive=names.filter(n=>!elim.has(n)).length;
+    return card(ch,`<div class="rcx-pot-lms">${order.map(n=>{const w=elim.get(n);return `<span class="rcx-pot-man${w?' is-out':''}${w===model.week?' is-new':''}">${face(n,'rcx-av-mid')}<b>${esc(n)}</b><small>${w?`out W${w}`:'alive'}</small></span>`}).join('')}</div><p class="rcx-pot-line">${alive} still standing after Week ${model.week}</p>`);
+   }
+   const list=cm.totals?.[ch.id];if(!Array.isArray(list)||!list.length)return '';
+   const top=list.slice(0,3);
+   return card(ch,`<div class="rcx-pot-podium">${top.map((x,i)=>`<span class="rcx-pot-step is-${i+1}">${face(x.short,i===0?'rcx-av-big':'rcx-av-mid')}<b>${esc(x.short)}</b><em>${v(x.total)}</em><i>${i+1}</i></span>`).join('')}</div>`);
   }).join('');
-  return items?section('ticker','Side-challenge ticker',`where the side pots stand after Week ${model.week}`,`<ul class="rcx-ticker">${items}</ul><a class="rcx-link" href="#challenges">Open Side Challenges →</a>`):'';
+  return items?section('ticker','Side-challenge ticker',`where the side pots stand after Week ${model.week}`,`<div class="rcx-pots">${items}</div><a class="rcx-link" href="#challenges">Open Side Challenges →</a>`):'';
  }
 
  /* ---------- placement ---------- */
@@ -262,7 +266,7 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
   const weeks=model.weeks,latest=model.week===weeks.at(-1)?.week;
   const parts={
    grades:reportCard(model),
-   standings:playoffPicture(model)+luckMeter(model)+seriesUpdate(model),
+   standings:playoffPicture(model)+seriesUpdate(model),
    game:matchupFlow(model)+whenScored(model)+garbageTime(model)+casualty(model,latest),
    team:pointSources(model)+tdLuck(model),
    players:calls(model)+boomBust(model)+espnVegas(model),
