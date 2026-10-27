@@ -29,7 +29,7 @@ export async function collectSchedule(season,request=json){
   return (payload.events||[]).map(event=>{
    const c=event.competitions?.[0],h=c?.competitors?.find(t=>t.homeAway==='home'),a=c?.competitors?.find(t=>t.homeAway==='away');
    return {game_id:String(event.id),season,week,home_team:h?.team?.abbreviation,away_team:a?.team?.abbreviation,
-    gameday:String(event.date||'').slice(0,10)};
+    gameday:String(event.date||'').slice(0,10),_espnEvent:event};
   });
  }));
  const data={schema:1,source:'ESPN',season,checkedAt:Date.now(),games:weeks.flat()};
@@ -50,6 +50,7 @@ async function main(){
  }
  await mkdir(join(site,'data'),{recursive:true});
  await writeFile(join(site,'data','nfl-schedule-'+season+'.json'),JSON.stringify(data));
+ await writeFile(join(site,'index.html'),html.replace('const HJ_SCHEDULE_SEED=null;',()=> 'const HJ_SCHEDULE_SEED='+JSON.stringify(data).replaceAll('<','\\u003c')+';'));
  console.log('NFL schedule: '+data.games.length+' games for '+season+'.');
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href)await main();

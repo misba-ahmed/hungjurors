@@ -37,6 +37,7 @@ const bannerRenderers=readFileSync(new URL('./banner-renderers.js',import.meta.u
 const projectionSummary=readFileSync(new URL('./projection-summary.js',import.meta.url),'utf8');
 const matchupHistorySeed=readFileSync(new URL('../data/matchup-history.json',import.meta.url),'utf8').replaceAll('<','\\u003c');
 const matchupHistory=readFileSync(new URL('./matchup-history.js',import.meta.url),'utf8');
+const futureMatchups=readFileSync(new URL('./future-matchups.js',import.meta.url),'utf8');
 const matchupWeek=readFileSync(new URL('./matchup-week.js',import.meta.url),'utf8');
 const wirePriorities=readFileSync(new URL('./wire-priorities.js',import.meta.url),'utf8');
 const wireLive=readFileSync(new URL('./wire-live.js',import.meta.url),'utf8');
@@ -217,10 +218,17 @@ function hjRefreshGameContexts(){`);
  html=replaceOnce(html,/function hjScheduleWeekSource\(data,week\)\{[^]*?\n\}\n(?=function hjScheduleManagerName)/g,'');
  html=replaceOnce(html,/async function hjEnsureCompletedHistory\(data\)\{[^]*?(?=function hjOpponentHTML)/g,'const HJ_MATCHUP_HISTORY_SEED='+matchupHistorySeed+';\n'+matchupHistory+'\n');
  // Only Matchups' default selection rolls over on Wednesday; explicit week links retain their destination.
- html=replaceOnce(html,/function hjCurrentWeek\(data=HJ_LEAGUE_STATE.data\)/g,matchupWeek+'\nfunction hjCurrentWeek(data=HJ_LEAGUE_STATE.data)');
+ html=replaceOnce(html,/function hjCurrentWeek\(data=HJ_LEAGUE_STATE.data\)/g,futureMatchups+'\n'+matchupWeek+'\nfunction hjCurrentWeek(data=HJ_LEAGUE_STATE.data)');
  html=html.replaceAll('HJ_HQ_STATE.matchupWeek||hjCurrentWeek(', 'HJ_HQ_STATE.matchupWeek||hjDefaultMatchupWeek(');
  html=replaceOnce(html,/if\(!HJ_HQ_STATE.matchupWeek\|\|Number\(HJ_HQ_STATE.matchupWeek\)===old\)HJ_HQ_STATE.matchupWeek=week;/g,'if(!HJ_HQ_STATE.matchupWeek||Number(HJ_HQ_STATE.matchupWeek)===old)HJ_HQ_STATE.matchupWeek=0;');
  html=replaceOnce(html,/if\(tab==='matchups'&&focusTeamId\)\{HJ_HQ_STATE.matchupWeek=hjCurrentWeek\(HJ_LEAGUE_STATE.data\);/g,"if(tab==='matchups'&&focusTeamId){HJ_HQ_STATE.matchupWeek=0;");
+ html=html.replace('function hjScheduleWeekSource(data,week){','function hjScheduleWeekSource(data,week){\n if(Number(week)>hjCurrentWeek(data))void hjLoadFutureMatchup(week,data);');
+ html=html.replace("function hjMathCanonicalStat(entry,period='week',week=1,season=HJ_LEAGUE_SEASON,source=1){", "function hjMathCanonicalStat(entry,period='week',week=1,season=HJ_LEAGUE_SEASON,source=1){\n if(period==='week'&&Number(source)===1){const future=hjFutureProjection(entry,week,season);if(future)return future;}");
+ html=html.replace('function hjEspnProjection(entry,week,season=HJ_LEAGUE_SEASON){','function hjEspnProjection(entry,week,season=HJ_LEAGUE_SEASON){\n const future=hjFutureProjection(entry,week,season);if(future)return Number(future.appliedTotal);');
+ html=html.replace('function hjPlayerActualScore(entry,week,data=HJ_LEAGUE_STATE.data){','function hjPlayerActualScore(entry,week,data=HJ_LEAGUE_STATE.data){\n if(Number(week)>hjCurrentWeek(data))return null;');
+ html=html.replace('const state=hjPlayerGameState(hjPlayerTeam(entry)),actual=', "const state=hjUpcomingForWeek(hjPlayerTeam(entry),Number(week))?.game?.state||'pre',actual=");
+ html=html.replace('return count+(started?0:1);','return count+(started||hjTeamOnBye(hjPlayerTeam(entry),week)?0:1);');
+ html=html.replaceAll('hjEntriesHaveLiveGame(rosterA.entries)||hjEntriesHaveLiveGame(rosterB.entries)', '(week===hjCurrentWeek(data)&&(hjEntriesHaveLiveGame(rosterA.entries)||hjEntriesHaveLiveGame(rosterB.entries)))');
  html=prepareTeamScoreDisplay(prepareLiveDisplay(html));
  html=prepareProfileScoreColors(html);
  html=html.replace('previews();sections();folders();fonts();displayDST();','previews();sections();folders();fonts();displayDST();window.hjAlignMatchupCameras?.();');

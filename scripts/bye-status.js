@@ -1,4 +1,11 @@
 /* Confirm byes only from a complete, validated current-season NFL schedule. */
+const HJ_SCHEDULE_SEED=null;
+function hjInstallSchedule(payload,season){
+ const teams=hjByeScheduleIndex(payload,season);if(!teams)return false;
+ Object.assign(HJ_BYE_STATE,{season,teams});
+ for(const g of payload.games)if(g._espnEvent&&!HJ_GAME_RANKS.schedule.get(g.game_id)?._espnEvent)HJ_GAME_RANKS.schedule.set(g.game_id,g);
+ return true;
+}
 const HJ_BYE_STATE={season:0,teams:new Map(),pending:null};
 function hjByeScheduleIndex(payload,season){
  if(payload?.schema!==1||payload.source!=='ESPN'||Number(payload.season)!==Number(season)||payload.games?.length!==272)return null;
@@ -20,12 +27,12 @@ async function hjLoadByeSchedule(){
  const season=Number(NFL_SEASON);
  HJ_BYE_STATE.pending=(async()=>{
   const r=await fetch('/data/nfl-schedule-'+season+'.json',{cache:'no-cache'});if(!r.ok)throw Error('Schedule unavailable');
-  const teams=hjByeScheduleIndex(await r.json(),season);if(!teams)throw Error('Incomplete bye schedule');
-  Object.assign(HJ_BYE_STATE,{season,teams});
+  if(!hjInstallSchedule(await r.json(),season))throw Error('Incomplete bye schedule');
   document.dispatchEvent(new Event('hj:bye-schedule'));
   if(typeof hjRefreshGameContexts==='function')hjRefreshGameContexts();
   document.dispatchEvent(new Event('hj:team-photo-scores'));
  })().catch(error=>console.warn('Bye status unavailable',error)).finally(()=>{HJ_BYE_STATE.pending=null;});
  return HJ_BYE_STATE.pending;
 }
+if(HJ_SCHEDULE_SEED)hjInstallSchedule(HJ_SCHEDULE_SEED,Number(NFL_SEASON));
 document.addEventListener('DOMContentLoaded',()=>{hjLoadByeSchedule();setInterval(()=>{if(!document.hidden)hjLoadByeSchedule();},300000);},{once:true});
