@@ -32,6 +32,7 @@ jobs:
           node scripts/test-bye-status.mjs
           node scripts/test-future-matchups.mjs
           node scripts/test-profile-log-projections.mjs
+          node scripts/test-projected-ranks.mjs
           node --test scripts/test-wire-priorities.mjs scripts/test-matchup-week.mjs scripts/test-matchup-history.mjs
           node scripts/test-manager-hero-dismiss.mjs
           node scripts/test-vegas-feed.mjs
@@ -63,6 +64,8 @@ jobs:
           node scripts/test-app-icons.mjs _site
           find _site -mindepth 1 -name ".*" -prune -exec rm -rf {} +
           touch _site/.nojekyll
+      - name: Refresh projected position ranks
+        run: node scripts/refresh-projected-ranks.mjs _site
       - name: Refresh Sleeper trends
         id: sleeper-refresh
         continue-on-error: true

@@ -12,5 +12,7 @@ export function prepareProfileScoreColors(html){
  html=html.replace("points:pcNumber(stat.appliedTotal),rank:pcDstWeekRank(entries,week,stat.appliedTotal),stats:stat.stats||{},status:''",()=>"pc_espn_week_projection:hjNumber(hjMathCanonicalStat(entry,'week',week,season,1)?.appliedTotal),points:pcNumber(stat.appliedTotal),rank:pcDstWeekRank(entries,week,stat.appliedTotal),stats:stat.stats||{},status:''");
  html=html.replace("<td class=\"pc-points-cell pc-group-start\">${status&&status!",()=>"<td class=\"pc-points-cell pc-group-start\" ${pcWeeklyPerformanceAttrs(row,pcPoints(row))}>${status&&status!");
  html=html.replace("<td class=\"pc-points-cell pc-group-start\">${status===",()=>"<td class=\"pc-points-cell pc-group-start\" ${pcWeeklyPerformanceAttrs(row,row.points)}>${status===");
+ html=html.replace("<td class=\"pc-rank-cell\">${esc(rank)}</td>","<td class=\"pc-rank-cell\" ${status==='UPCOMING'?pcWeeklyPerformanceAttrs(row,null):''}>${status==='UPCOMING'?pcLogRankText(row):esc(rank)}</td>");
+ html=html.replace("<td class=\"pc-rank-cell\">${row.rank?`#${row.rank}`:'\u2014'}</td>","<td class=\"pc-rank-cell\" ${status==='UPCOMING'?pcWeeklyPerformanceAttrs(row,null):''}>${status==='UPCOMING'?pcLogRankText(row):row.rank?`#${row.rank}`:'\u2014'}</td>");
  return html;
 }
