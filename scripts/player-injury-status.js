@@ -27,7 +27,13 @@ function hjStatusIndex(){
  HJ_STATUS_LIVE.forEach(record=>put(record.entry,record.at));
  const reportAt=Date.parse(HJ_INJURY_REPORT.at)||0;
  // The shipped report is only a short-lived fallback; a months-old snapshot cannot clear IR.
- if(Date.now()-reportAt<86400000)HJ_INJURY_REPORT.rows.forEach(r=>putStatus(r.id,r.code?{code:r.code,label:r.label}:null,reportAt));
+ if(Date.now()-reportAt<86400000)HJ_INJURY_REPORT.rows.forEach(r=>{
+  const status=r.code?{code:r.code,label:r.label}:null;
+  // Active on a roster is not a game-day clearance. A freshly fetched injury
+  // report remains authoritative until its next refresh or the five-minute grace expires.
+  if(Date.now()-reportAt<300000&&r.id)records.set(String(r.id),{status,at:reportAt});
+  else putStatus(r.id,status,reportAt);
+ });
  return new Map([...records].map(([id,record])=>[id,record.status]));
 }
 function hjStatusHost(node){
