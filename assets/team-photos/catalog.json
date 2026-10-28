@@ -30,20 +30,20 @@
     "jersey": "8"
   },
   "15847": {
-    "file": "15847-faces-v2.webp",
-    "width": 324,
+    "file": "15847-faces-v3.webp",
+    "width": 322,
     "height": 850,
-    "ratio": 0.38118,
+    "ratio": 0.37882,
     "heightInches": 77,
     "name": "Travis Kelce",
     "teamId": 12,
     "jersey": "87"
   },
   "16737": {
-    "file": "16737-faces-v2.webp",
-    "width": 318,
+    "file": "16737-faces-v3.webp",
+    "width": 314,
     "height": 850,
-    "ratio": 0.37412,
+    "ratio": 0.36941,
     "heightInches": 77,
     "name": "Mike Evans",
     "teamId": 25,
@@ -74,10 +74,10 @@
     }
   },
   "17372": {
-    "file": "17372-faces-v2.webp",
-    "width": 324,
+    "file": "17372-faces-v3.webp",
+    "width": 321,
     "height": 850,
-    "ratio": 0.38118,
+    "ratio": 0.37765,
     "heightInches": 74,
     "name": "Chris Boswell",
     "teamId": 23,
@@ -181,10 +181,10 @@
     }
   },
   "3040151": {
-    "file": "3040151-faces-v2.webp",
-    "width": 318,
+    "file": "3040151-faces-v3.webp",
+    "width": 311,
     "height": 850,
-    "ratio": 0.37412,
+    "ratio": 0.36588,
     "heightInches": 76,
     "name": "George Kittle",
     "teamId": 25,
@@ -320,10 +320,10 @@
     "teamId": 21,
     "jersey": "88",
     "unavailable": {
-      "file": "3121023-crutches-v1.webp",
-      "width": 359,
+      "file": "3121023-crutches-v2.webp",
+      "width": 356,
       "height": 850,
-      "ratio": 0.42235,
+      "ratio": 0.41882,
       "kind": "injury"
     }
   },
@@ -419,10 +419,10 @@
     "jersey": "9"
   },
   "3916148": {
-    "file": "3916148-faces-v2.webp",
-    "width": 327,
+    "file": "3916148-faces-v3.webp",
+    "width": 324,
     "height": 850,
-    "ratio": 0.38471,
+    "ratio": 0.38118,
     "heightInches": 72,
     "name": "Tony Pollard",
     "teamId": 10,
@@ -542,10 +542,10 @@
     "teamId": 34,
     "jersey": "32",
     "unavailable": {
-      "file": "4035538-crutches-v3.webp",
-      "width": 338,
+      "file": "4035538-crutches-v5.webp",
+      "width": 335,
       "height": 850,
-      "ratio": 0.39765,
+      "ratio": 0.39412,
       "kind": "injury"
     }
   },
@@ -631,10 +631,10 @@
     }
   },
   "4047365": {
-    "file": "4047365-faces-v2.webp",
-    "width": 315,
+    "file": "4047365-faces-v3.webp",
+    "width": 313,
     "height": 850,
-    "ratio": 0.37059,
+    "ratio": 0.36824,
     "heightInches": 70,
     "name": "Josh Jacobs",
     "teamId": 9,
@@ -648,19 +648,19 @@
     }
   },
   "4047646": {
-    "file": "4047646-faces-v2.webp",
-    "width": 322,
+    "file": "4047646-faces-v3.webp",
+    "width": 319,
     "height": 850,
-    "ratio": 0.37882,
+    "ratio": 0.37529,
     "heightInches": 73,
     "name": "A.J. Brown",
     "teamId": 17,
     "jersey": "1",
     "unavailable": {
-      "file": "4047646-crutches-v1.webp",
-      "width": 320,
+      "file": "4047646-crutches-v2.webp",
+      "width": 316,
       "height": 850,
-      "ratio": 0.37647,
+      "ratio": 0.37176,
       "kind": "injury"
     }
   },
@@ -728,19 +728,19 @@
     "jersey": "30"
   },
   "4241478": {
-    "file": "4241478-faces-v2.webp",
-    "width": 297,
+    "file": "4241478-faces-v3.webp",
+    "width": 295,
     "height": 850,
-    "ratio": 0.34941,
+    "ratio": 0.34706,
     "heightInches": 72,
     "name": "DeVonta Smith",
     "teamId": 21,
     "jersey": "6",
     "unavailable": {
-      "file": "4241478-crutches-v1.webp",
-      "width": 350,
+      "file": "4241478-crutches-v2.webp",
+      "width": 345,
       "height": 850,
-      "ratio": 0.41176,
+      "ratio": 0.40588,
       "kind": "injury"
     }
   },
@@ -841,10 +841,10 @@
     "teamId": 11,
     "jersey": "14",
     "unavailable": {
-      "file": "4360078-crutches-v1.webp",
-      "width": 309,
+      "file": "4360078-crutches-v2.webp",
+      "width": 307,
       "height": 850,
-      "ratio": 0.36353,
+      "ratio": 0.36118,
       "kind": "injury"
     }
   },
@@ -918,10 +918,10 @@
     "teamId": 16,
     "jersey": "27",
     "unavailable": {
-      "file": "4360569-crutches-v1.webp",
-      "width": 324,
+      "file": "4360569-crutches-v2.webp",
+      "width": 328,
       "height": 850,
-      "ratio": 0.38118,
+      "ratio": 0.38588,
       "kind": "injury"
     }
   },
@@ -1196,10 +1196,10 @@
     "teamId": 26,
     "jersey": "26",
     "unavailable": {
-      "file": "4426385-crutches-v1.webp",
-      "width": 343,
+      "file": "4426385-crutches-v2.webp",
+      "width": 340,
       "height": 850,
-      "ratio": 0.40353,
+      "ratio": 0.4,
       "kind": "injury"
     }
   },
@@ -1486,10 +1486,10 @@
     "jersey": "10"
   },
   "4431459": {
-    "file": "4431459-faces-v2.webp",
-    "width": 323,
+    "file": "4431459-faces-v3.webp",
+    "width": 318,
     "height": 850,
-    "ratio": 0.38,
+    "ratio": 0.37412,
     "heightInches": 78,
     "name": "Tyler Warren",
     "teamId": 11,
@@ -1594,10 +1594,10 @@
     "teamId": 17,
     "jersey": "32",
     "unavailable": {
-      "file": "4432710-crutches-v4.webp",
-      "width": 322,
+      "file": "4432710-crutches-v5.webp",
+      "width": 325,
       "height": 850,
-      "ratio": 0.37882,
+      "ratio": 0.38235,
       "kind": "injury"
     }
   },
@@ -1612,20 +1612,20 @@
     "jersey": "7"
   },
   "4567048": {
-    "file": "4567048-faces-v2.webp",
-    "width": 333,
+    "file": "4567048-faces-v3.webp",
+    "width": 328,
     "height": 850,
-    "ratio": 0.39176,
+    "ratio": 0.38588,
     "heightInches": 69,
     "name": "Kenneth Walker III",
     "teamId": 12,
     "jersey": "9"
   },
   "4567104": {
-    "file": "4567104-faces-v2.webp",
-    "width": 311,
+    "file": "4567104-faces-v3.webp",
+    "width": 309,
     "height": 850,
-    "ratio": 0.36588,
+    "ratio": 0.36353,
     "heightInches": 73,
     "name": "Will Reichard",
     "teamId": 16,
@@ -1729,10 +1729,10 @@
     "jersey": "3"
   },
   "4572680": {
-    "file": "4572680-faces-v2.webp",
-    "width": 330,
+    "file": "4572680-faces-v3.webp",
+    "width": 327,
     "height": 850,
-    "ratio": 0.38824,
+    "ratio": 0.38471,
     "heightInches": 77,
     "name": "Tucker Kraft",
     "teamId": 9,
@@ -1853,10 +1853,10 @@
     }
   },
   "4635008": {
-    "file": "4635008-faces-v2.webp",
-    "width": 303,
+    "file": "4635008-faces-v3.webp",
+    "width": 301,
     "height": 850,
-    "ratio": 0.35647,
+    "ratio": 0.35412,
     "heightInches": 75,
     "name": "Keon Coleman",
     "teamId": 2,
@@ -1920,10 +1920,10 @@
     "jersey": "17"
   },
   "4685278": {
-    "file": "4685278-faces-v2.webp",
-    "width": 313,
+    "file": "4685278-faces-v3.webp",
+    "width": 309,
     "height": 850,
-    "ratio": 0.36824,
+    "ratio": 0.36353,
     "heightInches": 72,
     "name": "Luther Burden III",
     "teamId": 3,
@@ -1940,10 +1940,10 @@
     "jersey": "8"
   },
   "4685472": {
-    "file": "4685472-faces-v2.webp",
-    "width": 329,
+    "file": "4685472-faces-v3.webp",
+    "width": 326,
     "height": 850,
-    "ratio": 0.38706,
+    "ratio": 0.38353,
     "heightInches": 77,
     "name": "Tetairoa McMillan",
     "teamId": 29,
@@ -1959,10 +1959,10 @@
     "teamId": 26,
     "jersey": "8",
     "unavailable": {
-      "file": "4685512-crutches-v1.webp",
-      "width": 366,
+      "file": "4685512-crutches-v2.webp",
+      "width": 363,
       "height": 850,
-      "ratio": 0.43059,
+      "ratio": 0.42706,
       "kind": "injury"
     }
   },
@@ -2188,10 +2188,10 @@
     "jersey": "28"
   },
   "4869645": {
-    "file": "4869645-faces-v1.webp",
-    "width": 295,
+    "file": "4869645-faces-v2.webp",
+    "width": 293,
     "height": 850,
-    "ratio": 0.34706,
+    "ratio": 0.34471,
     "heightInches": 76,
     "name": "Caleb Douglas",
     "teamId": 15,
@@ -2279,10 +2279,10 @@
     "jersey": "33"
   },
   "4887558": {
-    "file": "4887558-faces-v2.webp",
-    "width": 353,
+    "file": "4887558-faces-v3.webp",
+    "width": 349,
     "height": 850,
-    "ratio": 0.41529,
+    "ratio": 0.41059,
     "heightInches": 70,
     "name": "Emanuel Wilson",
     "teamId": 26,
