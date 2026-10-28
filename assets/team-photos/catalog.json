@@ -1,4 +1,14 @@
 {
+  "8439": {
+    "file": "8439-faces-v1.webp",
+    "width": 304,
+    "height": 850,
+    "ratio": 0.35765,
+    "heightInches": 74,
+    "name": "Aaron Rodgers",
+    "teamId": 23,
+    "jersey": "8"
+  },
   "12483": {
     "file": "12483-faces-v2.webp",
     "width": 325,
@@ -444,6 +454,16 @@
     "name": "Jakobi Meyers",
     "teamId": 30,
     "jersey": "3"
+  },
+  "3917232": {
+    "file": "3917232-faces-v1.webp",
+    "width": 300,
+    "height": 850,
+    "ratio": 0.35294,
+    "heightInches": 70,
+    "name": "Tyler Bass",
+    "teamId": 2,
+    "jersey": "16"
   },
   "3917315": {
     "file": "3917315-faces-v2.webp",
@@ -1973,6 +1993,16 @@
     "teamId": 30,
     "jersey": "39"
   },
+  "4686468": {
+    "file": "4686468-faces-v1.webp",
+    "width": 316,
+    "height": 850,
+    "ratio": 0.37176,
+    "heightInches": 72,
+    "name": "Seth McGowan",
+    "teamId": 11,
+    "jersey": "20"
+  },
   "4688813": {
     "file": "4688813-faces-v2.webp",
     "width": 300,
@@ -2087,6 +2117,16 @@
     "teamId": 15,
     "jersey": "0"
   },
+  "4715355": {
+    "file": "4715355-faces-v1.webp",
+    "width": 310,
+    "height": 850,
+    "ratio": 0.36471,
+    "heightInches": 71,
+    "name": "Darius Cooper",
+    "teamId": 21,
+    "jersey": "80"
+  },
   "4722893": {
     "file": "4722893-faces-v1.webp",
     "width": 321,
@@ -2136,6 +2176,26 @@
     "name": "Trey Smack",
     "teamId": 9,
     "jersey": "28"
+  },
+  "4869645": {
+    "file": "4869645-faces-v1.webp",
+    "width": 295,
+    "height": 850,
+    "ratio": 0.34706,
+    "heightInches": 76,
+    "name": "Caleb Douglas",
+    "teamId": 15,
+    "jersey": "7"
+  },
+  "4870653": {
+    "file": "4870653-faces-v1.webp",
+    "width": 300,
+    "height": 850,
+    "ratio": 0.35294,
+    "heightInches": 72,
+    "name": "KC Concepcion",
+    "teamId": 5,
+    "jersey": "1"
   },
   "4870808": {
     "file": "4870808-faces-v2.webp",
@@ -2256,56 +2316,6 @@
     "heightInches": 75,
     "name": "Kenyon Sadiq",
     "teamId": 20,
-    "jersey": "16"
-  },
-  "8439": {
-    "file": "8439-faces-v1.webp",
-    "width": 304,
-    "height": 850,
-    "ratio": 0.35765,
-    "heightInches": 74,
-    "name": "Aaron Rodgers",
-    "teamId": 23,
-    "jersey": "8"
-  },
-  "4686468": {
-    "file": "4686468-faces-v1.webp",
-    "width": 316,
-    "height": 850,
-    "ratio": 0.37176,
-    "heightInches": 72,
-    "name": "Seth McGowan",
-    "teamId": 11,
-    "jersey": "20"
-  },
-  "4715355": {
-    "file": "4715355-faces-v1.webp",
-    "width": 310,
-    "height": 850,
-    "ratio": 0.36471,
-    "heightInches": 71,
-    "name": "Darius Cooper",
-    "teamId": 21,
-    "jersey": "80"
-  },
-  "4870653": {
-    "file": "4870653-faces-v1.webp",
-    "width": 300,
-    "height": 850,
-    "ratio": 0.35294,
-    "heightInches": 72,
-    "name": "KC Concepcion",
-    "teamId": 5,
-    "jersey": "1"
-  },
-  "3917232": {
-    "file": "3917232-faces-v1.webp",
-    "width": 300,
-    "height": 850,
-    "ratio": 0.35294,
-    "heightInches": 70,
-    "name": "Tyler Bass",
-    "teamId": 2,
     "jersey": "16"
   }
 }

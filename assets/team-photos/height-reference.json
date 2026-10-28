@@ -239,6 +239,12 @@
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/3916433?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.024Z"
   },
+  "3917232": {
+    "name": "Tyler Bass",
+    "heightInches": 70,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/3917232?lang=en&region=us",
+    "checkedAt": "2026-10-28"
+  },
   "3917315": {
     "name": "Kyler Murray",
     "heightInches": 70,
@@ -1103,6 +1109,18 @@
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4869461?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.358Z"
   },
+  "4869645": {
+    "name": "Caleb Douglas",
+    "heightInches": 76,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4869645?lang=en&region=us",
+    "checkedAt": "2026-10-28"
+  },
+  "4870653": {
+    "name": "KC Concepcion",
+    "heightInches": 72,
+    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4870653?lang=en&region=us",
+    "checkedAt": "2026-10-28"
+  },
   "4870808": {
     "name": "Jeremiyah Love",
     "heightInches": 72,
@@ -1162,17 +1180,5 @@
     "heightInches": 75,
     "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/5083315?lang=en&region=us",
     "checkedAt": "2026-10-02T02:47:38.356Z"
-  },
-  "4870653": {
-    "name": "KC Concepcion",
-    "heightInches": 72,
-    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4870653?lang=en&region=us",
-    "checkedAt": "2026-10-28"
-  },
-  "3917232": {
-    "name": "Tyler Bass",
-    "heightInches": 70,
-    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/3917232?lang=en&region=us",
-    "checkedAt": "2026-10-28"
   }
 }
