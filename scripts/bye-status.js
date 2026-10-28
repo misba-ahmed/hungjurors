@@ -3,7 +3,8 @@ const HJ_SCHEDULE_SEED=null;
 function hjInstallSchedule(payload,season){
  const teams=hjByeScheduleIndex(payload,season);if(!teams)return false;
  Object.assign(HJ_BYE_STATE,{season,teams});
- for(const g of payload.games)if(g._espnEvent&&!HJ_GAME_RANKS.schedule.get(g.game_id)?._espnEvent)HJ_GAME_RANKS.schedule.set(g.game_id,g);
+ // ESPN writes Washington as WSH; the rest of the site compares schedule teams as pcTeam codes (WAS).
+ for(const g of payload.games)if(g._espnEvent&&!HJ_GAME_RANKS.schedule.get(g.game_id)?._espnEvent)HJ_GAME_RANKS.schedule.set(g.game_id,{...g,home_team:pcTeam(g.home_team),away_team:pcTeam(g.away_team)});
  return true;
 }
 const HJ_BYE_STATE={season:0,teams:new Map(),pending:null};
