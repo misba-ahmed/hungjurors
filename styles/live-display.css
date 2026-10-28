@@ -196,5 +196,7 @@ html body .profile-schedule-compact .profile-schedule-h2h>span{white-space:nowra
 html body .profile-schedule-compact .profile-schedule-node.is-win{background:#eef7ef!important}
 html body .profile-schedule-compact .profile-schedule-node.is-loss{background:#fcf4f1!important}
 
-/* Kickoff card: the injury badge sits inline after the player's name (Oct 28). */
-.hj-kickoff-player>span .hj-espn-status{margin-left:3px;padding:0 3px;font-size:7.5px;line-height:1.35;vertical-align:1px}
+/* Injury badges (Oct 28): one rule for every surface (specific enough to beat generic "card span" rules,
+   e.g. overflow:hidden, which moved the pill's baseline). Sized from the text it follows and
+   lifted so the pill's middle lines up with that text's capitals, instead of a fixed 10px box. */
+html body .hj-espn-status.hj-espn-status{display:inline-block;overflow:visible;text-overflow:clip;position:static;transform:none;width:auto;height:auto;box-sizing:border-box;margin:0 0 0 .4em;padding:.17em .38em .15em;border-radius:.3em;background:#fff0ed;color:#b22e36;font:800 max(7.5px,.7em)/1 var(--sans);letter-spacing:.02em;text-transform:none;vertical-align:.16em;white-space:nowrap;flex:none;align-self:center}
