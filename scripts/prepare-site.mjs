@@ -12,7 +12,7 @@ import {prepareCardGestures} from './prepare-card-gestures.mjs';
 import {prepareManagerAvatars} from './prepare-manager-avatars.mjs';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {dirname,join} from 'node:path';
-import {extractSiteArtwork,extractSiteMedia} from './site-artwork.mjs';
+import {extractSiteArtwork,extractSiteMedia,extractScriptImages} from './site-artwork.mjs';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 // Give each Perfect Lineup stylesheet revision a fresh browser/CDN cache key.
@@ -44,6 +44,8 @@ const wireLive=readFileSync(new URL('./wire-live.js',import.meta.url),'utf8');
 const layoutGuard=readFileSync(new URL('./layout-guard.js',import.meta.url),'utf8');
 const recapScript=readFileSync(new URL('./recap-live.js',import.meta.url),'utf8');
 const recapExtras=readFileSync(new URL('./recap-extras.js',import.meta.url),'utf8');
+const perfMemo=readFileSync(new URL('./perf-memo.js',import.meta.url),'utf8');
+const perfLate=readFileSync(new URL('./perf-late.js',import.meta.url),'utf8');
 const standingsScript=readFileSync(new URL('./standings-live.js',import.meta.url),'utf8');
 const playerValue=readFileSync(new URL('./player-value.js',import.meta.url),'utf8');
 const tradeDesk=readFileSync(new URL('./trade-desk.js',import.meta.url),'utf8');
@@ -62,6 +64,8 @@ function replaceOnce(html,pattern,replacement){
 }
 const folderArtwork=readFileSync(new URL('./folder-artwork.js',import.meta.url),'utf8');
 export function prepareSite(html){
+ // Cache the player-name normalizers right where they are defined (see scripts/perf-memo.js).
+ html=html.replace(/(function pcNameMatch\(a,b\)\{[^\n]*\}\n)/,(line)=>line+perfMemo+'\n');
  html=html.replace('</head>',()=>'<style>'+degenerateBetStyle+rosterWeeksStyle+'</style></head>');
  html=prepareDepthRefresh(html);
  // Legacy template insertions left literal "\\n" text between these blocks.
@@ -101,6 +105,14 @@ export function prepareSite(html){
  html=html.replace('<div class="league-roster-identity hj-business-card">',"<div class=\"league-roster-identity hj-business-card\">${manager==='KAT'?\"<svg class=\\\"hj-business-crown\\\" viewBox=\\\"0 0 64 46\\\" role=\\\"img\\\" aria-label=\\\"Reigning champion\\\"><title>Reigning champion</title><path d=\\\"M8 33 3 10l15 10L24 3l11 17L52 7l-3 26Z\\\" fill=\\\"#b88a2a\\\" stroke=\\\"#16354c\\\" stroke-width=\\\"2.5\\\" stroke-linejoin=\\\"round\\\"/><path d=\\\"M9 34h39v8H9z\\\" fill=\\\"#b88a2a\\\" stroke=\\\"#16354c\\\" stroke-width=\\\"2.5\\\" stroke-linejoin=\\\"round\\\"/></svg>\":''}");
 
  html=extractSiteMedia(html).html;
+ html=extractScriptImages(html).html;
+ // Performance (Oct 28): same results, less work. Each swap applies only when the exact
+ // source text is present, so an edited index.html can never break the build.
+ const swap=(from,to)=>{if(html.includes(from))html=html.split(from).join(to);else console.warn('perf swap skipped: source changed');};
+ swap("const row=data.rows.find(item=>String(item.position||'').toUpperCase()===position&&pcNameMatch(item.name,name));",
+  "const row=(typeof hjVegasRowFor==='function'?hjVegasRowFor(data.rows,position,name):data.rows.find(item=>String(item.position||'').toUpperCase()===position&&pcNameMatch(item.name,name)));");
+ swap("const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement?.closest('script,style,textarea,input')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});",
+  "const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentElement;if(!p||p.localName==='script'||p.localName==='style'||p.localName==='textarea'||!n.nodeValue.includes('D/ST'))return NodeFilter.FILTER_REJECT;return p.closest('script,style,textarea,input')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}});");
  // Use real PNG files, with fresh URLs so failed icon requests are not reused.
  html=replaceOnce(html,/<link rel="apple-touch-icon"[^>]*>/g,'<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-hung-jurors-v2.png">');
  html=replaceOnce(html,/<link rel="icon" type="image\/png" sizes="192x192"[^>]*>/g,'<link rel="icon" type="image/png" sizes="192x192" href="/hung-jurors-icon-192-v2.png">');
@@ -257,8 +269,8 @@ function hjRefreshGameContexts(){`);
   .replace(/<\/body>\s*<\/html>\s*$/,()=>'<link rel="stylesheet" href="/styles/league-activity.css?v=20261019">\n<link rel="stylesheet" href="/styles/recap-extras.css?v=20261028">\n<script id="hj-recap-extras">'+recapExtras+'</script>\n<script id="hj-player-search">'+playerSearch+'</script>\n<script>ffnInstallSpin();</script>\n<script id="hj-record-engine">'+recordEngine+'</script>\n<script id="hj-record-live">'+recordLive+'</script>\n<script id="hj-direct-links">'+directLinks+'</script>\n<script id="hj-wire-live">'+wireLive+'</script>\n<script id="hj-wire-priorities">'+wirePriorities+'</script>\n<script id="hj-player-value">'+playerValue+'</script>\n<script id="hj-trade-desk">'+tradeDesk+'</script>\n<script id="hj-side-bets">'+sideBets+'</script>\n<script id="hj-completed-results">'+completedResults+'</script>\n<script id="hj-layout-guard">'+layoutGuard+'</script>\n<script id="hj-roster-weeks">'+rosterWeeks+'</script>\n</body>\n</html>\n')));
 }
 if(process.argv[2]){
- const path=process.argv[2],source=await readFile(path,'utf8'),artwork=extractSiteArtwork(source),media=extractSiteMedia(source);
- const assets=[...artwork.assets,...media.assets];
+ const path=process.argv[2],source=await readFile(path,'utf8'),artwork=extractSiteArtwork(source),media=extractSiteMedia(source),scriptImages=extractScriptImages(source);
+ const assets=[...artwork.assets,...media.assets,...scriptImages.assets];
  if(assets.length)await mkdir(join(dirname(path),'assets/site-art'),{recursive:true});
  await Promise.all(assets.map(([name,bytes])=>writeFile(join(dirname(path),name),bytes)));
  await writeFile(path,preparePlayerHistory(prepareSite(source)));

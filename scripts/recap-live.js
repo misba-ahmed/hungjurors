@@ -3,7 +3,9 @@
 const HJ_RC_TEAM_COLORS={ARI:'#97233F',ATL:'#A71930',BAL:'#241773',BUF:'#00338D',CAR:'#0085CA',CHI:'#0B162A',CIN:'#FB4F14',CLE:'#311D00',DAL:'#003594',DEN:'#FB4F14',DET:'#0076B6',GB:'#203731',HOU:'#03202F',IND:'#002C5F',JAX:'#006778',KC:'#E31837',LAC:'#0080C6',LAR:'#003594',LV:'#000000',MIA:'#008E97',MIN:'#4F2683',NE:'#002244',NO:'#D3BC8D',NYG:'#0B2265',NYJ:'#125740',PHI:'#004C54',PIT:'#FFB612',SEA:'#002244',SF:'#AA0000',TB:'#D50A0A',TEN:'#0C2340',WAS:'#5A1414'};
 const HJ_RC_POSITIONS=['QB','RB','WR','TE','K','D/ST'];
 function hjRcTeam(proTeamId){return typeof HJ_PRO_TEAM_BY_ID!=='undefined'&&proTeamId!=null?HJ_PRO_TEAM_BY_ID[String(proTeamId)]||'':''}
-function hjRcTime(ms,opts={}){return Number.isFinite(ms)?new Date(ms).toLocaleString('en-US',{timeZone:'America/Chicago',...opts}):''}
+// Same strings as toLocaleString, cached: the recap formats the same play times thousands of times per render.
+const HJ_RC_TIME_CACHE=new Map();
+function hjRcTime(ms,opts={}){if(!Number.isFinite(ms))return '';const key=ms+'|'+JSON.stringify(opts);let out=HJ_RC_TIME_CACHE.get(key);if(out===undefined){out=new Date(ms).toLocaleString('en-US',{timeZone:'America/Chicago',...opts});if(HJ_RC_TIME_CACHE.size>=40000)HJ_RC_TIME_CACHE.clear();HJ_RC_TIME_CACHE.set(key,out)}return out}
 function hjRcClock(ms){return hjRcTime(ms,{hour:'numeric',minute:'2-digit'})+' CT'}
 function hjRcDay(ms){return hjRcTime(ms,{weekday:'long'})}
 function hjRcNight(ms){const h=Number(hjRcTime(ms,{hour:'numeric',hourCycle:'h23'})),d=hjRcDay(ms);return d==='Monday'?'Monday night':d==='Sunday'&&h>=19?'Sunday night':d==='Thursday'&&h>=19?'Thursday night':''}

@@ -30,3 +30,18 @@ export function extractSiteMedia(source){
  });
  return {html,assets};
 }
+
+// Performance (Oct 28): the HQ folder artwork source was a 2.5 MB base64 PNG inside a
+// script (source.src='data:...'), parsed on every visit. Serve the identical bytes as a file.
+export function extractScriptImages(source){
+ const assets=new Map();
+ const html=source.replace(/(\.src=')data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)'/g,(whole,head,format,encoded)=>{
+  if(encoded.length<128*1024)return whole;
+  const bytes=Buffer.from(encoded,'base64');
+  const hash=createHash('sha256').update(bytes).digest('hex').slice(0,16);
+  const path='assets/site-art/'+hash+'.'+(format==='jpeg'?'jpg':format);
+  assets.set(path,bytes);
+  return head+'/'+path+"'";
+ });
+ return {html,assets};
+}

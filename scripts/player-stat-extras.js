@@ -179,8 +179,17 @@
     if(key==='oppRank')return hj40OpponentRank(player);
     return hj40OwnershipValue(player,{rostPct:'percentOwned',startPct:'percentStarted'}[key]);
   }
+  // Performance (Oct 28): a sort compares each player ~20 times; look each value up once
+  // per sort pass (cleared when the pass ends) instead of rebuilding the snapshot key each time.
+  const hj40SortMemo={map:new Map(),clearing:false};
+  function hj40SortValue(player,key){
+    let values=hj40SortMemo.map.get(player);
+    if(!values){values=new Map();hj40SortMemo.map.set(player,values);if(!hj40SortMemo.clearing){hj40SortMemo.clearing=true;queueMicrotask(()=>{hj40SortMemo.map.clear();hj40SortMemo.clearing=false})}}
+    if(!values.has(key))values.set(key,hj40Snapshot(player)?.[key]?.value);
+    return values.get(key);
+  }
   function hj40CompareStat(a,b,key){
-    const av=hj40Snapshot(a)?.[key]?.value,bv=hj40Snapshot(b)?.[key]?.value;
+    const av=hj40SortValue(a,key),bv=hj40SortValue(b,key);
     const aKnown=Number.isFinite(av),bKnown=Number.isFinite(bv);
     if(aKnown!==bKnown)return aKnown?-1:1;
     const rankOrder=aKnown?(HJ40.statSortDir==='asc'?av-bv:bv-av):0;
