@@ -11,7 +11,7 @@
    if(!byWeek.has(key))byWeek.set(key,base.call(this,data,week));
    return byWeek.get(key);
   };
-  hjLiveScoringEntries.__hjPass=true;
+  hjLiveScoringEntries.__hjPass=true;hjLiveScoringEntries.__base=base;
  }
  // Game-context stat lines scanned the whole season's rows for every player on the page.
  if(typeof hjCachedFantasyStats==='function'&&typeof HJ_GAME_RANKS!=='undefined'&&!hjCachedFantasyStats.__hjPass){
@@ -24,6 +24,6 @@
    HJ_GAME_RANKS.rows=groups.get(Number(week)+'|'+player.position)||[];
    try{return base.apply(this,arguments)}finally{HJ_GAME_RANKS.rows=rows}
   };
-  hjCachedFantasyStats.__hjPass=true;
+  hjCachedFantasyStats.__hjPass=true;hjCachedFantasyStats.__base=base;
  }
 })();
