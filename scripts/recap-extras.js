@@ -141,15 +141,27 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
  }
 
  /* ---------- 8. Casualty report ---------- */
- function casualty(model,latest){
-  if(!latest||typeof hjStatusIndex!=='function')return '';
-  const statuses=hjStatusIndex(),hurt=[];
-  for(const p of allStarters(model)){if(!Number.isFinite(p.projection)||p.projection<6||p.points>=p.projection*.5)continue;const st=statuses.get?.(String(p.id));if(!st||!['O','IR','D','Q','PUP'].includes(st.code))continue;hurt.push({...p,status:st,cost:p.projection-p.points})}
+ function casualty(model){
+  // Built from that week's play-by-play ("X was injured during the play"), so the card never changes
+  // after the games are final. The live ESPN status badge is added next to the name by the site-wide decorator.
+  const games=model.extra?.games;if(!games?.size||typeof hjRcAthleteAlias!=='function')return '';
+  const rx=t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),plays=new Map(),hurt=[];
+  for(const p of allStarters(model)){
+   if(p.pos==='D/ST'||!p.gameId)continue;const game=games.get(p.gameId);if(!game)continue;
+   const meta=hjRcAthleteAlias(p,game);if(!meta)continue;
+   if(!plays.has(p.gameId))plays.set(p.gameId,hjRcGamePlays(game));
+   const i=meta.alias.indexOf('.'),name=`(?:^|[\\s(;-])${rx(meta.alias.slice(0,i))}[a-z]?\\.${rx(meta.alias.slice(i+1))}\\b`;
+   const hurtRe=new RegExp(name+' was injured during the play'),backRe=new RegExp(name);
+   let hit=null,back=false;
+   for(const play of plays.get(p.gameId)){const t=String(play.text||'');if(hurtRe.test(t)){hit=play;back=false}else if(hit&&!back&&backRe.test(t))back=true}
+   if(hit)hurt.push({...p,back,quarter:Number(hit.period?.number)||0,cost:Number.isFinite(p.projection)?p.projection-p.points:0});
+  }
   if(!hurt.length)return '';
-  hurt.sort((a,b)=>b.cost-a.cost);
-  const per=new Map();for(const h of hurt)per.set(h.owner,(per.get(h.owner)||0)+h.cost);
+  hurt.sort((a,b)=>(a.back-b.back)||b.cost-a.cost);
+  const per=new Map();for(const h of hurt)if(!h.back&&h.cost>0)per.set(h.owner,(per.get(h.owner)||0)+h.cost);
   const worst=[...per].sort((a,b)=>b[1]-a[1])[0];
-  return section('casualty','Casualty report','starters who fell short and are now on the injury report',`<div class="rcx-list">${hurt.slice(0,6).map(h=>`<div class="rcx-item">${head(h)}<div class="rcx-item-copy">${pname(h)} <span class="rcx-tag is-${esc(h.status.code.toLowerCase())}">${esc(h.status.code)}</span><small>${esc(hjRcTeam(h.proTeamId))} ${esc(h.pos)} · started by ${esc(h.owner)} · ${fmt1(h.points)} of ${fmt1(h.projection)} projected</small></div><strong class="is-neg">−${fmt1(h.cost)}</strong></div>`).join('')}</div>${worst?`<p class="rcx-note">Hardest hit: ${mgr(worst[0])} lost ${fmt1(worst[1])} projected points to players now on the report.</p>`:''}`);
+  const when=h=>`hurt ${h.quarter>4?'in OT':h.quarter?`in Q${h.quarter}`:'in-game'}${h.back?', returned':', didn’t return'}`;
+  return section('casualty','Casualty report','starters who got hurt during their game',`<div class="rcx-list">${hurt.slice(0,6).map(h=>`<div class="rcx-item${h.back?' is-back':''}">${head(h)}<div class="rcx-item-copy">${pname(h)}<small>${esc(hjRcTeam(h.proTeamId))} ${esc(h.pos)} · started by ${esc(h.owner)} · ${when(h)} · ${fmt1(h.points)}${Number.isFinite(h.projection)?` of ${fmt1(h.projection)} projected`:' pts'}</small></div>${h.cost>0?`<strong class="is-neg">−${fmt1(h.cost)}</strong>`:`<strong>${fmt1(h.points)}</strong>`}</div>`).join('')}</div>${worst?`<p class="rcx-note">Hardest hit: ${mgr(worst[0])} lost ${fmt1(worst[1])} projected points to starters who didn’t return.</p>`:''}`);
  }
 
  /* ---------- 9. Where the points came from ---------- */
@@ -263,11 +275,11 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
  hjRecapHTML=function(data){
   let html=baseHTML.apply(this,arguments);const model=HJ_RCX.model;
   if(!model||!html.includes('class="rc"'))return html;
-  const weeks=model.weeks,latest=model.week===weeks.at(-1)?.week;
+  const weeks=model.weeks;
   const parts={
    grades:reportCard(model),
    standings:playoffPicture(model)+seriesUpdate(model),
-   game:matchupFlow(model)+whenScored(model)+garbageTime(model)+casualty(model,latest),
+   game:matchupFlow(model)+whenScored(model)+garbageTime(model)+casualty(model),
    team:pointSources(model)+tdLuck(model),
    players:calls(model)+boomBust(model)+espnVegas(model),
    tail:ticker(model)

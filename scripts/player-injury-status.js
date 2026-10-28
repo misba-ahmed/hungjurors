@@ -23,11 +23,11 @@ function hjCreateHealthStore(){
 function hjStatusIndex(){return HJ_HEALTH.statuses}
 function hjStatusHost(node){
  // A photo and name in the same card represent one player. Decorate the name once.
- if(node.matches('.ffn-photo,.rc-feat-photo,.rc-mini-photo,.rc-pcard-photo')){
+ if(node.matches('.ffn-photo,.rc-feat-photo,.rc-mini-photo,.rc-pcard-photo,.rcx-photo')){
   const parent=node.parentElement;
   if(parent&&[...parent.querySelectorAll('[data-pc-id]')].some(other=>other!==node&&other.dataset.pcId===node.dataset.pcId&&!other.matches('.ffn-photo,.rc-feat-photo,.rc-mini-photo,.rc-pcard-photo')))return null;
  }
- return node.querySelector('.pc-depth-slot,.hj-v3-meta,.hj-player-v2-meta,.hq-player-name,.pc-modal-meta,.hj-tx-player-copy b,.wire-row-name,.depth-player-name,.n,b')||(!node.querySelector('[data-pc-id]')?node:null);
+ return node.querySelector('.hj-kickoff-player>span,.pc-depth-slot,.hj-v3-meta,.hj-player-v2-meta,.hq-player-name,.pc-modal-meta,.hj-tx-player-copy b,.wire-row-name,.depth-player-name,.n,b')||(!node.querySelector('[data-pc-id]')?node:null);
 }
 function hjApplyOfficialStatuses(root=document){
  const statuses=hjStatusIndex();

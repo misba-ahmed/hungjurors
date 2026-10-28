@@ -195,3 +195,6 @@ html body .profile-schedule-compact .profile-schedule-h2h{display:flex!important
 html body .profile-schedule-compact .profile-schedule-h2h>span{white-space:nowrap}
 html body .profile-schedule-compact .profile-schedule-node.is-win{background:#eef7ef!important}
 html body .profile-schedule-compact .profile-schedule-node.is-loss{background:#fcf4f1!important}
+
+/* Kickoff card: the injury badge sits inline after the player's name (Oct 28). */
+.hj-kickoff-player>span .hj-espn-status{margin-left:3px;padding:0 3px;font-size:7.5px;line-height:1.35;vertical-align:1px}

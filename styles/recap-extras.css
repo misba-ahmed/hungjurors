@@ -93,7 +93,7 @@
 .rcx-item-copy{min-width:0}.rcx-item-copy small{display:block;font:600 8.5px/1.35 var(--mono);color:#7a8794}
 .rcx-item-pts{font:800 11px/1.1 var(--mono);text-align:right}.rcx-item-pts small{display:block;font:600 8px/1.2 var(--mono);color:#8b98a4}
 .rcx-item strong{font:900 13px/1 var(--mono)}
-.rcx-tag{display:inline-block;margin-left:4px;padding:1px 4px;border-radius:3px;background:#fff0ed;color:#b22e36;font:800 8px/1.25 var(--sans);vertical-align:middle}
+.rcx-item.is-back{opacity:.8}
 
 /* Where the points came from / ESPN vs Vegas tables */
 .rcx-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--rcx-line);border-radius:10px;background:var(--rcx-card)}
