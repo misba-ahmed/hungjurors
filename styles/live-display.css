@@ -205,3 +205,10 @@ html body .hj-espn-status.hj-espn-status:not(:is(.hj-lineup-v2,.league-roster-gr
 /* Player card tables (Oct 28): only the WK/PLAYER column is pinned on sideways scroll. The second
    header row's first cell (FPTS) matched ".pc-table th:first-child" and pinned itself over WK. */
 .pc-table .pc-column-head th:first-child{left:auto;z-index:2}
+
+/* Injury badges (Oct 28, audit): Roster Strength rows put the badge beside the name; when ESPN
+   already says IR, the row's own IR-slot tag would repeat it. Kickoff: a long name truncates
+   so the badge stays on the name line. */
+#hq-panel-strength .hj15-player .pn:has(>.hj-espn-status[title$="INJURED RESERVE"]) .hj15-badge.ir{display:none}
+.hj-kickoff-player>span:has(>.hj-status-name),.wp-player>span>b:has(>.hj-status-name){display:flex!important;align-items:center;min-width:0}
+.hj-kickoff-player>span>.hj-status-name,.wp-player>span>b>.hj-status-name{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

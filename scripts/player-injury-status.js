@@ -27,7 +27,7 @@ function hjStatusHost(node){
   const parent=node.parentElement;
   if(parent&&[...parent.querySelectorAll('[data-pc-id]')].some(other=>other!==node&&other.dataset.pcId===node.dataset.pcId&&!other.matches('.ffn-photo,.rc-feat-photo,.rc-mini-photo,.rc-pcard-photo')))return null;
  }
- return node.querySelector('.hj-kickoff-player>span,.pc-depth-slot,.hj-v3-meta,.hj-player-v2-meta,.hq-player-name,.pc-modal-meta,.hj-tx-player-copy b,.wire-row-name,.depth-player-name,.n,b')||(!node.querySelector('[data-pc-id]')?node:null);
+ return node.querySelector('.hj15-player>.pn,.rc-five-name>strong,.hj-kickoff-player>span,.pc-depth-slot,.hj-v3-meta,.hj-player-v2-meta,.hq-player-name,.pc-modal-meta,.hj-tx-player-copy b,.wire-row-name,.depth-player-name,.n,b')||(!node.querySelector('[data-pc-id]')?node:null);
 }
 function hjApplyOfficialStatuses(root=document){
  const statuses=hjStatusIndex();
@@ -46,5 +46,11 @@ function hjApplyOfficialStatuses(root=document){
   if(badge.textContent!==status.code)badge.textContent=status.code;
   if(badge.title!==title){badge.title=title;badge.setAttribute('aria-label',title)}
   if(badge.parentElement!==host)host.append(badge);
+  // Kickoff and Wire player names sit in narrow columns: keep the badge beside the name and let a
+  // long name end in "..." instead of pushing the badge onto its own line.
+  if(host.matches('.hj-kickoff-player>span,.wp-player>span>b')&&[...host.childNodes].some(n=>n.nodeType===3&&n.nodeValue.trim())){
+   const name=document.createElement('span');name.className='hj-status-name';
+   [...host.childNodes].filter(n=>n!==badge).forEach(n=>name.append(n));host.prepend(name);
+  }
  });
 }
