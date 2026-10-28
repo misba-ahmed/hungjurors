@@ -24,8 +24,9 @@ long hair, beards, kickers and crutch poses.
 
 Usage
   python3 scripts/fit-player-head.py GENERATED.png assets/team-photos/players/<id>-faces-vN.webp
-    exit 0: written (fitted, or kept); prints one line
+    exit 0: written; prints one line measured on the FINAL file, ending in PASS
     exit 2: no face found (regenerate; this is the only case that needs one)
+    exit 3: final head still outside the band (should not happen; do not publish)
   Then set the catalog width/height/ratio from the written file and publish.
 
 Needs numpy, Pillow, opencv-python >= 4.5.4 (cv2.FaceDetectorYN).
@@ -147,13 +148,37 @@ def main():
     if not m:
         print('no face detected; regenerate the figure'); sys.exit(2)
     before = m['head']
-    f = scale_for(m, args.target); fitted = abs(f - 1) > 1e-3
-    if fitted:
-        im, f = fit(im, m, f)
-    out = finish(im)
+    # Decide on the PACKAGED figure (what the site shows), not the raw generation: cropping
+    # and resizing to 850px moves the measurement by a few tenths, which once let a 15.4% raw
+    # head ship at 15.0% labelled "kept: in band" (Penix, Oct 28). Re-measure after every
+    # pass and repeat until the packaged head is in band or a limit stops it.
+    total, out = 1.0, finish(im)
     m2 = detect(np.array(out))
+    for _ in range(3):
+        if not m2:
+            break
+        f = scale_for(m2, args.target)
+        if abs(f - 1) <= 1e-3:
+            break
+        im, _ = fit(im, detect(np.array(im)) or m, f); total *= f
+        out = finish(im); m2 = detect(np.array(out))
+    if not m2:
+        print('no face detected after packaging; regenerate the figure'); sys.exit(2)
+    head, face = m2['head'], m2['face']
+    if BAND[0] <= head <= BAND[1]:
+        verdict = 'PASS'
+    elif head > BAND[1] and face <= FACE_MAX and head <= HAIR_MAX:
+        verdict = 'PASS (big hair, normal face)'
+    elif head < BAND[0] and m2['face_to_shoulder'] >= MAX_FACE_TO_SHOULDER - 0.005:
+        verdict = 'PASS (kept below band: wider would read as a bobblehead)'
+    elif head > BAND[1] and face <= FACE_MEDIAN + 0.05:
+        verdict = 'PASS (kept above band: smaller would shrink a median face)'
+    else:
+        verdict = 'FAIL'
     out.save(args.output, quality=92, method=6) if args.output.lower().endswith('.webp') else out.save(args.output)
-    print(f"head {before:.1f}% -> {m2['head'] if m2 else float('nan'):.1f}%  face {m['face']:.1f}% -> {m2['face'] if m2 else 0:.1f}%  face/shoulder {m['face_to_shoulder']:.3f} -> {m2['face_to_shoulder'] if m2 else 0:.3f}  {'fitted x%.3f' % f if fitted else ('kept: big hair, normal face' if before > BAND[1] else 'kept: in band')}  {out.width}x{out.height} -> {args.output}")
+    print(f"head {before:.1f}% -> {head:.1f}%  face {m['face']:.1f}% -> {face:.1f}%  face/shoulder {m['face_to_shoulder']:.3f} -> {m2['face_to_shoulder']:.3f}  {'scaled x%.3f' % total if abs(total - 1) > 1e-3 else 'unchanged'}  {out.width}x{out.height} -> {args.output}  {verdict}")
+    if verdict == 'FAIL':
+        print('final head is outside the band; do not publish this file'); sys.exit(3)
 
 if __name__ == '__main__':
     main()
