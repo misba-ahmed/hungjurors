@@ -269,6 +269,56 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
   return items?section('ticker','Side-challenge ticker',`where the side pots stand after Week ${model.week}`,`<div class="rcx-tks">${items}</div><a class="rcx-link" href="#challenges">Open Side Challenges →</a>`):'';
  }
 
+ /* ---------- 15. Availability report (injuries and byes) ---------- */
+ // Points of lineup strength each team was missing: best lineup from season averages with everyone
+ // vs. with only the players who actually played. A missing bench player costs nothing.
+ // ESPN keeps a zero stat line for inactive players; one with no stat keys never took the field.
+ const playedIn=p=>!!p.stat&&Object.keys(p.stat.stats||{}).length>0;
+ function seasonHistory(model){
+  const key=model.weeks.map(w=>w.week).join(',');if(HJ_RCX.hist?.key===key)return HJ_RCX.hist.map;
+  const map=new Map(),seen=new Set();
+  for(const w of model.weeks)for(const r of w.scores)for(const e of r.entries||[]){const p=hjRecapPlayer(e,w.week);if(!p.id||!playedIn(p)||!Number.isFinite(p.points))continue;const k=p.id+'|'+w.week;if(seen.has(k))continue;seen.add(k);if(!map.has(p.id))map.set(p.id,[]);map.get(p.id).push({week:w.week,points:p.points})}
+  HJ_RCX.hist={key,map};return map;
+ }
+ function bestLineup(players,plan){
+  // Narrowest slots first, best available player each time (exact for this league's nested slots).
+  const pool=players.filter(p=>p.value>0).sort((a,b)=>b.value-a.value),used=new Set(),picks=[];
+  const slots=plan.map((s,i)=>({...s,i,elig:HJ_OPT_SLOT_ELIGIBLE?.[s.slotId]||[]})).sort((a,b)=>a.elig.length-b.elig.length||a.i-b.i);
+  for(const slot of slots){const p=pool.find(x=>!used.has(x)&&slot.elig.includes(x.pos));if(p){used.add(p);picks.push(p)}}
+  return {total:picks.reduce((n,p)=>n+p.value,0),picks};
+ }
+ function availabilityWeek(model,w){
+  const hist=seasonHistory(model),plan=hjLineupPlan(model.data);
+  return w.scores.map(r=>{
+   const players=(r.entries||[]).map(e=>{const p=hjRecapPlayer(e,w.week),games=(hist.get(p.id)||[]).filter(g=>g.week!==w.week);
+    const value=games.length?games.reduce((n,g)=>n+g.points,0)/games.length:(Number.isFinite(p.projection)?p.projection:0);
+    const team=hjRcTeam(p.stat?.proTeamId??hjPlayer(e).proTeamId);
+    const played=playedIn(p),bye=!played&&typeof hjTeamOnBye==='function'&&!!team&&hjTeamOnBye(team,w.week);
+    return {...p,owner:r.short,proTeamId:p.stat?.proTeamId??hjPlayer(e).proTeamId,value,played,bye}});
+   const full=bestLineup(players,plan),avail=bestLineup(players.filter(p=>p.played),plan);
+   const missing=full.picks.filter(p=>!p.played).sort((a,b)=>b.value-a.value);
+   const lost=Math.max(0,full.total-avail.total),byeShare=missing.reduce((n,p)=>n+(p.bye?p.value:0),0),allShare=missing.reduce((n,p)=>n+p.value,0)||1;
+   return {short:r.short,lost,bye:lost*byeShare/allShare,injury:lost*(1-byeShare/allShare),missing,full:full.total};
+  });
+ }
+ function availability(model){
+  const w=model.weeks.find(x=>x.week===model.week);if(!w)return '';
+  const rows=availabilityWeek(model,w).sort((a,b)=>b.lost-a.lost);
+  const season=new Map(),seasonSplit=new Map();for(const x of model.weeks.filter(x=>x.week<=model.week))for(const r of availabilityWeek(model,x)){season.set(r.short,(season.get(r.short)||0)+r.lost);const t=seasonSplit.get(r.short)||{injury:0,bye:0};t.injury+=r.injury;t.bye+=r.bye;seasonSplit.set(r.short,t)}
+  const max=Math.max(...rows.map(r=>r.lost),1),hit=rows.filter(r=>r.lost>0.5),full=rows.filter(r=>r.lost<=0.5),worst=hit[0];
+  const seasonRank=[...season].sort((a,b)=>b[1]-a[1]),seasonTop=seasonRank.filter(([,v])=>v>0.5).slice(0,5),seasonMax=Math.max(1,...seasonTop.map(([,v])=>v));
+  const why=p=>p.bye?'bye':(p.entry?.lineupSlotId===21?'IR':'out');
+  return section('availability','Availability report','points lost to injuries and byes: what missing starters usually score, minus their replacements',
+   `${worst?`<p class="rcx-avail-lead">${face(worst.short,'rcx-av-mid')}<span><small>Hardest hit</small><b>${esc(worst.short)}</b> lost about ${fmt1(worst.lost)} points to absences</span></p>`:'<p class="rcx-avail-lead is-clear"><span><small>Full strength week</small>No team was missing a starter to injury or a bye.</span></p>'}
+   <div class="rcx-avail">${hit.map(r=>`<div class="rcx-avail-row"><span class="rcx-avail-who">${face(r.short)}<b>${esc(r.short)}</b></span>
+    <span class="rcx-avail-bar"><i class="is-inj" style="width:${(100*r.injury/max).toFixed(1)}%"></i><i class="is-bye" style="width:${(100*r.bye/max).toFixed(1)}%"></i></span>
+    <strong>−${fmt1(r.lost)}<small>exp. pts</small></strong>
+    <span class="rcx-avail-out">${r.missing.slice(0,4).map(p=>`<span class="rcx-avail-p">${head(p)}<em class="is-${why(p)}">${why(p)==='bye'?'BYE':why(p)==='IR'?'IR':'OUT'}</em></span>`).join('')}<small class="rcx-avail-season">season −${fmt1(season.get(r.short)||0)}</small></span></div>`).join('')}</div>
+   ${full.length?`<p class="rcx-avail-full"><small>Full strength</small>${full.map(r=>face(r.short)).join('')}</p>`:''}
+   ${seasonTop.length?`<div class="rcx-avail-season-list"><h4>Most lost this season <small>through Week ${model.week}</small></h4>${seasonTop.map(([n,v],i)=>{const t=seasonSplit.get(n)||{injury:0,bye:0};return `<div class="rcx-avail-srow"><em>${i+1}</em>${face(n)}<b>${esc(n)}</b><span class="rcx-avail-bar"><i class="is-inj" style="width:${(100*t.injury/seasonMax).toFixed(1)}%"></i><i class="is-bye" style="width:${(100*t.bye/seasonMax).toFixed(1)}%"></i></span><strong>−${fmt1(v)}</strong></div>`}).join('')}</div>`:''}
+   <p class="rcx-avail-key"><i class="is-inj"></i>injury / inactive <i class="is-bye"></i>bye</p>`);
+ }
+
  /* ---------- placement ---------- */
  const marker=title=>`<section class="rc-block"><h3 class="rc-h">${title}`;
  function insertBefore(html,title,add){if(!add)return html;const i=html.indexOf(marker(title));return i<0?null:html.slice(0,i)+add+html.slice(i)}
@@ -279,7 +329,7 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
   const parts={
    grades:reportCard(model),
    standings:playoffPicture(model)+seriesUpdate(model),
-   game:matchupFlow(model)+whenScored(model)+garbageTime(model)+casualty(model),
+   game:matchupFlow(model)+whenScored(model)+garbageTime(model)+casualty(model)+availability(model),
    team:pointSources(model)+tdLuck(model),
    players:calls(model)+boomBust(model)+espnVegas(model),
    tail:ticker(model)

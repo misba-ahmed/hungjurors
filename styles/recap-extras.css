@@ -167,3 +167,44 @@
  .rcx-tk:not(.is-wide) .rcx-tk-chip:nth-child(n+3){display:none}
  .rcx-tk-top span{letter-spacing:.08em}
 }
+
+/* Availability report */
+.rcx-avail-lead{display:flex;align-items:center;gap:9px;margin:0 0 9px;padding:8px 10px;border-radius:10px;background:var(--rcx-card);border:1px solid var(--rcx-line)}
+.rcx-avail-lead small{display:block;font:900 7.5px/1.2 var(--sans);letter-spacing:.11em;text-transform:uppercase;color:var(--rcx-bad)}
+.rcx-avail-lead span{font:600 11px/1.35 var(--sans);color:#3d5064}
+.rcx-avail-lead b{color:var(--navy,#14324F)}
+.rcx-avail{display:grid;gap:5px}
+.rcx-avail-row{display:grid;grid-template-columns:86px minmax(0,1fr) 40px;grid-template-areas:"who bar pts" "out out out";align-items:center;gap:4px 8px;padding:7px 9px;background:var(--rcx-card);border:1px solid var(--rcx-line);border-radius:9px}
+.rcx-avail-who{grid-area:who;display:flex;align-items:center;gap:5px;min-width:0}
+.rcx-avail-who b{font:850 10px/1.1 var(--sans);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rcx-avail-bar{grid-area:bar;display:flex;height:9px;border-radius:5px;background:var(--paper,#F7F3E8);overflow:hidden}
+.rcx-avail-bar i{display:block;height:100%}
+.rcx-avail .is-inj,.rcx-avail-key .is-inj{background:var(--rcx-bad)}
+.rcx-avail .is-bye,.rcx-avail-key .is-bye{background:#9aa6b2}
+.rcx-avail-row>strong{grid-area:pts;text-align:right;font:800 12px/1 var(--mono);color:var(--rcx-bad)}
+.rcx-avail-out{grid-area:out;display:flex;align-items:center;gap:6px;padding-left:2px}
+.rcx-avail-p{display:inline-flex;align-items:center;gap:2px}
+.rcx-avail-p .rcx-photo{width:24px;height:24px}
+.rcx-avail-p em{font:900 7px/1 var(--sans);font-style:normal;letter-spacing:.06em;padding:2px 3px;border-radius:3px;color:#fff}
+.rcx-avail-p em.is-out,.rcx-avail-p em.is-IR{background:var(--rcx-bad)}
+.rcx-avail-p em.is-bye{background:#8794a1}
+.rcx-avail-season{margin-left:auto;text-align:right;font:700 8.5px/1 var(--mono);color:#7a8794;white-space:nowrap}
+.rcx-avail-full{display:flex;align-items:center;gap:4px;margin:8px 0 0}
+.rcx-avail-full small{font:900 7.5px/1 var(--sans);letter-spacing:.11em;text-transform:uppercase;color:var(--rcx-good);margin-right:4px}
+.rcx-avail-key{margin:7px 0 0;font:600 9px/1.4 var(--sans);color:#7a8794}
+.rcx-avail-key i{display:inline-block;width:9px;height:9px;border-radius:2px;vertical-align:-1px;margin:0 3px 0 0}
+.rcx-avail-key i.is-bye{margin-left:8px}
+.rcx-avail-key .rcx-mgr{vertical-align:middle}
+
+.rcx-avail-row>strong small{display:block;margin-top:2px;font:700 7px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:#8b98a4}
+.rcx-avail-lead.is-clear small{color:var(--rcx-good)}
+.rcx-avail-season-list{margin-top:10px;padding:9px 10px 6px;background:var(--rcx-card);border:1px solid var(--rcx-line);border-radius:10px}
+.rcx-avail-season-list h4{margin:0 0 6px;font:900 8px/1.2 var(--sans);letter-spacing:.11em;text-transform:uppercase;color:var(--navy,#14324F)}
+.rcx-avail-season-list h4 small{margin-left:4px;font-weight:700;letter-spacing:.04em;text-transform:none;color:#8b98a4}
+.rcx-avail-srow{display:grid;grid-template-columns:14px 26px 70px minmax(0,1fr) 40px;align-items:center;gap:7px;padding:4px 0;border-top:1px solid var(--rcx-line)}
+.rcx-avail-srow:first-of-type{border-top:0}
+.rcx-avail-srow em{font:900 10px/1 var(--mono);font-style:normal;color:var(--navy,#14324F);text-align:right}
+.rcx-avail-srow b{font:850 10px/1.1 var(--sans);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rcx-avail-srow .rcx-avail-bar{grid-area:auto;height:8px}
+.rcx-avail-srow strong{text-align:right;font:800 11.5px/1 var(--mono);color:var(--rcx-bad)}
+.rcx-avail-season-list .is-inj{background:var(--rcx-bad)}.rcx-avail-season-list .is-bye{background:#9aa6b2}
