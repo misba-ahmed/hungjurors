@@ -2287,5 +2287,25 @@
     "name": "Darius Cooper",
     "teamId": 21,
     "jersey": "80"
+  },
+  "4870653": {
+    "file": "4870653-faces-v1.webp",
+    "width": 300,
+    "height": 850,
+    "ratio": 0.35294,
+    "heightInches": 72,
+    "name": "KC Concepcion",
+    "teamId": 5,
+    "jersey": "1"
+  },
+  "3917232": {
+    "file": "3917232-faces-v1.webp",
+    "width": 300,
+    "height": 850,
+    "ratio": 0.35294,
+    "heightInches": 70,
+    "name": "Tyler Bass",
+    "teamId": 2,
+    "jersey": "16"
   }
 }
