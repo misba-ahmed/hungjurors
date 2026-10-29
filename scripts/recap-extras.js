@@ -275,7 +275,7 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
  // ESPN keeps a zero stat line for inactive players; one with no stat keys never took the field.
  const playedIn=p=>!!p.stat&&Object.keys(p.stat.stats||{}).length>0;
  function seasonHistory(model){
-  const key=model.weeks.map(w=>w.week).join(',');if(HJ_RCX.hist?.key===key)return HJ_RCX.hist.map;
+  const key=model.weeks.map(w=>w.week+':'+w.scores.reduce((n,r)=>n+(r.entries||[]).length,0)).join(',');if(HJ_RCX.hist?.key===key)return HJ_RCX.hist.map;
   const map=new Map(),seen=new Set();
   for(const w of model.weeks)for(const r of w.scores)for(const e of r.entries||[]){const p=hjRecapPlayer(e,w.week);if(!p.id||!playedIn(p)||!Number.isFinite(p.points))continue;const k=p.id+'|'+w.week;if(seen.has(k))continue;seen.add(k);if(!map.has(p.id))map.set(p.id,[]);map.get(p.id).push({week:w.week,points:p.points})}
   HJ_RCX.hist={key,map};return map;
@@ -303,6 +303,11 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
  }
  function availability(model){
   const w=model.weeks.find(x=>x.week===model.week);if(!w)return '';
+  // Season averages need every week's lineups. Until each week's rosters have loaded, a missing
+  // player would count as worth 0 (and the week would wrongly read as full strength).
+  const pending=model.weeks.filter(x=>x.week<=model.week&&(!x.scores.length||x.scores.some(r=>!(r.entries||[]).length)));
+  if(pending.length){if(typeof hjLoadMatchupHistory==='function')pending.forEach(x=>hjLoadMatchupHistory(model.data,x.week));
+   return section('availability','Availability report','points lost to injuries and byes: what missing starters usually score, minus their replacements',`<p class="rcx-note">Loading every week’s lineups for the season averages (${model.weeks.filter(x=>x.week<=model.week).length-pending.length} of ${model.weeks.filter(x=>x.week<=model.week).length})…</p>`)}
   const rows=availabilityWeek(model,w).sort((a,b)=>b.lost-a.lost);
   const season=new Map(),seasonSplit=new Map();for(const x of model.weeks.filter(x=>x.week<=model.week))for(const r of availabilityWeek(model,x)){season.set(r.short,(season.get(r.short)||0)+r.lost);const t=seasonSplit.get(r.short)||{injury:0,bye:0};t.injury+=r.injury;t.bye+=r.bye;seasonSplit.set(r.short,t)}
   const max=Math.max(...rows.map(r=>r.lost),1),hit=rows.filter(r=>r.lost>0.5),full=rows.filter(r=>r.lost<=0.5),worst=hit[0];
@@ -347,3 +352,4 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
   return html;
  };
 })();
+
