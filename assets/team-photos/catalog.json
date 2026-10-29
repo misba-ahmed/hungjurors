@@ -298,7 +298,14 @@
     "heightInches": 71,
     "name": "Christian McCaffrey",
     "teamId": 25,
-    "jersey": "23"
+    "jersey": "23",
+    "unavailable": {
+      "file": "3117251-crutches-v1.webp",
+      "width": 339,
+      "height": 850,
+      "ratio": 0.39882,
+      "kind": "injury"
+    }
   },
   "3117256": {
     "file": "3117256-faces-v2.webp",
@@ -866,7 +873,14 @@
     "heightInches": 70,
     "name": "Dameon Pierce",
     "teamId": 21,
-    "jersey": "39"
+    "jersey": "39",
+    "unavailable": {
+      "file": "4360238-crutches-v1.webp",
+      "width": 322,
+      "height": 850,
+      "ratio": 0.37882,
+      "kind": "injury"
+    }
   },
   "4360248": {
     "file": "4360248-faces-v2.webp",
@@ -2058,7 +2072,14 @@
     "heightInches": 71,
     "name": "Cam Skattebo",
     "teamId": 19,
-    "jersey": "44"
+    "jersey": "44",
+    "unavailable": {
+      "file": "4696981-crutches-v1.webp",
+      "width": 339,
+      "height": 850,
+      "ratio": 0.39882,
+      "kind": "injury"
+    }
   },
   "4697745": {
     "file": "4697745-faces-v2.webp",
@@ -2327,5 +2348,15 @@
     "name": "Kenyon Sadiq",
     "teamId": 20,
     "jersey": "16"
+  },
+  "4360635": {
+    "file": "4360635-faces-v1.webp",
+    "width": 304,
+    "height": 850,
+    "ratio": 0.35765,
+    "heightInches": 75,
+    "name": "Chig Okonkwo",
+    "teamId": 28,
+    "jersey": "85"
   }
 }
