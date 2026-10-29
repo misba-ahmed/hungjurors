@@ -2,7 +2,7 @@
     HJ40.trendMetric='net';
     HJ_HQ_STATE.query='';HJ_HQ_STATE.position='ALL';HJ_HQ_STATE.sort='week';
     HJ_PLAYER_DIRECTORY.mode='all';HJ_PLAYER_DIRECTORY.renderLimit=36;
-    HJ40.year=CURRENT_SEASON;HJ40.period='total';HJ40.statSort='trend';HJ40.statSortDir='desc';
+    HJ40.year=CURRENT_SEASON;HJ40.period='total';HJ40.statSort='';HJ40.statSortDir='desc';
     HJ40.nflTeam='ALL';HJ40.manager='ALL';HJ40.snapshotCache.clear();
   }
 
