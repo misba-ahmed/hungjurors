@@ -208,3 +208,8 @@
 .rcx-avail-srow .rcx-avail-bar{grid-area:auto;height:8px}
 .rcx-avail-srow strong{text-align:right;font:800 11.5px/1 var(--mono);color:var(--rcx-bad)}
 .rcx-avail-season-list .is-inj{background:var(--rcx-bad)}.rcx-avail-season-list .is-bye{background:#9aa6b2}
+
+/* Card backgrounds (Oct 29): When you scored, Garbage time and TD luck sat on the bare page. */
+.rcx-stack-list,.rcx-bars{padding:10px 11px;background:var(--rcx-card);border:1px solid var(--rcx-line);border-radius:10px}
+.rcx-stack-list{gap:6px}
+.rcx-bars{gap:7px}
