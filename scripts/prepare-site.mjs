@@ -119,6 +119,19 @@ export function prepareSite(html){
   "  hjDirectoryControlsHTML=()=>(window.hjPlayersToolbarHTML||hj40ControlsHTML)();window.HJ40_API={state:HJ40,actualWeek:hj40CurrentActualFpts,actualSeason:hj40SeasonActual,projection:hj40ProjectionScore,gameStarted:hj40GameStarted,gameState:hj40GameState,availableWeeks:hj40AvailableWeeks,currentWeek:hj40CurrentWeek,refreshControls:()=>hj40RefreshControls(),ensureSeason:hj40EnsureSeason,labels:HJ40_LABELS};");
  swap("const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement?.closest('script,style,textarea,input')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});",
   "const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentElement;if(!p||p.localName==='script'||p.localName==='style'||p.localName==='textarea'||!n.nodeValue.includes('D/ST'))return NodeFilter.FILTER_REJECT;return p.closest('script,style,textarea,input')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}});");
+ // Players tab per-game averages (Oct 29): the nflverse weekly file has a row for every game on a
+ // player's team schedule, including games he sat out (all zeros). "Season Averages" divided by all of
+ // them (Josh Jacobs: 20.10 in one game showed 2.87 = 20.10 / 7). A week now counts as a game only
+ // when the player logged snaps or recorded any stat or points. DST rows exist only for weeks the team
+ // played, so the DST count is unchanged.
+ swap("  function hj40Scale(value,games){",
+  "  function hj40Played(row){if(!row)return false;if(Number.isFinite(pcPoints(row))&&pcPoints(row)!==0)return true;return ['attempts','completions','carries','targets','receptions','passing_yards','rushing_yards','receiving_yards','passing_interceptions','fumbles_lost_total','fg_att','fg_made','fg_missed','pat_att','pat_made','pat_missed'].some(key=>hj40Num(row[key])!==0)}\n  function hj40SnapPlayed(row){return hj40Num(row?.offense_snaps)>0||hj40Num(row?.offense_pct)>0||hj40Num(row?.st_snaps)>0}\n  function hj40EspnPlayed(row){return Number(row?.appliedTotal||0)!==0||Object.values(row?.stats||{}).some(value=>Number(value)!==0)}\n  function hj40Scale(value,games){");
+ swap("gameWeeks=new Set([...rows.map(row=>Number(row.week)),...selectedSnaps.map(row=>Number(row.week))].filter(Boolean))",
+  "gameWeeks=new Set([...rows.filter(hj40Played).map(row=>Number(row.week)),...selectedSnaps.filter(hj40SnapPlayed).map(row=>Number(row.week))].filter(Boolean))");
+ swap(".sort((a,b)=>a.week-b.week),games=rows.length,isAvg=HJ40.period==='avg';",
+  ".sort((a,b)=>a.week-b.week),games=rows.filter(hj40EspnPlayed).length,isAvg=HJ40.period==='avg';");
+ swap("preferEspn=!rows.length||week===hj40CurrentWeek()||espn.games>=new Set(rows.map(row=>Number(row.week)).filter(Boolean)).size",
+  "preferEspn=!rows.length||week===hj40CurrentWeek()||espn.games>=new Set(rows.filter(hj40Played).map(row=>Number(row.week)).filter(Boolean)).size");
  // Use real PNG files, with fresh URLs so failed icon requests are not reused.
  html=replaceOnce(html,/<link rel="apple-touch-icon"[^>]*>/g,'<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-hung-jurors-v2.png">');
  html=replaceOnce(html,/<link rel="icon" type="image\/png" sizes="192x192"[^>]*>/g,'<link rel="icon" type="image/png" sizes="192x192" href="/hung-jurors-icon-192-v2.png">');
