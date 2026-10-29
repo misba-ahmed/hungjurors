@@ -1,4 +1,10 @@
-/* Players tab refresh (Oct 29, 2026): sticky toolbar + sortable stat tiles. */
+/* Players tab refresh (Oct 29, 2026): sticky toolbar + sortable stat tiles. See docs/players-tab.md. */
+
+/* ---------- toolbar ---------- */
+/* Pinned under the site nav and the folder tabs, like the old toolbar (its .hq49-controls rule). */
+#league-hq #league-hq-tools #hq-panel-free-agents .hq40-controls.hj-ptb{
+  position:sticky!important;top:calc(var(--hj-main-nav-height,43px) + var(--hj-file-tabs-height,86px))!important;z-index:70!important;
+}
 #hq-panel-free-agents .hq40-controls.hj-ptb{
   --ptb-ink:var(--navy,#14324F);--ptb-line:#d9d2bf;--ptb-paper:#f7f3e8;--ptb-mute:#6b7a88;
   display:grid!important;gap:4px!important;padding:5px 8px 5px!important;
@@ -7,12 +13,8 @@
 }
 .hj-ptb-row{display:flex;align-items:center;gap:4px;min-width:0}
 
-/* row 1: search + All/Free toggle + the standing hint */
+/* row 1: search · All / Free agents · Trend · hint or active sort */
 .hj-ptb-search{position:relative;flex:1.3 1 112px;min-width:0;display:flex;align-items:center}
-.hj-ptb-seg{flex:none;display:flex;padding:2px;border-radius:8px;background:var(--ptb-paper);border:1px solid var(--ptb-line)}
-.hj-ptb-seg button{appearance:none;display:flex;align-items:center;justify-content:center;height:22px;padding:0 7px;border:0;border-radius:6px;background:transparent;color:var(--ptb-mute);font:800 9.5px/1 var(--sans);white-space:nowrap;cursor:pointer;text-align:center}
-.hj-ptb-seg button span{font:800 7.5px/1.05 var(--sans);letter-spacing:.02em}
-.hj-ptb-seg button[aria-pressed="true"]{background:var(--ptb-ink);color:#fff;box-shadow:0 1px 2px rgba(20,50,79,.25)}
 .hj-ptb-search svg{position:absolute;left:8px;width:13px;height:13px;color:#8a97a4;pointer-events:none}
 .hj-ptb #hq-fa-search.hq-fa-control{
   width:100%;height:28px;margin:0;padding:0 8px 0 26px;border:1px solid var(--ptb-line);border-radius:8px;
@@ -20,39 +22,51 @@
 }
 .hj-ptb #hq-fa-search.hq-fa-control:focus{outline:none;border-color:var(--ptb-ink);box-shadow:0 0 0 2px rgba(20,50,79,.12)}
 .hj-ptb #hq-fa-search::-webkit-search-cancel-button{-webkit-appearance:none;width:12px;height:12px;background:radial-gradient(circle,#8a97a4 45%,transparent 48%);cursor:pointer}
+.hj-ptb-seg,.hj-ptb-src{flex:none;display:flex;padding:2px;border-radius:8px;background:var(--ptb-paper);border:1px solid var(--ptb-line)}
+.hj-ptb-seg button,.hj-ptb-src button{appearance:none;display:flex;align-items:center;justify-content:center;height:22px;padding:0 7px;border:0;border-radius:6px;background:transparent;color:var(--ptb-mute);font:800 9.5px/1 var(--sans);white-space:nowrap;cursor:pointer;text-align:center}
+.hj-ptb-seg button span{font:800 7.5px/1.05 var(--sans);letter-spacing:.02em}
+.hj-ptb-seg button[aria-pressed="true"],.hj-ptb-src button[aria-pressed="true"]{background:var(--ptb-ink);color:#fff;box-shadow:0 1px 2px rgba(20,50,79,.25)}
 .hj-ptb-trend{appearance:none;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;width:36px;height:28px;padding:0;border:1px solid var(--ptb-line);border-radius:8px;background:#fff;color:var(--ptb-ink);cursor:pointer}
 .hj-ptb-trend svg{width:13px;height:13px;color:var(--win-green,#2e7d52)}
 .hj-ptb-trend span{font:800 7px/1 var(--sans);letter-spacing:.02em}
 .hj-ptb-trend[aria-pressed="true"]{background:var(--ptb-ink);border-color:var(--ptb-ink);color:#fff}
 .hj-ptb-trend[aria-pressed="true"] svg{color:#83C991}
+.hj-ptb-hint{flex:1 1 86px;min-width:0;height:28px;display:inline-flex;align-items:center;justify-content:center;padding:0 8px;border:1px dashed #c9c0a8;border-radius:8px;background:var(--ptb-paper);font:700 9.5px/1.2 var(--sans);color:var(--ptb-mute);white-space:nowrap;overflow:hidden}
 .hj-ptb-sort{flex:1 1 86px;min-width:0;height:28px;display:inline-flex;align-items:stretch;border:1px solid var(--ptb-ink);border-radius:8px;background:var(--ptb-ink);color:#fff;overflow:hidden}
 .hj-ptb-sort button{appearance:none;border:0;background:transparent;color:inherit;cursor:pointer;padding:0;font:800 10px/1 var(--sans);white-space:nowrap}
-.hj-ptb-sort [data-hj-ptb-flip]{flex:1 1 auto;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:0 6px;overflow:hidden;text-overflow:ellipsis}
+.hj-ptb-sort [data-hj-ptb-flip]{flex:1 1 auto;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:0 6px;overflow:hidden}
+.hj-ptb-sort [data-hj-ptb-flip]:disabled{cursor:default;opacity:1}
 .hj-ptb-sort [data-hj-ptb-flip] i{font-style:normal;font-weight:900;color:#e8c66b}
-.hj-ptb-sort [data-hj-ptb-clear-sort]{flex:none;width:24px;border-left:1px solid rgba(255,255,255,.25);font-size:13px;font-weight:900;opacity:.9}
-.hj-ptb-hint{flex:1 1 86px;min-width:0;height:28px;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 8px;border:1px dashed #c9c0a8;border-radius:8px;background:var(--ptb-paper);font:700 9.5px/1.2 var(--sans);color:var(--ptb-mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hj-ptb-sort [data-hj-ptb-clear-sort]{flex:none;width:24px;border-left:1px solid rgba(255,255,255,.25);font-size:13px;font-weight:900}
 
-/* row 2: five tiny dropdowns */
+/* row 2: Team · Manager · Season · Period, each as wide as its words; reset × */
 .hj-ptb-sels{gap:3px}
-.hj-ptb-sel{position:relative;flex:1 1 0;min-width:0;display:flex;align-items:center;height:26px;padding:0 16px 0 7px;border:1px solid var(--ptb-line);border-radius:7px;background:#fff}
-.hj-ptb-sel::after{content:"";position:absolute;right:6px;top:50%;width:5px;height:5px;border-right:1.5px solid var(--ptb-mute);border-bottom:1.5px solid var(--ptb-mute);transform:translateY(-70%) rotate(45deg);pointer-events:none}
-.hj-ptb-sel select{width:100%;min-width:0;height:100%;border:0;background:transparent;color:var(--ptb-ink);font:800 10px/1 var(--sans);-webkit-appearance:none;appearance:none;padding:0;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
+.hj-ptb-sel{position:relative;flex:1 1 auto;min-width:0;display:flex;align-items:center;height:26px;padding:0 15px 0 6px;border:1px solid var(--ptb-line);border-radius:7px;background:#fff}
+.hj-ptb-sel.is-year{flex:0 0 auto}
+.hj-ptb-sel::after{content:"";position:absolute;right:6px;top:50%;width:4px;height:4px;border-right:1.5px solid var(--ptb-mute);border-bottom:1.5px solid var(--ptb-mute);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.hj-ptb-sel select{width:100%;min-width:0;height:100%;border:0;background:transparent;color:var(--ptb-ink);font:800 10px/1 var(--sans);-webkit-appearance:none;appearance:none;padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
 .hj-ptb-sel select:focus{outline:none}
 .hj-ptb-sel.is-set{border-color:var(--brass,#B98A2E);background:#fffaf0}
 .hj-ptb-clear{appearance:none;flex:none;width:26px;height:26px;padding:0;border:1px solid var(--ptb-line);border-radius:7px;background:#fff;color:var(--rcx-bad,#b73a3a);font:900 13px/1 var(--sans);cursor:pointer}
 
-/* row 3: position chips */
-.hj-ptb-pos{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:3px}
-.hj-ptb-pos button{appearance:none;height:24px;padding:0;border:1px solid var(--ptb-line);border-radius:7px;background:#fff;color:var(--ptb-ink);font:800 10px/1 var(--sans);cursor:pointer;white-space:nowrap}
-.hj-ptb-pos button[aria-pressed="true"]{background:var(--ptb-ink);border-color:var(--ptb-ink);color:#fff}
+/* row 3: positions · E | V projection source */
+.hj-ptb-pos{gap:6px}
+.hj-ptb-chips{flex:1 1 auto;min-width:0;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:3px}
+.hj-ptb-chips button{appearance:none;min-width:0;height:24px;padding:0;border:1px solid var(--ptb-line);border-radius:7px;background:#fff;color:var(--ptb-ink);font:800 10px/1 var(--sans);cursor:pointer;white-space:nowrap}
+.hj-ptb-chips button[aria-pressed="true"]{background:var(--ptb-ink);border-color:var(--ptb-ink);color:#fff}
+.hj-ptb-src{border-radius:7px}
+.hj-ptb-src button{width:18px;height:18px;padding:0;border-radius:5px;font-size:9.5px}
 
 @media(min-width:720px){
   #hq-panel-free-agents .hq40-controls.hj-ptb{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"main main" "sels pos";align-items:center;padding:6px 10px!important}
   .hj-ptb-main{grid-area:main}
   .hj-ptb-sels{grid-area:sels}
-  .hj-ptb-sel{flex:0 1 150px}
-  .hj-ptb-pos{grid-area:pos;display:flex}
-  .hj-ptb-pos button{padding:0 10px}
+  .hj-ptb-sel{flex:0 1 auto}
+  .hj-ptb-sel select{min-width:60px}
+  .hj-ptb-sel.is-year select{min-width:0}
+  .hj-ptb-pos{grid-area:pos}
+  .hj-ptb-chips{display:flex}
+  .hj-ptb-chips button{padding:0 10px}
   .hj-ptb-search{flex:0 1 260px}
   .hj-ptb-hint,.hj-ptb-sort{flex:0 1 auto}
 }
@@ -64,46 +78,68 @@
   .hj-ptb-seg button{padding:0 5px}
   .hj-ptb-hint{padding:0 4px;font-size:9px}
   .hj-ptb-sort [data-hj-ptb-flip]{padding:0 4px;font-size:9.5px}
+  .hj-ptb-pos{gap:4px}
+  .hj-ptb-chips{gap:2px}
+  .hj-ptb-sel{padding:0 13px 0 5px}
+  .hj-ptb-sel::after{right:5px}
 }
 @media(max-width:350px){
-  .hj-ptb-pos button,.hj-ptb-sel select{font-size:9.5px}
+  .hj-ptb-chips button,.hj-ptb-sel select{font-size:9.5px}
 }
 
-/* ---------- card tiles: the original THIS WEEK / SEASON / PFF / MARKET strip ----------
-   Inside THIS WEEK and SEASON: two small buttons, FPTS and PROJ, set in the stat bar's own type
-   (Public Sans 9px: label 400 uppercase, value 850). The sorted one gets the site's sort mark,
-   the brass underline already used by PFF / Market and the stat bar.
-   The row is split by content, not in equal quarters: THIS WEEK and SEASON hold two numbers each,
-   PFF and MARKET one, so on phones they get 90 : 90 : 82 : 62 of the width (at 360px that is the
-   least each needs: two 6-digit values / "PFF GRADE ⓘ" / "MARKET ⓘ"). */
+/* ---------- card tiles ----------
+   The original THIS WEEK / SEASON / PFF / MARKET strip. Inside THIS WEEK and SEASON: two small
+   buttons, FPTS and PROJ, in the stat bar's own type (Public Sans 9px: label 400 uppercase, value 850).
+   The sorted one gets the stat bar's sorted look (beige fill, brass underline); the text never changes. */
+#hq-panel-free-agents .hq40-card .hq-player-proj.hj-pt-tile{display:flex!important;flex-direction:column;align-items:stretch;justify-content:space-between;padding:6px 3px 5px!important;min-width:0}
+#hq-panel-free-agents .hq40-card .hj-pt-tile>.hq-player-proj-label{display:block!important;width:100%;text-align:center!important;margin:0 0 4px!important}
+.hj-pt-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;width:100%;min-width:0}
+.hj-pt-btn{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px 0 3px;border:1px solid rgba(20,50,79,.13);border-radius:5px;background:rgba(255,255,255,.72);cursor:pointer;color:var(--navy,#14324F);font-family:var(--sans,"Public Sans"),sans-serif;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.hj-pt-btn small{display:flex;align-items:baseline;gap:3px;font-size:9px;font-weight:400;line-height:1;letter-spacing:.025em;text-transform:uppercase;color:#6b7c8d;white-space:nowrap;pointer-events:none}
+.hj-pt-btn b{display:block;font-size:9px;font-weight:850;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--navy,#14324F);pointer-events:none}
+.hj-pt-btn .hj-pt-tag{font-style:normal;font-weight:850;letter-spacing:0;color:#B98A2E}
+.hj-pt-btn .hj-pt-tag.is-v{color:var(--navy,#14324F)}
+.hj-pt-btn .is-live-pts{color:var(--win-green,#2e7d52)}
+.hj-pt-btn .hj-pt-dash{color:#9aa5af;font-weight:700}
+.hj-pt-btn[aria-pressed="true"]{background:#efe9d8;box-shadow:inset 0 -2px var(--brass,#B98A2E)}
+.hj-pt-btn:focus{outline:none}
+.hj-pt-btn:focus-visible{outline:2px solid rgba(20,50,79,.35);outline-offset:1px}
+@media(hover:hover){.hj-pt-btn:hover{border-color:rgba(20,50,79,.35)}}
+
 @media(max-width:719px){
+  /* The row is split by content, not in equal quarters: THIS WEEK and SEASON hold two numbers each,
+     PFF and MARKET one. 90 : 90 : 82 : 62 is the least each needs at 360px (two six-digit values /
+     "PFF GRADE ⓘ" / "MARKET ⓘ"). */
   #hq-panel-free-agents .hq-player-directory .hq-player-card.hq40-card.hj-pt-card.has-mv-column.has-pff-column{grid-template-columns:minmax(0,90fr) minmax(0,90fr) minmax(0,82fr) minmax(0,62fr)!important}
+  /* PFF / MARKET always stack label · value · rank, also on cards that have only one of them (K, 2025). */
+  #hq-panel-free-agents .hq40-card.hj-pt-card :is(.hq40-pff-proj,.hjmv-col){
+    grid-template-columns:minmax(0,1fr)!important;grid-template-areas:"label" "primary" "sub"!important;
+    justify-items:center!important;justify-content:stretch!important;align-content:start!important;text-align:center!important;
+    column-gap:0!important;row-gap:0!important;padding:6px 2px 5px!important;
+  }
+  #hq-panel-free-agents .hq40-card.hj-pt-card :is(.hq40-pff-proj,.hjmv-col) .hq-player-proj-label{font-size:9px!important;letter-spacing:.01em!important;white-space:nowrap!important}
+  #hq-panel-free-agents .hq40-card.hj-pt-card :is(.hq40-pff-proj,.hjmv-col) .hq-player-proj-main{margin-top:3px!important;font-size:14.5px!important}
+  #hq-panel-free-agents .hq40-card.hj-pt-card :is(.hq40-pff-proj,.hjmv-col) :is(.hjmv-pff-sub,.hjmv-col-sub){margin-top:3px!important;font-size:9px!important}
+  #hq-panel-free-agents .hq40-card.hj-pt-card :is(.hq40-pff-proj,.hjmv-col) .hj-pff-info{width:13px!important;height:13px!important;margin:-4px 0 -4px -1px!important}
+}
+@media(max-width:400px){
+  #hq-panel-free-agents .hq40-card.hj-pt-card :is(.hq40-pff-proj,.hjmv-col) .hq-player-proj-label{letter-spacing:0!important}
+  #hq-panel-free-agents .hq40-card.hj-pt-card :is(.hq40-pff-proj,.hjmv-col) .hq-player-proj-main{font-size:13.5px!important}
+  #hq-panel-free-agents .hq40-card.hj-pt-card :is(.hq40-pff-proj,.hjmv-col){padding:6px 1px 5px!important}
+  #hq-panel-free-agents .hq40-card.hj-pt-card :is(.hq40-pff-proj,.hjmv-col) .hj-pff-info{width:12px!important;height:12px!important}
 }
 @media(max-width:380px){
   #hq-panel-free-agents .hq-player-directory .hq-player-card.hq40-card.hj-pt-card{column-gap:2px!important}
-  #hq-panel-free-agents .hj-pt-pair{gap:2px}
+  .hj-pt-pair{gap:2px}
 }
-#hq-panel-free-agents .hq40-card .hq-player-proj.hj-pt-tile{display:flex!important;flex-direction:column;align-items:stretch;justify-content:space-between;gap:5px;padding:6px 3px 5px!important;min-width:0}
-#hq-panel-free-agents .hq40-card .hj-pt-tile>.hq-player-proj-label{display:block!important;width:100%;text-align:center!important;margin:0 0 4px!important}
-.hj-pt-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;width:100%;min-width:0}
-.hj-pt-btn{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px 0 3px;border:1px solid rgba(20,50,79,.13);border-radius:5px;background:rgba(255,255,255,.72);cursor:pointer;color:var(--navy,#14324F);font-family:var(--sans,"Public Sans"),sans-serif}
-.hj-pt-btn small{display:flex;align-items:baseline;gap:3px;font-size:9px;font-weight:400;line-height:1;letter-spacing:.025em;text-transform:uppercase;color:#6b7c8d;white-space:nowrap}
-.hj-pt-btn b{display:flex;align-items:baseline;justify-content:center;gap:2px;font-size:9px;font-weight:850;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--navy,#14324F)}
-.hj-pt-btn .is-live-pts{color:var(--win-green,#2e7d52)}
-.hj-pt-btn .hj-pt-dash{color:#9aa5af;font-weight:700}
-.hj-pt-btn .hj-pt-src{position:relative;font-style:normal;font-weight:850;letter-spacing:0;color:#B98A2E;cursor:pointer}
-.hj-pt-btn .hj-pt-src.is-v{color:var(--navy,#14324F)}
-.hj-pt-btn .hj-pt-src::before{content:"";position:absolute;inset:-6px -4px -6px -5px}
-.hj-pt-btn:hover{border-color:rgba(20,50,79,.35)}
-.hj-pt-btn[aria-pressed="true"]{background:#fff;border-color:rgba(185,138,46,.55);box-shadow:inset 0 -2px var(--brass,#B98A2E)}
-.hj-pt-btn[aria-pressed="true"] small{color:var(--navy,#14324F);font-weight:650}
 @media(min-width:720px){
-  #hq-panel-free-agents .hq40-card .hq-player-proj.hj-pt-tile{flex-direction:row;align-items:center;justify-content:center;gap:10px;padding:5px 8px!important}
-  #hq-panel-free-agents .hq40-card .hj-pt-tile>.hq-player-proj-label{width:auto;flex:none;margin:0!important}
-  .hj-pt-pair{width:auto;flex:0 1 180px;gap:5px}
+  #hq-panel-free-agents .hq40-card .hq-player-proj.hj-pt-tile{flex-direction:row;align-items:center!important;justify-content:center;gap:10px;padding:4px 8px!important}
+  /* title on the same top line as PFF GRADE / MARKET; the buttons stay centred in the box */
+  #hq-panel-free-agents .hq40-card .hj-pt-tile>.hq-player-proj-label{width:auto;flex:none;align-self:flex-start!important;margin:3px 0 0!important}
+  .hj-pt-pair{width:auto;flex:0 1 180px;gap:5px;align-self:center}
   .hj-pt-btn{padding:5px 4px}
 }
-/* the strip's right end is the Market box: round it like the left end */
+/* The strip's right end is rounded like its left end. */
 #hq-panel-free-agents .hq40-card.has-mv-column .hjmv-col{border-radius:0 8px 8px 0!important}
 #hq-panel-free-agents .hq40-card.has-mv-column.has-pff-column .hq40-pff-proj{border-radius:0!important}
 #hq-panel-free-agents .hq40-card.has-pff-column:not(.has-mv-column) .hq40-pff-proj{border-radius:0 8px 8px 0!important}
