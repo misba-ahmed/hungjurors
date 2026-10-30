@@ -133,3 +133,8 @@
 }
 @media(hover:hover){#hq-panel-activity .hj-activity-metrics button:hover{transform:translateY(-1px)}}
 @media(prefers-reduced-motion:reduce){#hq-panel-activity .hj-activity-metrics button,#hq-panel-activity .hj-wr-chevron{transition:none}}
+
+/* Manager profile · Latest Activity (October 30, 2026). One card per ESPN transaction (prepare-site.mjs).
+ * Each card is only as tall as its own moves: a single add or drop is not stretched to match a two-move card. */
+.profile-manager-activity-rail{align-items:flex-start}
+.profile-manager-activity-card{min-height:0;grid-template-rows:auto auto}
