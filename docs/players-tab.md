@@ -48,8 +48,9 @@ OPP RK and every "(n)" opponent rank on the site use ESPN's own ratings (`positi
 
 ## XFP (expected fantasy points)
 ## Advanced stats (back of the bar)
-After the box-score stats and before ROST % / START % / TREND / OPP RK: QB: XFP · RB: XFP, TGT %, RZ OPP · WR / TE: XFP, TGT %, AIR %, RZ OPP, SEP. All sort like every other stat and follow the period.
+After the box-score stats and before ROST % / START % / TREND / OPP RK: QB: XFP · RB: XFP, TGT %, RZ OPP · WR / TE: XFP, TGT %, AIR YD, AIR %, aDOT, RZ OPP, SEP. All sort like every other stat and follow the period.
 - **TGT %**: share of his team's targets in the games he played. **AIR %**: share of his team's air yards (how far downfield the throws to him travelled, caught or not). Both from nflverse.
+- **AIR YD** (receivers; the QB AIR YD is passing air yards): how far downfield the throws to him travelled, caught or not, added up. Per game over the games played up to the latest week nflverse has published air yards for (a game in progress counts for FPTS at once; its air yards arrive with nflverse the next day). **aDOT**: air yards per target, how far downfield he is thrown to on average; not the same as YD/TAR (receiving yards per target, which includes yards after the catch and counts incompletions as 0).
 - **RZ OPP**: carries plus targets with the ball inside the opponent's 20 (nflverse play-by-play; two-point tries and nullified plays left out); per game over the same games as FPTS.
 - **SEP**: average separation from the nearest defender when the ball arrives, yards (NFL Next Gen Stats). Totals and averages show the season to date; a week appears only when he met the NGS minimum.
 - **XFP**: see below.

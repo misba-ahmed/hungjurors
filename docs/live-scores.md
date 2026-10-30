@@ -1,0 +1,9 @@
+# Live scores (League HQ)
+
+Oct 29, 2026. During games, a play reached Matchups about 30 s after ESPN had it.
+
+**Why.** The league sync asks ESPN for the whole league (teams, rosters, settings, standings, draft, every week's matchups, box scores): 5.8 MB of JSON, 0.94 MB gzipped. During games it ran every 15 s, counted from the end of the previous sync, and each run downloaded, parsed and redrew all of it.
+
+**Now.** `scripts/live-scores-fast.js` (inlined at the end of the page by `scripts/prepare-site.mjs`): while an NFL game is in progress (`NFL_WEEK1` state `in`) and the page is visible, every 5 s it asks ESPN for this week's matchups only (`scoringPeriodId=<week>&view=mMatchupScore&view=mLiveScoring&view=mBoxscore` with `x-fantasy-filter` `{"schedule":{"filterMatchupPeriodIds":{"value":[<week>]}}}`): 306 KB of JSON, 69 KB gzipped, about 0.3 s. It replaces this week's matchups in `HJ_LEAGUE_STATE.data.schedule` (same shape as the full sync's) and redraws (`hjRenderLeague`, which the live patcher turns into in-place updates of the open tab) only when a team total, a player's points, a lineup slot, a projection or a win probability changed. The "Updated" time follows ESPN's server time. A full sync that lands while a fast request is out wins. The full sync still runs, every 60 s during games instead of 15 s (`HJ_LEAGUE_LIVE_REFRESH_MS`), for everything else; a phone downloads less than before (about 9.5 MB a minute instead of 23 MB of JSON, before compression).
+
+**Measured** during Panthers at Packers (Oct 29, 7 minutes, 6 score changes at ESPN, desktop connection): the old page showed each change 7.5 to 16.6 s after ESPN (one never, overtaken by the next); the new page 0.5 to 6.2 s, about 2.6 s on average. ESPN's own delay from the play to its data comes before both and cannot be changed here. ESPN does not cache these responses (`must-revalidate`, CloudFront miss) and ignores `If-None-Match`, so every poll is a full 69 KB.
