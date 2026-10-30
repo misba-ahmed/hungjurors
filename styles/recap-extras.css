@@ -91,6 +91,7 @@
 .rcx-list{display:grid;gap:4px}
 .rcx-item{display:grid;grid-template-columns:34px minmax(0,1fr) auto auto;align-items:center;gap:8px;padding:6px 9px;margin-bottom:4px;background:var(--rcx-card);border:1px solid var(--rcx-line);border-radius:9px}
 .rcx-item-copy{min-width:0}.rcx-item-copy small{display:block;font:600 8.5px/1.35 var(--mono);color:#7a8794}
+.rcx-item-owner{display:flex;align-items:center;flex-wrap:wrap;gap:3px 6px;margin-top:3px;font:600 9px/1.2 var(--sans);color:#536b80}
 .rcx-item-pts{font:800 11px/1.1 var(--mono);text-align:right}.rcx-item-pts small{display:block;font:600 8px/1.2 var(--mono);color:#8b98a4}
 .rcx-item strong{font:900 13px/1 var(--mono)}
 .rcx-item.is-back{opacity:.8}

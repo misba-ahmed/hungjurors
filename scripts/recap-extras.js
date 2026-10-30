@@ -199,7 +199,9 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
   const all=model.managers.flatMap(m=>[...m.starters,...m.bench].map(p=>({...p,owner:m.short}))).filter(p=>Number.isFinite(p.projection)&&p.projection>=3&&!['K','D/ST'].includes(p.pos)).map(p=>({...p,gap:p.points-p.projection}));
   if(all.length<10)return '';
   const boom=[...all].sort((a,b)=>b.gap-a.gap).slice(0,5),bust=[...all].sort((a,b)=>a.gap-b.gap).slice(0,5);
-  const item=(p,tone)=>`<div class="rcx-item">${head(p)}<div class="rcx-item-copy">${pname(p)}<small>${esc(hjRcTeam(p.proTeamId))} ${esc(p.pos)} · ${p.bench?`on ${esc(p.owner)}'s bench`:`started by ${esc(p.owner)}`}</small></div><span class="rcx-item-pts">${fmt1(p.points)}<small>proj ${fmt1(p.projection)}</small></span><strong class="${tone}">${hjRcSigned(p.gap,1)}</strong></div>`;
+  // Manager avatar, name and Started / Bench / IR, the same owner line as The High Five.
+  const owner=p=>`<span class="rcx-item-owner"><span class="rc-five-owner manager-profile-trigger" data-manager="${esc(p.owner)}" role="button" tabindex="0" aria-label="Open ${esc(p.owner)} profile">${av(p.owner,'rc-av')}<span>${esc(p.owner)}</span></span><span class="rc-five-slot">${!p.bench?'Started':p.entry?.lineupSlotId===21?'IR':'Bench'}</span></span>`;
+  const item=(p,tone)=>`<div class="rcx-item">${head(p)}<div class="rcx-item-copy">${pname(p)}<small>${esc(hjRcTeam(p.proTeamId))} ${esc(p.pos)}</small>${owner(p)}</div><span class="rcx-item-pts">${fmt1(p.points)}<small>proj ${fmt1(p.projection)}</small></span><strong class="${tone}">${hjRcSigned(p.gap,1)}</strong></div>`;
   return section('boombust','Boom and bust','the week’s biggest swings against the ESPN projection, rostered players',`<div class="rcx-two"><div><h4 class="rcx-sub is-good">Boom</h4>${boom.map(p=>item(p,'is-pos')).join('')}</div><div><h4 class="rcx-sub is-bad">Bust</h4>${bust.map(p=>item(p,'is-neg')).join('')}</div></div>`);
  }
 
