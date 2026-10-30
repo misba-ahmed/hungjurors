@@ -1680,7 +1680,14 @@
     "heightInches": 68,
     "name": "RJ Harvey",
     "teamId": 7,
-    "jersey": "12"
+    "jersey": "12",
+    "unavailable": {
+      "file": "4568490-crutches-v1.webp",
+      "width": 328,
+      "height": 850,
+      "ratio": 0.38588,
+      "kind": "injury"
+    }
   },
   "4569173": {
     "file": "4569173-faces-v2.webp",
@@ -2270,7 +2277,14 @@
     "heightInches": 74,
     "name": "Carnell Tate",
     "teamId": 10,
-    "jersey": "14"
+    "jersey": "14",
+    "unavailable": {
+      "file": "4871023-crutches-v1.webp",
+      "width": 343,
+      "height": 850,
+      "ratio": 0.40353,
+      "kind": "injury"
+    }
   },
   "4880281": {
     "file": "4880281-faces-v2.webp",
@@ -2358,5 +2372,25 @@
     "name": "Chig Okonkwo",
     "teamId": 28,
     "jersey": "85"
+  },
+  "4870795": {
+    "file": "4870795-faces-v1.webp",
+    "width": 302,
+    "height": 850,
+    "ratio": 0.35529,
+    "heightInches": 71,
+    "name": "Makai Lemon",
+    "teamId": 21,
+    "jersey": "9"
+  },
+  "4430968": {
+    "file": "4430968-faces-v1.webp",
+    "width": 317,
+    "height": 850,
+    "ratio": 0.37294,
+    "heightInches": 68,
+    "name": "Kimani Vidal",
+    "teamId": 24,
+    "jersey": "28"
   }
 }
