@@ -46,6 +46,7 @@ jobs:
           node --test scripts/test-completed-results.mjs scripts/test-free-throw-bet.mjs
           node scripts/test-sleeper-trends.mjs
           node scripts/test-player-stat-bars.mjs
+          node scripts/test-nflverse-extras.mjs
           node scripts/test-defense-fantasy-ranks.mjs
           node scripts/test-trade-finder.mjs
           node scripts/test-lineup-rules.mjs
@@ -72,6 +73,11 @@ jobs:
         env:
           PAGES_BASE_URL: ${{ steps.pages.outputs.base_url }}
         run: node scripts/refresh-sleeper-trends.mjs _site
+      - name: Refresh nflverse extras (expected points, QB hits)
+        continue-on-error: true
+        env:
+          PAGES_BASE_URL: ${{ steps.pages.outputs.base_url }}
+        run: node scripts/refresh-nflverse-extras.mjs _site
       - name: Refresh NFL schedule
         continue-on-error: true
         env:
@@ -224,6 +230,8 @@ jobs:
              if(!required.every(k=>header.includes(k))||!rows.length||rows.some(r=>Number(r.season)!==season))throw Error(`${kind} CSV schema/season mismatch`);
              const declared=html.match(kind==='stats'?/const PC_FIELDS=\[([^\]]+)\]/:/const PC_SNAP_FIELDS=\[([^\]]+)\]/)?.[1]||'';
              const fields=[...declared.matchAll(/['"]([^'"]+)['"]/g)].map(m=>m[1]);
+             // Snap rows keep the Pro Football Reference id so the site can match them to players by id.
+             if(kind==='snaps'&&header.includes('pfr_player_id')&&!fields.includes('pfr_player_id'))fields.push('pfr_player_id');
              if(fields.length<10)throw Error('Site stat field definitions missing');
              const compact=rows.filter(r=>kind==='snaps'||['QB','RB','WR','TE','K'].includes(r.position)).map(row=>Object.fromEntries(fields.map(k=>[k,row[k]??''])));
              if(!compact.length)throw Error(`${kind} feed has no applicable rows`);
