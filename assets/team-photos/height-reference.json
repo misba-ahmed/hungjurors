@@ -1192,5 +1192,17 @@
     "heightInches": 75,
     "source": "https://site.api.espn.com/apis/common/v3/sports/football/nfl/athletes/4360635",
     "checkedAt": "2026-10-29T22:31:03.738662+00:00"
+  },
+  "4870795": {
+    "name": "Makai Lemon",
+    "heightInches": 71,
+    "source": "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/4870795",
+    "checkedAt": "2026-10-30T23:20:37.015001+00:00"
+  },
+  "4430968": {
+    "name": "Kimani Vidal",
+    "heightInches": 68,
+    "source": "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/4430968",
+    "checkedAt": "2026-10-30T23:20:36.982539+00:00"
   }
 }
