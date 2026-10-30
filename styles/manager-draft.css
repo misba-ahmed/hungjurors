@@ -1,0 +1,12 @@
+/* Manager profile · Full draft by round (October 30, 2026): player photo beside each pick.
+ * Markup: scripts/manager-draft-avatars.js. Loaded at the end of <body> so it follows the inline board rules. */
+.manager-draft-player-cell.has-avatar{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;gap:8px}
+.manager-draft-player-copy{min-width:0}
+.manager-draft-avatar{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;overflow:hidden;background:#edf2f5;border:1px solid rgba(20,50,79,.10);color:var(--navy);font:850 8px/1 var(--mono);letter-spacing:.02em;text-transform:uppercase}
+.manager-draft-avatar img{display:block;width:100%;height:100%;object-fit:cover}
+.manager-draft-avatar.is-logo{background:#fff}
+.manager-draft-avatar.is-logo img{width:78%;height:78%;object-fit:contain}
+@media(max-width:620px){
+  .manager-draft-player-cell.has-avatar{grid-template-columns:26px minmax(0,1fr);gap:7px}
+  .manager-draft-avatar{width:26px;height:26px;font-size:7.5px}
+}
