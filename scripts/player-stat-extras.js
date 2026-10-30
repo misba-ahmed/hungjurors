@@ -188,10 +188,33 @@
     if(!values.has(key))values.set(key,hj40Snapshot(player)?.[key]?.value);
     return values.get(key);
   }
+  // Rate stats rank only players with enough volume behind them (NFL-leaderboard style): per team game
+  // in the period, or an absolute minimum for one week. Players below it keep their number (shown grey)
+  // and sort after everyone who qualifies, so a 1-target 100% CATCH % no longer tops the list.
+  const HJ40_RATE_MIN={catchPct:['tgt','targets',2,3],ydTar:['tgt','targets',2,3],adot:['tgt','targets',2,3],targetShare:['tgt','targets',2,3],airShare:['tgt','targets',2,3],sep:['tgt','targets',2,3],ydRec:['rec','catches',1.25,2],ypc:['rush','carries',5,5],cmpPct:['passAtt','attempts',14,10],passRtg:['passAtt','attempts',14,10],fgPct:['fga','field-goal attempts',1,1]};
+  function hj40TeamGames(player){
+    if(hj40PeriodWeek())return 1;
+    const state=HJ40.data.get(Number(HJ40.year)),teams=state?.dstByTeam;if(!teams)return 0;
+    // Weeks the player's team played (a defense row exists for every team game); free agents: the most any team has played.
+    const own=teams.get(pcTeam(player?.team))?.length;
+    return own||Math.max(0,...[...teams.values()].map(list=>list.length));
+  }
+  function hj40RateMinimum(player,key){
+    const rule=HJ40_RATE_MIN[key];if(!rule)return null;
+    const games=hj40TeamGames(player);if(!games)return null;
+    return {stat:rule[0],noun:rule[1],need:hj40PeriodWeek()?rule[3]:Math.ceil(rule[2]*games)};
+  }
+  function hj40Qualifies(player,key){
+    const min=hj40RateMinimum(player,key);if(!min)return true;
+    const snap=hj40Snapshot(player),v=snap?.[min.stat]?.value;if(!Number.isFinite(v))return false;
+    const total=HJ40.period==='avg'?v*(snap.__games||0):v;
+    return total>=min.need-1e-9;
+  }
   function hj40CompareStat(a,b,key){
     const av=hj40SortValue(a,key),bv=hj40SortValue(b,key);
     const aKnown=Number.isFinite(av),bKnown=Number.isFinite(bv);
     if(aKnown!==bKnown)return aKnown?-1:1;
+    if(aKnown&&HJ40_RATE_MIN[key]){const aq=hj40Qualifies(a,key),bq=hj40Qualifies(b,key);if(aq!==bq)return aq?-1:1}
     const rankOrder=aKnown?(HJ40.statSortDir==='asc'?av-bv:bv-av):0;
     if(rankOrder)return rankOrder;
     // For tied opponent ranks, useful weekly scorers lead in either rank direction.
@@ -240,10 +263,11 @@
     if(key==='oppRank')return hjOpponentRankHTML(metric?.value,hj40Pos(player.position),Number(NFL_SEASON)).replace('>#','>');
     return '<strong>'+esc(metric?.display||'—')+'</strong>';
   }
-  function hj40StatTitle(key,label){
+  function hj40StatTitle(key,label,player){
     const next=HJ40.statSort===key&&HJ40.statSortDir!=='asc'&&(key==='trend'||key==='oppRank')?'lowest to highest':'highest to lowest';
     const context=key==='recAir'?'Air yards: how far downfield the throws to him travelled, caught or not, added up (nflverse). ':key==='adot'?'Average depth of target: air yards per target, how far downfield he is thrown to on average (nflverse). ':key==='targetShare'?'Share of his team\'s targets in the games he played (nflverse). ':key==='airShare'?'Share of his team\'s air yards (how far downfield the throws to him travelled, caught or not) in the games he played (nflverse). ':key==='rzOpp'?'Red-zone opportunities: carries plus targets with the ball inside the opponent\'s 20 (nflverse play-by-play). Per game over the same games as FPTS. ':key==='sep'?'Average separation from the nearest defender when the ball arrives, in yards (NFL Next Gen Stats). Season figure for totals and averages; a week appears only when he met the NGS minimum. ':key==='xfp'?'Expected fantasy points, league scoring: what an average player scores with the same targets, carries and throws (where, how far, how deep). FPTS above XFP = finishing better than the opportunity. Source: ffopportunity (nflverse play-by-play), updated after each week. ':key==='qbHit'?'Quarterback hits by the defense (nflverse). ':key==='trend'?(HJ40.trendMetric==='adds'?'Sleeper · Last 24 hours · Adds. ':'Sleeper · Last 24 hours · Net adds (adds minus drops). '):key==='oppRank'?'Current week opponent rank vs this position; 1 allows fewest fantasy points. Ties use highest weekly projection. ':key==='startPct'?'Currently started in ESPN leagues. ':key==='rostPct'?'Currently rostered in ESPN leagues. ':'';
-    return context+'Sort by '+label+': '+next;
+    const min=player&&HJ40_RATE_MIN[key]?hj40RateMinimum(player,key):null,low=min&&!hj40Qualifies(player,key)?'Below the minimum for ranking ('+min.need+' '+min.noun+(hj40PeriodWeek()?'':' this season')+'), so listed after players who qualify. ':'';
+    return low+context+'Sort by '+label+': '+next;
   }
   function hj40RefreshExtraMetrics(){
     HJ40.snapshotCache.clear();

@@ -143,5 +143,7 @@
 #hq-panel-free-agents .hq40-card.has-mv-column .hjmv-col{border-radius:0 8px 8px 0!important}
 #hq-panel-free-agents .hq40-card.has-mv-column.has-pff-column .hq40-pff-proj{border-radius:0!important}
 #hq-panel-free-agents .hq40-card.has-pff-column:not(.has-mv-column) .hq40-pff-proj{border-radius:0 8px 8px 0!important}
+/* Rate stats below the ranking minimum (hj40Qualifies): the number stays, greyed; they sort after qualified players. */
+#hq-panel-free-agents .hq40-card .hq40-stat-btn.is-low-sample strong{color:#9aa5af!important}
 /* The old footnote under the list is gone; the hint lives in the toolbar. */
 .hq-player-directory-note{display:none!important}

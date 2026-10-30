@@ -19,6 +19,7 @@ export function preparePlayerStatBars(html){
  }
  updated=updated.replace(/('D\/ST':\[)([^\n]+)(\]\n)/,(_,start,items,end)=>start+items+',["rostPct","ROST %"],["startPct","START %"],["trend","TREND 24H"],["oppRank","OPP RK"]'+end);
  replace(block,updated);
+ replace("class=\"hq40-stat-btn${selected?' is-sort':''}\" data-hq40-sort-stat=","class=\"hq40-stat-btn${selected?' is-sort':''}${hj40Qualifies(player,key)?'':' is-low-sample'}\" data-hq40-sort-stat=");
  replace("key!=='pffGrade'&&(key!=='snap'||HJ40.period!=='total')","key!=='pffGrade'");
  replace("['snap','catchPct','cmpPct','fgPct','airShare','targetShare']","['snap','catchPct','cmpPct','fgPct','airShare','targetShare','rostPct','startPct']");
  replace("const value=statKey==='pffGrade'?hj40PffGrade(player):hj40Finite(raw.values[statKey]);","const value=['rostPct','startPct','trend','oppRank'].includes(statKey)?hj40ExtraValue(player,statKey):statKey==='pffGrade'?hj40PffGrade(player):hj40Finite(raw.values[statKey]);");
@@ -26,7 +27,7 @@ export function preparePlayerStatBars(html){
  replace("if(HJ40.statSort){const av=hj40Snapshot(a)?.[HJ40.statSort]?.value,bv=hj40Snapshot(b)?.[HJ40.statSort]?.value,aa=Number.isFinite(av)?av:-Infinity,bb=Number.isFinite(bv)?bv:-Infinity;return bb-aa||a.name.localeCompare(b.name)}","if(HJ40.statSort)return hj40CompareStat(a,b,HJ40.statSort);");
  replace("if(stat){HJ40.statSort=stat.dataset.hq40SortStat||'';","if(stat){hj40SelectStat(stat.dataset.hq40SortStat||'');");
  replace("if(key==='pffGrade')return value.toFixed(1);","if(key==='pffGrade')return value.toFixed(1);\n    if(key==='trend')return hj40TrendCount(value);\n    if(key==='oppRank')return String(Math.round(value));");
- replace("title=\"Sort by ${esc(label)}\" aria-pressed=\"${selected}\"><small>${esc(label)}</small><strong>${esc(metric?.display||'—')}</strong>","title=\"${esc(hj40StatTitle(key,label))}\" aria-pressed=\"${selected}\" data-sort-direction=\"${selected?(HJ40.statSortDir||'desc'):''}\"><small>${esc(label)}</small>${hj40StatValueHTML(player,key,metric)}");
+ replace("title=\"Sort by ${esc(label)}\" aria-pressed=\"${selected}\"><small>${esc(label)}</small><strong>${esc(metric?.display||'—')}</strong>","title=\"${esc(hj40StatTitle(key,label,player))}\" aria-pressed=\"${selected}\" data-sort-direction=\"${selected?(HJ40.statSortDir||'desc'):''}\"><small>${esc(label)}</small>${hj40StatValueHTML(player,key,metric)}");
  replace("const statLabel=HJ40.statSort?(HJ40_LABELS.get(HJ40.statSort)||HJ40.statSort):'';","const statLabel=HJ40.statSort?(HJ40_LABELS.get(HJ40.statSort)||HJ40.statSort)+(['trend','oppRank'].includes(HJ40.statSort)?(HJ40.statSortDir==='asc'?' ↑':' ↓'):''):'';");
  replace("function hj40StickyState(){","function hj40StickyState(){\n    hj40QueueTopBubble();hj40RefreshOwnership();hj40RefreshSleeper();");
  replace("async function hjLoadGameRanks(){",opponentRankUpdates+'\nasync function hjLoadGameRanks(){');
