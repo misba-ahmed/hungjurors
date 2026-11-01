@@ -115,6 +115,27 @@ export function prepareSite(html){
  const swap=(from,to)=>{if(html.includes(from))html=html.split(from).join(to);else console.warn('perf swap skipped: source changed');};
  swap("const row=data.rows.find(item=>String(item.position||'').toUpperCase()===position&&pcNameMatch(item.name,name));",
   "const row=(typeof hjVegasRowFor==='function'?hjVegasRowFor(data.rows,position,name):data.rows.find(item=>String(item.position||'').toUpperCase()===position&&pcNameMatch(item.name,name)));");
+ // Games played (Nov 1). ESPN sends an empty stat line (0 points, no stats) for every week a player sat out.
+ // Each became a game row: Josh Jacobs (2 games, 43.30 FPTS) showed 8 games and 5.41 FPTS/G on his profile,
+ // and the empty rows had no targets, so his receptions tile read "11/—". 289 such rows this season.
+ // 1. An ESPN week is a game only when it has points or a real stat. ESPN also sends lines holding only
+ //    "active" (stat 210) and the team's win / loss (155-157): Jadarian Price, week 4, 0 snaps. Those weeks
+ //    show as DNP in the game log (or NO STATS when he had offensive snaps), from the schedule.
+ swap("stats.filter(stat=>Number(stat?.scoringPeriodId)>0&&Number(stat?.statSourceId)===0&&hjNumber(stat?.appliedTotal)!==null&&pcEspnActualSeasonMatch(stat,season))",
+  "stats.filter(stat=>Number(stat?.scoringPeriodId)>0&&Number(stat?.statSourceId)===0&&hjNumber(stat?.appliedTotal)!==null&&pcEspnActualSeasonMatch(stat,season)&&(Number(stat.appliedTotal)!==0||Object.entries(stat?.stats||{}).some(([id,value])=>!['155','156','157','210'].includes(String(id))&&Number(value)!==0)))");
+ // 2. ESPN leaves out a stat that is zero: no targets and no catches is 0 targets, not unknown.
+ swap("receptions:rec??0,targets:targets??'',","receptions:rec??0,targets:targets??(rec?'':0),");
+ // 3. One rule for "played", the same as the Players tab: fantasy points, any offensive or kicking stat,
+ //    an ESPN stat line (ESPN has one only for games played, after 1), or offensive snaps.
+ swap("function pcAverage(values){const clean=values.filter(Number.isFinite);return clean.length?clean.reduce((a,b)=>a+b,0)/clean.length:0}",
+  "function pcAverage(values){const clean=values.filter(Number.isFinite);return clean.length?clean.reduce((a,b)=>a+b,0)/clean.length:0}\nfunction pcRowPlayed(row,snaps){if(!row||row.pc_status)return false;if(row.pc_espn_actual)return true;const points=pcPoints(row);if(Number.isFinite(points)&&points!==0)return true;if(['attempts','completions','carries','targets','receptions','passing_yards','rushing_yards','receiving_yards','passing_interceptions','fumbles_lost_total','fg_att','fg_made','fg_missed','pat_att','pat_made','pat_missed'].some(key=>{const v=Number(row[key]);return Number.isFinite(v)&&v!==0}))return true;const snap=snaps?pcSnap(row,snaps):null;return Number(snap?.offense_snaps)>0||Number(snap?.offense_pct)>0}");
+ // 4. Profile FPTS / game: games played, counting a game with snaps but no stat line ("NO STATS" in the log).
+ swap("  const latest=rows.at(-1),rank=pcPlayerRank(leaderboard,latest),total=rows.reduce((sum,row)=>sum+pcPoints(row),0),avg=total/rows.length;",
+  "  const latest=rows.at(-1),rank=pcPlayerRank(leaderboard,latest),total=rows.reduce((sum,row)=>sum+pcPoints(row),0),games=rows.filter(row=>pcRowPlayed(row,snaps)).length+pcCompleteWeeks(rows,player,season,schedule,snaps).filter(row=>row.pc_status==='NO STATS').length,avg=games?total/games:null;");
+ swap("<span class=\"pc-metric-sub\">${rows.length} games played</span>","<span class=\"pc-metric-sub\">${games} game${games===1?'':'s'} played</span>");
+ // 5. Situational splits (FPTS/G per split) and the leaderboard's per-game tiebreak: games played only.
+ swap("  const pos=player.position,make=(label,rows)=>rows.length?{label,games:","  playerRows=playerRows.filter(row=>pcRowPlayed(row));\n  const pos=player.position,make=(label,rows)=>rows.length?{label,games:");
+ swap("const item=map.get(key);item.total+=pcPoints(row);item.games++});","const item=map.get(key);item.total+=pcPoints(row);if(pcRowPlayed(row))item.games++});");
  // Manager profile Latest Activity (Oct 30): one card per ESPN transaction. Cards were grouped by process time, so
  // two waiver claims processed in the same second (add + drop, add + drop) shared one box. Card heights: league-activity.css.
  swap("const at=Number(row?.at)||0,source=String(row?.source||row?.type||'MOVE'),key=`${at}|${source}`;",

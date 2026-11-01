@@ -799,8 +799,9 @@
   let out=null;
   try{
    const pos=String(like.position||'').toUpperCase();
+   // Games played only (pcRowPlayed, prepare-site.mjs): a week the player sat out is not a 0-point game.
    const rows=(typeof pcPlayerRows==='function'?pcPlayerRows(USAGE.rows,{id:like.id,name:like.name,position:pos}):[])
-    .slice().sort((a,b)=>Number(a.week)-Number(b.week));
+    .filter(r=>typeof pcRowPlayed!=='function'||pcRowPlayed(r,USAGE.snaps)).sort((a,b)=>Number(a.week)-Number(b.week));
    if(rows.length){
     const statName=baseName(rows[0].player_display_name||rows[0].player_name||like.name);
     const series=rows.map(r=>{
