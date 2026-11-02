@@ -2392,5 +2392,15 @@
     "name": "Kimani Vidal",
     "teamId": 24,
     "jersey": "28"
+  },
+  "2977187": {
+    "file": "2977187-faces-v1.webp",
+    "width": 305,
+    "height": 850,
+    "ratio": 0.35882,
+    "heightInches": 73,
+    "name": "Cooper Kupp",
+    "teamId": 26,
+    "jersey": "10"
   }
 }

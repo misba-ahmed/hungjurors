@@ -1204,5 +1204,11 @@
     "heightInches": 68,
     "source": "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/4430968",
     "checkedAt": "2026-10-30T23:20:36.982539+00:00"
+  },
+  "2977187": {
+    "name": "Cooper Kupp",
+    "heightInches": 73,
+    "source": "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/2977187",
+    "checkedAt": "2026-11-02T00:46:36.737183+00:00"
   }
 }
