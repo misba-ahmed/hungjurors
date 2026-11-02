@@ -59,7 +59,10 @@
  function poolPlayer(st,id){return st.pool?.get(String(id))||null}
  async function corePlays(st,full){
   const id=st.eventId;
-  if(full||!st.plays){const d=await getJson(playsUrl(id),0);st.plays=new Map((d.items||[]).map(p=>[String(p.id),p]));st.playCount=Number(d.count)||st.plays.size;st.playsAt=Date.now();return st.plays}
+  if(full||!st.plays){const d=await getJson(playsUrl(id),0),items=[...(d.items||[])];
+   // A game has about 200-300 plays; read further pages if the feed ever splits them.
+   for(let page=2;page<=Math.min(Number(d.pageCount)||1,5);page++){const n=await getJson(playsUrl(id,400,page),0);items.push(...(n.items||[]))}
+   st.plays=new Map(items.map(p=>[String(p.id),p]));st.playCount=Number(d.count)||st.plays.size;st.playsAt=Date.now();return st.plays}
   // Live: the newest page only; a full reload every two minutes picks up corrections.
   if(Date.now()-st.playsAt>120000)return corePlays(st,true);
   const page=Math.max(1,Math.ceil((st.playCount||1)/50)),d=await getJson(playsUrl(id,50,page),0);
@@ -83,8 +86,15 @@
  // A name whose last word is kept together with what follows it (the site's injury badge is placed inside the
  // first <b> of a player link): long names wrap between words, never cut off, and the badge never sits alone.
  function nameHTML(name){const parts=String(name||'').trim().split(/\s+/),last=parts.pop()||'';return `${parts.length?`${E(parts.join(' '))} `:''}<b class="gc-last">${E(last)}</b>`}
+ // Ownership by ESPN player id only. (The shared helper falls back to the name when an id is not on a roster,
+ // which would hand a rostered player's manager to a different player with the same name.)
+ function ownership(p){
+  const id=String(p?.id||''),byId=typeof HJ_PLAYER_DIRECTORY!=='undefined'?HJ_PLAYER_DIRECTORY.ownershipById:null;
+  if(/^-?\d+$/.test(id)&&byId instanceof Map)return byId.get(id)||{owned:false};
+  return typeof hjOwnershipForPlayerLike==='function'?hjOwnershipForPlayerLike({id:p?.id,name:p?.name,team:p?.team,position:p?.pos}):null;
+ }
  function owner(p){
-  const own=typeof hjOwnershipForPlayerLike==='function'?hjOwnershipForPlayerLike({id:p.id,name:p.name,team:p.team,position:p.pos}):null;
+  const own=ownership(p);
   return own?.owned?`<span class="gc-owner">${av(own.owner,'gc-mav')}<span>${E(own.owner)}</span></span>`:'<span class="gc-owner is-fa">FA</span>';
  }
  function fpChip(v,label=''){if(!Number.isFinite(v))return '';return `<span class="gc-fp${v>0?' is-pos':v<0?' is-neg':''}"${label?` title="${E(label)}"`:''}>${signed(v)}</span>`}
@@ -97,14 +107,14 @@
  }
  // Owner line for play chips: manager avatar and name, as everywhere else; nothing for a free agent.
  function ownerChip(p){
-  if(!p||typeof hjOwnershipForPlayerLike!=='function')return '';
-  const own=hjOwnershipForPlayerLike({id:p.id,name:p.name,team:p.team,position:p.pos});
+  if(!p)return '';
+  const own=ownership(p);
   return own?.owned?`<span class="gc-owner is-mini">${av(own.owner,'gc-mav')}<span>${E(own.owner)}</span></span>`:'';
  }
  // Manager name only (the depth-chart style, no avatar), where a cell has no room for more: schedules.
  function ownerName(p){
-  if(!p||typeof hjOwnershipForPlayerLike!=='function')return '';
-  const own=hjOwnershipForPlayerLike({id:p.id,name:p.name,team:p.team,position:p.pos});
+  if(!p)return '';
+  const own=ownership(p);
   return own?.owned?`<small class="gc-own">${E(own.owner)}</small>`:'';
  }
  // Green at or above the projection, orange within 70% of it, red below.
@@ -392,7 +402,14 @@
  const CODE_ALIAS={BLT:'BAL',CLV:'CLE',HST:'HOU',ARZ:'ARI',LA:'LAR',WSH:'WAS',JAC:'JAX',SL:'STL'};
  function gamePeople(st){
   const people=new Map(),ids=new Map();
-  const add=(teamId,first,last,info)=>{const t=st.teams.find(x=>String(x.id)===String(teamId));if(!t||!last)return;const k=`${t.id}|${nameKey(first,last)}`;if(!people.has(k))people.set(k,info);if(info.id&&!ids.has(String(info.id)))ids.set(String(info.id),{...info,team:t})};
+  // Sources fill each other's gaps (the box score has no positions; the roster has them), keyed by player id.
+  const fill=(a,b)=>{for(const f of ['id','name','headshot','pos'])if(!a[f]&&b[f])a[f]=b[f];return a};
+  const add=(teamId,first,last,info)=>{const t=st.teams.find(x=>String(x.id)===String(teamId));if(!t||!last)return;const key=nameKey(first,last),k=`${t.id}|${key}`;
+   const id=String(info.id||''),known=id&&ids.get(id);
+   if(known){fill(known,info);const same=people.get(`${known.team.id}|${known.key}`);if(same&&String(same.id)===id)fill(same,info);return}
+   const rec={...info};if(!people.has(k))people.set(k,rec);else if(String(people.get(k).id||'')===id)fill(people.get(k),info);
+   if(id)ids.set(id,Object.assign(rec,{team:t,key,last:normKey(String(last).trim().replace(SUFFIX,''))}))};
+  for(const [teamId,roster] of Object.entries(st.rosters||{}))for(const x of roster||[])add(teamId,x.firstName,x.lastName,{id:x.id,name:x.displayName,headshot:x.headshot?.href,pos:x.position?.abbreviation});
   for(const team of st.summary?.boxscore?.players||[])for(const c of team.statistics||[])for(const a of c.athletes||[]){const x=a.athlete||{};add(team.team?.id,x.firstName,x.lastName,{id:x.id,name:x.displayName,headshot:x.headshot?.href})}
   for(const team of st.summary?.injuries||[])for(const i of team.injuries||[]){const x=i.athlete||{},[f,...l]=String(x.displayName||'').split(' ');add(team.team?.id,f,l.join(' '),{id:x.id,name:x.displayName,headshot:x.headshot?.href,pos:x.position?.abbreviation})}
   for(const p of st.pool?.values()||[]){if(p.pos==='D/ST')continue;const [f,...l]=String(p.name).split(' ');add(p.teamId,f,l.join(' '),{id:p.id,name:p.name})}
@@ -415,7 +432,11 @@
    const short=m[2].trim(),[ini,...rest]=short.split('.'),key=nameKey(ini,rest.join('.'));
    let t=byCode.get(m[1]);if(!t){const hits=st.teams.filter(x=>people.has(`${x.id}|${key}`));if(hits.length===1)t=hits[0]}
    if(!t)continue;
-   const person=people.get(`${t.id}|${key}`)||{name:short.replace('.','. ')};
+   // The injury note gives a short name only ("BUF-J.Cook"), no id. Resolve it to a player id: first among the
+   // players on that play (the play data carries their ids; among those few the last name is enough, and the note's
+   // initial can be a nickname's: "Z.Knight" is Bam Knight), then on the team's roster; everything after uses the id.
+   const coreP=core[coreAt.get(String(pl.id))],onPlay=[...new Set((coreP?.participants||[]).map(x=>window.hjGameFantasy?.idOf(x.athlete?.$ref)||''))].map(id=>ids.get(id)).filter(x=>x&&x.team===t&&x.last===normKey(rest.join('.').trim().replace(SUFFIX,'')));
+   const person=(onPlay.length===1?onPlay[0]:null)||people.get(`${t.id}|${key}`)||{name:short.replace('.','. ')};
    const esc=short.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),update=new RegExp(`${m[1]}-${esc} has returned to the game`);
    // Back in the game: the "has returned" update, or his next play (by player id), whichever comes first.
    let back=null;for(let j=idx+1;j<plays.length;j++)if(update.test(String(plays[j].text||''))){back=plays[j];break}
@@ -440,9 +461,15 @@
   }
   return out;
  }
+ // Both teams' rosters (player ids for linemen and others who never appear in the box score).
+ async function loadRosters(st){
+  if(st.rosters)return;st.rosters={};
+  await Promise.all(st.teams.map(async t=>{try{const d=await getJson(`${ESPN}/teams/${t.id}/roster`,3600000);st.rosters[t.id]=(d?.athletes||[]).flatMap(g=>g.items||[])}catch(_){st.rosters[t.id]=[]}}));
+  render(st);
+ }
  const qclock=pl=>`${Number(pl?.period?.number)>4?'OT':`Q${pl?.period?.number||''}`} ${pl?.clock?.displayValue||''}`.trim();
  function injuriesHTML(st){
-  const list=st.summary?.injuries||[],state=stateOf(st),hurt=state==='pre'?[]:inGameInjuries(st);
+  const list=st.summary?.injuries||[],state=stateOf(st);if(state!=='pre'&&!st.rosters)loadRosters(st);const hurt=state==='pre'?[]:inGameInjuries(st);
   if(!list.length&&!hurt.length)return '';
   const designation=id=>list.flatMap(x=>x.injuries||[]).find(i=>String(i.athlete?.id)===String(id))?.status||'';
   const personHTML=(t,person)=>{const p=poolPlayer(st,person.id);if(p)return who(st,p.id,person.name||p.name,{sub:`${t.abbr} ${p.pos}`});
@@ -473,59 +500,72 @@
 
  /* ---------- depth charts: both teams side by side, position down the middle ---------- */
  // The team depth feed lists players in the team's order whatever their game status, so a player ruled out
- // (O, IR, PUP, NFI, suspended, inactive) kept his slot with only a badge. The game page fills each slot with the
- // next available player, using the same player statuses as the badges across the site, and lists the
- // ruled-out players under the chart. Questionable and doubtful players keep their slot with their badge.
- // The depth feed's normalize step is replaced so the full order per position is kept (fetchTeamDepth's own rows
- // are unchanged for anything else that uses them).
+ // (O, IR, PUP, NFI, suspended, inactive) kept his slot with only a badge. The game page fills his slot with the
+ // next player, using the same player statuses as the badges across the site, and lists the ruled-out players
+ // under the chart. Questionable and doubtful players keep their slot with their badge.
+ // No site depth logic is copied or replaced: the same feed fetchTeamDepth reads is fetched again and passed to
+ // the site's own normalizeDepth with the ruled-out players taken out, so the site decides who is next (and any
+ // later change to normalizeDepth applies here too). If that feed does not give the site's rows exactly (by player
+ // id), the site's rows are shown unchanged.
  const NOT_PLAYING=new Set(['O','IR','PUP','NFI','SUS','SUSP','INACTIVE']);
- const DEPTH_SLOTS=[['QB','QB',0],['RB1','RB',0],['RB2','RB',1],['WR1','WR',0],['WR2','WR',1],['WR3','WR',2],['TE','TE',0],['K','K',0]];
- const DEPTH_KEEP={QB:3,RB:5,WR:6,TE:3,K:2};
- if(typeof normalizeDepth==='function'&&typeof attachInjuries==='function'&&typeof depthList==='function'&&typeof normalizedPos==='function'){
-  normalizeDepth=function(data,rosterMap=new Map()){
-   const charts=depthList(data?.depthCharts??data?.depthcharts??data?.items??[]),pool={QB:[],RB:[],WR:[],TE:[],K:[]},seen=new Set();
-   for(const chart of charts)for(const [slotKey,slot] of Object.entries(chart?.positions||{}))for(const entry of depthList(slot?.athletes??slot?.items)){
-    const nested=entry?.athlete||entry?.player||entry||{},ref=nested?.$ref||entry?.$ref||entry?.athlete?.$ref||'';
-    const id=String(nested?.id||entry?.athleteId||entry?.playerId||athleteIdFromRef(ref)||''),roster=id?rosterMap.get(id):null;
-    const pos=normalizedPos(slotKey,slot,entry,nested)||roster?.pos||'';if(!pool[pos])continue;
-    const name=nested?.displayName||nested?.fullName||nested?.shortName||entry?.displayName||entry?.fullName||roster?.name||'';if(!name)continue;
-    const key=`${pos}:${id||name.toLowerCase()}`;if(seen.has(key))continue;seen.add(key);
-    pool[pos].push({id,name,rank:Number(entry?.rank??entry?.depth??entry?.order??nested?.rank)||99,slot:String(slotKey||''),headshot:nested?.headshot?.href||entry?.headshot?.href||roster?.headshot||(id?nflHeadshot(id):'')});
+ const DEPTH_LABELS=['QB','RB1','RB2','WR1','WR2','WR3','TE','K'];
+ async function depthSource(teamKey,rows){
+  try{
+   if(typeof normalizeDepth!=='function'||typeof depthList!=='function'||typeof athleteIdFromRef!=='function'||typeof populatedDepthCount!=='function')return null;
+   const teamId=NFL_TEAM_IDS[String(teamKey).toLowerCase()];if(!teamId)return null;
+   // Same order of sources as fetchTeamDepth: the team depth feed, else the league depth feed named through the roster.
+   let data=await getJson(`${ESPN}/teams/${teamId}/depthcharts`,300000).catch(()=>null),map=new Map();
+   if(populatedDepthCount(normalizeDepth(data))===0){
+    const [roster,core]=await Promise.all([getJson(`${ESPN}/teams/${teamId}/roster`,3600000).catch(()=>null),getJson(`${CORE}/seasons/${NFL_SEASON}/teams/${teamId}/depthcharts`,300000).catch(()=>null)]);
+    data=core;map=roster&&typeof rosterLookup==='function'?rosterLookup(roster):new Map();
    }
-   for(const arr of Object.values(pool))arr.sort((x,y)=>(x.rank-y.rank)||x.slot.localeCompare(y.slot)||x.name.localeCompare(y.name));
-   const rows=DEPTH_SLOTS.map(([label,pos,i])=>[label,pool[pos][i]]);rows.pool=pool;return rows;
-  };
-  const baseAttach=attachInjuries;
-  attachInjuries=function(rows,injuryMap){
-   const result=baseAttach(rows,injuryMap);
-   if(rows?.pool){const find=p=>(p.id&&injuryMap.byId.get(String(p.id)))||injuryMap.byName.get(p.name.toLowerCase().replace(/[^a-z0-9]/g,''))||null;
-    result.pool=Object.fromEntries(Object.entries(rows.pool).map(([pos,list])=>[pos,list.slice(0,DEPTH_KEEP[pos]||3).map(p=>{const injury=find(p);return injury?{...p,injury}:p})]))}
-   return result;
-  };
+   const check=normalizeDepth(data,map);
+   const same=DEPTH_LABELS.every(l=>String(check.find(r=>r[0]===l)?.[1]?.id||'')===String(rows.find(r=>r[0]===l)?.[1]?.id||''));
+   return same?{data,map}:null;
+  }catch(_){return null}
+ }
+ const entryId=e=>{const n=e?.athlete||e?.player||e||{};return String(n?.id||e?.athleteId||e?.playerId||athleteIdFromRef(n?.$ref||e?.$ref||e?.athlete?.$ref||'')||'')};
+ function withoutPlayers(data,ids){
+  const copy=typeof structuredClone==='function'?structuredClone(data):JSON.parse(JSON.stringify(data));
+  for(const k of ['depthchart','depthCharts','depthcharts','items'])for(const chart of depthList(copy?.[k]))for(const slot of Object.values(chart?.positions||{}))
+   for(const f of ['athletes','items'])if(slot?.[f])slot[f]=depthList(slot[f]).filter(e=>!ids.has(entryId(e)));
+  return copy;
  }
  function playerStatus(p){
   const live=typeof hjStatusIndex==='function'?hjStatusIndex().get(String(p?.id||'')):null;
   return live?{code:live.code,status:titleCase(live.label||live.code)}:p?.injury?.code?{code:p.injury.code,status:p.injury.status,type:p.injury.type}:null;
  }
- // Slots for one team at render time, so a status change shows on the next refresh.
- function depthSlots(st,i){
-  const d=st.depth,team=i?st.game.b:st.game.a,pool=i?d.poolB:d.poolA,base=i?d.b:d.a;
-  if(!pool)return {rows:base,out:[]};
-  const avail={},out=[];
-  for(const [pos,list] of Object.entries(pool)){avail[pos]=[];list.forEach((p,n)=>{const s=playerStatus(p);
-   if(s&&NOT_PLAYING.has(String(s.code).toUpperCase())){const slot=DEPTH_SLOTS.find(([,sp,si])=>sp===pos&&si===n);if(slot)out.push({label:slot[0],p,s})}
-   else avail[pos].push(p)})}
-  const rows=hjDepthWithDefense(team,DEPTH_SLOTS.map(([label,pos,n])=>[label,avail[pos]?.[n]]));
+ const ruledOut=p=>{const s=playerStatus(p);return !!s&&NOT_PLAYING.has(String(s.code).toUpperCase())};
+ // Rows for one team with ruled-out players taken out (repeated in case the next man up is out too).
+ function depthLineup(src,baseRows){
+  let rows=baseRows;const out=[],removed=new Set();
+  if(!src)return {rows,out};
+  for(let k=0;k<6;k++){
+   const hit=rows.filter(([,p])=>p&&p.id&&!removed.has(String(p.id))&&ruledOut(p));if(!hit.length)break;
+   hit.forEach(([label,p])=>{removed.add(String(p.id));out.push({label,p,s:playerStatus(p)})});
+   rows=normalizeDepth(withoutPlayers(src.data,removed),src.map);
+  }
+  // Keep the site's own player objects (injury, image) for players it already listed.
+  rows=rows.map(([l,p])=>[l,p&&baseRows.find(r=>r[1]&&String(r[1].id)===String(p.id))?.[1]||p]);
   return {rows,out};
+ }
+ // Statuses are today's, so they only apply to this week's games before or during the game: a finished game (or
+ // another week's) keeps the depth feed's order, since a player hurt afterwards still played in it.
+ // Statuses of the players on the chart, to redraw when one changes (the site's status feed updates on its own).
+ const depthSig=st=>(st.depthIds||[]).map(id=>typeof hjStatusIndex==='function'?hjStatusIndex().get(id)?.code||'':'').join('|');
+ function depthSlots(st,i){
+  const d=st.depth,team=i?st.game.b:st.game.a,current=Number(st.week)===curWeek()&&stateOf(st)!=='post';
+  const {rows,out}=depthLineup(current?(i?d.srcB:d.srcA):null,i?d.rowsB:d.rowsA);
+  return {rows:hjDepthWithDefense(team,rows),out};
  }
  async function loadDepth(st,again){
   if(!st.game||(!again&&st.depth!==undefined))return;if(!again)st.depth=null;
   try{
    const g=st.game,[a,b]=await Promise.all([fetchTeamDepth(g.a[1]),fetchTeamDepth(g.b[1])]);
-   const ra=hjDepthWithDefense(g.a,a.rows),rb=hjDepthWithDefense(g.b,b.rows);
-   const extra=(pool,team)=>Object.entries(pool||{}).flatMap(([pos,list])=>list.map(p=>[pos,p]));
-   await hjHydrateDepthPoints([...ra,...rb,...extra(a.rows.pool),...extra(b.rows.pool)],g).catch(()=>{});
-   st.depth={a:ra,b:rb,poolA:a.rows.pool,poolB:b.rows.pool,at:Date.now()};
+   const [srcA,srcB]=await Promise.all([depthSource(g.a[1],a.rows),depthSource(g.b[1],b.rows)]);
+   const lineA=depthLineup(srcA,a.rows).rows,lineB=depthLineup(srcB,b.rows).rows;
+   await hjHydrateDepthPoints([...hjDepthWithDefense(g.a,a.rows),...hjDepthWithDefense(g.b,b.rows),...lineA,...lineB],g).catch(()=>{});
+   st.depth={rowsA:a.rows,rowsB:b.rows,srcA,srcB,at:Date.now()};
   }catch(_){if(!again)st.depth=false}
   render(st);
  }
@@ -547,13 +587,14 @@
   if(st.depth===undefined)loadDepth(st);
   if(!st.depth)return section('depth','Depth charts',st.depth===false?'<p class="gc-empty">Depth charts are unavailable right now.</p>':'<div class="gc-loading-row"><span class="depth-live-dot"></span>Loading depth charts…</div>');
   const A=depthSlots(st,0),B=depthSlots(st,1);
+  st.depthIds=[...st.depth.rowsA,...st.depth.rowsB,...A.rows,...B.rows].map(r=>String(r?.[1]?.id||'')).filter(Boolean);st.depthSig=depthSig(st);
   const labels=[...new Set([...A.rows.map(r=>r[0]),...B.rows.map(r=>r[0])])];
   const find=(rows,l)=>rows.find(r=>r[0]===l)?.[1]||null;
   const rows=labels.map(l=>`<div class="gc-dc-row">${depthCell(st,0,l,find(A.rows,l))}<span class="gc-dc-label">${E(l==='D/ST'?'DST':l)}</span>${depthCell(st,1,l,find(B.rows,l))}</div>`).join('');
   // Ruled out of the game: the players who would otherwise hold a slot above.
   const outList=(list,i)=>{const abbr=st.teams[i].abbr;return list.length?list.map(({label,p,s})=>`<span class="gc-dc-outp"><button type="button" class="gc-linkish pc-player-trigger" ${ffnPlayerDataAttrs({id:p.id,name:p.name,team:abbr,position:label.replace(/\d+/g,''),photo:p.headshot})}>${nameHTML(p.name)}</button><small>${E(label)} · ${E(s?.status||'Out')}${(()=>{const d=(st.summary?.injuries||[]).flatMap(x=>x.injuries||[]).find(x=>String(x.athlete?.id)===String(p.id))?.details,t=s?.type||d?.type;return t?` · ${E(t)}`:''})()}</small></span>`).join(''):'<span class="gc-dc-outp is-none">None</span>'};
   const outs=(A.out.length||B.out.length)?`<div class="gc-dc-row gc-dc-outrow"><div class="gc-dc-outs is-away">${outList(A.out,0)}</div><span class="gc-dc-label is-out">OUT</span><div class="gc-dc-outs is-home">${outList(B.out,1)}</div></div>`:'';
-  return section('depth','Depth charts',`<div class="gc-lead-head">${teamLabel(st.teams[0])}${teamLabel(st.teams[1])}</div><div class="gc-dc-list">${rows}${outs}</div>`,stateOf(st)==='pre'?'Projected points':'Fantasy points');
+  return section('depth','Depth charts',`<div class="gc-lead-head">${teamLabel(st.teams[0])}${teamLabel(st.teams[1])}</div><div class="gc-dc-list">${rows}${outs}</div>`,Number(st.week)!==curWeek()||stateOf(st)==='post'?'Today\'s depth chart':stateOf(st)==='pre'?'Projected points':'Fantasy points');
  }
 
  /* ---------- schedules ---------- */
@@ -572,17 +613,21 @@
   }
   return out;
  }
+ const SCHED_FP=new Map();
  async function loadScheduleFantasy(st){
   if(!st.schedFp){st.schedFp=new Map();st.schedFpWeeks=new Set()}
   const need=[...scheduleWeeks(st)].filter(([w])=>!st.schedFpWeeks.has(w));if(!need.length)return;
   need.forEach(([w])=>st.schedFpWeeks.add(w));
   await Promise.all(need.map(async([w,ids])=>{
+   const saved=SCHED_FP.get(w),fresh=saved&&(w<curWeek()||Date.now()-saved.at<300000);
+   if(fresh&&[...ids].every(id=>saved.rows.has(String(id)))){for(const [id,r] of saved.rows){st.schedFp.set(`${id}|${w}`,r);st.schedFp.set(`${id}|info`,r)}st.schedFp.set(`done|${w}`,true);return}
    try{
     const entries=await pcEspnLeaguePlayersRequest(Number(NFL_SEASON),w,'kona_player_info',{filterIds:{value:[...ids]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`11${NFL_SEASON}${w}`]}});
     for(const e of entries){const p=e.player||{};if(!p.id)continue;
      const info={id:String(p.id),name:p.fullName,pos:POS[p.defaultPositionId]||'',posId:p.defaultPositionId,team:abbrOf(p.proTeamId)},r={...info};
      for(const x of p.stats||[]){if(Number(x.seasonId)!==Number(NFL_SEASON)||Number(x.statSplitTypeId)!==1||Number(x.scoringPeriodId)!==w)continue;if(Number(x.statSourceId)===0)r.pts=Number(x.appliedTotal);else if(Number(x.statSourceId)===1)r.proj=Number(x.appliedTotal)}
-     st.schedFp.set(`${p.id}|${w}`,r);st.schedFp.set(`${p.id}|info`,info)}
+     st.schedFp.set(`${p.id}|${w}`,r);st.schedFp.set(`${p.id}|info`,info);
+     const keep=SCHED_FP.get(w)||{at:Date.now(),rows:new Map()};keep.at=Date.now();keep.rows.set(String(p.id),r);SCHED_FP.set(w,keep)}
    }catch(_){}
    st.schedFp.set(`done|${w}`,true);
   }));
@@ -676,7 +721,9 @@
   const delay=state==='in'?15000:soon?60000:0;if(delay)st.timer=setTimeout(()=>{if(document.hidden)schedule(st);else refresh(st)},delay);
  }
  function close(){
-  if(!active)return;const st=active;active=null;clearTimeout(st.timer);clearInterval(st.depthTimer);st.obs?.disconnect();
+  if(!active)return;const st=active;active=null;clearTimeout(st.timer);clearInterval(st.depthTimer);clearInterval(st.ownTimer);st.obs?.disconnect();
+  // The game's summary and play-by-play are large; drop them so browsing many games does not pile up memory on phones.
+  for(const k of [...cache.keys()])if(k.includes(String(st.eventId)))cache.delete(k);
   st.root.classList.remove('is-open');document.body.classList.remove('gc-modal-open');
   setTimeout(()=>st.root.remove(),300);setTimeout(()=>st.trigger?.focus?.({preventScroll:true}),310);
  }
@@ -702,6 +749,10 @@
   root.addEventListener('toggle',e=>{const d=e.target.closest?.('[data-gc-drive]');if(!d)return;if(d.open)st.ui.openDrives.add(d.dataset.gcDrive);else st.ui.openDrives.delete(d.dataset.gcDrive)},true);
   render(st);requestAnimationFrame(()=>root.classList.add('is-open'));
   st.depthTimer=setInterval(()=>{if(!document.hidden&&st.depth)loadDepth(st,true)},300000);
+  // Redraw when the league's rosters are rebuilt (first load, or an add/drop) so owners stay current, or when a
+  // depth-chart player's status changes.
+  st.ownRef=typeof HJ_PLAYER_DIRECTORY!=='undefined'?HJ_PLAYER_DIRECTORY.ownershipById:null;
+  st.ownTimer=setInterval(()=>{const m=typeof HJ_PLAYER_DIRECTORY!=='undefined'?HJ_PLAYER_DIRECTORY.ownershipById:null;if(m!==st.ownRef){st.ownRef=m;render(st)}else if(st.depth&&st.depthSig!==undefined&&depthSig(st)!==st.depthSig)render(st)},5000);
   if(g.lat&&g.lon&&typeof fetchKickoffWeather==='function')fetchKickoffWeather(g).then(w=>{st.siteWeather=w;render(st)}).catch(()=>{});
   refresh(st,true);
   setTimeout(()=>root.querySelector('.gc-close')?.focus({preventScroll:true}),80);

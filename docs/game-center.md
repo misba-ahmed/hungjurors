@@ -16,7 +16,9 @@ Same frame as the player and manager profiles: header board, a sticky section me
 Before kickoff: Depth charts (both teams across from each other, QB, RB1… down the middle, same projections and
 E/V toggle as before; a player ruled out — O, IR, PUP, NFI, suspended, inactive, by the same statuses as the site's
 badges — gives up his slot to the next player in the team's order and is listed in an OUT row under the chart;
-questionable and doubtful players keep their slot; refreshed every 5 minutes while the page is open), Matchup predictor, Season leaders, Odds & game environment (spread, total and moneyline cards
+questionable and doubtful players keep their slot; refreshed every 5 minutes while the page is open; statuses are
+today's, so this applies only to this week's games before and during the game — a finished game or another week's
+shows the depth feed's order, labelled "Today's depth chart"), Matchup predictor, Season leaders, Odds & game environment (spread, total and moneyline cards
 with prices, opening lines and movement, a scoring-band gauge for the total, each side's chance to win from the
 moneylines, implied team totals, then tiles for kickoff, stadium, weather and its impact, scoring environment, game
 script, rest days and home/road records), Injury report, Schedules (last five games, **Show full schedule** for every
@@ -33,12 +35,14 @@ before kickoff); open drives, the chosen tabs and scroll position survive each r
 
 The injury report also lists players hurt in the game, in two groups:
 - Injured during a play: from the play-by-play note ("BLT-L.Jackson was injured during the play"; the play text uses
-  its own team codes such as BLT, CLV, HST, ARZ). Returned = the "has returned to the game" update or his next play,
+  its own team codes such as BLT, CLV, HST, ARZ). The note has a short name only, no player id: it is resolved to
+  an id once (among the players on that play, whose ids the play data carries; else that team's roster) and the id is
+  used from then on. Returned = the "has returned to the game" update or his next play,
   matched by player id, never by name text. "Did not return" only for a player seen in the play data before he was
   hurt; otherwise "No return noted" (linemen rarely appear in the play data).
 - Injury reported after kickoff: players who took part in the game and whose injury report was updated after kickoff
   (within two days), with their last play; e.g. a quarterback who left without an injury note in the play text. Managers are shown everywhere a fantasy player appears: the usual manager avatar and name, or FA (play chips show
-nothing for a free agent; the depth charts use the same owner line); the schedule's leader cells use the depth-chart style (name only) to keep the row height. Every fantasy-relevant player has an avatar, opens his profile on top of the game (Escape or × returns to the game),
+nothing for a free agent; the depth charts use the same owner line); the schedule's leader cells use the depth-chart style (name only) to keep the row height. Players are matched by ESPN player id throughout, including ownership (no name fallback). Every fantasy-relevant player has an avatar, opens his profile on top of the game (Escape or × returns to the game),
 and shows his owner or FA. Players who are not fantasy-relevant appear by name only. Nothing on the page names or links
 to an outside site: tooltips written by shared helpers are reworded while the page is open.
 
@@ -50,3 +54,16 @@ by distance, PATs, and D/ST sacks, takeaways, safeties, blocked kicks and return
 Checked against the league's official week 8 totals: 544 of 556 player-games exact; the rest within 0.3 except two
 players on one lateral/double-fumble play. Points-allowed and yards-allowed D/ST tiers are game totals, not plays;
 the box score always shows each player's official league total.
+
+## Site functions this file replaces (edit them here, not in index.html)
+`scripts/game-center.js` loads after the site's own scripts and replaces three schedule-rail functions:
+`renderNFLWeekSchedule` (renders the shown week and the week switcher), `nflCardHTML` (front face only, opens the game
+page) and `nflUpdateScoreCard` (skipped while another week is shown). A change to those functions in index.html has
+no effect on the live site. Nothing else is replaced. The depth charts use `fetchTeamDepth` as it is; to fill the
+slot of a ruled-out player they fetch the same depth feed again and pass it to the site's own `normalizeDepth` with
+that player taken out, so the site's ordering rules decide who is next. If that feed does not reproduce the site's
+rows exactly (by player id), the site's rows are shown unchanged. The card-gesture test
+(`scripts/test-card-gestures.mjs`) checks that pulling the game page's header closes it.
+
+Memory and requests: a game's summary and play-by-play are dropped from memory when its page closes. League points for
+schedule leaders are shared across games (past weeks are kept; the current week refreshes after 5 minutes).

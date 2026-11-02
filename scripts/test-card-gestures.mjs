@@ -107,11 +107,13 @@ try{
     await begin('.award-modal-title');await touch('touchmove',160);await sleep(140);await touch('touchend',160);
     await page.waitForSelector('.award-modal-stage',{state:'detached',timeout:500});
    }else throw Error('Actual award card missing');
-   // Expanded schedule cards keep the original card, returning it to its front.
-   await page.evaluate(()=>{clearTimeout(nflScheduleTimer);NFL_WEEK1=NFL_WEEK1_EMBEDDED.map(g=>({...g}));renderNFLWeekSchedule();openGameCard(document.querySelector('.nfl-game'));});
-   await page.waitForSelector('.nfl-game.is-open',{timeout:1500});await sleep(650);
-   await begin('.nfl-game.is-open .nfl-depth-meta');await touch('touchmove',170);await sleep(140);await touch('touchend',170);
-   await page.waitForSelector('.nfl-game.is-open',{state:'detached',timeout:500});
+   // Schedule cards open the game page (scripts/game-center.js, which replaced the flipping cards); pulling its
+   // header closes it through its own close button, which also clears the page lock. The cards stay.
+   await page.evaluate(()=>{clearTimeout(nflScheduleTimer);NFL_WEEK1=NFL_WEEK1_EMBEDDED.map(g=>({...g}));renderNFLWeekSchedule();document.querySelector('.nfl-game .nfl-card-front').click();});
+   await page.waitForSelector('.gc-overlay.is-open',{timeout:1500});await sleep(650);
+   await begin('.gc-overlay .gc-board-host');await touch('touchmove',170);await sleep(140);await touch('touchend',170);
+   await page.waitForSelector('.gc-overlay',{state:'detached',timeout:1500});
+   assert(!await page.evaluate(()=>document.body.classList.contains('gc-modal-open')));
    assert(await page.locator('.nfl-game').count()>0);
    // Wire uses its real close callback too.
    await page.evaluate(()=>{const c=document.createElement('article');c.className='wc';c.innerHTML='<h2 class="wc-title">Gesture check</h2><p>Expanded feed card</p>';wireOpenExpanded(c);});

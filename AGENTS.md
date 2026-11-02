@@ -10,7 +10,18 @@ Before ANY manager avatar or figure update, read `assets/MANAGER_ARTWORK_RULES.m
 
 Before ANY manager or player image update, read `assets/ARTWORK_PROPORTIONS.md` and `assets/artwork-proportions.json`. Use the named original image templates; do not guess proportions from prose. Preserve visible shaded necks. Manager artwork keeps its own rules; player figures are finalized by `scripts/fit-player-head.py` with no inspection or approval round.
 
+Before ANY change to the NFL weekly schedule under the top carousel or its game page, read `docs/game-center.md`: `scripts/game-center.js` replaces `renderNFLWeekSchedule`, `nflCardHTML` and `nflUpdateScoreCard`, so edits to those functions in index.html do nothing.
+
 Before ANY top-carousel / Wire card update, read `docs/wire-card-rules.md` and `docs/wire-live.md`. Preserve shared sizing, expansion, scrolling, gestures and refresh behavior. An approved card design does not waive those rules. Compare desktop and mobile cards against an existing ordinary card before publishing.
+
+## Hard rule: identify players by ESPN player id — owner instruction November 2
+Every feature that links, merges or compares player data (stats, fantasy points, projections, ownership/managers, injuries, depth charts, headshots, profiles, game logs) must match players by their ESPN player id (D/ST: -16000 minus the NFL team id). Names are for display.
+- When both sides carry the ESPN id, match on the id only. If the id is not in the other set, that is the answer (e.g. an ESPN id that is on no league roster is a free agent); do not then try the name, because two players can share a name.
+- When a source has no ESPN id (play-by-play injury notes such as "BUF-J.Cook was injured", Vegas projection rows, feeds keyed by their own ids), map it to the ESPN id once: by a published id crosswalk when one exists (e.g. nflverse espn_id), otherwise by name within the smallest set (the players on that play, then that team's roster, with position). From then on use the ESPN id. Say in a code comment why that source needs the mapping.
+- Do not change existing site features just to enforce this rule; apply it to new and edited code, and fix an existing name match only where it causes a wrong result.
+
+## Hard rule: player names are never cut off
+Never truncate a player's name with "..." or clip it with overflow; long names wrap. Deliberate short forms already used by a design (e.g. "L. Jackson" in leaders and play chips, a last name in compact table cells) are not truncation and stay as they are.
 
 ## Hard rule: circular player headshots
 Every circular NFL player avatar must follow the existing roster and Wire player avatar treatment: use `object-fit: cover` with centered positioning so the jersey/bust reaches the circle's bottom edge. Never use `object-fit: contain` for a human headshot in a circle; it exposes a flat rectangular bust edge and an empty crescent underneath. Preserve the established avatar size, proportions and surrounding layout. Apply this rule to new cards, expanded cards, mobile and desktop. NFL team/DST logos are the exception: retain `object-fit: contain` so the full logo remains visible. Reuse the existing player-avatar styling instead of introducing a different crop.
