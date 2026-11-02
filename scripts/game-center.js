@@ -24,7 +24,7 @@
  const abbrOf=id=>pcTeam(String(keyOfId.get(String(id))||'').toUpperCase());
  const logoOf=id=>nflLogo(keyOfId.get(String(id))||'');
  const nameOf=id=>PC_TEAM_NAMES[abbrOf(id)]||abbrOf(id);
- const num=v=>{const n=Number(String(v??'').replace(/,/g,''));return Number.isFinite(n)?n:null};
+ const num=v=>{if(v===null||v===undefined||String(v).trim()==='')return null;const n=Number(String(v).replace(/,/g,''));return Number.isFinite(n)?n:null};
  const fp=v=>Number.isFinite(v)?v.toFixed(2):'—';
  const signed=v=>`${v>0?'+':v<0?'−':''}${Math.abs(v).toFixed(2)}`;
  const zone='America/Chicago';
@@ -80,6 +80,9 @@
   if(p.pos==='D/ST')return `<span class="${cls} is-logo"><img src="${E(logoOf(p.teamId))}" alt="" loading="lazy"></span>`;
   return `<span class="${cls}"><span class="gc-av-initials">${E(ffnInitials(p.name))}</span><img src="${E(nflHeadshot(p.id))}" alt="" loading="lazy" onerror="this.remove()"></span>`;
  }
+ // A name whose last word is kept together with what follows it (the site's injury badge is placed inside the
+ // first <b> of a player link): long names wrap between words, never cut off, and the badge never sits alone.
+ function nameHTML(name){const parts=String(name||'').trim().split(/\s+/),last=parts.pop()||'';return `${parts.length?`${E(parts.join(' '))} `:''}<b class="gc-last">${E(last)}</b>`}
  function owner(p){
   const own=typeof hjOwnershipForPlayerLike==='function'?hjOwnershipForPlayerLike({id:p.id,name:p.name,team:p.team,position:p.pos}):null;
   return own?.owned?`<span class="gc-owner">${av(own.owner,'gc-mav')}<span>${E(own.owner)}</span></span>`:'<span class="gc-owner is-fa">FA</span>';
@@ -90,8 +93,22 @@
  function who(st,id,name,{sub='',fpts=null,compact=false,showOwner=true}={}){
   const p=poolPlayer(st,id);
   if(!p)return `<span class="gc-plain">${E(name||'—')}${sub?`<small>${E(sub)}</small>`:''}</span>`;
-  return `<button type="button" class="gc-who pc-player-trigger${compact?' is-compact':''}" ${attrs(p)} aria-label="Open ${E(p.name)} profile">${avatar(p)}<span class="gc-who-copy"><span class="gc-who-name">${E(name||p.name)}${fpts!==null?fpChip(fpts):''}</span>${sub||showOwner?`<small>${sub?`<span>${E(sub)}</span>`:''}${showOwner?owner(p):''}</small>`:''}</span></button>`;
+  return `<button type="button" class="gc-who pc-player-trigger${compact?' is-compact':''}" ${attrs(p)} aria-label="Open ${E(p.name)} profile">${avatar(p)}<span class="gc-who-copy"><span class="gc-who-name"><span class="gc-who-n">${nameHTML(name||p.name)}</span>${fpts!==null?fpChip(fpts):''}</span>${sub||showOwner?`<small>${sub?`<span>${E(sub)}</span>`:''}${showOwner?owner(p):''}</small>`:''}</span></button>`;
  }
+ // Owner line for play chips: manager avatar and name, as everywhere else; nothing for a free agent.
+ function ownerChip(p){
+  if(!p||typeof hjOwnershipForPlayerLike!=='function')return '';
+  const own=hjOwnershipForPlayerLike({id:p.id,name:p.name,team:p.team,position:p.pos});
+  return own?.owned?`<span class="gc-owner is-mini">${av(own.owner,'gc-mav')}<span>${E(own.owner)}</span></span>`:'';
+ }
+ // Manager name only (the depth-chart style, no avatar), where a cell has no room for more: schedules.
+ function ownerName(p){
+  if(!p||typeof hjOwnershipForPlayerLike!=='function')return '';
+  const own=hjOwnershipForPlayerLike({id:p.id,name:p.name,team:p.team,position:p.pos});
+  return own?.owned?`<small class="gc-own">${E(own.owner)}</small>`:'';
+ }
+ // Green at or above the projection, orange within 70% of it, red below.
+ const perf=(v,proj)=>Number.isFinite(v)&&Number.isFinite(proj)&&(proj>0||v!==0)&&typeof hjPerformanceAttrs==='function'?hjPerformanceAttrs(v,proj):'';
  function section(key,title,body,note=''){
   return body?`<section class="pc-section gc-section" data-gc-section="${key}"><div class="pc-section-head"><h3 class="pc-section-title">${E(title)}</h3>${note?`<span class="pc-section-note">${note}</span>`:''}</div>${body}</section>`:'';
  }
@@ -130,7 +147,7 @@
  function playChips(st,playId){
   const r=playFantasy(st,playId);if(!r)return '';
   const items=[...r.players.map(x=>({p:poolPlayer(st,x.id),pts:x.pts,label:x.parts.join(', ')})),...Object.entries(r.dst).map(([team,x])=>({p:poolPlayer(st,dstId(team)),pts:x.pts,label:x.parts.join(', ')}))].filter(x=>x.p&&x.pts);
-  return items.length?`<div class="gc-chips">${items.map(x=>`<button type="button" class="gc-chip pc-player-trigger" ${attrs(x.p)} title="${E(x.label)}">${avatar(x.p,'gc-av is-mini')}<span>${E(x.p.pos==='D/ST'?`${x.p.team} D/ST`:shortName(x.p.name))}</span>${fpChip(x.pts)}</button>`).join('')}</div>`:'';
+  return items.length?`<div class="gc-chips">${items.map(x=>`<button type="button" class="gc-chip pc-player-trigger" ${attrs(x.p)} title="${E(x.label)}">${avatar(x.p,'gc-av is-mini')}<span class="gc-chip-copy"><b class="gc-chip-n">${E(x.p.pos==='D/ST'?`${x.p.team} D/ST`:shortName(x.p.name))}</b>${ownerChip(x.p)}</span>${fpChip(x.pts)}</button>`).join('')}</div>`:'';
  }
  const shortName=n=>{const parts=String(n||'').split(' ');return parts.length>1?`${parts[0][0]}. ${parts.slice(1).join(' ')}`:n};
  function topFantasy(st,limit=6){
@@ -174,21 +191,32 @@
  }
 
  /* ---------- box score ---------- */
- const BOX_ORDER=[['passing','Passing'],['rushing','Rushing'],['receiving','Receiving'],['fumbles','Fumbles'],['defensive','Defense'],['interceptions','Interceptions'],['kickReturns','Kick returns'],['puntReturns','Punt returns'],['kicking','Kicking'],['punting','Punting']];
+ const BOX_ORDER=[['passing','Passing'],['rushing','Rushing'],['receiving','Receiving'],['kicking','Kicking'],['defensive','Defense'],['fumbles','Fumbles'],['interceptions','Interceptions'],['kickReturns','Kick returns'],['puntReturns','Punt returns'],['punting','Punting']];
+ // Fantasy points sit first, in the tables where fantasy players score; everywhere else names are plain.
  const FP_CATS=new Set(['passing','rushing','receiving','kicking']);
+ function fptsCell(p){
+  if(!p)return '<td class="gc-fpcell"></td>';
+  return `<td class="gc-fpcell"><b ${perf(p.week,p.proj)}>${fp(p.week)}</b>${Number.isFinite(p.proj)?`<i>proj ${fp(p.proj)}</i>`:''}</td>`;
+ }
+ function boxName(st,id,name,fantasy){
+  const p=fantasy?poolPlayer(st,id):null;
+  if(!p)return `<span class="gc-box-plain">${E(name||'—')}</span>`;
+  return who(st,id,name||p.name,{compact:true});
+ }
  function boxHTML(st){
   if(stateOf(st)==='pre')return '';
   const teams=st.summary?.boxscore?.players||[];if(!teams.length)return '';
   const which=st.ui.box||'away',t=st.teams[which==='home'?1:0],data=teams.find(x=>String(x.team?.id)===String(t.id));if(!data)return '';
-  // Players who took part: points scored, a line in the box score, or a real stat (not ESPN's bookkeeping
-  // entries 155-157 and 210, which inactive players carry too). D/ST always.
-  const inBox=new Set((data.statistics||[]).flatMap(c=>(c.athletes||[]).map(a=>String(a.athlete?.id))));
-  const played=p=>p.pos==='D/ST'||(Number.isFinite(p.week)&&(p.week!==0||inBox.has(String(p.id))||Object.keys(p.weekStats||{}).some(k=>![155,156,157,210].includes(Number(k))&&Number(p.weekStats[k]))));
-  const fantasy=[...(st.pool?.values()||[])].filter(p=>String(p.teamId)===String(t.id)&&played(p)).sort((a,b)=>(b.week??-99)-(a.week??-99));
-  const fTable=fantasy.length?`<div class="gc-box-block"><h4>Fantasy points</h4><div class="gc-table-wrap"><table class="gc-table gc-box"><thead><tr><th>Player</th><th>FPTS</th><th>Proj</th></tr></thead><tbody>${fantasy.map(p=>`<tr><th>${who(st,p.id,p.name,{sub:`${p.pos==='D/ST'?'D/ST':p.pos}`})}</th><td class="gc-fpts"><span ${Number.isFinite(p.week)&&Number.isFinite(p.proj)&&typeof hjPerformanceAttrs==='function'?hjPerformanceAttrs(p.week,p.proj):''}>${fp(p.week)}</span></td><td>${fp(p.proj)}</td></tr>`).join('')}</tbody></table></div></div>`:'';
-  const cats=BOX_ORDER.map(([key,label])=>{const c=(data.statistics||[]).find(s=>s.name===key);if(!c||!(c.athletes||[]).length)return '';const withFp=FP_CATS.has(key);
-   return `<div class="gc-box-block"><h4>${E(label)}</h4><div class="gc-table-wrap"><table class="gc-table gc-box"><thead><tr><th>${E(label)}</th>${(c.labels||[]).map(l=>`<th>${E(l)}</th>`).join('')}${withFp?'<th>FPTS</th>':''}</tr></thead><tbody>${c.athletes.map(a=>{const p=poolPlayer(st,a.athlete?.id);return `<tr><th>${who(st,a.athlete?.id,a.athlete?.displayName,{compact:true})}</th>${(a.stats||[]).map(v=>`<td>${E(v)}</td>`).join('')}${withFp?`<td class="gc-fpts">${p?fp(p.week):''}</td>`:''}</tr>`}).join('')}${(c.totals||[]).length?`<tr class="gc-totals"><th>Team</th>${c.totals.map(v=>`<td>${E(v)}</td>`).join('')}${withFp?'<td></td>':''}</tr>`:''}</tbody></table></div></div>`}).join('');
-  return section('box','Box score',`${toggle(st,'box',[['away',teamLabel(st.teams[0])],['home',teamLabel(st.teams[1])]],which)}${fTable}${cats}`);
+  const dst=poolPlayer(st,dstId(t.id));
+  const cats=BOX_ORDER.map(([key,label])=>{
+   const c=(data.statistics||[]).find(s=>s.name===key);if(!c||!(c.athletes||[]).length)return '';
+   const withFp=FP_CATS.has(key)||(key==='defensive'&&dst),labels=(c.labels||[]).map(l=>`<th>${E(l)}</th>`).join('');
+   const rows=c.athletes.map(a=>`<tr><th>${boxName(st,a.athlete?.id,a.athlete?.displayName,FP_CATS.has(key))}</th>${withFp?(FP_CATS.has(key)?fptsCell(poolPlayer(st,a.athlete?.id)):'<td class="gc-fpcell"></td>'):''}${(a.stats||[]).map(v=>`<td>${E(v)}</td>`).join('')}</tr>`).join('');
+   const totals=(c.totals||[]).length?c.totals.map(v=>`<td>${E(v)}</td>`).join(''):(c.labels||[]).map(()=>'<td></td>').join('');
+   // Defense: the team row is the D/ST, with its fantasy points.
+   const teamRow=key==='defensive'&&dst?`<tr class="gc-totals is-dst"><th>${boxName(st,dst.id,`${titleCase(PC_TEAM_NAMES[t.abbr]||t.abbr)} D/ST`,true)}</th>${fptsCell(dst)}${totals}</tr>`:(c.totals||[]).length?`<tr class="gc-totals"><th>Team</th>${withFp?'<td class="gc-fpcell"></td>':''}${totals}</tr>`:'';
+   return `<div class="gc-box-block"><h4>${E(label)}</h4><div class="gc-table-wrap"><table class="gc-table gc-box${withFp?' has-fp':''}"><thead><tr><th>${E(label)}</th>${withFp?'<th class="gc-fpcell">FPTS</th>':''}${labels}</tr></thead><tbody>${key==='defensive'?teamRow+rows:rows+teamRow}</tbody></table></div></div>`}).join('');
+  return section('box','Box score',`<div class="gc-sticky-switch">${toggle(st,'box',[['away',teamLabel(st.teams[0])],['home',teamLabel(st.teams[1])]],which)}</div>${cats}`);
  }
 
  /* ---------- team stats ---------- */
@@ -206,7 +234,18 @@
  }
 
  /* ---------- predictor / win probability ---------- */
- function teamColor(st,i){const t=side(st,i?'home':'away')?.team;return t?.color?`#${t.color}`:(i?'#14324F':'#B98A2E')}
+ // Team colors for charts; when both teams' main colors look alike (Bears and Seahawks navy), the away team
+ // uses its second color so the two sides stay distinguishable.
+ const rgb=h=>{const m=/^#?([0-9a-f]{6})$/i.exec(String(h||''));if(!m)return null;const n=parseInt(m[1],16);return [n>>16,(n>>8)&255,n&255]};
+ const dist=(a,b)=>a&&b?Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]):999;
+ function teamColor(st,i){
+  const a=side(st,'away')?.team,h=side(st,'home')?.team,fallback=i?'#14324F':'#B98A2E';
+  if(i)return h?.color?`#${h.color}`:fallback;
+  if(!a?.color)return fallback;
+  const pa=rgb(a.color),ph=rgb(h?.color),alt=rgb(a.alternateColor);
+  if(dist(pa,ph)<110&&alt&&dist(alt,ph)>dist(pa,ph)&&dist(alt,[255,255,255])>60)return `#${a.alternateColor}`;
+  return `#${a.color}`;
+ }
  function donut(st,awayPct,homePct){
   const r=54,c=2*Math.PI*r,a=Math.max(0,Math.min(100,awayPct)),ac=teamColor(st,0),hc=teamColor(st,1);
   return `<svg class="gc-donut" viewBox="0 0 140 140" aria-hidden="true"><defs><pattern id="gc-hatch" width="5" height="5" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="#fff"/><line x1="0" y1="0" x2="0" y2="5" stroke="${E(ac)}" stroke-width="2.4"/></pattern></defs><circle cx="70" cy="70" r="${r}" fill="none" stroke="url(#gc-hatch)" stroke-width="16"/><circle cx="70" cy="70" r="${r}" fill="none" stroke="${E(hc)}" stroke-width="16" stroke-dasharray="${(c*homePct/100).toFixed(2)} ${c.toFixed(2)}" transform="rotate(-90 70 70)"/><line x1="70" y1="30" x2="70" y2="110" stroke="#cfd6dc" stroke-dasharray="2 3"/></svg><img class="gc-donut-logo is-away" src="${E(logoOf(st.teams[0].id))}" alt=""><img class="gc-donut-logo is-home" src="${E(logoOf(st.teams[1].id))}" alt="">`;
@@ -235,8 +274,8 @@
   const L=st.summary?.leaders||[];if(!L.length)return '';const state=stateOf(st);
   const get=(t,name)=>L.find(x=>String(x.team?.id)===String(t.id))?.leaders?.find(c=>c.name===name)?.leaders?.[0]||null;
   const cell=(x,ha)=>{if(!x)return `<div class="gc-lead-cell is-${ha}">—</div>`;const a=x.athlete||{},p=poolPlayer(st,a.id),pts=p?(state==='pre'?p.season:p.week):null;
-   const face=p?`<button type="button" class="gc-lead-face pc-player-trigger" ${attrs(p)} aria-label="Open ${E(p.name)} profile">${avatar(p,'gc-av is-big')}</button>`:`<span class="gc-av is-big"><span class="gc-av-initials">${E(ffnInitials(a.displayName||''))}</span>${a.headshot?.href?`<img src="${E(a.headshot.href)}" alt="" loading="lazy" onerror="this.remove()">`:''}</span>`;
-   return `<div class="gc-lead-cell is-${ha}">${face}<div class="gc-lead-copy"><b class="gc-lead-value">${E(x.mainStat?.value??x.displayValue)}</b><span class="gc-lead-name">${p?`<button type="button" class="gc-linkish pc-player-trigger" ${attrs(p)}>${E(a.shortName||a.displayName)}</button>`:E(a.shortName||a.displayName)} <small>${E(a.position?.abbreviation||'')}</small></span><small class="gc-lead-sub">${E(x.summary||'')}</small>${p?`<span class="gc-lead-fp">${owner(p)}${Number.isFinite(pts)?`<span class="gc-fp is-flat">${fp(pts)} FPTS${state==='pre'?' season':''}</span>`:''}</span>`:''}</div></div>`};
+   const face=p?`<button type="button" class="gc-lead-face" data-gc-open aria-label="Open ${E(p.name)} profile">${avatar(p,'gc-av is-big')}</button>`:`<span class="gc-av is-big"><span class="gc-av-initials">${E(ffnInitials(a.displayName||''))}</span>${a.headshot?.href?`<img src="${E(a.headshot.href)}" alt="" loading="lazy" onerror="this.remove()">`:''}</span>`;
+   return `<div class="gc-lead-cell is-${ha}">${face}<div class="gc-lead-copy"><b class="gc-lead-value">${E(x.mainStat?.value??x.displayValue)}</b><span class="gc-lead-name">${p?`<button type="button" class="gc-linkish pc-player-trigger" ${attrs(p)}>${E(a.shortName||a.displayName)}</button>`:E(a.shortName||a.displayName)} <small>${E(a.position?.abbreviation||'')}</small></span><small class="gc-lead-sub">${E(x.summary||'')}</small>${p?`<span class="gc-lead-fp">${owner(p)}${Number.isFinite(pts)?`<span class="gc-fp is-flat">${fp(pts)} FPTS</span>`:''}</span>`:''}</div></div>`};
   const rows=LEAD_ORDER.map(([k,label])=>{const a=get(st.teams[0],k),h=get(st.teams[1],k);if(!a&&!h)return '';return `<div class="gc-lead-row">${cell(a,'away')}<span class="gc-lead-label">${E(label)}</span>${cell(h,'home')}</div>`}).join('');
   return section('leaders',state==='pre'?'Season leaders':'Game leaders',`<div class="gc-lead-head">${teamLabel(st.teams[0])}${teamLabel(st.teams[1])}</div>${rows}`);
  }
@@ -244,82 +283,221 @@
  /* ---------- odds and game environment ---------- */
  const odds=v=>{const n=num(v);return n===null?String(v||'—'):n>0?`+${n}`:String(n)};
  const line=v=>{const n=num(v);return n===null?'—':n===0?'PK':`${n>0?'+':''}${n}`};
+ const minus=s=>String(s).replace(/^-/,'−');
+ // Chance to win implied by the two moneylines, with the bookmaker's margin taken out.
+ const mlChance=ml=>{const n=num(ml);return n===null?null:n<0?-n/(-n+100):100/(n+100)};
+ const ICON={
+  clock:'<path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="8"/>',
+  stadium:'<path d="M3 10c0-2 4-4 9-4s9 2 9 4v6c0 2-4 4-9 4s-9-2-9-4z"/><path d="M3 10c0 2 4 4 9 4s9-2 9-4"/>',
+  temp:'<path d="M10 14V5a2 2 0 1 1 4 0v9a4 4 0 1 1-4 0z"/>',
+  wind:'<path d="M3 9h11a3 3 0 1 0-3-3"/><path d="M3 15h15a3 3 0 1 1-3 3"/>',
+  roof:'<path d="M3 11l9-6 9 6"/><path d="M5 10v9h14v-9"/>',
+  flame:'<path d="M12 3c1 4 5 6 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-6 1-9z"/>',
+  script:'<path d="M4 18l5-6 4 3 7-9"/><path d="M15 6h5v5"/>',
+  rest:'<path d="M4 18V8"/><path d="M4 14h16v4"/><path d="M4 11h7a3 3 0 0 1 3 3"/>',
+  home:'<path d="M4 11l8-6 8 6v8h-5v-5H9v5H4z"/>',
+  crowd:'<circle cx="8" cy="9" r="2.5"/><circle cx="16" cy="9" r="2.5"/><path d="M3 19c0-3 2-5 5-5s5 2 5 5"/><path d="M11 19c0-3 2-5 5-5s5 2 5 5"/>'
+ };
+ const icon=k=>`<svg class="gc-ico" viewBox="0 0 24 24" aria-hidden="true">${ICON[k]||''}</svg>`;
+ function moveNote(text,dir){return text?`<div class="gc-move${dir?` is-${dir}`:''}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 12l4-4 3 3 5-6"/><path d="M10 5h4v4"/></svg><span>${text}</span></div>`:''}
+ function restDays(st,teamId){
+  const data=st.schedules?.[teamId],kick=new Date(comp(st)?.date||st.game?.kickoff||0).getTime();if(!data||!Number.isFinite(kick))return null;
+  const prev=(data.events||[]).filter(e=>new Date(e.date).getTime()<kick-6*3600000).sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+  if(!prev)return {days:null,first:true};
+  const days=Math.round((kick-new Date(prev.date).getTime())/86400000),thisWeek=Number(st.week)||0,prevWeek=Number(prev.week?.number)||0;
+  return {days,bye:thisWeek-prevWeek>1};
+ }
  function oddsHTML(st){
   const pc=(st.summary?.pickcenter||[])[0],state=stateOf(st),gi=st.summary?.gameInfo||{},venue=gi.venue||{},weather=gi.weather;
-  const homeSpread=num(pc?.spread),total=num(pc?.overUnder),imp=homeSpread!==null&&total!==null?{away:total/2+homeSpread/2,home:total/2-homeSpread/2}:null;
+  const [A,H]=st.teams,homeSpread=num(pc?.spread),total=num(pc?.overUnder),imp=homeSpread!==null&&total!==null?{away:total/2+homeSpread/2,home:total/2-homeSpread/2}:null;
   const fav=homeSpread===null?null:homeSpread<0?1:homeSpread>0?0:null;
-  const cards=[];
+  const parts=[];let pa=null,ph=null;
   if(pc){
-   const ps=pc.pointSpread||{},tt=pc.total||{},ml=pc.moneyline||{},move=(o,c)=>o&&c&&String(o)!==String(c)?`<small>Opened ${E(o)}</small>`:'';
-   cards.push(`<div class="gc-odd"><span class="gc-eyebrow">Spread</span><b>${fav===null?'Pick ’em':`${E(st.teams[fav].abbr)} ${line(fav?homeSpread:-homeSpread)}`}</b>${move(ps.home?.open?.line&&`${st.teams[1].abbr} ${ps.home.open.line}`,ps.home?.close?.line&&`${st.teams[1].abbr} ${ps.home.close.line}`)}</div>`);
-   cards.push(`<div class="gc-odd"><span class="gc-eyebrow">Total</span><b>O/U ${E(total??'—')}</b>${move(tt.over?.open?.line?.replace(/^o/,''),tt.over?.close?.line?.replace(/^o/,''))}</div>`);
-   cards.push(`<div class="gc-odd"><span class="gc-eyebrow">Moneyline</span><b>${E(st.teams[0].abbr)} ${E(odds(pc.awayTeamOdds?.moneyLine??ml.away?.close?.odds))} · ${E(st.teams[1].abbr)} ${E(odds(pc.homeTeamOdds?.moneyLine??ml.home?.close?.odds))}</b>${ml.home?.open?.odds?`<small>Opened ${E(st.teams[0].abbr)} ${E(ml.away?.open?.odds)} · ${E(st.teams[1].abbr)} ${E(ml.home.open.odds)}</small>`:''}</div>`);
-  }
-  let implied='';
-  if(imp){const max=Math.max(imp.away,imp.home,1);implied=`<div class="gc-implied"><span class="gc-eyebrow">Implied points</span>${[0,1].map(i=>{const v=i?imp.home:imp.away;return `<div class="gc-imp-row">${teamLabel(st.teams[i])}<span class="gc-imp-bar"><i style="width:${(100*v/max).toFixed(1)}%"></i></span><b>${v.toFixed(1)}</b></div>`}).join('')}</div>`}
+   const ps=pc.pointSpread||{},tt=pc.total||{},ml=pc.moneyline||{};
+   // Spread
+   const spreadRow=(i)=>{const t=st.teams[i],v=i?homeSpread:-homeSpread,price=i?pc.homeTeamOdds?.spreadOdds:pc.awayTeamOdds?.spreadOdds;return `<div class="gc-line-row${fav===i?' is-fav':''}">${teamLabel(t)}<b>${minus(line(v))}</b><small>${price!=null?minus(odds(price)):''}</small></div>`};
+   const openHome=num(ps.home?.open?.line);let spreadMove='';
+   if(openHome!==null&&homeSpread!==null&&openHome!==homeSpread){const d=homeSpread-openHome,toward=d>0?A:H,openFav=openHome<0?H:openHome>0?A:null;
+    spreadMove=moveNote(`Opened ${openFav?`${E(openFav.abbr)} ${minus(line(openFav===H?openHome:-openHome))}`:'pick ’em'} · moved ${Math.abs(d)} toward ${E(toward.abbr)}`,'')}
+   const spreadCard=`<div class="gc-line-card"><div class="gc-line-head"><span class="gc-eyebrow">Spread</span>${fav!==null?`<span class="gc-line-tag">${E(st.teams[fav].abbr)} favored by ${Math.abs(homeSpread)}</span>`:'<span class="gc-line-tag">Pick ’em</span>'}</div>${spreadRow(0)}${spreadRow(1)}${spreadMove||moveNote('No movement since the open','flat')}</div>`;
+   // Total, on a 36-56 scale with this site's scoring bands
+   const openTotal=num(String(tt.over?.open?.line||'').replace(/^o/,'')),lo=36,hi=56,pos=v=>Math.max(0,Math.min(100,(v-lo)/(hi-lo)*100));
+   const band=total===null?'':total>=49?'High':total>=45?'Good':total>=41?'Neutral':'Low';
+   const gauge=total===null?'':`<div class="gc-gauge" aria-label="Total ${total} on a ${lo} to ${hi} point scale"><div class="gc-gauge-track"><i class="is-low" style="width:${pos(41)}%"></i><i class="is-neutral" style="width:${pos(45)-pos(41)}%"></i><i class="is-good" style="width:${pos(49)-pos(45)}%"></i><i class="is-high" style="width:${100-pos(49)}%"></i></div>${openTotal!==null&&openTotal!==total?`<span class="gc-gauge-mark is-open" style="left:${pos(openTotal)}%" title="Opened ${openTotal}"></span>`:''}<span class="gc-gauge-mark" style="left:${pos(total)}%"></span><div class="gc-gauge-scale"><span>Low</span><span>Neutral</span><span>Good</span><span>High</span></div></div>`;
+   const totalMove=openTotal!==null&&total!==null&&openTotal!==total?moveNote(`Opened ${openTotal} · ${total>openTotal?'up':'down'} ${Math.abs(total-openTotal)}`,total>openTotal?'up':'down'):moveNote('No movement since the open','flat');
+   const totalCard=`<div class="gc-line-card"><div class="gc-line-head"><span class="gc-eyebrow">Total</span>${band?`<span class="gc-line-tag is-${band.toLowerCase()}">${band} scoring</span>`:''}</div><div class="gc-total-big">${E(total??'—')}<small>points</small></div><div class="gc-ou"><span>Over <b>${minus(odds(pc.overOdds))}</b></span><span>Under <b>${minus(odds(pc.underOdds))}</b></span></div>${gauge}${totalMove}</div>`;
+   // Moneyline with each side's chance to win
+   const mlA=pc.awayTeamOdds?.moneyLine??ml.away?.close?.odds,mlH=pc.homeTeamOdds?.moneyLine??ml.home?.close?.odds,ca=mlChance(mlA),ch=mlChance(mlH),sum=(ca||0)+(ch||0);
+   pa=sum?ca/sum*100:null;ph=sum?ch/sum*100:null;
+   const mlRow=i=>`<div class="gc-line-row${(i?ph:pa)>50?' is-fav':''}">${teamLabel(st.teams[i])}<b>${minus(odds(i?mlH:mlA))}</b><small>${pa!==null?`${(i?ph:pa).toFixed(0)}% to win`:''}</small></div>`;
+   const split=pa!==null?`<div class="gc-split" aria-hidden="true"><i style="width:${pa.toFixed(1)}%;background:${E(teamColor(st,0))}"></i><i style="width:${ph.toFixed(1)}%;background:${E(teamColor(st,1))}"></i></div>`:'';
+   const mlMove=ml.away?.open?.odds&&ml.home?.open?.odds&&(String(ml.away.open.odds)!==String(odds(mlA))||String(ml.home.open.odds)!==String(odds(mlH)))?moveNote(`Opened ${E(A.abbr)} ${minus(ml.away.open.odds)} · ${E(H.abbr)} ${minus(ml.home.open.odds)}`,''):moveNote('No movement since the open','flat');
+   const mlCard=`<div class="gc-line-card"><div class="gc-line-head"><span class="gc-eyebrow">Moneyline</span><span class="gc-line-tag">To win outright</span></div>${mlRow(0)}${mlRow(1)}${split}${mlMove}</div>`;
+   parts.push(`<div class="gc-lines">${spreadCard}${totalCard}${mlCard}</div>`);
+  }else parts.push('<p class="gc-empty">Betting lines are not posted yet.</p>');
   // After the game: how the lines finished.
-  let result='';
-  if(state==='post'&&pc){const as=num(side(st,'away')?.score),hs=num(side(st,'home')?.score);if(as!==null&&hs!==null){const margin=hs-as+(homeSpread||0),sum=as+hs;
-   const ats=homeSpread===null?'':margin===0?'Push against the spread':`${margin>0?st.teams[1].abbr:st.teams[0].abbr} covered (${st.teams[1].abbr} ${line(homeSpread)})`;
-   const ou=total===null?'':sum===total?`Total ${sum}: push`:`Total ${sum}: ${sum>total?'over':'under'} ${total}`;
-   result=`<div class="gc-odd-result">${ats?`<span>${E(ats)}</span>`:''}${ou?`<span>${E(ou)}</span>`:''}</div>`}}
-  const env=[];
-  const roof=venue.indoor?'Indoor':'Outdoor',surface=venue.grass===true?'Grass':venue.grass===false?'Turf':'';
-  env.push(['Venue',[venue.fullName,[venue.address?.city,venue.address?.state].filter(Boolean).join(', ')].filter(Boolean).join(' · ')||st.game?.venue||'—']);
-  env.push(['Field',[roof,surface].filter(Boolean).join(' · ')]);
-  const when=comp(st)?.date||st.game?.kickoff;if(when)env.push(['Kickoff',dateFmt(when,{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'})]);
-  if(weather&&Number.isFinite(Number(weather.temperature))&&!venue.indoor)env.push(['Weather',[`${weather.temperature}°F`,Number.isFinite(Number(weather.gust))?`gusts ${weather.gust} mph`:'',Number.isFinite(Number(weather.precipitation))?`${weather.precipitation}% precipitation`:''].filter(Boolean).join(' · ')]);
-  else if(venue.indoor)env.push(['Weather','Indoors · no weather impact']);
-  else if(st.siteWeather&&typeof weatherText==='function')env.push(['Weather',weatherText(st.siteWeather)]);
-  if(total!==null&&typeof scoringEnvironmentText==='function')env.push(['Scoring environment',scoringEnvironmentText(total)]);
-  if(state==='pre'&&st.summary?.predictor&&typeof gameScriptText==='function'&&st.game){const h=num(st.summary.predictor.homeTeam?.gameProjection),a=num(st.summary.predictor.awayTeam?.gameProjection)??(h!==null?100-h:null);try{env.push(['Game script',gameScriptText(st.game,a,h,homeSpread)])}catch(_){}}
-  if(gi.attendance)env.push(['Attendance',Number(gi.attendance).toLocaleString()]);
+  if(state==='post'&&pc){const as=num(side(st,'away')?.score),hs=num(side(st,'home')?.score);if(as!==null&&hs!==null){
+   const res=[];
+   if(homeSpread!==null){const m=hs-as+homeSpread;res.push(m===0?['Spread','Push',`${H.abbr} ${minus(line(homeSpread))}, won by ${Math.abs(hs-as)}`]:[`Spread`,`${(m>0?H:A).abbr} covered`,`${(m>0?H:A).abbr} ${minus(line(m>0?homeSpread:-homeSpread))} · by ${Math.abs(m)}`])}
+   if(total!==null){const s=as+hs;res.push(['Total',s===total?'Push':s>total?'Over':'Under',`${s} points scored vs ${total} · ${s===total?'exact':`by ${Math.abs(s-total)}`}`])}
+   const winner=hs>as?H:as>hs?A:null;if(winner&&pa!==null){const was=winner===H?ph:pa;res.push(['Moneyline',`${winner.abbr} won`,was<50?`Upset · ${was.toFixed(0)}% chance before kickoff`:`Favorite · ${was.toFixed(0)}% chance before kickoff`])}
+   parts.push(`<div class="gc-results">${res.map(([k,v,d])=>`<div class="gc-result"><span class="gc-eyebrow">${E(k)}</span><b>${E(v)}</b><small>${E(d)}</small></div>`).join('')}</div>`)}}
+  // Implied team totals
+  if(imp){const max=Math.max(imp.away,imp.home,1),lead=imp.home>=imp.away?H:A;
+   parts.push(`<div class="gc-implied"><div class="gc-line-head"><span class="gc-eyebrow">Implied team totals</span><span class="gc-line-tag">${fav===null?'Even game':`${E(lead.abbr)} by ${Math.abs(homeSpread)}`}</span></div>${[0,1].map(i=>{const v=i?imp.home:imp.away;return `<div class="gc-imp-row">${teamLabel(st.teams[i])}<span class="gc-imp-bar"><i style="width:${(100*v/max).toFixed(1)}%;background:${E(teamColor(st,i))}"></i></span><b>${v.toFixed(1)}</b></div>`}).join('')}<p class="gc-note">What the spread and total point to for each offense: the total split by the spread.</p></div>`)}
+  // Environment tiles
+  const tiles=[],tile=(ic,label,value,detail,cls='')=>tiles.push(`<div class="gc-tile${cls?` ${cls}`:''}">${icon(ic)}<div><span class="gc-eyebrow">${E(label)}</span><b>${value}</b>${detail?`<small>${detail}</small>`:''}</div></div>`);
+  const when=comp(st)?.date||st.game?.kickoff;
+  if(when)tile('clock','Kickoff',E(dateFmt(when,{weekday:'short',hour:'numeric',minute:'2-digit'}))+' CT',E(dateFmt(when,{weekday:'long',month:'long',day:'numeric'})));
+  const roof=venue.indoor?'Indoor':'Outdoor',surface=venue.grass===true?'Grass':venue.grass===false?'Artificial turf':'';
+  tile('stadium','Stadium',E(venue.fullName||st.game?.venue||'—'),E([[venue.address?.city,venue.address?.state].filter(Boolean).join(', '),roof,surface].filter(Boolean).join(' · ')));
+  const sw=st.siteWeather;
+  if(venue.indoor||sw?.roof==='DOME')tile('roof','Weather','Indoors','Roof closed · weather is not a factor');
+  else if(sw?.roof==='COVERED')tile('roof','Weather','Covered','Minimal weather impact');
+  else{
+   const espnW=num(weather?.temperature)!==null,temp=espnW?num(weather.temperature):num(sw?.temp),gust=espnW?num(weather.gust):num(sw?.gust),wind=espnW?null:num(sw?.wind),rain=espnW?num(weather.precipitation):num(sw?.precip);
+   if(temp!==null){const harsh=(wind??0)>=18||(gust??0)>=28||(rain??0)>=60,watch=(wind??0)>=12||(gust??0)>=20||(rain??0)>=40;
+    tile('temp','Weather',`${Math.round(temp)}°F`,E([wind!==null?`Wind ${Math.round(wind)} mph`:'',gust!==null?`gusts ${Math.round(gust)} mph`:'',rain!==null?`${Math.round(rain)}% chance of rain`:''].filter(Boolean).join(' · ')));
+    tile('wind','Weather impact',harsh?'Passing & kicking down':watch?'Worth watching':'No impact',harsh?'Strong wind or heavy rain usually lowers passing and long field goals':watch?'Breezy or showers possible; long kicks are the first thing hurt':'Calm conditions for passing and kicking',harsh?'is-bad':watch?'is-warn':'is-good')}
+   else if(state==='pre')tile('temp','Weather','Forecast pending','The kickoff forecast appears closer to game day')}
+  if(total!==null){const lvl=total>=49?'High':total>=45?'Good':total>=41?'Neutral':'Low';tile('flame','Scoring environment',`${lvl} · ${total} total`,lvl==='High'?'One of the better spots for fantasy points: both offenses expected to score':lvl==='Good'?'Above-average scoring expected; a good spot for the skill players':lvl==='Neutral'?'Around an average NFL game':'A low-scoring game is expected; temper expectations',`is-${lvl.toLowerCase()}`)}
+  let pA=null,pH=null;if(st.summary?.predictor){pH=num(st.summary.predictor.homeTeam?.gameProjection);pA=num(st.summary.predictor.awayTeam?.gameProjection)??(pH!==null?100-pH:null)}
+  if(pA===null&&pc){const ca=mlChance(pc.awayTeamOdds?.moneyLine),ch=mlChance(pc.homeTeamOdds?.moneyLine);if(ca&&ch){pA=ca/(ca+ch)*100;pH=ch/(ca+ch)*100}}
+  if(state==='pre'&&pA!==null&&pH!==null){const f=pH>=pA?H:A,d=pH>=pA?A:H,p=Math.max(pA,pH);
+   tile('script','Game script',p>=70?`${E(f.abbr)} heavy favorite`:p>=60?`${E(f.abbr)} favored`:'Close game',p>=70?`${E(f.abbr)} ${p.toFixed(0)}% to win: a big lead means more ${E(f.abbr)} running late and more ${E(d.abbr)} passing to catch up`:p>=60?`${E(f.abbr)} ${p.toFixed(0)}% to win: a late lead would tilt ${E(f.abbr)} toward the run`:`${E(A.abbr)} ${pA.toFixed(0)}% · ${E(H.abbr)} ${pH.toFixed(0)}%: both offenses should stay balanced for four quarters`)}
+  const ra=restDays(st,A.id),rh=restDays(st,H.id);
+  if(ra&&rh&&ra.days&&rh.days){const edge=rh.days-ra.days,txt=t=>t.days?`${t.days} days${t.bye?' (bye)':''}`:'—';
+   tile('rest','Rest',edge===0?'Even rest':`${E((edge>0?H:A).abbr)} +${Math.abs(edge)} days`,`${E(A.abbr)} ${txt(ra)} · ${E(H.abbr)} ${txt(rh)} since their last game`)}
+  const rec=(ha,type)=>(side(st,ha)?.record||[]).find(r=>r.type===type)?.summary;
+  const hr=rec('home','home'),ar=rec('away','road');
+  if(hr||ar)tile('home','Home & road',[hr?`${E(H.abbr)} ${E(hr)} home`:'',ar?`${E(A.abbr)} ${E(ar)} road`:''].filter(Boolean).join(' · '),`This season: ${E(H.abbr)} at home, ${E(A.abbr)} away from home`);
+  if(gi.attendance)tile('crowd','Attendance',Number(gi.attendance).toLocaleString(),'');
   const ats=(st.summary?.againstTheSpread||[]).filter(x=>(x.records||[]).length);
-  const atsHTML=ats.length?`<div class="gc-env-row"><span>Against the spread</span><b>${ats.map(x=>`${E(abbrOf(x.team?.id))} ${E(x.records[0]?.summary||'')}`).join(' · ')}</b></div>`:'';
-  const body=`${cards.length?`<div class="gc-odds">${cards.join('')}</div>`:'<p class="gc-empty">Betting lines are not posted yet.</p>'}${result}${implied}<div class="gc-env">${env.filter(([,v])=>v).map(([k,v])=>`<div class="gc-env-row"><span>${E(k)}</span><b>${E(v)}</b></div>`).join('')}${atsHTML}</div>`;
-  return section('odds','Odds & game environment',body,pc?.provider?.name?`Lines: ${E(pc.provider.name)}`:'');
+  if(ats.length)tile('script','Against the spread',ats.map(x=>`${E(abbrOf(x.team?.id))} ${E(x.records[0]?.summary||'')}`).join(' · '),'This season');
+  parts.push(`<div class="gc-line-head is-env"><span class="gc-eyebrow">Game environment</span></div><div class="gc-tiles">${tiles.join('')}</div>`);
+  return section('odds','Odds & game environment',parts.join(''),pc?.provider?.name?`Lines: ${E(pc.provider.name)}`:'');
  }
 
  /* ---------- injuries ---------- */
  const STATUS_RANK={Out:0,'Injured Reserve':1,Doubtful:2,Questionable:3,'Day-To-Day':4};
+ const normKey=s=>String(s||'').toLowerCase().replace(/[^a-z]/g,'');
+ // Players hurt during the game, read from the play-by-play ("PHI-A.Mukuba was injured during the play"), and
+ // whether and when they came back ("Injury Update: ... has returned to the game", or a later play with him in it).
+ function inGameInjuries(st){
+  const d=st.summary?.drives;if(!d)return [];
+  const plays=[...(d.previous||[]),...(d.current&&!(d.previous||[]).some(x=>String(x.id)===String(d.current.id))?[d.current]:[])].flatMap(x=>x.plays||[]);
+  const teamByAbbr=new Map();st.teams.forEach(t=>{teamByAbbr.set(t.abbr,t);const raw=side(st,t===st.teams[0]?'away':'home')?.team?.abbreviation;if(raw)teamByAbbr.set(raw,t)});
+  const people=new Map(),addPerson=(teamId,first,last,info)=>{const t=st.teams.find(x=>String(x.id)===String(teamId));if(!t||!last)return;const k=`${t.id}|${normKey(String(first||'')[0]+last)}`;if(!people.has(k))people.set(k,info)};
+  for(const team of st.summary?.boxscore?.players||[])for(const c of team.statistics||[])for(const a of c.athletes||[]){const x=a.athlete||{};addPerson(team.team?.id,x.firstName,x.lastName,{id:x.id,name:x.displayName,headshot:x.headshot?.href})}
+  for(const team of st.summary?.injuries||[])for(const i of team.injuries||[]){const x=i.athlete||{},[f,...l]=String(x.displayName||'').split(' ');addPerson(team.team?.id,f,l.join(' '),{id:x.id,name:x.displayName,headshot:x.headshot?.href,pos:x.position?.abbreviation})}
+  for(const p of st.pool?.values()||[]){if(p.pos==='D/ST')continue;const [f,...l]=String(p.name).split(' ');addPerson(p.teamId,f,l.join(' '),{id:p.id,name:p.name})}
+  const out=[],re=/\b([A-Z]{2,3})-([A-Z][A-Za-z'.\- ]*?) was injured during the play/g;
+  plays.forEach((pl,idx)=>{const text=String(pl.text||'');let m;re.lastIndex=0;while((m=re.exec(text))){
+   const t=teamByAbbr.get(m[1]);if(!t)continue;const short=m[2].trim(),k=`${t.id}|${normKey(short)}`,person=people.get(k)||{name:short.replace('.','. ')};
+   const before=text.slice(0,m.index).replace(/\s+$/,'');
+   let back=null;for(let j=idx+1;j<plays.length;j++){const tx=String(plays[j].text||'');if(new RegExp(`${m[1]}-${short.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')} has returned`).test(tx)||(tx.includes(short)&&!new RegExp(`${short.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')} was injured`).test(tx))){back=plays[j];break}}
+   out.push({team:t,person,short,play:pl,what:before,back})}});
+  return out;
+ }
+ const qclock=pl=>`${Number(pl?.period?.number)>4?'OT':`Q${pl?.period?.number||''}`} ${pl?.clock?.displayValue||''}`.trim();
  function injuriesHTML(st){
-  const list=st.summary?.injuries||[];if(!list.length)return '';
+  const list=st.summary?.injuries||[],state=stateOf(st),hurt=state==='pre'?[]:inGameInjuries(st);
+  if(!list.length&&!hurt.length)return '';
+  const designation=id=>list.flatMap(x=>x.injuries||[]).find(i=>String(i.athlete?.id)===String(id))?.status||'';
+  const personHTML=(t,person)=>{const p=poolPlayer(st,person.id);if(p)return who(st,p.id,person.name||p.name,{sub:`${t.abbr} ${p.pos}`});
+   return `<span class="gc-av"><span class="gc-av-initials">${E(ffnInitials(person.name||''))}</span>${person.headshot?`<img src="${E(person.headshot)}" alt="" loading="lazy" onerror="this.remove()">`:''}</span><span class="gc-plain">${E(person.name||'')}<small>${E([t.abbr,person.pos].filter(Boolean).join(' '))}</small></span>`};
+  let live='';
+  if(hurt.length){
+   live=`<div class="gc-hurt"><h4>Injured during the game</h4>${hurt.map(h=>{const status=h.back?'Returned':state==='post'?'Did not return':'Not back yet',cls=h.back?'is-back':state==='post'?'is-out':'is-watch',des=h.person.id?designation(h.person.id):'';
+    return `<div class="gc-hurt-row"><div class="gc-inj-who">${personHTML(h.team,h.person)}</div><div class="gc-hurt-when"><span class="gc-eyebrow">Hurt · ${E(qclock(h.play))}</span><small>${E(h.what.replace(/^\(.*?\)\s*/,''))}</small></div><div class="gc-hurt-status"><span class="gc-inj-status ${cls}">${E(status)}</span>${h.back?`<small>${E(qclock(h.back))}</small>`:''}${des?`<small>Now: ${E(des)}</small>`:''}</div></div>`}).join('')}</div>`;
+  }
   const col=t=>{const items=(list.find(x=>String(x.team?.id)===String(t.id))?.injuries||[]).slice().sort((a,b)=>Number(!poolPlayer(st,a.athlete?.id))-Number(!poolPlayer(st,b.athlete?.id))||(STATUS_RANK[a.status]??9)-(STATUS_RANK[b.status]??9));
    return `<div class="gc-inj-col"><h4>${teamLabel(t)}</h4>${items.length?items.map(i=>{const a=i.athlete||{},p=poolPlayer(st,a.id),d=i.details||{},status=i.status||'',ret=d.returnDate&&/out|reserve|doubt/i.test(status)?`Return ${dateFmt(`${d.returnDate}T12:00:00Z`,{month:'short',day:'numeric'})}`:'';
     const what=[d.side&&!/not specified/i.test(d.side)?d.side:'',d.type,d.detail&&!/not specified/i.test(d.detail)?d.detail:''].filter(Boolean).join(' ');
     return `<div class="gc-inj"><div class="gc-inj-who">${p?who(st,a.id,a.displayName,{sub:a.position?.abbreviation||''}):`<span class="gc-av"><span class="gc-av-initials">${E(ffnInitials(a.displayName||''))}</span>${a.headshot?.href?`<img src="${E(a.headshot.href)}" alt="" loading="lazy" onerror="this.remove()">`:''}</span><span class="gc-plain">${E(a.displayName||'')}<small>${E(a.position?.abbreviation||'')}</small></span>`}</div><span class="gc-inj-status is-${E(status.toLowerCase().replace(/[^a-z]+/g,'-'))}">${E(status==='Injured Reserve'?'IR':status)}</span><small class="gc-inj-what">${E([what,ret].filter(Boolean).join(' · '))}</small></div>`}).join(''):'<p class="gc-empty">No injury designations.</p>'}</div>`};
-  return section('injuries','Injury report',`<div class="gc-inj-grid">${col(st.teams[0])}${col(st.teams[1])}</div>`);
+  const report=list.length?`${hurt.length?'<h4 class="gc-inj-sub">Injury designations</h4>':''}<div class="gc-inj-grid">${col(st.teams[0])}${col(st.teams[1])}</div>`:'';
+  return section('injuries','Injury report',`${live}${report}`,hurt.length?`${hurt.length} in-game injur${hurt.length===1?'y':'ies'}`:'');
  }
 
- /* ---------- depth charts (loaded once, same panels as before) ---------- */
+ /* ---------- depth charts: both teams side by side, position down the middle ---------- */
  async function loadDepth(st){
-  if(st.depthHTML!==undefined||!st.game)return;st.depthHTML=null;
+  if(st.depth!==undefined||!st.game)return;st.depth=null;
   try{
    const g=st.game,[a,b]=await Promise.all([fetchTeamDepth(g.a[1]),fetchTeamDepth(g.b[1])]);
-   await hjHydrateDepthPoints([...hjDepthWithDefense(g.a,a.rows),...hjDepthWithDefense(g.b,b.rows)],g).catch(()=>{});
-   st.depthHTML=`<div class="gc-depth">${teamDepthPanel(g.a,a.rows,g)}${teamDepthPanel(g.b,b.rows,g)}</div>`;
-  }catch(_){st.depthHTML='<p class="gc-empty">Depth charts are unavailable right now.</p>'}
+   const ra=hjDepthWithDefense(g.a,a.rows),rb=hjDepthWithDefense(g.b,b.rows);
+   await hjHydrateDepthPoints([...ra,...rb],g).catch(()=>{});
+   st.depth={a:ra,b:rb};
+  }catch(_){st.depth=false}
   render(st);
  }
+ const titleCase=s=>String(s||'').toLowerCase().replace(/\b[a-z]/g,c=>c.toUpperCase());
+ function depthCell(st,i,label,p){
+  const sideKey=i?'home':'away';if(!p)return `<div class="gc-dc is-${sideKey} is-empty"><span class="gc-dc-copy"><span class="gc-dc-n">—</span></span></div>`;
+  const g=st.game,team=i?g.b:g.a,t=st.teams[i],position=String(label).replace(/\d+/g,'').toUpperCase(),isDst=position==='D/ST',abbr=pcTeam(team[1]);
+  const name=isDst?`${titleCase(PC_TEAM_NAMES[abbr]||t.abbr)} D/ST`:p.name;
+  const injury=p.injury?.code?`<span class="depth-injury" title="${E([p.injury.status,p.injury.type].filter(Boolean).join(' · '))}">${E(p.injury.code)}</span>`:'';
+  const photo=`<span class="gc-av${isDst?' is-logo':''}">${isDst?'':`<span class="gc-av-initials">${E(ffnInitials(p.name))}</span>`}${p.headshot?`<img src="${E(p.headshot)}" alt="" loading="lazy" onerror="this.remove()">`:''}</span>`;
+  const pl=poolPlayer(st,p.id),state=stateOf(st);let pts;
+  if(state!=='pre'&&pl)pts=`<span class="gc-dc-pts"><b ${perf(pl.week,pl.proj)}>${fp(pl.week)}</b><i>${Number.isFinite(pl.proj)?fp(pl.proj):''}</i></span>`;
+  else pts=`<span class="gc-dc-pts is-proj">${hjDepthPointsHTML({...p,team:abbr},position,team[1],{...g,state:state==='pre'?g.state:state})}</span>`;
+  // Same parts as the leaders: photo, name (opens the profile; the injury badge sits right after it), owner line.
+  const photo2=photo.replace('class="gc-av','class="gc-av is-big');
+  return `<div class="gc-dc is-${sideKey}"><button type="button" class="gc-dc-face" data-gc-open aria-label="Open ${E(p.name)} profile">${photo2}</button><div class="gc-dc-copy"><button type="button" class="gc-dc-name pc-player-trigger" ${ffnPlayerDataAttrs({id:p.id,name:p.name,team:abbr,position,photo:p.headshot})}><span class="gc-dc-n">${nameHTML(name)}</span>${injury}</button><span class="gc-dc-owner">${owner({id:p.id,name:p.name,team:abbr,pos:position})}</span></div>${pts}</div>`;
+ }
  function depthHTML(st){
-  if(st.depthHTML===undefined)loadDepth(st);
-  return section('depth','Depth charts',st.depthHTML||'<div class="gc-loading-row"><span class="depth-live-dot"></span>Loading depth charts…</div>');
+  if(st.depth===undefined)loadDepth(st);
+  if(!st.depth)return section('depth','Depth charts',st.depth===false?'<p class="gc-empty">Depth charts are unavailable right now.</p>':'<div class="gc-loading-row"><span class="depth-live-dot"></span>Loading depth charts…</div>');
+  const labels=[...new Set([...st.depth.a.map(r=>r[0]),...st.depth.b.map(r=>r[0])])];
+  const find=(rows,l)=>rows.find(r=>r[0]===l)?.[1]||null;
+  const rows=labels.map(l=>`<div class="gc-dc-row">${depthCell(st,0,l,find(st.depth.a,l))}<span class="gc-dc-label">${E(l==='D/ST'?'DST':l)}</span>${depthCell(st,1,l,find(st.depth.b,l))}</div>`).join('');
+  return section('depth','Depth charts',`<div class="gc-lead-head">${teamLabel(st.teams[0])}${teamLabel(st.teams[1])}</div><div class="gc-dc-list">${rows}</div>`,stateOf(st)==='pre'?'Projected points':'Fantasy points');
  }
 
  /* ---------- schedules ---------- */
  async function loadSchedules(st){
   if(st.schedules)return;st.schedules={};
   await Promise.all(st.teams.map(async t=>{try{st.schedules[t.id]=await getJson(scheduleUrl(t.id),600000)}catch(_){st.schedules[t.id]=null}}));
+  render(st);loadScheduleFantasy(st);
+ }
+ // League points and the projection for the game leaders, one small request per week (the fantasy feed
+ // returns a past week's projection only when asked for that scoring period).
+ function scheduleWeeks(st){
+  const out=new Map();
+  for(const data of Object.values(st.schedules||{})){
+   const done=(data?.events||[]).filter(e=>e.competitions?.[0]?.status?.type?.state==='post').sort((a,b)=>Number(a.week?.number)-Number(b.week?.number));
+   for(const e of st.ui.schedFull?done:done.slice(-5)){const w=Number(e.week?.number);if(!w)continue;const ids=out.get(w)||new Set();for(const team of e.competitions[0].competitors||[])for(const l of team.leaders||[])for(const x of l.leaders||[])if(x.athlete?.id)ids.add(Number(x.athlete.id));out.set(w,ids)}
+  }
+  return out;
+ }
+ async function loadScheduleFantasy(st){
+  if(!st.schedFp){st.schedFp=new Map();st.schedFpWeeks=new Set()}
+  const need=[...scheduleWeeks(st)].filter(([w])=>!st.schedFpWeeks.has(w));if(!need.length)return;
+  need.forEach(([w])=>st.schedFpWeeks.add(w));
+  await Promise.all(need.map(async([w,ids])=>{
+   try{
+    const entries=await pcEspnLeaguePlayersRequest(Number(NFL_SEASON),w,'kona_player_info',{filterIds:{value:[...ids]},filterStatsForTopScoringPeriodIds:{value:18,additionalValue:[`11${NFL_SEASON}${w}`]}});
+    for(const e of entries){const p=e.player||{};if(!p.id)continue;
+     const info={id:String(p.id),name:p.fullName,pos:POS[p.defaultPositionId]||'',posId:p.defaultPositionId,team:abbrOf(p.proTeamId)},r={...info};
+     for(const x of p.stats||[]){if(Number(x.seasonId)!==Number(NFL_SEASON)||Number(x.statSplitTypeId)!==1||Number(x.scoringPeriodId)!==w)continue;if(Number(x.statSourceId)===0)r.pts=Number(x.appliedTotal);else if(Number(x.statSourceId)===1)r.proj=Number(x.appliedTotal)}
+     st.schedFp.set(`${p.id}|${w}`,r);st.schedFp.set(`${p.id}|info`,info)}
+   }catch(_){}
+   st.schedFp.set(`done|${w}`,true);
+  }));
   render(st);
  }
- function leaderCell(st,comp,teamId,name){
+ const LEADER_STAT={passingLeader:'pass yds',rushingLeader:'rush yds',receivingLeader:'rec yds'};
+ function leaderCell(st,comp,teamId,name,week){
   const L=comp?.competitors?.find(c=>String(c.team?.id)===String(teamId))?.leaders?.find(l=>l.name===name)?.leaders?.[0];if(!L)return '—';
-  const a=L.athlete||{},p=poolPlayer(st,a.id)||(typeof hjOwnershipForPlayerLike==='function'?null:null),last=(a.shortName||a.displayName||'').split(' ').slice(1).join(' ')||a.shortName;
-  const v=E(Math.round(Number(L.value)||0));
-  return p?`<button type="button" class="gc-mini pc-player-trigger" ${attrs(p)}>${avatar(p,'gc-av is-mini')}<span>${E(last)} <b>${v}</b></span></button>`:`<span class="gc-mini is-plain"><span>${E(last)} <b>${v}</b></span></span>`;
+  const a=L.athlete||{},yards=`${Math.round(Number(L.value)||0)} ${LEADER_STAT[name]||''}`.trim();
+  const last=(a.shortName||a.displayName||'').split(' ').slice(1).join(' ')||a.shortName||a.displayName||'';
+  const r=st.schedFp?.get(`${a.id}|${week}`),info=r||st.schedFp?.get(`${a.id}|info`)||poolPlayer(st,a.id);
+  const pts=r&&Number.isFinite(r.pts)?`<b ${perf(r.pts,r.proj)}>${fp(r.pts)}</b>`:st.schedFp?.get(`done|${week}`)?'<b>—</b>':'<b class="is-wait">…</b>';
+  if(!info?.pos)return `<span class="gc-mini is-plain" title="${E(yards)}"><span class="gc-mini-copy"><span>${E(last)} ${pts}</span></span></span>`;
+  const p={id:String(a.id),name:info.name||a.displayName,pos:info.pos,team:info.team||'',teamId:String(teamId)};
+  return `<button type="button" class="gc-mini pc-player-trigger" ${attrs(p)} title="${E(yards)}">${avatar(p,'gc-av is-mini')}<span class="gc-mini-copy"><span><b class="gc-mini-n">${E(last)}</b> ${pts}</span>${ownerName(p)}</span></button>`;
  }
  function schedulesHTML(st){
-  if(!st.schedules)loadSchedules(st);
+  if(!st.schedules)loadSchedules(st);else if(Object.keys(st.schedules).length)loadScheduleFantasy(st);
   const which=st.ui.sched||'away',t=st.teams[which==='home'?1:0],data=st.schedules?.[t.id];
   let body;
   if(!st.schedules||data===undefined)body='<div class="gc-loading-row"><span class="depth-live-dot"></span>Loading schedules…</div>';
@@ -338,7 +516,7 @@
     const opp=`<span class="gc-opp">${home?'vs':'@'} <img src="${E(logoOf(op?.team?.id))}" alt="" loading="lazy">${E(abbrOf(op?.team?.id))}</span>`;
     const date=dateFmt(e.date,{month:'numeric',day:'numeric'});
     if(state==='post'){const ms=Number(me?.score?.value??me?.score),os=Number(op?.score?.value??op?.score),res=me?.winner?'W':op?.winner?'L':'T',rec=(me?.record||[]).find(r=>r.type==='total'||r.id==='369')?.displayValue||'';
-     rows.push(`<tr${String(e.id)===String(st.eventId)?' class="is-this"':''}><td>${w}</td><td>${E(date)}</td><td>${opp}</td><td class="gc-res is-${res.toLowerCase()}"><b>${res}</b> ${ms}-${os}</td><td>${E(rec)}</td><td>${leaderCell(st,c,t.id,'passingLeader')}</td><td>${leaderCell(st,c,t.id,'rushingLeader')}</td><td>${leaderCell(st,c,t.id,'receivingLeader')}</td></tr>`)}
+     rows.push(`<tr${String(e.id)===String(st.eventId)?' class="is-this"':''}><td>${w}</td><td>${E(date)}</td><td>${opp}</td><td class="gc-res is-${res.toLowerCase()}"><b>${res}</b> ${ms}-${os}</td><td>${E(rec)}</td><td>${leaderCell(st,c,t.id,'passingLeader',w)}</td><td>${leaderCell(st,c,t.id,'rushingLeader',w)}</td><td>${leaderCell(st,c,t.id,'receivingLeader',w)}</td></tr>`)}
     else{const tv=(c.broadcasts||[]).map(b=>b?.media?.shortName).filter(Boolean)[0]||'';rows.push(`<tr class="${String(e.id)===String(st.eventId)?'is-this ':''}is-upcoming"><td>${w}</td><td>${E(date)}</td><td>${opp}</td><td colspan="5">${state==='in'?'<span class="gc-live-pill">Live</span>':E(dateFmt(e.date,{weekday:'short',hour:'numeric',minute:'2-digit'}))}${tv?` · ${E(tv)}`:''}</td></tr>`)}
    }
    body=`<div class="gc-table-wrap"><table class="gc-table gc-sched"><thead><tr><th>Wk</th><th>Date</th><th>Opp</th><th>Result</th><th>W-L</th><th>Hi pass</th><th>Hi rush</th><th>Hi rec</th></tr></thead><tbody>${rows.join('')||'<tr><td colspan="8">No games played yet.</td></tr>'}</tbody></table></div><button type="button" class="gc-more" data-gc-ui="schedFull" data-gc-value="${full?'':'1'}">${full?'Show last five games':'Show full schedule'}</button>`;
@@ -368,7 +546,8 @@
   const host=st.root.querySelector('.gc-board-host');const head=headerHTML(st);if(host&&host.innerHTML!==head)host.innerHTML=head;
   const scroll=st.root.querySelector('.gc-scroll');
   if(!st.summary){scroll.innerHTML=st.error?`<div class="gc-error"><p>${E(st.error)}</p><button type="button" class="gc-more" data-gc-retry>Try again</button></div>`:'<div class="gc-loading-row is-page"><span class="depth-live-dot"></span>Loading game…</div>';return}
-  const html=sectionsFor(st).map(f=>{try{return f(st)}catch(error){console.warn('Game Center section failed',error);return ''}}).join('');
+  // Shared helpers name the data source in tooltips; reworded here so a refresh compares like with like.
+  const html=sectionsFor(st).map(f=>{try{return f(st)}catch(error){console.warn('Game Center section failed',error);return ''}}).join('').replace(/ESPN projection/g,'projection').replace(/ESPN status/g,'Injury status').replace(/(title|aria-label)="projection/g,'$1="Projection');
   const tmp=document.createElement('div');tmp.innerHTML=html;
   const fresh=[...tmp.children],old=[...scroll.querySelectorAll(':scope > [data-gc-section]')];
   if(old.length===fresh.length&&old.every((o,i)=>o.dataset.gcSection===fresh[i].dataset.gcSection)){
@@ -413,6 +592,7 @@
   root.querySelector('.gc-close').addEventListener('click',close);
   root.addEventListener('click',e=>{
    if(e.target===root){close();return}
+   const fwd=e.target.closest('[data-gc-open]');if(fwd){fwd.parentElement?.querySelector('.pc-player-trigger')?.click();return}
    const ui=e.target.closest('[data-gc-ui]');if(ui){const name=ui.dataset.gcUi,v=ui.dataset.gcValue;st.ui[name]=name==='schedFull'?Boolean(v):v;render(st);return}
    if(e.target.closest('[data-gc-retry]')){st.error='';render(st);refresh(st,true)}
   });

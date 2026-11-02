@@ -13,18 +13,25 @@ render with the same cards. Live score updates only redraw the current week. `hj
 ## The game page
 Same frame as the player and manager profiles: header board, a sticky section menu that tracks scrolling, and sections.
 
-Before kickoff: Depth charts (the same panels and projections as before), Matchup predictor, Season leaders,
-Odds & game environment (spread, total, moneyline with opening lines, implied points, venue, field, kickoff, weather,
-scoring environment, game script), Injury report, Schedules (last five games, **Show full schedule** for every week
-including the bye and upcoming games, with each game's top passer, rusher and receiver).
+Before kickoff: Depth charts (both teams across from each other, QB, RB1… down the middle, same projections and
+E/V toggle as before), Matchup predictor, Season leaders, Odds & game environment (spread, total and moneyline cards
+with prices, opening lines and movement, a scoring-band gauge for the total, each side's chance to win from the
+moneylines, implied team totals, then tiles for kickoff, stadium, weather and its impact, scoring environment, game
+script, rest days and home/road records), Injury report, Schedules (last five games, **Show full schedule** for every
+week including the bye; the top passer, rusher and receiver of each game with his league points, colored against his
+projection for that week, and his manager).
 
 Live and final: Gamecast (linescore, ball and down, last play with fantasy points, fantasy leaders), Play by play
-(Scoring plays / All plays by drive, newest first; no key plays), Box score (fantasy points table for players who played,
-then every stat table with avatars, owners and FPTS), Team stats, Win probability (chance and the game chart, home on
+(Scoring plays / All plays by drive, newest first; no key plays), Box score (team switch stays at the top while
+scrolling the box score; FPTS is the first column in passing, rushing, receiving and kicking, colored against the
+projection with the projection in italics beneath; the D/ST row leads the defense table; tackles and the other
+non-fantasy tables list names only), Team stats, Win probability (chance and the game chart, home on
 top), Game leaders, then the pregame sections. Live games refresh every 15 seconds (every minute in the 45 minutes
 before kickoff); open drives, the chosen tabs and scroll position survive each refresh.
 
-Every fantasy-relevant player has an avatar, opens his profile on top of the game (Escape or × returns to the game),
+The injury report also lists players hurt during the game (from the play-by-play), when, and whether and when they
+returned. Managers are shown everywhere a fantasy player appears: the usual manager avatar and name, or FA (play chips show
+nothing for a free agent; the depth charts use the same owner line); the schedule's leader cells use the depth-chart style (name only) to keep the row height. Every fantasy-relevant player has an avatar, opens his profile on top of the game (Escape or × returns to the game),
 and shows his owner or FA. Players who are not fantasy-relevant appear by name only. Nothing on the page names or links
 to an outside site: tooltips written by shared helpers are reworded while the page is open.
 
