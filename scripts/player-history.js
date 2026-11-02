@@ -25,7 +25,9 @@ function pcLoadHistory(season){
   })));
   const seen=new Set(),transactions=[];
   for(const result of results)if(result.status==='fulfilled')for(const tx of result.value){const key=String(tx.id||JSON.stringify(tx));if(!seen.has(key)){seen.add(key);transactions.push(tx);}}
-  return {data,transactions,partial:results.some(r=>r.status==='rejected')};
+  // ESPN player ids for past draft picks (data/draft-headshots.json), so a pick is matched by id, not name.
+  const draftIds=typeof hjHostedJson==='function'?await hjHostedJson('draft-headshots.json').then(d=>d?.schema===1?d.ids||null:null).catch(()=>null):null;
+  return {data,transactions,draftIds,partial:results.some(r=>r.status==='rejected')};
  })();PC_HISTORY_CACHE.set(season,{at:Date.now(),promise});promise.catch(()=>PC_HISTORY_CACHE.delete(season));return promise;
 }
 function pcHistoryRows(player,season,loaded){
@@ -33,7 +35,8 @@ function pcHistoryRows(player,season,loaded){
  const manager=teamId=>hjActivityTeamName(teamId,data);
  const picks=(data?.draftDetail?.picks||[]).filter(p=>String(p.playerId)===id);
  for(const p of picks)rows.push({type:'Drafted',to:manager(p.teamId),at:Number(data.settings?.draftSettings?.date)||null,detail:`Round ${p.roundId} · Pick ${p.overallPickNumber}`,draft:true});
- if(!picks.length&&typeof hjAllDraftHistoryRows==='function')for(const p of hjAllDraftHistoryRows().filter(p=>Number(p.year)===season&&pcNameMatch(p.player,player.name)&&(!p.position||p.position===player.position)))rows.push({type:'Drafted',to:p.manager,at:null,detail:`Round ${p.round} · Pick ${p.overall_pick}`,draft:true});
+ const pickId=p=>loaded?.draftIds?.[`${Number(p.year)}|${Number(p.overall_pick)}`];
+ if(!picks.length&&typeof hjAllDraftHistoryRows==='function')for(const p of hjAllDraftHistoryRows().filter(p=>Number(p.year)===season&&(pickId(p)?String(pickId(p))===id:pcNameMatch(p.player,player.name)&&(!p.position||p.position===player.position))))rows.push({type:'Drafted',to:p.manager,at:null,detail:`Round ${p.round} · Pick ${p.overall_pick}`,draft:true});
  for(const tx of loaded?.transactions||[]){
   if(String(tx.status).toUpperCase()!=='EXECUTED')continue;
   const source=String(tx.type||'').toUpperCase();

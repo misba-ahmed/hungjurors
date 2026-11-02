@@ -144,6 +144,9 @@
    const p=byId.get(String(card.dataset.hqDirectoryId));
    card.classList.add('hj-pt-card');
    const weekTile=card.querySelector('.hq40-week-proj'),seasonTile=card.querySelector('.hq40-season-proj');
+   // The week tile is always labelled THIS WEEK; its FPTS show the game is live or final (the older card swapped
+   // the label to LIVE / FINAL / ACTUAL once the game started).
+   const weekLabel=weekTile?.querySelector('.hq-player-proj-label');if(weekLabel)weekLabel.textContent='THIS WEEK';
    if(!p||!weekTile||!seasonTile||weekTile.querySelector('.hj-pt-pair'))return;
    const started=HJ40_API.gameStarted(p),actual=started?HJ40_API.actualWeek(p):null;
    const perf=typeof hjPerformanceAttrs==='function'&&Number.isFinite(actual)?' '+hjPerformanceAttrs(actual,p.espnWeekFpts):'';

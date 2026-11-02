@@ -755,7 +755,8 @@
   for(const row of USAGE.rows){
    const team=String(row.team||'').toUpperCase(),wk=Number(row.week);
    const pos=String(row.position||row.position_group||'').toUpperCase();
-   const name=baseName(row.player_display_name||row.player_name||'');
+   // One key per player (pcRowKey: nflverse id, else ESPN id, else name), the same key the profile ranks use.
+   const name=typeof pcRowKey==='function'?pcRowKey(row):baseName(row.player_display_name||row.player_name||'');
    if(team&&Number.isFinite(wk)){
     const k=`${team}|${wk}`;
     USAGE.teamCarries.set(k,(USAGE.teamCarries.get(k)||0)+(num(row.carries)||0));
@@ -803,7 +804,7 @@
    const rows=(typeof pcPlayerRows==='function'?pcPlayerRows(USAGE.rows,{id:like.id,name:like.name,position:pos}):[])
     .filter(r=>typeof pcRowPlayed!=='function'||pcRowPlayed(r,USAGE.snaps)).sort((a,b)=>Number(a.week)-Number(b.week));
    if(rows.length){
-    const statName=baseName(rows[0].player_display_name||rows[0].player_name||like.name);
+    const statName=typeof pcRowKey==='function'?pcRowKey(rows[0]):baseName(rows[0].player_display_name||rows[0].player_name||like.name);
     const series=rows.map(r=>{
      const total=USAGE.teamCarries.get(`${String(r.team||'').toUpperCase()}|${Number(r.week)}`);
      const tt=USAGE.teamTargets.get(`${String(r.team||'').toUpperCase()}|${Number(r.week)}`);
