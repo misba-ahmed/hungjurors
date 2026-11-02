@@ -95,11 +95,11 @@ body.gc-modal-open{overflow:hidden}
 .gc-owner.is-mini{gap:3px;font-size:7.5px}
 .gc-owner.is-mini .gc-mav{width:11px;height:11px}
 .gc-who-copy>.gc-own{margin-top:1px}
-.gc-mini{display:inline-flex;align-items:center;gap:5px;padding:0;border:0;background:none;color:var(--navy);font:650 11.5px/1 var(--sans);cursor:pointer;white-space:nowrap}
+.gc-mini{text-align:left;display:inline-flex;align-items:center;gap:5px;padding:0;border:0;background:none;color:var(--navy);font:650 11.5px/1 var(--sans);cursor:pointer;white-space:nowrap}
 .gc-mini.is-plain{cursor:default}
 .gc-mini b{font-weight:850;font-variant-numeric:tabular-nums}
 .gc-mini b.is-wait{color:#9aa5af}
-.gc-mini-copy{display:grid;gap:2px;line-height:1}
+.gc-mini-copy{display:grid;justify-items:start;gap:2px;line-height:1;text-align:left}
 .gc-mini b.gc-mini-n{font-weight:650}
 .gc-mini-copy .gc-own{font-size:7px;line-height:7px}
 .gc-linkish{padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer}
@@ -216,8 +216,8 @@ body.gc-modal-open{overflow:hidden}
 .gc-lead-name{color:var(--navy);font:750 12px/1.2 var(--sans)}
 .gc-lead-name small{color:#7c8997;font:700 9px/1 var(--mono)}
 .gc-lead-sub{color:#7c8997;font:650 10px/1.2 var(--sans);max-width:100%}
-.gc-lead-fp{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.gc-lead-cell.is-home .gc-lead-fp{justify-content:flex-end}
+.gc-lead-fp{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.gc-lead-cell.is-home .gc-lead-fp{align-items:flex-end}
 
 /* ---------- odds & environment ---------- */
 .gc-lines{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
@@ -310,9 +310,17 @@ body.gc-modal-open{overflow:hidden}
 .gc-dc-pts i{color:#7c8997;font:italic 400 9.5px/11px var(--sans)}
 .gc-dc-pts.is-proj .hj-depth-points{font-size:13px}
 .gc-dc.is-empty .gc-dc-n{color:#9aa5af}
+.gc-dc-label.is-out{background:rgba(210,45,57,.1);color:#b3262f}
+.gc-dc-outs{display:grid;gap:6px;justify-items:start;min-width:0}
+.gc-dc-outs.is-home{justify-items:end;text-align:right}
+.gc-dc-outp{display:grid;gap:2px}
+.gc-dc-outp .gc-linkish{color:var(--navy);font:750 12.5px/1.2 var(--sans);text-align:inherit}
+.gc-dc-outp small{color:#b3262f;font:700 9px/1.2 var(--mono);text-transform:uppercase;letter-spacing:.04em}
+.gc-dc-outp.is-none{color:#9aa5af;font:600 11px/1.2 var(--sans)}
 
 /* ---------- schedules ---------- */
 .gc-sched td,.gc-sched th{text-align:left}
+.gc-table.gc-sched thead th:first-child{position:static}
 .gc-modal .gc-sched td,.gc-modal .gc-sched th{padding-left:10px!important;padding-right:10px!important}
 .gc-sched tr.is-this td,.gc-sched tr.is-this th{background:rgba(185,138,46,.1)}
 .gc-sched tr.is-upcoming td{color:#5b6d7d}

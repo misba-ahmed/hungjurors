@@ -14,7 +14,9 @@ render with the same cards. Live score updates only redraw the current week. `hj
 Same frame as the player and manager profiles: header board, a sticky section menu that tracks scrolling, and sections.
 
 Before kickoff: Depth charts (both teams across from each other, QB, RB1… down the middle, same projections and
-E/V toggle as before), Matchup predictor, Season leaders, Odds & game environment (spread, total and moneyline cards
+E/V toggle as before; a player ruled out — O, IR, PUP, NFI, suspended, inactive, by the same statuses as the site's
+badges — gives up his slot to the next player in the team's order and is listed in an OUT row under the chart;
+questionable and doubtful players keep their slot; refreshed every 5 minutes while the page is open), Matchup predictor, Season leaders, Odds & game environment (spread, total and moneyline cards
 with prices, opening lines and movement, a scoring-band gauge for the total, each side's chance to win from the
 moneylines, implied team totals, then tiles for kickoff, stadium, weather and its impact, scoring environment, game
 script, rest days and home/road records), Injury report, Schedules (last five games, **Show full schedule** for every
@@ -24,7 +26,7 @@ projection for that week, and his manager).
 Live and final: Gamecast (linescore, ball and down, last play with fantasy points, fantasy leaders), Play by play
 (Scoring plays / All plays by drive, newest first; no key plays), Box score (team switch stays at the top while
 scrolling the box score; FPTS is the first column in passing, rushing, receiving and kicking, colored against the
-projection with the projection in italics beneath; the D/ST row leads the defense table; tackles and the other
+projection with the projection in italics beneath; position and owner line under each name; the D/ST row leads the defense table; tackles and the other
 non-fantasy tables list names only), Team stats, Win probability (chance and the game chart, home on
 top), Game leaders, then the pregame sections. Live games refresh every 15 seconds (every minute in the 45 minutes
 before kickoff); open drives, the chosen tabs and scroll position survive each refresh.

@@ -196,12 +196,12 @@
  const FP_CATS=new Set(['passing','rushing','receiving','kicking']);
  function fptsCell(p){
   if(!p)return '<td class="gc-fpcell"></td>';
-  return `<td class="gc-fpcell"><b ${perf(p.week,p.proj)}>${fp(p.week)}</b>${Number.isFinite(p.proj)?`<i>proj ${fp(p.proj)}</i>`:''}</td>`;
+  return `<td class="gc-fpcell"><b ${perf(p.week,p.proj)}>${fp(p.week)}</b>${Number.isFinite(p.proj)?`<i>${fp(p.proj)}</i>`:''}</td>`;
  }
  function boxName(st,id,name,fantasy){
   const p=fantasy?poolPlayer(st,id):null;
   if(!p)return `<span class="gc-box-plain">${E(name||'—')}</span>`;
-  return who(st,id,name||p.name,{compact:true});
+  return who(st,id,name||p.name,{compact:true,sub:p.pos});
  }
  function boxHTML(st){
   if(stateOf(st)==='pre')return '';
@@ -420,14 +420,61 @@
  }
 
  /* ---------- depth charts: both teams side by side, position down the middle ---------- */
- async function loadDepth(st){
-  if(st.depth!==undefined||!st.game)return;st.depth=null;
+ // The team depth feed lists players in the team's order whatever their game status, so a player ruled out
+ // (O, IR, PUP, NFI, suspended, inactive) kept his slot with only a badge. The game page fills each slot with the
+ // next available player, using the same player statuses as the badges across the site, and lists the
+ // ruled-out players under the chart. Questionable and doubtful players keep their slot with their badge.
+ // The depth feed's normalize step is replaced so the full order per position is kept (fetchTeamDepth's own rows
+ // are unchanged for anything else that uses them).
+ const NOT_PLAYING=new Set(['O','IR','PUP','NFI','SUS','SUSP','INACTIVE']);
+ const DEPTH_SLOTS=[['QB','QB',0],['RB1','RB',0],['RB2','RB',1],['WR1','WR',0],['WR2','WR',1],['WR3','WR',2],['TE','TE',0],['K','K',0]];
+ const DEPTH_KEEP={QB:3,RB:5,WR:6,TE:3,K:2};
+ if(typeof normalizeDepth==='function'&&typeof attachInjuries==='function'&&typeof depthList==='function'&&typeof normalizedPos==='function'){
+  normalizeDepth=function(data,rosterMap=new Map()){
+   const charts=depthList(data?.depthCharts??data?.depthcharts??data?.items??[]),pool={QB:[],RB:[],WR:[],TE:[],K:[]},seen=new Set();
+   for(const chart of charts)for(const [slotKey,slot] of Object.entries(chart?.positions||{}))for(const entry of depthList(slot?.athletes??slot?.items)){
+    const nested=entry?.athlete||entry?.player||entry||{},ref=nested?.$ref||entry?.$ref||entry?.athlete?.$ref||'';
+    const id=String(nested?.id||entry?.athleteId||entry?.playerId||athleteIdFromRef(ref)||''),roster=id?rosterMap.get(id):null;
+    const pos=normalizedPos(slotKey,slot,entry,nested)||roster?.pos||'';if(!pool[pos])continue;
+    const name=nested?.displayName||nested?.fullName||nested?.shortName||entry?.displayName||entry?.fullName||roster?.name||'';if(!name)continue;
+    const key=`${pos}:${id||name.toLowerCase()}`;if(seen.has(key))continue;seen.add(key);
+    pool[pos].push({id,name,rank:Number(entry?.rank??entry?.depth??entry?.order??nested?.rank)||99,slot:String(slotKey||''),headshot:nested?.headshot?.href||entry?.headshot?.href||roster?.headshot||(id?nflHeadshot(id):'')});
+   }
+   for(const arr of Object.values(pool))arr.sort((x,y)=>(x.rank-y.rank)||x.slot.localeCompare(y.slot)||x.name.localeCompare(y.name));
+   const rows=DEPTH_SLOTS.map(([label,pos,i])=>[label,pool[pos][i]]);rows.pool=pool;return rows;
+  };
+  const baseAttach=attachInjuries;
+  attachInjuries=function(rows,injuryMap){
+   const result=baseAttach(rows,injuryMap);
+   if(rows?.pool){const find=p=>(p.id&&injuryMap.byId.get(String(p.id)))||injuryMap.byName.get(p.name.toLowerCase().replace(/[^a-z0-9]/g,''))||null;
+    result.pool=Object.fromEntries(Object.entries(rows.pool).map(([pos,list])=>[pos,list.slice(0,DEPTH_KEEP[pos]||3).map(p=>{const injury=find(p);return injury?{...p,injury}:p})]))}
+   return result;
+  };
+ }
+ function playerStatus(p){
+  const live=typeof hjStatusIndex==='function'?hjStatusIndex().get(String(p?.id||'')):null;
+  return live?{code:live.code,status:titleCase(live.label||live.code)}:p?.injury?.code?{code:p.injury.code,status:p.injury.status,type:p.injury.type}:null;
+ }
+ // Slots for one team at render time, so a status change shows on the next refresh.
+ function depthSlots(st,i){
+  const d=st.depth,team=i?st.game.b:st.game.a,pool=i?d.poolB:d.poolA,base=i?d.b:d.a;
+  if(!pool)return {rows:base,out:[]};
+  const avail={},out=[];
+  for(const [pos,list] of Object.entries(pool)){avail[pos]=[];list.forEach((p,n)=>{const s=playerStatus(p);
+   if(s&&NOT_PLAYING.has(String(s.code).toUpperCase())){const slot=DEPTH_SLOTS.find(([,sp,si])=>sp===pos&&si===n);if(slot)out.push({label:slot[0],p,s})}
+   else avail[pos].push(p)})}
+  const rows=hjDepthWithDefense(team,DEPTH_SLOTS.map(([label,pos,n])=>[label,avail[pos]?.[n]]));
+  return {rows,out};
+ }
+ async function loadDepth(st,again){
+  if(!st.game||(!again&&st.depth!==undefined))return;if(!again)st.depth=null;
   try{
    const g=st.game,[a,b]=await Promise.all([fetchTeamDepth(g.a[1]),fetchTeamDepth(g.b[1])]);
    const ra=hjDepthWithDefense(g.a,a.rows),rb=hjDepthWithDefense(g.b,b.rows);
-   await hjHydrateDepthPoints([...ra,...rb],g).catch(()=>{});
-   st.depth={a:ra,b:rb};
-  }catch(_){st.depth=false}
+   const extra=(pool,team)=>Object.entries(pool||{}).flatMap(([pos,list])=>list.map(p=>[pos,p]));
+   await hjHydrateDepthPoints([...ra,...rb,...extra(a.rows.pool),...extra(b.rows.pool)],g).catch(()=>{});
+   st.depth={a:ra,b:rb,poolA:a.rows.pool,poolB:b.rows.pool,at:Date.now()};
+  }catch(_){if(!again)st.depth=false}
   render(st);
  }
  const titleCase=s=>String(s||'').toLowerCase().replace(/\b[a-z]/g,c=>c.toUpperCase());
@@ -447,10 +494,14 @@
  function depthHTML(st){
   if(st.depth===undefined)loadDepth(st);
   if(!st.depth)return section('depth','Depth charts',st.depth===false?'<p class="gc-empty">Depth charts are unavailable right now.</p>':'<div class="gc-loading-row"><span class="depth-live-dot"></span>Loading depth charts…</div>');
-  const labels=[...new Set([...st.depth.a.map(r=>r[0]),...st.depth.b.map(r=>r[0])])];
+  const A=depthSlots(st,0),B=depthSlots(st,1);
+  const labels=[...new Set([...A.rows.map(r=>r[0]),...B.rows.map(r=>r[0])])];
   const find=(rows,l)=>rows.find(r=>r[0]===l)?.[1]||null;
-  const rows=labels.map(l=>`<div class="gc-dc-row">${depthCell(st,0,l,find(st.depth.a,l))}<span class="gc-dc-label">${E(l==='D/ST'?'DST':l)}</span>${depthCell(st,1,l,find(st.depth.b,l))}</div>`).join('');
-  return section('depth','Depth charts',`<div class="gc-lead-head">${teamLabel(st.teams[0])}${teamLabel(st.teams[1])}</div><div class="gc-dc-list">${rows}</div>`,stateOf(st)==='pre'?'Projected points':'Fantasy points');
+  const rows=labels.map(l=>`<div class="gc-dc-row">${depthCell(st,0,l,find(A.rows,l))}<span class="gc-dc-label">${E(l==='D/ST'?'DST':l)}</span>${depthCell(st,1,l,find(B.rows,l))}</div>`).join('');
+  // Ruled out of the game: the players who would otherwise hold a slot above.
+  const outList=(list,i)=>{const abbr=st.teams[i].abbr;return list.length?list.map(({label,p,s})=>`<span class="gc-dc-outp"><button type="button" class="gc-linkish pc-player-trigger" ${ffnPlayerDataAttrs({id:p.id,name:p.name,team:abbr,position:label.replace(/\d+/g,''),photo:p.headshot})}>${nameHTML(p.name)}</button><small>${E(label)} · ${E(s?.status||'Out')}${(()=>{const d=(st.summary?.injuries||[]).flatMap(x=>x.injuries||[]).find(x=>String(x.athlete?.id)===String(p.id))?.details,t=s?.type||d?.type;return t?` · ${E(t)}`:''})()}</small></span>`).join(''):'<span class="gc-dc-outp is-none">None</span>'};
+  const outs=(A.out.length||B.out.length)?`<div class="gc-dc-row gc-dc-outrow"><div class="gc-dc-outs is-away">${outList(A.out,0)}</div><span class="gc-dc-label is-out">OUT</span><div class="gc-dc-outs is-home">${outList(B.out,1)}</div></div>`:'';
+  return section('depth','Depth charts',`<div class="gc-lead-head">${teamLabel(st.teams[0])}${teamLabel(st.teams[1])}</div><div class="gc-dc-list">${rows}${outs}</div>`,stateOf(st)==='pre'?'Projected points':'Fantasy points');
  }
 
  /* ---------- schedules ---------- */
@@ -573,7 +624,7 @@
   const delay=state==='in'?15000:soon?60000:0;if(delay)st.timer=setTimeout(()=>{if(document.hidden)schedule(st);else refresh(st)},delay);
  }
  function close(){
-  if(!active)return;const st=active;active=null;clearTimeout(st.timer);st.obs?.disconnect();
+  if(!active)return;const st=active;active=null;clearTimeout(st.timer);clearInterval(st.depthTimer);st.obs?.disconnect();
   st.root.classList.remove('is-open');document.body.classList.remove('gc-modal-open');
   setTimeout(()=>st.root.remove(),300);setTimeout(()=>st.trigger?.focus?.({preventScroll:true}),310);
  }
@@ -598,6 +649,7 @@
   });
   root.addEventListener('toggle',e=>{const d=e.target.closest?.('[data-gc-drive]');if(!d)return;if(d.open)st.ui.openDrives.add(d.dataset.gcDrive);else st.ui.openDrives.delete(d.dataset.gcDrive)},true);
   render(st);requestAnimationFrame(()=>root.classList.add('is-open'));
+  st.depthTimer=setInterval(()=>{if(!document.hidden&&st.depth)loadDepth(st,true)},300000);
   if(g.lat&&g.lon&&typeof fetchKickoffWeather==='function')fetchKickoffWeather(g).then(w=>{st.siteWeather=w;render(st)}).catch(()=>{});
   refresh(st,true);
   setTimeout(()=>root.querySelector('.gc-close')?.focus({preventScroll:true}),80);
