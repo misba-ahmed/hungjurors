@@ -279,6 +279,7 @@ body.gc-modal-open{overflow:hidden}
 .gc-inj-status.is-doubtful{background:rgba(219,160,20,.18);color:#94650b}
 .gc-inj-status.is-questionable{background:rgba(219,160,20,.12);color:#8d6516}
 .gc-inj-status.is-back{background:rgba(47,138,87,.13);color:#1f7a47}
+.gc-inj-status.is-none{background:#eef2f5;color:#5b6d7d}
 .gc-inj-status.is-watch{background:rgba(219,160,20,.16);color:#8d6516}
 .gc-hurt{margin-bottom:16px}
 .gc-hurt h4,.gc-inj-sub{margin:0 0 6px;color:var(--navy);font:850 9.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}

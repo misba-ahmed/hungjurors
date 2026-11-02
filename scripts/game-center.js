@@ -381,22 +381,63 @@
  /* ---------- injuries ---------- */
  const STATUS_RANK={Out:0,'Injured Reserve':1,Doubtful:2,Questionable:3,'Day-To-Day':4};
  const normKey=s=>String(s||'').toLowerCase().replace(/[^a-z]/g,'');
- // Players hurt during the game, read from the play-by-play ("PHI-A.Mukuba was injured during the play"), and
- // whether and when they came back ("Injury Update: ... has returned to the game", or a later play with him in it).
+ // Players hurt in the game. Two sources:
+ //  1. the play-by-play note "BLT-L.Jackson was injured during the play" (the play text uses its own team codes:
+ //     BLT, CLV, HST, ARZ…), with his return from "Injury Update: … has returned to the game" or from his next
+ //     play by player id (never by name text: L.Jackson of the Bills is not Lamar Jackson);
+ //  2. players who took part in the game and whose injury report was updated after kickoff (within two days),
+ //     e.g. a quarterback who left without an injury note in the play text.
+ const SUFFIX=/\s+(jr\.?|sr\.?|ii|iii|iv|v)$/i;
+ const nameKey=(first,last)=>normKey(String(first||'').trim()[0]+String(last||'').trim().replace(SUFFIX,''));
+ const CODE_ALIAS={BLT:'BAL',CLV:'CLE',HST:'HOU',ARZ:'ARI',LA:'LAR',WSH:'WAS',JAC:'JAX',SL:'STL'};
+ function gamePeople(st){
+  const people=new Map(),ids=new Map();
+  const add=(teamId,first,last,info)=>{const t=st.teams.find(x=>String(x.id)===String(teamId));if(!t||!last)return;const k=`${t.id}|${nameKey(first,last)}`;if(!people.has(k))people.set(k,info);if(info.id&&!ids.has(String(info.id)))ids.set(String(info.id),{...info,team:t})};
+  for(const team of st.summary?.boxscore?.players||[])for(const c of team.statistics||[])for(const a of c.athletes||[]){const x=a.athlete||{};add(team.team?.id,x.firstName,x.lastName,{id:x.id,name:x.displayName,headshot:x.headshot?.href})}
+  for(const team of st.summary?.injuries||[])for(const i of team.injuries||[]){const x=i.athlete||{},[f,...l]=String(x.displayName||'').split(' ');add(team.team?.id,f,l.join(' '),{id:x.id,name:x.displayName,headshot:x.headshot?.href,pos:x.position?.abbreviation})}
+  for(const p of st.pool?.values()||[]){if(p.pos==='D/ST')continue;const [f,...l]=String(p.name).split(' ');add(p.teamId,f,l.join(' '),{id:p.id,name:p.name})}
+  return {people,ids};
+ }
+ const coreList=st=>[...(st.plays?.values()||[])];
+ const takesPart=(play,id)=>(play.participants||[]).some(x=>window.hjGameFantasy?.idOf(x.athlete?.$ref)===String(id));
  function inGameInjuries(st){
   const d=st.summary?.drives;if(!d)return [];
   const plays=[...(d.previous||[]),...(d.current&&!(d.previous||[]).some(x=>String(x.id)===String(d.current.id))?[d.current]:[])].flatMap(x=>x.plays||[]);
-  const teamByAbbr=new Map();st.teams.forEach(t=>{teamByAbbr.set(t.abbr,t);const raw=side(st,t===st.teams[0]?'away':'home')?.team?.abbreviation;if(raw)teamByAbbr.set(raw,t)});
-  const people=new Map(),addPerson=(teamId,first,last,info)=>{const t=st.teams.find(x=>String(x.id)===String(teamId));if(!t||!last)return;const k=`${t.id}|${normKey(String(first||'')[0]+last)}`;if(!people.has(k))people.set(k,info)};
-  for(const team of st.summary?.boxscore?.players||[])for(const c of team.statistics||[])for(const a of c.athletes||[]){const x=a.athlete||{};addPerson(team.team?.id,x.firstName,x.lastName,{id:x.id,name:x.displayName,headshot:x.headshot?.href})}
-  for(const team of st.summary?.injuries||[])for(const i of team.injuries||[]){const x=i.athlete||{},[f,...l]=String(x.displayName||'').split(' ');addPerson(team.team?.id,f,l.join(' '),{id:x.id,name:x.displayName,headshot:x.headshot?.href,pos:x.position?.abbreviation})}
-  for(const p of st.pool?.values()||[]){if(p.pos==='D/ST')continue;const [f,...l]=String(p.name).split(' ');addPerson(p.teamId,f,l.join(' '),{id:p.id,name:p.name})}
-  const out=[],re=/\b([A-Z]{2,3})-([A-Z][A-Za-z'.\- ]*?) was injured during the play/g;
+  const {people,ids}=gamePeople(st),core=coreList(st),coreAt=new Map(core.map((p,i)=>[String(p.id),i]));
+  // Team codes used in the play text, mapped to the two teams.
+  const codes=new Set();plays.forEach(pl=>{for(const m of String(pl.text||'').matchAll(/\b([A-Z]{2,3})-[A-Z]/g))codes.add(m[1])});
+  const byCode=new Map();
+  for(const c of codes){const abbr=CODE_ALIAS[c]||c;const t=st.teams.find((x,i)=>x.abbr===abbr||side(st,i?'home':'away')?.team?.abbreviation===c);if(t)byCode.set(c,t)}
+  const unknown=[...codes].filter(c=>!byCode.has(c)),left=st.teams.filter(t=>![...byCode.values()].includes(t));
+  if(unknown.length===1&&left.length===1)byCode.set(unknown[0],left[0]);
+  const out=[],seen=new Set(),re=/\b([A-Z]{2,3})-([A-Z][A-Za-z'.\- ]*?) was injured during the play/g;
   plays.forEach((pl,idx)=>{const text=String(pl.text||'');let m;re.lastIndex=0;while((m=re.exec(text))){
-   const t=teamByAbbr.get(m[1]);if(!t)continue;const short=m[2].trim(),k=`${t.id}|${normKey(short)}`,person=people.get(k)||{name:short.replace('.','. ')};
-   const before=text.slice(0,m.index).replace(/\s+$/,'');
-   let back=null;for(let j=idx+1;j<plays.length;j++){const tx=String(plays[j].text||'');if(new RegExp(`${m[1]}-${short.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')} has returned`).test(tx)||(tx.includes(short)&&!new RegExp(`${short.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')} was injured`).test(tx))){back=plays[j];break}}
-   out.push({team:t,person,short,play:pl,what:before,back})}});
+   const short=m[2].trim(),[ini,...rest]=short.split('.'),key=nameKey(ini,rest.join('.'));
+   let t=byCode.get(m[1]);if(!t){const hits=st.teams.filter(x=>people.has(`${x.id}|${key}`));if(hits.length===1)t=hits[0]}
+   if(!t)continue;
+   const person=people.get(`${t.id}|${key}`)||{name:short.replace('.','. ')};
+   const esc=short.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),update=new RegExp(`${m[1]}-${esc} has returned to the game`);
+   // Back in the game: the "has returned" update, or his next play (by player id), whichever comes first.
+   let back=null;for(let j=idx+1;j<plays.length;j++)if(update.test(String(plays[j].text||''))){back=plays[j];break}
+   const at=coreAt.get(String(pl.id));
+   if(person.id&&at!==undefined){const limit=back?(coreAt.get(String(back.id))??core.length):core.length;
+    for(let j=at+1;j<limit;j++)if(takesPart(core[j],person.id)&&!/Penalty/i.test(core[j].type?.text||'')){back={id:core[j].id,period:core[j].period,clock:core[j].clock};break}}
+   // Linemen rarely appear in the play data, so "did not return" is only said for a player seen in a play before.
+   let tracked=false;if(person.id&&at!==undefined)for(let j=0;j<=at;j++)if(takesPart(core[j],person.id)){tracked=true;break}
+   if(person.id)seen.add(String(person.id));
+   out.push({kind:'play',team:t,person,play:pl,what:text.slice(0,m.index),back,tracked})}});
+  // Injury reports updated after kickoff for players who took part in the game.
+  const kick=Date.parse(comp(st)?.date||st.game?.kickoff||'');
+  if(Number.isFinite(kick))for(const team of st.summary?.injuries||[])for(const i of team.injuries||[]){
+   const id=String(i.athlete?.id||''),when=Date.parse(i.date||'');if(!id||seen.has(id)||!Number.isFinite(when)||when<kick||when>kick+48*3600000)continue;
+   if(/suspen|illness|personal|rest|not injury/i.test(`${i.type||''} ${i.details?.type||''} ${i.status||''}`))continue;
+   let last=null;for(let j=core.length-1;j>=0;j--)if(takesPart(core[j],id)&&!/Penalty/i.test(core[j].type?.text||'')){last=core[j];break}
+   const inBox=(st.summary?.boxscore?.players||[]).some(tm=>(tm.statistics||[]).some(c=>(c.athletes||[]).some(a=>String(a.athlete?.id)===id)));
+   if(!last&&!inBox)continue;
+   const t=st.teams.find(x=>String(x.id)===String(team.team?.id));if(!t)continue;
+   const x=i.athlete||{};seen.add(id);
+   out.push({kind:'report',team:t,person:{id,name:x.displayName,headshot:x.headshot?.href,pos:x.position?.abbreviation},reported:when,last,injury:i});
+  }
   return out;
  }
  const qclock=pl=>`${Number(pl?.period?.number)>4?'OT':`Q${pl?.period?.number||''}`} ${pl?.clock?.displayValue||''}`.trim();
@@ -408,15 +449,26 @@
    return `<span class="gc-av"><span class="gc-av-initials">${E(ffnInitials(person.name||''))}</span>${person.headshot?`<img src="${E(person.headshot)}" alt="" loading="lazy" onerror="this.remove()">`:''}</span><span class="gc-plain">${E(person.name||'')}<small>${E([t.abbr,person.pos].filter(Boolean).join(' '))}</small></span>`};
   let live='';
   if(hurt.length){
-   live=`<div class="gc-hurt"><h4>Injured during the game</h4>${hurt.map(h=>{const status=h.back?'Returned':state==='post'?'Did not return':'Not back yet',cls=h.back?'is-back':state==='post'?'is-out':'is-watch',des=h.person.id?designation(h.person.id):'';
-    return `<div class="gc-hurt-row"><div class="gc-inj-who">${personHTML(h.team,h.person)}</div><div class="gc-hurt-when"><span class="gc-eyebrow">Hurt · ${E(qclock(h.play))}</span><small>${E(h.what.replace(/^\(.*?\)\s*/,''))}</small></div><div class="gc-hurt-status"><span class="gc-inj-status ${cls}">${E(status)}</span>${h.back?`<small>${E(qclock(h.back))}</small>`:''}${des?`<small>Now: ${E(des)}</small>`:''}</div></div>`}).join('')}</div>`;
+   // The play itself, without injury notes, return updates or formation tags.
+   const what=t=>E(String(t||'').replace(/^\(.*?\)\s*/,'').replace(/\b[A-Z]{2,3}-[A-Za-z'.\- ]*? was injured during the play\.\s*/g,'').replace(/\*\* Injury Update: .*? has returned to the game\.\s*/g,'').trim());
+   const kindOf=i=>[i?.details?.side&&!/not specified/i.test(i.details.side)?i.details.side:'',i?.details?.type||i?.type,i?.details?.detail&&!/not specified/i.test(i.details.detail)?i.details.detail:''].filter(Boolean).join(' ');
+   const row=h=>{
+    const des=h.person.id?list.flatMap(x=>x.injuries||[]).find(i=>String(i.athlete?.id)===String(h.person.id)):null;
+    if(h.kind==='report'){
+     const lastTxt=h.last?`Last play: ${E(qclock(h.last))} · ${what(h.last.text)}`:'Played in this game';
+     return `<div class="gc-hurt-row"><div class="gc-inj-who">${personHTML(h.team,h.person)}</div><div class="gc-hurt-when"><span class="gc-eyebrow">Injury reported ${E(dateFmt(h.reported,{weekday:'short',hour:'numeric',minute:'2-digit'}))} CT</span><small>${lastTxt}</small></div><div class="gc-hurt-status"><span class="gc-inj-status is-${E(String(h.injury.status||'').toLowerCase().replace(/[^a-z]+/g,'-'))}">${E(h.injury.status==='Injured Reserve'?'IR':h.injury.status||'')}</span>${kindOf(h.injury)?`<small>${E(kindOf(h.injury))}</small>`:''}</div></div>`;
+    }
+    const status=h.back?'Returned':h.tracked?(state==='post'?'Did not return':'Not back yet'):'No return noted',cls=h.back?'is-back':h.tracked?(state==='post'?'is-out':'is-watch'):'is-none';
+    return `<div class="gc-hurt-row"><div class="gc-inj-who">${personHTML(h.team,h.person)}</div><div class="gc-hurt-when"><span class="gc-eyebrow">Hurt · ${E(qclock(h.play))}</span><small>${what(h.what)}</small></div><div class="gc-hurt-status"><span class="gc-inj-status ${cls}">${E(status)}</span>${h.back?`<small>${E(qclock(h.back))}</small>`:''}${des?`<small>Now: ${E(des.status==='Injured Reserve'?'IR':des.status)}${kindOf(des)?` · ${E(kindOf(des))}`:''}</small>`:''}</div></div>`};
+   const inPlay=hurt.filter(h=>h.kind==='play'),reported=hurt.filter(h=>h.kind==='report');
+   live=`${inPlay.length?`<div class="gc-hurt"><h4>Injured during a play</h4>${inPlay.map(row).join('')}</div>`:''}${reported.length?`<div class="gc-hurt"><h4>Injury reported after kickoff</h4><p class="gc-note">Played in this game; injury status updated after kickoff.</p>${reported.map(row).join('')}</div>`:''}`;
   }
   const col=t=>{const items=(list.find(x=>String(x.team?.id)===String(t.id))?.injuries||[]).slice().sort((a,b)=>Number(!poolPlayer(st,a.athlete?.id))-Number(!poolPlayer(st,b.athlete?.id))||(STATUS_RANK[a.status]??9)-(STATUS_RANK[b.status]??9));
    return `<div class="gc-inj-col"><h4>${teamLabel(t)}</h4>${items.length?items.map(i=>{const a=i.athlete||{},p=poolPlayer(st,a.id),d=i.details||{},status=i.status||'',ret=d.returnDate&&/out|reserve|doubt/i.test(status)?`Return ${dateFmt(`${d.returnDate}T12:00:00Z`,{month:'short',day:'numeric'})}`:'';
     const what=[d.side&&!/not specified/i.test(d.side)?d.side:'',d.type,d.detail&&!/not specified/i.test(d.detail)?d.detail:''].filter(Boolean).join(' ');
     return `<div class="gc-inj"><div class="gc-inj-who">${p?who(st,a.id,a.displayName,{sub:a.position?.abbreviation||''}):`<span class="gc-av"><span class="gc-av-initials">${E(ffnInitials(a.displayName||''))}</span>${a.headshot?.href?`<img src="${E(a.headshot.href)}" alt="" loading="lazy" onerror="this.remove()">`:''}</span><span class="gc-plain">${E(a.displayName||'')}<small>${E(a.position?.abbreviation||'')}</small></span>`}</div><span class="gc-inj-status is-${E(status.toLowerCase().replace(/[^a-z]+/g,'-'))}">${E(status==='Injured Reserve'?'IR':status)}</span><small class="gc-inj-what">${E([what,ret].filter(Boolean).join(' · '))}</small></div>`}).join(''):'<p class="gc-empty">No injury designations.</p>'}</div>`};
   const report=list.length?`${hurt.length?'<h4 class="gc-inj-sub">Injury designations</h4>':''}<div class="gc-inj-grid">${col(st.teams[0])}${col(st.teams[1])}</div>`:'';
-  return section('injuries','Injury report',`${live}${report}`,hurt.length?`${hurt.length} in-game injur${hurt.length===1?'y':'ies'}`:'');
+  return section('injuries','Injury report',`${live}${report}`,hurt.length?`${hurt.length} hurt in the game`:'');
  }
 
  /* ---------- depth charts: both teams side by side, position down the middle ---------- */

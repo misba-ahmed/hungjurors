@@ -31,8 +31,13 @@ non-fantasy tables list names only), Team stats, Win probability (chance and the
 top), Game leaders, then the pregame sections. Live games refresh every 15 seconds (every minute in the 45 minutes
 before kickoff); open drives, the chosen tabs and scroll position survive each refresh.
 
-The injury report also lists players hurt during the game (from the play-by-play), when, and whether and when they
-returned. Managers are shown everywhere a fantasy player appears: the usual manager avatar and name, or FA (play chips show
+The injury report also lists players hurt in the game, in two groups:
+- Injured during a play: from the play-by-play note ("BLT-L.Jackson was injured during the play"; the play text uses
+  its own team codes such as BLT, CLV, HST, ARZ). Returned = the "has returned to the game" update or his next play,
+  matched by player id, never by name text. "Did not return" only for a player seen in the play data before he was
+  hurt; otherwise "No return noted" (linemen rarely appear in the play data).
+- Injury reported after kickoff: players who took part in the game and whose injury report was updated after kickoff
+  (within two days), with their last play; e.g. a quarterback who left without an injury note in the play text. Managers are shown everywhere a fantasy player appears: the usual manager avatar and name, or FA (play chips show
 nothing for a free agent; the depth charts use the same owner line); the schedule's leader cells use the depth-chart style (name only) to keep the row height. Every fantasy-relevant player has an avatar, opens his profile on top of the game (Escape or × returns to the game),
 and shows his owner or FA. Players who are not fantasy-relevant appear by name only. Nothing on the page names or links
 to an outside site: tooltips written by shared helpers are reworded while the page is open.
