@@ -265,7 +265,9 @@
   const columns=groups.map(g=>{
    const name=typeof PC_TEAM_NAMES!=='undefined'?(PC_TEAM_NAMES[g.team]||g.team):g.team;
    const header='<div class="wp-team-header"><img src="'+esc(nflLogo(g.team))+'" alt=""><span>'+esc(name)+'</span></div>';
-   const players=g.players.map(item=>'<div class="wp-person">'+wirePlayerHTML(item.player).replace('wc-player','wp-player').replace(/<small>[\s\S]*?<\/small>/,'<small>'+esc(item.manager)+'</small>')+'</div>').join('');
+   // Short display names ("C. McCaffrey", the site's hjChShortName); the profile link and label keep the full name.
+   const short=p=>typeof hjChShortName==='function'?hjChShortName(p):p.name;
+   const players=g.players.map(item=>'<div class="wp-person">'+wirePlayerHTML(item.player).replace('wc-player','wp-player').replace('<b>'+esc(item.player.name)+'</b>',()=>'<b>'+esc(short(item.player))+'</b>').replace(/<small>[\s\S]*?<\/small>/,'<small>'+esc(item.manager)+'</small>')+'</div>').join('');
    return '<div class="wp-team-list" role="group" aria-label="'+esc(name)+' players">'+header+players+'</div>';
   });
   const stacks=[[],[]];columns.forEach((html,index)=>stacks[index%2].push(html));

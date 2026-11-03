@@ -123,3 +123,16 @@
 .wp-bye-column:nth-child(2) .wp-team-list .wp-team-header,.wp-bye-column:nth-child(2) .wp-team-list .wp-player{flex-direction:row-reverse;text-align:right}
 @media(max-width:720px){.wp-bye-column{gap:8px}}
 @media(max-width:360px){.wp-bye-column{gap:4px}}
+/* Injury badges in the mirrored (right-hand) team lists sit on the outer side of the name, so every name lines up
+   on the edge next to its photo. The name and badge flow as text (the right-hand side reads right to left, the name
+   itself stays left to right), so a long name wraps with the badge beside its last word instead of ending in "..."
+   (hard rule: names are never cut off). The badge is plain inline text, not an inline block, so a line can never
+   break between the last word and the badge (no lone badge on its own line). Its own look comes from live-display.css,
+   whose selector only !important can beat. */
+.wp-team-list .wp-player>span>b:has(>.hj-status-name){display:block!important;line-height:1.5}
+.wp-team-list .wp-player>span>b:has(>.hj-status-name)>.hj-espn-status{display:inline!important}
+.wp-team-list .wp-player>span>b>.hj-status-name{display:inline;overflow:visible;text-overflow:clip;white-space:normal;direction:ltr;unicode-bidi:isolate}
+.wp-team-list:nth-child(even) .wp-player>span>b:has(>.hj-status-name),.wp-bye-column:nth-child(2) .wp-team-list .wp-player>span>b:has(>.hj-status-name){direction:rtl;text-align:right}
+.wp-team-list:nth-child(even) .wp-player>span>b>.hj-espn-status,.wp-bye-column:nth-child(2) .wp-team-list .wp-player>span>b>.hj-espn-status{margin:0 .4em 0 0!important}
+.wp-bye-column:nth-child(odd) .wp-team-list .wp-player>span>b:has(>.hj-status-name){direction:ltr;text-align:left}
+.wp-bye-column:nth-child(odd) .wp-team-list .wp-player>span>b>.hj-espn-status{margin:0 0 0 .4em!important}
