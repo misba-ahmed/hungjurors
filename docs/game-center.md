@@ -6,6 +6,11 @@ Files: `scripts/game-center.js` (the page, the week switcher), `scripts/game-fan
 `styles/game-center.css`. `scripts/prepare-site.mjs` inlines both scripts after `hj-manager-draft-avatars` and links the
 stylesheet. index.html is not edited.
 
+## Card order
+Like ESPN's scoreboard: games in progress first, then upcoming, then finished; by kickoff within each group, and ESPN's
+own order between games at the same kickoff. A card moves when its game's status changes (kickoff, final) without
+moving the rail's scroll position. A past week (all final) and a future week (all upcoming) read in kickoff order.
+
 ## Week switcher
 `‹ Week N ›` and **This week** sit beside the schedule title. Other weeks load from the league-year NFL schedule and
 render with the same cards. Live score updates only redraw the current week. `hjGameCenter.setWeek(n)` switches in code.

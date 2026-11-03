@@ -791,8 +791,25 @@
   }
   return nav;
  }
+ // Card order, as ESPN orders its scoreboard: games in progress first, then upcoming, then finished; by kickoff
+ // within each group, and ESPN's own order between games at the same time (the schedule keeps the feed's order for
+ // ties). A game moves when its status changes. Cards keep their index in the schedule (data-game-index), which
+ // the score updates and the game page use, so only the display order changes.
+ const STATE_RANK={in:0,pre:1,post:2};
+ function espnOrder(games){
+  return games.map((g,i)=>({g,i})).sort((x,y)=>((STATE_RANK[x.g.state]??1)-(STATE_RANK[y.g.state]??1))||(new Date(x.g.kickoff)-new Date(y.g.kickoff))||(x.i-y.i));
+ }
+ let reorderFrame=0;
+ function reorderIfNeeded(){
+  if(reorderFrame)return;
+  reorderFrame=requestAnimationFrame(()=>{reorderFrame=0;
+   const games=shownGames();if(!Array.isArray(games)||!games.length)return;
+   const want=espnOrder(games).map(x=>String(x.i)).join('|'),have=[...week1El.querySelectorAll('.nfl-game')].map(c=>c.dataset.gameIndex).join('|');
+   if(want!==have){const left=week1El.scrollLeft;renderNFLWeekSchedule();week1El.scrollLeft=left}
+  });
+ }
  const originalUpdate=typeof nflUpdateScoreCard==='function'?nflUpdateScoreCard:null;
- nflUpdateScoreCard=function(g,i){if(W.view!==null)return;return originalUpdate?.(g,i)};
+ nflUpdateScoreCard=function(g,i){if(W.view!==null)return;const out=originalUpdate?.(g,i);reorderIfNeeded();return out};
  nflCardHTML=function(g,i){
   const showScore=g.state==='in'||g.state==='post',stateClass=g.state==='in'?' is-live':g.state==='post'?' is-final':'';
   return `<article class="nfl-game gc-card${stateClass}" data-game-index="${i}" data-event-id="${E(g.eventId||'')}"><div class="nfl-card-inner"><button class="nfl-card-face nfl-card-front" type="button" aria-haspopup="dialog" aria-label="Open ${E(g.a[0])} at ${E(g.b[0])}"><div class="nfl-game-top"><span class="nfl-game-time">${nflFrontStatusHTML(g)}</span><span class="nfl-game-net">${E(g.net)}</span></div>${nflTeamRowHTML(g.a,showScore?g.aScore:g.aRecord,showScore,'away')}${nflTeamRowHTML(g.b,showScore?g.bScore:g.bRecord,showScore,'home')}</button></div></article>`;
@@ -805,7 +822,7 @@
   if(nav){nav.querySelector('select').value=String(w);nav.querySelector('[data-gc-step="-1"]').disabled=w<=1;nav.querySelector('[data-gc-step="1"]').disabled=w>=18;nav.querySelector('[data-gc-now]').hidden=w===cur}
   if(games===null){week1El.innerHTML=`<div class="nfl-schedule-loading"><span>Week ${w} could not be loaded.</span><button type="button" class="gc-more" data-gc-reload="${w}">Try again</button></div>`;return}
   if(!games.length){week1El.innerHTML=`<div class="nfl-schedule-loading"><span class="depth-live-dot"></span><span>Loading Week ${w} schedule…</span></div>`;return}
-  week1El.innerHTML=games.map((g,i)=>nflCardHTML(g,i)).join('');
+  week1El.innerHTML=espnOrder(games).map(({g,i})=>nflCardHTML(g,i)).join('');
  };
  week1El.addEventListener('click',e=>{
   const reload=e.target.closest('[data-gc-reload]');if(reload){e.stopImmediatePropagation();W.games.delete(Number(reload.dataset.gcReload));loadWeek(Number(reload.dataset.gcReload));renderNFLWeekSchedule();return}
