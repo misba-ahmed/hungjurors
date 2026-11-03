@@ -76,8 +76,11 @@ body.gc-modal-open{overflow:hidden}
 .gc-who.is-compact .gc-av{width:26px;height:26px;flex-basis:26px}
 .gc-who.is-compact .gc-who-name{font-size:12px}
 /* Box score: position under the photo, manager alone under the name (one line, any phone width) */
-.gc-av-stack{display:inline-flex;flex-direction:column;align-items:center;gap:2px;flex:none}
-.gc-av-pos{color:#7c8997;font:800 7.5px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+/* A one-column grid: as wide as the photo, photo and position both centered in it. Safari did not center the
+   position in the earlier flex version (".gc-who small" made it a flex row, left-aligned); the label is now a
+   centered block, and the left padding offsets the letter-spacing after the last letter. */
+.gc-av-stack{display:inline-grid;grid-template-columns:max-content;justify-items:center;row-gap:0;flex:none}
+.gc-who .gc-av-stack>.gc-av-pos{display:block;justify-self:stretch;margin:0;padding:0 0 0 .04em;color:#6c7d8c;font:700 9px/1 var(--mono);letter-spacing:.04em;text-align:center;text-transform:uppercase;white-space:nowrap}
 .gc-who.is-stacked{gap:7px}
 .gc-table .gc-who small{flex-wrap:nowrap}
 .gc-who:hover .gc-who-n{text-decoration:underline;text-decoration-color:rgba(20,50,79,.3)}
