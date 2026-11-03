@@ -75,6 +75,11 @@ body.gc-modal-open{overflow:hidden}
 .gc-who small{display:flex;align-items:center;gap:6px;color:#6c7d8c;font:700 9px/1 var(--mono);letter-spacing:.04em;text-transform:uppercase;flex-wrap:wrap}
 .gc-who.is-compact .gc-av{width:26px;height:26px;flex-basis:26px}
 .gc-who.is-compact .gc-who-name{font-size:12px}
+/* Box score: position under the photo, manager alone under the name (one line, any phone width) */
+.gc-av-stack{display:inline-flex;flex-direction:column;align-items:center;gap:2px;flex:none}
+.gc-av-pos{color:#7c8997;font:800 7.5px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.gc-who.is-stacked{gap:7px}
+.gc-table .gc-who small{flex-wrap:nowrap}
 .gc-who:hover .gc-who-n{text-decoration:underline;text-decoration-color:rgba(20,50,79,.3)}
 .gc-plain{display:inline-grid;gap:2px;color:var(--navy);font:650 12px/1.15 var(--sans)}
 .gc-table .gc-plain{white-space:nowrap}

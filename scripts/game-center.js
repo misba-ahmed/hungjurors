@@ -211,7 +211,8 @@
  function boxName(st,id,name,fantasy){
   const p=fantasy?poolPlayer(st,id):null;
   if(!p)return `<span class="gc-box-plain">${E(name||'—')}</span>`;
-  return who(st,id,name||p.name,{compact:true,sub:p.pos});
+  // Position under the photo, so the line under the name only holds the manager and never wraps to a third line.
+  return `<button type="button" class="gc-who is-compact is-stacked pc-player-trigger" ${attrs(p)} aria-label="Open ${E(p.name)} profile"><span class="gc-av-stack">${avatar(p)}<small class="gc-av-pos">${E(p.pos)}</small></span><span class="gc-who-copy"><span class="gc-who-name"><span class="gc-who-n">${nameHTML(name||p.name)}</span></span><small>${owner(p)}</small></span></button>`;
  }
  function boxHTML(st){
   if(stateOf(st)==='pre')return '';
@@ -689,18 +690,39 @@
   }
   scroll._gcNav();
  }
+ // In-place update: keeps every element that is still there (no image reloads, no layout jumps) and changes only
+ // text, attributes and the elements that differ. Status badges the site adds to names (.hj-espn-status) and its
+ // data-hj-* marks are left alone; they are not part of what this page draws.
+ const siteExtra=n=>n.nodeType===1&&n.classList.contains('hj-espn-status');
+ function morph(from,to){
+  if(from.nodeType!==to.nodeType||from.nodeName!==to.nodeName){from.replaceWith(to);return}
+  if(from.nodeType!==1){if(from.nodeValue!==to.nodeValue)from.nodeValue=to.nodeValue;return}
+  for(const a of [...to.attributes])if(from.getAttribute(a.name)!==a.value)from.setAttribute(a.name,a.value);
+  for(const a of [...from.attributes])if(!to.hasAttribute(a.name)&&!a.name.startsWith('data-hj-'))from.removeAttribute(a.name);
+  morphChildren(from,to);
+ }
+ function morphChildren(from,to){
+  const olds=[...from.childNodes].filter(n=>!siteExtra(n)),news=[...to.childNodes];
+  news.forEach((n,i)=>{const o=olds[i];if(!o)from.appendChild(n);else morph(o,n)});
+  for(let i=news.length;i<olds.length;i++)olds[i].remove();
+ }
  function render(st){
   if(!st.root?.isConnected)return;
-  const host=st.root.querySelector('.gc-board-host');const head=headerHTML(st);if(host&&host.innerHTML!==head)host.innerHTML=head;
+  const host=st.root.querySelector('.gc-board-host');const head=headerHTML(st);
+  if(host&&st.lastHead!==head){if(!host.firstElementChild)host.innerHTML=head;else{const t=document.createElement('div');t.innerHTML=head;morphChildren(host,t)}st.lastHead=head}
   const scroll=st.root.querySelector('.gc-scroll');
   if(!st.summary){scroll.innerHTML=st.error?`<div class="gc-error"><p>${E(st.error)}</p><button type="button" class="gc-more" data-gc-retry>Try again</button></div>`:'<div class="gc-loading-row is-page"><span class="depth-live-dot"></span>Loading game…</div>';return}
   // Shared helpers name the data source in tooltips; reworded here so a refresh compares like with like.
   const html=sectionsFor(st).map(f=>{try{return f(st)}catch(error){console.warn('Game Center section failed',error);return ''}}).join('').replace(/ESPN projection/g,'projection').replace(/ESPN status/g,'Injury status').replace(/(title|aria-label)="projection/g,'$1="Projection');
   const tmp=document.createElement('div');tmp.innerHTML=html;
   const fresh=[...tmp.children],old=[...scroll.querySelectorAll(':scope > [data-gc-section]')];
+  // Each section is compared with what was drawn last time, not with the page (the site adds status badges to
+  // names after drawing, which made every refresh redraw everything); a changed section is updated in place, so
+  // photos, scroll positions and layout stay put instead of flickering.
+  if(!st.lastSec)st.lastSec=new Map();
   if(old.length===fresh.length&&old.every((o,i)=>o.dataset.gcSection===fresh[i].dataset.gcSection)){
-   fresh.forEach((f,i)=>{const o=old[i];if(o.innerHTML===f.innerHTML)return;const lefts=[...o.querySelectorAll('.gc-table-wrap,.gc-stars-grid')].map(w=>w.scrollLeft);o.replaceWith(f);[...f.querySelectorAll('.gc-table-wrap,.gc-stars-grid')].forEach((w,j)=>{if(lefts[j])w.scrollLeft=lefts[j]})});
-  }else{const top=scroll.scrollTop;scroll.replaceChildren(...fresh);scroll.scrollTop=top}
+   fresh.forEach((f,i)=>{const key=f.dataset.gcSection,markup=f.outerHTML;if(st.lastSec.get(key)===markup)return;morph(old[i],f);st.lastSec.set(key,markup)});
+  }else{const top=scroll.scrollTop;scroll.replaceChildren(...fresh);scroll.scrollTop=top;st.lastSec=new Map(fresh.map(f=>[f.dataset.gcSection,f.outerHTML]))}
   bindNav(st);
  }
  async function refresh(st,first){
