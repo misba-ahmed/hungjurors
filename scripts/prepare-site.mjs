@@ -1,3 +1,4 @@
+import {execSync} from 'node:child_process';
 import {prepareDepthRefresh} from './prepare-depth-refresh.mjs';
 import {preparePlayerHistory} from './prepare-player-history.mjs';
 import {preparePerfectAwards} from './prepare-perfect-awards.mjs';
@@ -51,6 +52,7 @@ const managerDraftAvatars=readFileSync(new URL('./manager-draft-avatars.js',impo
 const gameFantasy=readFileSync(new URL('./game-fantasy.js',import.meta.url),'utf8');
 const gameCenter=readFileSync(new URL('./game-center.js',import.meta.url),'utf8');
 const playerNewsMore=readFileSync(new URL('./player-news-more.js',import.meta.url),'utf8');
+const appUpdate=readFileSync(new URL('./app-update.js',import.meta.url),'utf8');
 const playerAdvancedData=readFileSync(new URL('./player-advanced-data.js',import.meta.url),'utf8');
 const liveScoresFast=readFileSync(new URL('./live-scores-fast.js',import.meta.url),'utf8');
 const standingsScript=readFileSync(new URL('./standings-live.js',import.meta.url),'utf8');
@@ -488,14 +490,25 @@ function hjRefreshGameContexts(){`);
  // Phone memory: sized ESPN images, unchanged injury feed reuse (see prepare-phone-memory.mjs).
  return preparePhoneMemory(prepareManagerAvatars(html.replace(old,'Date.now()-at<36*60*60*1000&&data.updated')
   .replace('</head>','<link rel="stylesheet" href="/styles/section-scroll.css?v=20261007-paint-bounds">\n<link rel="stylesheet" href="/styles/wire-priorities.css?v=20261007-compact">\n<link rel="stylesheet" href="/styles/player-stat-bars.css?v=20260929-stable2">\n<link rel="stylesheet" href="/styles/team-photos.css?v=20261009-crown-34deg-diagonal">\n<link rel="stylesheet" href="/styles/player-search.css?v=20260924a">\n<link rel="stylesheet" href="/styles/wire-interaction.css?v=20260923b">\n<link rel="stylesheet" href="/styles/news-spin.css?v=20261019-points">\n<link rel="stylesheet" href="/styles/season-projection-stats.css?v=20260917d">\n<link rel="stylesheet" href="/styles/weekly-banner.css?v=20260917b">\n<link rel="stylesheet" href="/styles/season-challenges.css?v='+seasonChallengesVersion+'">\n<link rel="stylesheet" href="/styles/perfect-lineup.css?v='+perfectLineupVersion+'">\n<link rel="stylesheet" href="/styles/standings.css?v=20261007-details">\n<link rel="stylesheet" href="/styles/weekly-recap.css?v=20261005-avatar-crop">\n<link rel="stylesheet" href="/styles/wire-live.css?v=20260920-a3"><link rel="stylesheet" href="/styles/player-value.css?v=20260923-a3">\n<link rel="stylesheet" href="/styles/trade-desk.css?v=20260929-lineup-spacing4">\n<link rel="stylesheet" href="/styles/side-bets.css?v=20261025-extra-shots3">\n<link rel="stylesheet" href="/styles/live-display.css?v=20261102-game-log">\n</head>')
-  .replace(/<\/body>\s*<\/html>\s*$/,()=>'<link rel="stylesheet" href="/styles/league-activity.css?v=20261030">\n<link rel="stylesheet" href="/styles/manager-draft.css?v=20261030">\n<link rel="stylesheet" href="/styles/game-center.css?v=20261102">\n<link rel="stylesheet" href="/styles/recap-extras.css?v=20261030">\n<link rel="stylesheet" href="/styles/players-toolbar.css?v=20261029d">\n<script id="hj-perf-late">'+perfLate+'</script>\n<script id="hj-recap-extras">'+recapExtras+'</script>\n<script id="hj-player-search">'+playerSearch+'</script>\n<script>ffnInstallSpin();</script>\n<script id="hj-record-engine">'+recordEngine+'</script>\n<script id="hj-record-live">'+recordLive+'</script>\n<script id="hj-direct-links">'+directLinks+'</script>\n<script id="hj-wire-live">'+wireLive+'</script>\n<script id="hj-wire-priorities">'+wirePriorities+'</script>\n<script id="hj-player-value">'+playerValue+'</script>\n<script id="hj-trade-desk">'+tradeDesk+'</script>\n<script id="hj-side-bets">'+sideBets+'</script>\n<script id="hj-completed-results">'+completedResults+'</script>\n<script id="hj-layout-guard">'+layoutGuard+'</script>\n<script id="hj-roster-weeks">'+rosterWeeks+'</script>\n<script id="hj-live-scores-fast">'+liveScoresFast+'</script>\n<script id="hj-player-advanced-data">'+playerAdvancedData+'</script>\n<script id="hj-players-toolbar">'+playersToolbar+'</script>\n<script id="hj-manager-draft-avatars">'+managerDraftAvatars+'</script>\n<script id="hj-game-fantasy">'+gameFantasy+'</script>\n<script id="hj-game-center">'+gameCenter+'</script>\n<script id="hj-player-news-more">'+playerNewsMore+'</script>\n</body>\n</html>\n')));
+  .replace(/<\/body>\s*<\/html>\s*$/,()=>'<link rel="stylesheet" href="/styles/league-activity.css?v=20261030">\n<link rel="stylesheet" href="/styles/manager-draft.css?v=20261030">\n<link rel="stylesheet" href="/styles/game-center.css?v=20261102">\n<link rel="stylesheet" href="/styles/recap-extras.css?v=20261030">\n<link rel="stylesheet" href="/styles/players-toolbar.css?v=20261029d">\n<script id="hj-perf-late">'+perfLate+'</script>\n<script id="hj-recap-extras">'+recapExtras+'</script>\n<script id="hj-player-search">'+playerSearch+'</script>\n<script>ffnInstallSpin();</script>\n<script id="hj-record-engine">'+recordEngine+'</script>\n<script id="hj-record-live">'+recordLive+'</script>\n<script id="hj-direct-links">'+directLinks+'</script>\n<script id="hj-wire-live">'+wireLive+'</script>\n<script id="hj-wire-priorities">'+wirePriorities+'</script>\n<script id="hj-player-value">'+playerValue+'</script>\n<script id="hj-trade-desk">'+tradeDesk+'</script>\n<script id="hj-side-bets">'+sideBets+'</script>\n<script id="hj-completed-results">'+completedResults+'</script>\n<script id="hj-layout-guard">'+layoutGuard+'</script>\n<script id="hj-roster-weeks">'+rosterWeeks+'</script>\n<script id="hj-live-scores-fast">'+liveScoresFast+'</script>\n<script id="hj-player-advanced-data">'+playerAdvancedData+'</script>\n<script id="hj-players-toolbar">'+playersToolbar+'</script>\n<script id="hj-manager-draft-avatars">'+managerDraftAvatars+'</script>\n<script id="hj-game-fantasy">'+gameFantasy+'</script>\n<script id="hj-game-center">'+gameCenter+'</script>\n<script id="hj-player-news-more">'+playerNewsMore+'</script>\n<script id="hj-app-update">'+appUpdate+'</script>\n</body>\n</html>\n')));
+}
+function hjBuildStamp(source){
+ const sha=String(process.env.GITHUB_SHA||'').trim();if(/^[0-9a-f]{7,40}$/i.test(sha))return sha.slice(0,12);
+ try{const head=execSync('git rev-parse HEAD',{stdio:['ignore','pipe','ignore']}).toString().trim();if(/^[0-9a-f]{7,40}$/i.test(head))return head.slice(0,12)}catch(_){}
+ return createHash('sha1').update(source).digest('hex').slice(0,12);
 }
 if(process.argv[2]){
  const path=process.argv[2],source=await readFile(path,'utf8'),artwork=extractSiteArtwork(source),media=extractSiteMedia(source),scriptImages=extractScriptImages(source);
  const assets=[...artwork.assets,...media.assets,...scriptImages.assets];
  if(assets.length)await mkdir(join(dirname(path),'assets/site-art'),{recursive:true});
  await Promise.all(assets.map(([name,bytes])=>writeFile(join(dirname(path),name),bytes)));
- await writeFile(path,preparePlayerHistory(prepareSite(source)));
+ // Build stamp: the commit this page was built from, in the page and in version.json beside it, so open copies
+ // of the site (Home Screen apps above all) can tell a newer version is live (scripts/app-update.js). The data
+ // refreshes rebuild the same commit and keep the same stamp.
+ const build=hjBuildStamp(source);
+ const page=preparePlayerHistory(prepareSite(source)).replace('</head>',`<meta name="hj-build" content="${build}">\n</head>`);
+ await writeFile(path,page);
+ await writeFile(join(dirname(path),'version.json'),JSON.stringify({build})+'\n');
 }
 
 

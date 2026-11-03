@@ -12,6 +12,8 @@ Before ANY manager or player image update, read `assets/ARTWORK_PROPORTIONS.md` 
 
 Before ANY change to the NFL weekly schedule under the top carousel or its game page, read `docs/game-center.md`: `scripts/game-center.js` replaces `renderNFLWeekSchedule`, `nflCardHTML` and `nflUpdateScoreCard`, so edits to those functions in index.html do nothing.
 
+Site updates reach open copies (Home Screen apps) through `scripts/app-update.js`: `scripts/prepare-site.mjs` stamps each build with its commit (`<meta name="hj-build">` and `version.json`). Keep both when changing the build.
+
 Before ANY top-carousel / Wire card update, read `docs/wire-card-rules.md` and `docs/wire-live.md`. Preserve shared sizing, expansion, scrolling, gestures and refresh behavior. An approved card design does not waive those rules. Compare desktop and mobile cards against an existing ordinary card before publishing.
 
 ## Hard rule: identify players by ESPN player id — owner instruction November 2
