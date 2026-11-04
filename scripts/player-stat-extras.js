@@ -174,7 +174,33 @@
     const rank=hj40Finite(HJ_GAME_RANKS.maps.get(hj40Pos(player.position))?.get(pcTeam(upcoming.abbr))?.rank);
     return rank!==null&&rank>=1&&rank<=32?rank:null;
   }
-  function hj40ExtraValue(player,key){
+  // Routes (Nov 4): PFF's season-to-date routes run, route rate (routes / team pass plays while he was on the
+  // field) and yards per route run, from data/pff-grades.json (the public PFF player pages). PFF publishes
+  // season totals only, so these show in Season Totals and Season Averages of the current season, never in a
+  // single week or another season. Per game: routes over the games he played in weeks already finished (a game
+  // of the current week is not in PFF's totals until it has been charted).
+  const HJ40_ROUTE_KEYS=['routes','routeRate','yprr'];
+  function hj40RouteStatShown(key){return !HJ40_ROUTE_KEYS.includes(key)||(hj40PeriodWeek()===null&&Number(HJ40.year)===Number(NFL_SEASON))}
+  function hj40RouteRow(player){
+    if(hj40PeriodWeek()!==null||Number(HJ40.year)!==Number(NFL_SEASON)||typeof hjPffSaved!=='function')return null;
+    // The Players tab does not otherwise load the PFF feed until a PFF value is needed; hj:pff-updated redraws.
+    if(typeof hjPffLoadFeed==='function'&&typeof hjPffFeed!=='undefined'&&!hjPffFeed.data)hjPffLoadFeed();
+    const row=hjPffSaved(String(player?.id),Number(NFL_SEASON));return row&&Number.isInteger(row.routes)?row:null;
+  }
+  function hj40RouteGames(player,raw){
+    let games=Number(raw?.games)||0;
+    if(games&&hj40GameState(player)!=='pre'&&Number.isFinite(hj40CurrentActualFpts(player)))games--;
+    return games;
+  }
+  function hj40RouteValue(player,key,raw){
+    const row=hj40RouteRow(player);if(!row)return null;
+    if(key==='yprr')return Number.isFinite(row.yprr)?row.yprr:null;
+    if(key==='routeRate')return row.passPlays>0?row.routes/row.passPlays*100:null;
+    if(HJ40.period!=='avg')return row.routes;
+    const games=hj40RouteGames(player,raw);return games>0?row.routes/games:null;
+  }
+  function hj40ExtraValue(player,key,raw){
+    if(HJ40_ROUTE_KEYS.includes(key))return hj40RouteValue(player,key,raw);
     if(key==='trend')return hj40SleeperRow(player)?.[HJ40.trendMetric==='adds'?'adds':'net']??null;
     if(key==='oppRank')return hj40OpponentRank(player);
     return hj40OwnershipValue(player,{rostPct:'percentOwned',startPct:'percentStarted'}[key]);
@@ -191,7 +217,7 @@
   // Rate stats rank only players with enough volume behind them (NFL-leaderboard style): per team game
   // in the period, or an absolute minimum for one week. Players below it keep their number (shown grey)
   // and sort after everyone who qualifies, so a 1-target 100% CATCH % no longer tops the list.
-  const HJ40_RATE_MIN={catchPct:['tgt','targets',2,3],ydTar:['tgt','targets',2,3],adot:['tgt','targets',2,3],targetShare:['tgt','targets',2,3],airShare:['tgt','targets',2,3],sep:['tgt','targets',2,3],ydRec:['rec','catches',1.25,2],ypc:['rush','carries',5,5],cmpPct:['passAtt','attempts',14,10],passRtg:['passAtt','attempts',14,10],fgPct:['fga','field-goal attempts',1,1]};
+  const HJ40_RATE_MIN={catchPct:['tgt','targets',2,3],ydTar:['tgt','targets',2,3],adot:['tgt','targets',2,3],targetShare:['tgt','targets',2,3],airShare:['tgt','targets',2,3],sep:['tgt','targets',2,3],ydRec:['rec','catches',1.25,2],yprr:['routes','routes',8,8],routeRate:['routes','routes',8,8],ypc:['rush','carries',5,5],cmpPct:['passAtt','attempts',14,10],passRtg:['passAtt','attempts',14,10],fgPct:['fga','field-goal attempts',1,1]};
   function hj40TeamGames(player){
     if(hj40PeriodWeek())return 1;
     const state=HJ40.data.get(Number(HJ40.year)),teams=state?.dstByTeam;if(!teams)return 0;
@@ -207,7 +233,7 @@
   function hj40Qualifies(player,key){
     const min=hj40RateMinimum(player,key);if(!min)return true;
     const snap=hj40Snapshot(player),v=snap?.[min.stat]?.value;if(!Number.isFinite(v))return false;
-    const total=HJ40.period==='avg'?v*(snap.__games||0):v;
+    const total=HJ40.period==='avg'?(min.stat==='routes'?hj40RouteRow(player)?.routes:v*(snap.__games||0)):v;
     return total>=min.need-1e-9;
   }
   function hj40CompareStat(a,b,key){
@@ -265,10 +291,16 @@
   }
   function hj40StatTitle(key,label,player){
     const next=HJ40.statSort===key&&HJ40.statSortDir!=='asc'&&(key==='trend'||key==='oppRank')?'lowest to highest':'highest to lowest';
-    const context=key==='recAir'?'Air yards: how far downfield the throws to him travelled, caught or not, added up (nflverse). ':key==='adot'?'Average depth of target: air yards per target, how far downfield he is thrown to on average (nflverse). ':key==='targetShare'?'Share of his team\'s targets in the games he played (nflverse). ':key==='airShare'?'Share of his team\'s air yards (how far downfield the throws to him travelled, caught or not) in the games he played (nflverse). ':key==='rzOpp'?'Red-zone opportunities: carries plus targets with the ball inside the opponent\'s 20 (nflverse play-by-play). Per game over the same games as FPTS. ':key==='sep'?'Average separation from the nearest defender when the ball arrives, in yards (NFL Next Gen Stats). Season figure for totals and averages; a week appears only when he met the NGS minimum. ':key==='xfp'?'Expected fantasy points, league scoring: what an average player scores with the same targets, carries and throws (where, how far, how deep). FPTS above XFP = finishing better than the opportunity. Source: ffopportunity (nflverse play-by-play), updated after each week. ':key==='qbHit'?'Quarterback hits by the defense (nflverse). ':key==='trend'?(HJ40.trendMetric==='adds'?'Sleeper · Last 24 hours · Adds. ':'Sleeper · Last 24 hours · Net adds (adds minus drops). '):key==='oppRank'?'Current week opponent rank vs this position; 1 allows fewest fantasy points. Ties use highest weekly projection. ':key==='startPct'?'Currently started in ESPN leagues. ':key==='rostPct'?'Currently rostered in ESPN leagues. ':'';
+    const context=key==='recAir'?'Air yards: how far downfield the throws to him travelled, caught or not, added up (nflverse). ':key==='adot'?'Average depth of target: air yards per target, how far downfield he is thrown to on average (nflverse). ':key==='targetShare'?'Share of his team\'s targets in the games he played (nflverse). ':key==='airShare'?'Share of his team\'s air yards (how far downfield the throws to him travelled, caught or not) in the games he played (nflverse). ':key==='routes'?(HJ40.period==='avg'?'Routes run per game, over the games he played in finished weeks (PFF, regular season to date). ':'Routes run: pass plays on which he ran a route (PFF, regular season to date). '):key==='routeRate'?'Route rate: routes run over his team\'s pass plays while he was on the field (PFF, regular season to date). ':key==='yprr'?'Yards per route run: receiving yards over routes run (PFF, regular season to date). ':key==='rzOpp'?'Red-zone opportunities: carries plus targets with the ball inside the opponent\'s 20 (nflverse play-by-play). Per game over the same games as FPTS. ':key==='sep'?'Average separation from the nearest defender when the ball arrives, in yards (NFL Next Gen Stats). Season figure for totals and averages; a week appears only when he met the NGS minimum. ':key==='xfp'?'Expected fantasy points, league scoring: what an average player scores with the same targets, carries and throws (where, how far, how deep). FPTS above XFP = finishing better than the opportunity. Source: ffopportunity (nflverse play-by-play), updated after each week. ':key==='qbHit'?'Quarterback hits by the defense (nflverse). ':key==='trend'?(HJ40.trendMetric==='adds'?'Sleeper · Last 24 hours · Adds. ':'Sleeper · Last 24 hours · Net adds (adds minus drops). '):key==='oppRank'?'Current week opponent rank vs this position; 1 allows fewest fantasy points. Ties use highest weekly projection. ':key==='startPct'?'Currently started in ESPN leagues. ':key==='rostPct'?'Currently rostered in ESPN leagues. ':'';
     const min=player&&HJ40_RATE_MIN[key]?hj40RateMinimum(player,key):null,low=min&&!hj40Qualifies(player,key)?'Below the minimum for ranking ('+min.need+' '+min.noun+(hj40PeriodWeek()?'':' this season')+'), so listed after players who qualify. ':'';
     return low+context+'Sort by '+label+': '+next;
   }
+  let hj40RouteFeedAt=0,hj40RouteRepaint=null;
+  document.addEventListener('hj:pff-updated',()=>{
+    const at=Number(typeof hjPffFeed!=='undefined'&&hjPffFeed.data?.generatedAt||0);if(!at||at===hj40RouteFeedAt)return;hj40RouteFeedAt=at;
+    if(HJ_HQ_STATE.activeTab!=='free-agents'||hj40PeriodWeek()!==null||Number(HJ40.year)!==Number(NFL_SEASON)||hj40RouteRepaint)return;
+    hj40RouteRepaint=setTimeout(()=>{hj40RouteRepaint=null;HJ40.snapshotCache.clear();if(HJ_HQ_STATE.activeTab==='free-agents')hjRenderPlayerDirectory(false)},800);
+  });
   function hj40RefreshExtraMetrics(){
     HJ40.snapshotCache.clear();
     if(HJ_HQ_STATE.activeTab!=='free-agents')return;
