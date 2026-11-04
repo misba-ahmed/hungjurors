@@ -347,7 +347,7 @@ jobs:
             const html=await readFile('index.html','utf8'),season=Number(html.match(/const NFL_SEASON\s*=\s*(\d{4})/)?.[1]);
             const feed=JSON.parse(await readFile('_site/data/pff-grades.json','utf8'));
             const rows=Object.values(feed.players||{}),age=Date.now()-Number(feed.generatedAt);
-            due=!(feed.schema===1&&feed.collectorVersion===2&&feed.season===season&&age>=-60000&&age<3600000&&rows.length>0&&rows.every(r=>r.schema===4&&r.season===season&&Number.isFinite(r.checkedAt)&&Date.now()-r.checkedAt<7200000));
+            due=!(feed.schema===1&&feed.collectorVersion===3&&feed.season===season&&age>=-60000&&age<3600000&&rows.length>0&&rows.every(r=>r.schema===4&&r.season===season&&Number.isFinite(r.checkedAt)&&Date.now()-r.checkedAt<7200000));
           } catch (_) {}
           await appendFile(process.env.GITHUB_OUTPUT,`pff=${due}\n`);
           console.log(due?'PFF refresh starting. The site is already published.':'PFF is current. No player-page collection needed.');
@@ -396,6 +396,18 @@ jobs:
            if(grade===null&&!header&&!preview)throw new Error('PFF grade not found');
            if(!updated){const date=text.match(/Last updated:\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/i);if(date)updated=`${date[3]}-${date[1].padStart(2,'0')}-${date[2].padStart(2,'0')}`;}
            const row={schema:4,source:'pff-public-profile',sourceUrl:`https://www.pff.com/nfl/players/${entry.slug}/${entry.pffId}`,espnId:String(id),pffId:String(entry.pffId),season:Number(season),position:entry.position,metric:kicker?'field-goal':'overall',grade,positionRank:grade!==null&&Number.isInteger(rank)&&rank>0&&(!total||rank<=total)?rank:null,rankTotal:Number.isInteger(total)&&total>0?total:null,status:grade===null?'not-graded':'available',updated,checkedAt:now};
+           // Routes (Nov 4): the same public preview carries the season's receiving usage for WR, TE and RB
+           // (an RB's receiving preview is the secondary one): routes run, team pass plays while he was on the
+           // field, yards per route run, and PFF's position ranks for routes and YPRR (among qualified players).
+           const recv=['RB','WR','TE'].includes(entry.position)?[preview?.data?.primaryStats,preview?.data?.secondaryStats].find(s=>/_RECEIVING_PREVIEW$/.test(String(s?.previewType||'')))?.stats:null;
+           const count=n=>Number.isInteger(n)&&n>=0?n:null,place=(r,n)=>Number.isInteger(r)&&r>0&&Number.isInteger(n)&&n>0&&r<=n?r:null;
+           const routes=count(recv?.routes),passPlays=count(recv?.passPlays);
+           if(routes!==null){
+            const total=count(recv.positionRankTotal);
+            row.routes=routes;row.passPlays=passPlays!==null&&passPlays>=routes?passPlays:null;
+            row.yprr=typeof recv.yprr==='number'&&Number.isFinite(recv.yprr)&&recv.yprr>=0?recv.yprr:null;
+            row.routesRank=place(recv.routesPositionRank,total);row.yprrRank=place(recv.yprrPositionRank,total);row.routeRankTotal=total||null;
+           }
            return row;
           }
           export function parseTeam(raw,entry,id,season){
@@ -409,7 +421,8 @@ jobs:
           }
 
           import { readFile, writeFile, mkdir } from 'node:fs/promises';
-          const PFF_COLLECTOR_VERSION=2;
+          const PFF_COLLECTOR_VERSION=3;
+          const PFF_BROWSER_UA='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15';
 
           export async function collectPff({html,request=fetch,previous=null,spacing=1000,now=Date.now}) {
            const mapMatch=html.match(/const HJ_PFF_PLAYERS=(\{[^\n]+\});/);
@@ -444,7 +457,9 @@ jobs:
              const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
              try{
               const url=entry.kind==='team'?`https://www.pff.com/api/teams/${entry.pffId}/stats`:`https://www.pff.com/nfl/players/${entry.slug}/${entry.pffId}`;
-              const response=await request(url,{signal:controller.signal,redirect:'error'});
+              // PFF sends a reduced page without the season preview to clients that do not identify as a browser
+               // (every player came back "not graded"); ask like a browser does.
+               const response=await request(url,{signal:controller.signal,redirect:'error',headers:{'user-agent':PFF_BROWSER_UA,'accept':entry.kind==='team'?'application/json':'text/html,application/xhtml+xml'}});
               if([401,403,429].includes(response.status)){
                await response.body?.cancel();
                if(entry.kind==='team'&&response.status!==429){result.errors[id]='source-unavailable';continue;}
