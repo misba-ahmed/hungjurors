@@ -2440,14 +2440,31 @@
     "teamId": 11,
     "jersey": "10"
   },
-  "3043116": {
-    "file": "3043116-faces-v1.webp",
+  "4360438": {
+    "file": "4360438-faces-v1.webp",
     "width": 310,
     "height": 850,
     "ratio": 0.36471,
-    "heightInches": 73,
-    "name": "Demarcus Robinson",
+    "heightInches": 72,
+    "name": "Brandon Aiyuk",
     "teamId": 25,
-    "jersey": "11"
+    "jersey": "11",
+    "unavailable": {
+      "file": "4360438-crutches-v1.webp",
+      "width": 323,
+      "height": 850,
+      "ratio": 0.38,
+      "kind": "injury"
+    }
+  },
+  "5081397": {
+    "file": "5081397-faces-v1.webp",
+    "width": 313,
+    "height": 850,
+    "ratio": 0.36824,
+    "heightInches": 68,
+    "name": "Dylan Sampson",
+    "teamId": 5,
+    "jersey": "22"
   }
 }
