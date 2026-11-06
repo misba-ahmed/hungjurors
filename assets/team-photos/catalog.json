@@ -1727,7 +1727,14 @@
     "heightInches": 72,
     "name": "Garrett Wilson",
     "teamId": 20,
-    "jersey": "5"
+    "jersey": "5",
+    "unavailable": {
+      "file": "4569618-crutches-v1.webp",
+      "width": 306,
+      "height": 850,
+      "ratio": 0.36,
+      "kind": "injury"
+    }
   },
   "4569987": {
     "file": "4569987-faces-v2.webp",
@@ -2402,5 +2409,45 @@
     "name": "Cooper Kupp",
     "teamId": 26,
     "jersey": "10"
+  },
+  "4696044": {
+    "file": "4696044-faces-v1.webp",
+    "width": 317,
+    "height": 850,
+    "ratio": 0.37294,
+    "heightInches": 70,
+    "name": "Kaelon Black",
+    "teamId": 25,
+    "jersey": "26"
+  },
+  "4242512": {
+    "file": "4242512-faces-v1.webp",
+    "width": 299,
+    "height": 850,
+    "ratio": 0.35176,
+    "heightInches": 73,
+    "name": "Malik Willis",
+    "teamId": 15,
+    "jersey": "2"
+  },
+  "15818": {
+    "file": "15818-faces-v1.webp",
+    "width": 300,
+    "height": 850,
+    "ratio": 0.35294,
+    "heightInches": 74,
+    "name": "Keenan Allen",
+    "teamId": 11,
+    "jersey": "10"
+  },
+  "3043116": {
+    "file": "3043116-faces-v1.webp",
+    "width": 310,
+    "height": 850,
+    "ratio": 0.36471,
+    "heightInches": 73,
+    "name": "Demarcus Robinson",
+    "teamId": 25,
+    "jersey": "11"
   }
 }
