@@ -2450,11 +2450,11 @@
     "teamId": 25,
     "jersey": "11",
     "unavailable": {
-      "file": "4360438-crutches-v1.webp",
-      "width": 323,
+      "file": "4360438-straitjacket-v1.webp",
+      "width": 275,
       "height": 850,
-      "ratio": 0.38,
-      "kind": "injury"
+      "ratio": 0.32353,
+      "kind": "unavailable"
     }
   },
   "5081397": {
