@@ -23,10 +23,15 @@ E/V toggle as before; a player ruled out — O, IR, PUP, NFI, suspended, inactiv
 badges — gives up his slot to the next player in the team's order and is listed in an OUT row under the chart;
 questionable and doubtful players keep their slot; refreshed every 5 minutes while the page is open; statuses are
 today's, so this applies only to this week's games before and during the game — a finished game or another week's
-shows the depth feed's order, labelled "Today's depth chart"), Matchup predictor, Season leaders, Odds & game environment (spread, total and moneyline cards
+shows the depth feed's order, labelled "Today's depth chart"), Matchup predictor, Season leaders, Odds (spread, total and moneyline cards
 with prices, opening lines and movement, a scoring-band gauge for the total, each side's chance to win from the
-moneylines, implied team totals, then tiles for kickoff, stadium, weather and its impact, scoring environment, game
-script, rest days and home/road records), Injury report, Schedules (last five games, **Show full schedule** for every
+moneylines, implied team totals), Game environment (its own section and menu item, Nov 5; each card draws the
+information: kickoff day strip and time-of-day bar with the countdown; a stadium drawing with roof, grass or turf and
+the home team's end zones; weather as a temperature scale, a 0-30 mph wind dial with gusts, a rain drop filled to
+the chance of rain and the four game hours one by one (Open-Meteo, located from the stadium's city); weather impact
+meters for passing and kicking; this game's total among the week's games as a dot plot with the week's average;
+projected margin and win-chance bar; rest days as day blocks; home and road results game by game; against-the-spread
+bars; attendance), Injury report, Schedules (last five games, **Show full schedule** for every
 week including the bye; the top passer, rusher and receiver of each game with his league points, colored against his
 projection for that week, and his manager).
 

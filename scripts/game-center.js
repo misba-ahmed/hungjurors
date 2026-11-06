@@ -297,19 +297,6 @@
  const minus=s=>String(s).replace(/^-/,'−');
  // Chance to win implied by the two moneylines, with the bookmaker's margin taken out.
  const mlChance=ml=>{const n=num(ml);return n===null?null:n<0?-n/(-n+100):100/(n+100)};
- const ICON={
-  clock:'<path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="8"/>',
-  stadium:'<path d="M3 10c0-2 4-4 9-4s9 2 9 4v6c0 2-4 4-9 4s-9-2-9-4z"/><path d="M3 10c0 2 4 4 9 4s9-2 9-4"/>',
-  temp:'<path d="M10 14V5a2 2 0 1 1 4 0v9a4 4 0 1 1-4 0z"/>',
-  wind:'<path d="M3 9h11a3 3 0 1 0-3-3"/><path d="M3 15h15a3 3 0 1 1-3 3"/>',
-  roof:'<path d="M3 11l9-6 9 6"/><path d="M5 10v9h14v-9"/>',
-  flame:'<path d="M12 3c1 4 5 6 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-6 1-9z"/>',
-  script:'<path d="M4 18l5-6 4 3 7-9"/><path d="M15 6h5v5"/>',
-  rest:'<path d="M4 18V8"/><path d="M4 14h16v4"/><path d="M4 11h7a3 3 0 0 1 3 3"/>',
-  home:'<path d="M4 11l8-6 8 6v8h-5v-5H9v5H4z"/>',
-  crowd:'<circle cx="8" cy="9" r="2.5"/><circle cx="16" cy="9" r="2.5"/><path d="M3 19c0-3 2-5 5-5s5 2 5 5"/><path d="M11 19c0-3 2-5 5-5s5 2 5 5"/>'
- };
- const icon=k=>`<svg class="gc-ico" viewBox="0 0 24 24" aria-hidden="true">${ICON[k]||''}</svg>`;
  function moveNote(text,dir){return text?`<div class="gc-move${dir?` is-${dir}`:''}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 12l4-4 3 3 5-6"/><path d="M10 5h4v4"/></svg><span>${text}</span></div>`:''}
  function restDays(st,teamId){
   const data=st.schedules?.[teamId],kick=new Date(comp(st)?.date||st.game?.kickoff||0).getTime();if(!data||!Number.isFinite(kick))return null;
@@ -356,37 +343,177 @@
   // Implied team totals
   if(imp){const max=Math.max(imp.away,imp.home,1),lead=imp.home>=imp.away?H:A;
    parts.push(`<div class="gc-implied"><div class="gc-line-head"><span class="gc-eyebrow">Implied team totals</span><span class="gc-line-tag">${fav===null?'Even game':`${E(lead.abbr)} by ${Math.abs(homeSpread)}`}</span></div>${[0,1].map(i=>{const v=i?imp.home:imp.away;return `<div class="gc-imp-row">${teamLabel(st.teams[i])}<span class="gc-imp-bar"><i style="width:${(100*v/max).toFixed(1)}%;background:${E(teamColor(st,i))}"></i></span><b>${v.toFixed(1)}</b></div>`}).join('')}<p class="gc-note">What the spread and total point to for each offense: the total split by the spread.</p></div>`)}
-  // Environment tiles
-  const tiles=[],tile=(ic,label,value,detail,cls='')=>tiles.push(`<div class="gc-tile${cls?` ${cls}`:''}">${icon(ic)}<div><span class="gc-eyebrow">${E(label)}</span><b>${value}</b>${detail?`<small>${detail}</small>`:''}</div></div>`);
-  const when=comp(st)?.date||st.game?.kickoff;
-  if(when)tile('clock','Kickoff',E(dateFmt(when,{weekday:'short',hour:'numeric',minute:'2-digit'}))+' CT',E(dateFmt(when,{weekday:'long',month:'long',day:'numeric'})));
-  const roof=venue.indoor?'Indoor':'Outdoor',surface=venue.grass===true?'Grass':venue.grass===false?'Artificial turf':'';
-  tile('stadium','Stadium',E(venue.fullName||st.game?.venue||'—'),E([[venue.address?.city,venue.address?.state].filter(Boolean).join(', '),roof,surface].filter(Boolean).join(' · ')));
-  const sw=st.siteWeather;
-  if(venue.indoor||sw?.roof==='DOME')tile('roof','Weather','Indoors','Roof closed · weather is not a factor');
-  else if(sw?.roof==='COVERED')tile('roof','Weather','Covered','Minimal weather impact');
-  else{
-   const espnW=num(weather?.temperature)!==null,temp=espnW?num(weather.temperature):num(sw?.temp),gust=espnW?num(weather.gust):num(sw?.gust),wind=espnW?null:num(sw?.wind),rain=espnW?num(weather.precipitation):num(sw?.precip);
-   if(temp!==null){const harsh=(wind??0)>=18||(gust??0)>=28||(rain??0)>=60,watch=(wind??0)>=12||(gust??0)>=20||(rain??0)>=40;
-    tile('temp','Weather',`${Math.round(temp)}°F`,E([wind!==null?`Wind ${Math.round(wind)} mph`:'',gust!==null?`gusts ${Math.round(gust)} mph`:'',rain!==null?`${Math.round(rain)}% chance of rain`:''].filter(Boolean).join(' · ')));
-    tile('wind','Weather impact',harsh?'Passing & kicking down':watch?'Worth watching':'No impact',harsh?'Strong wind or heavy rain usually lowers passing and long field goals':watch?'Breezy or showers possible; long kicks are the first thing hurt':'Calm conditions for passing and kicking',harsh?'is-bad':watch?'is-warn':'is-good')}
-   else if(state==='pre')tile('temp','Weather','Forecast pending','The kickoff forecast appears closer to game day')}
-  if(total!==null){const lvl=total>=49?'High':total>=45?'Good':total>=41?'Neutral':'Low';tile('flame','Scoring environment',`${lvl} · ${total} total`,lvl==='High'?'One of the better spots for fantasy points: both offenses expected to score':lvl==='Good'?'Above-average scoring expected; a good spot for the skill players':lvl==='Neutral'?'Around an average NFL game':'A low-scoring game is expected; temper expectations',`is-${lvl.toLowerCase()}`)}
+  return section('odds','Odds',parts.join(''),pc?.provider?.name?`Lines: ${E(pc.provider.name)}`:'');
+ }
+
+ /* ---------- game environment (its own section, Nov 5) ----------
+  * Each card draws the information itself: kickoff day and time of day, the stadium (roof, surface, home end
+  * zones), the weather across the game window (temperature scale, wind dial, rain drop, hour by hour), what the
+  * weather does to passing and kicking, where this game's total sits among the week's games, the projected
+  * margin and win chances, rest days, and each team's home / road results game by game. */
+ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+ // Hourly forecast for the game window (kickoff hour and the three after it), from the same service the site
+ // uses for its kickoff weather (Open-Meteo). Outdoor games only.
+ async function loadWx(st){
+  const g=st.game||{},kick=new Date(comp(st)?.date||g.kickoff||0).getTime(),venue=st.summary?.gameInfo?.venue;
+  if(st.wx!==undefined||!Number.isFinite(kick)||indoorGame(st))return;
+  // Week 1 games carry stadium coordinates; other weeks are placed by the stadium's city (from the game data).
+  if(!(g.lat&&g.lon)&&!venue?.address?.city)return;
+  st.wx=null;
+  try{
+   const at=g.lat&&g.lon?{lat:g.lat,lon:g.lon}:await placeOf(venue.address);if(!at)return;
+   const u=new URL('https://api.open-meteo.com/v1/forecast');
+   u.searchParams.set('latitude',at.lat);u.searchParams.set('longitude',at.lon);
+   u.searchParams.set('hourly','temperature_2m,precipitation_probability,wind_speed_10m,wind_gusts_10m,wind_direction_10m');
+   u.searchParams.set('temperature_unit','fahrenheit');u.searchParams.set('wind_speed_unit','mph');u.searchParams.set('timezone','UTC');
+   u.searchParams.set('past_days','2');u.searchParams.set('forecast_days','16');
+   const d=await getJson(u.toString(),1800000),h=d?.hourly,times=h?.time||[];
+   let i0=-1,best=Infinity;times.forEach((t,i)=>{const x=Math.abs(new Date(t+'Z').getTime()-kick);if(x<best){best=x;i0=i}});
+   if(i0<0||best>95*60000)return;
+   if(new Date(times[i0]+'Z').getTime()>kick)i0=Math.max(0,i0-1);
+   st.wx={hours:[0,1,2,3].map(k=>i0+k).filter(i=>i<times.length).map(i=>({at:new Date(times[i]+'Z').getTime(),temp:num(h.temperature_2m?.[i]),rain:num(h.precipitation_probability?.[i]),wind:num(h.wind_speed_10m?.[i]),gust:num(h.wind_gusts_10m?.[i]),dir:num(h.wind_direction_10m?.[i])}))};
+   if(active===st)render(st);
+  }catch(_){}
+ }
+ const STATES={AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming'};
+ const PLACES=new Map();
+ // City + state (US) or city alone (international games) to coordinates, through Open-Meteo's geocoder.
+ function placeOf(address){
+  const city=String(address?.city||'').trim(),state=STATES[String(address?.state||'').toUpperCase()]||'',key=`${city}|${state}`;if(!city)return Promise.resolve(null);
+  if(!PLACES.has(key))PLACES.set(key,fetchEspnJson(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=10${state?'&countryCode=US':''}`).then(d=>{const list=d?.results||[],hit=(state?list.find(r=>r.admin1===state):null)||(!state?list[0]:null);return hit?{lat:hit.latitude,lon:hit.longitude}:null}).catch(()=>null));
+  return PLACES.get(key);
+ }
+ const envCard=(label,tag,body,cls='')=>`<div class="gc-env-card${cls?` ${cls}`:''}"><div class="gc-line-head"><span class="gc-eyebrow">${E(label)}</span>${tag||''}</div>${body}</div>`;
+ const envTag=(text,cls='')=>`<span class="gc-line-tag${cls?` ${cls}`:''}">${text}</span>`;
+ const compass=d=>['N','NE','E','SE','S','SW','W','NW'][Math.round(((d%360)+360)%360/45)%8];
+ function kickoffCard(st){
+  const when=comp(st)?.date||st.game?.kickoff;if(!when)return '';
+  const state=stateOf(st),day=dateFmt(when,{weekday:'short'}),hour=Number(dateFmt(when,{hour:'numeric',hourCycle:'h23'})),min=Number(dateFmt(when,{minute:'2-digit'})),hm=hour+min/60;
+  const slot=day==='Sun'?(hm<11?'Sunday morning':hm<14?'Sunday early':hm<17.5?'Sunday late':'Sunday night'):day==='Mon'?'Monday night':day==='Thu'?'Thursday night':`${dateFmt(when,{weekday:'long'})}${hm>=17.5?' night':''}`;
+  const days=['Thu','Fri','Sat','Sun','Mon'];if(!days.includes(day))days.splice(day==='Tue'?5:0,0,day);
+  const lo=8,hi=24,x=v=>clamp((v-lo)/(hi-lo)*100,0,100);
+  const band=(a,b,cls,label)=>`<i class="${cls}" style="left:${x(a)}%;width:${x(b)-x(a)}%"><em>${label}</em></i>`;
+  let foot='';
+  if(state==='pre'){const ms=new Date(when).getTime()-Date.now();if(ms>0){const d=Math.floor(ms/86400000),h=Math.floor(ms%86400000/3600000),m=Math.floor(ms%3600000/60000);foot=`Kicks off in <b>${d?`${d}d ${h}h`:h?`${h}h ${m}m`:`${m}m`}</b>`}}
+  else foot=state==='in'?'<b>In progress</b>':'<b>Final</b>';
+  const time=dateFmt(when,{hour:'numeric',minute:'2-digit'}).replace(/\s?([AP]M)$/,'');
+  return envCard('Kickoff',envTag(E(slot)),`<div class="gc-env-big">${E(time)}<small>${E(dateFmt(when,{hour:'numeric'}).replace(/^\d+\s?/,''))} CT</small><span class="gc-env-sub">${E(dateFmt(when,{weekday:'long',month:'long',day:'numeric'}))}</span></div>
+   <div class="gc-days" aria-label="Game day">${days.map(d=>`<span class="${d===day?'is-on':''}">${d}</span>`).join('')}</div>
+   <div class="gc-clockbar" aria-label="Kickoff ${E(time)} CT"><div class="gc-clockbar-track">${band(8.5,11,'is-a','Morning')}${band(12,15,'is-a','Early')}${band(15,18.5,'is-b','Late')}${band(19,23.5,'is-c','Night')}<span class="gc-clockbar-mark" style="left:${x(hm)}%"></span></div><div class="gc-clockbar-scale">${[8,11,14,17,20,23].map(v=>`<span style="left:${x(v)}%">${v>12?v-12:v}${v>=12?'p':'a'}</span>`).join('')}</div></div>
+   ${foot?`<div class="gc-env-foot">${foot}</div>`:''}`);
+ }
+ function stadiumCard(st){
+  const gi=st.summary?.gameInfo||{},venue=gi.venue||{},sw=st.siteWeather||{};
+  const indoor=venue.indoor===true||st.game?.roof==='DOME'||sw.roof==='DOME',covered=!indoor&&(st.game?.roof==='COVERED'||sw.roof==='COVERED');
+  const grass=venue.grass===true?true:venue.grass===false?false:null,hc=E(teamColor(st,1));
+  const city=[venue.address?.city,venue.address?.state].filter(Boolean).join(', ');
+  const field=grass===false?'#3f9d5c':'#4f9b55',stripe=grass===false?'#46a663':'#5aa860';
+  const svg=`<svg class="gc-stadium" viewBox="0 0 220 104" aria-hidden="true"><defs><pattern id="gc-mow" width="16" height="10" patternUnits="userSpaceOnUse"><rect width="8" height="10" fill="${field}"/><rect x="8" width="8" height="10" fill="${stripe}"/></pattern></defs>
+   <ellipse cx="110" cy="58" rx="104" ry="42" fill="#ece6d6" stroke="#d6cdb5"/><ellipse cx="110" cy="58" rx="86" ry="32" fill="#e2dac4"/>
+   <rect x="38" y="38" width="144" height="40" rx="3" fill="${grass===false?field:'url(#gc-mow)'}"/>
+   <rect x="38" y="38" width="16" height="40" rx="3" fill="${hc}" opacity=".85"/><rect x="166" y="38" width="16" height="40" rx="3" fill="${hc}" opacity=".85"/>
+   ${[0,1,2,3,4,5,6,7,8].map(k=>`<line x1="${54+k*14}" y1="38" x2="${54+k*14}" y2="78" stroke="#fff" stroke-opacity="${k===4?.9:.45}" stroke-width="${k===4?1.4:.8}"/>`).join('')}
+   ${indoor?'<path d="M8 58 C 22 2, 198 2, 212 58" fill="rgba(20,50,79,.08)" stroke="#14324f" stroke-width="2"/><path d="M40 30 C 80 12, 140 12, 180 30" fill="none" stroke="#14324f" stroke-opacity=".35"/>':covered?'<path d="M8 58 C 22 10, 198 10, 212 58" fill="none" stroke="#14324f" stroke-width="2" stroke-dasharray="6 5"/>':''}
+  </svg>`;
+  const chip=(t,on)=>`<span class="gc-chip-s${on?' is-on':''}">${E(t)}</span>`;
+  return envCard('Stadium','',`<div class="gc-env-title">${E(venue.fullName||st.game?.venue||'—')}</div>${svg}<div class="gc-chips-s">${chip(indoor?'Indoor':covered?'Covered':'Outdoor',true)}${grass!==null?chip(grass?'Grass':'Artificial turf',true):''}${city?chip(city):''}</div>`);
+ }
+ function weatherNow(st){
+  const w=st.summary?.gameInfo?.weather,sw=st.siteWeather||{},h=st.wx?.hours?.[0];
+  if(h&&h.temp!==null)return {temp:h.temp,wind:h.wind,gust:h.gust,rain:h.rain,dir:h.dir};
+  if(num(w?.temperature)!==null)return {temp:num(w.temperature),wind:null,gust:num(w.gust),rain:num(w.precipitation),dir:null};
+  if(num(sw.temp)!==null)return {temp:num(sw.temp),wind:num(sw.wind),gust:num(sw.gust),rain:num(sw.precip),dir:null};
+  return null;
+ }
+ function indoorGame(st){const v=st.summary?.gameInfo?.venue||{},sw=st.siteWeather||{};return v.indoor===true||st.game?.roof==='DOME'||sw.roof==='DOME'?'dome':st.game?.roof==='COVERED'||sw.roof==='COVERED'?'covered':''}
+ function weatherCard(st){
+  const roof=indoorGame(st);
+  if(roof)return envCard('Weather',envTag(roof==='dome'?'Indoors':'Covered','is-good'),`<div class="gc-env-big">${roof==='dome'?'Roof closed':'Covered'}<span class="gc-env-sub">${roof==='dome'?'Climate controlled · weather is not a factor':'Minimal weather impact'}</span></div>`);
+  const w=weatherNow(st);
+  if(!w)return stateOf(st)==='pre'?envCard('Weather',envTag('Forecast pending'),'<p class="gc-note">The kickoff forecast appears about two weeks before the game.</p>'):'';
+  const t=w.temp,tx=clamp(t,0,100);
+  const thermo=`<div class="gc-thermo" aria-label="${Math.round(t)} degrees"><div class="gc-thermo-head"><b>${Math.round(t)}°F</b><small>${st.wx?.hours?.length?'at kickoff':'kickoff forecast'}</small></div><div class="gc-thermo-track"><span class="gc-thermo-mark" style="left:${tx}%"></span></div><div class="gc-thermo-scale"><span style="left:0%">0°</span><span style="left:32%">32°</span><span style="left:50%">50°</span><span style="left:70%">70°</span><span style="left:90%">90°</span></div></div>`;
+  // Wind dial: 0-30 mph half circle; green to 12, amber to 18, red beyond.
+  const wv=w.wind??w.gust??0,ang=v=>Math.PI*(1-clamp(v,0,30)/30),pt=(v,r)=>[60+r*Math.cos(ang(v)),58-r*Math.sin(ang(v))];
+  const arc=(a,b,cls)=>{const [x1,y1]=pt(a,46),[x2,y2]=pt(b,46);return `<path class="${cls}" d="M${x1.toFixed(1)} ${y1.toFixed(1)} A46 46 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}"/>`};
+  const [nx,ny]=pt(wv,38),gustTick=w.gust!==null&&w.wind!==null?(()=>{const [a,b]=pt(w.gust,40),[c,d]=pt(w.gust,54);return `<line class="gc-dial-gust" x1="${a.toFixed(1)}" y1="${b.toFixed(1)}" x2="${c.toFixed(1)}" y2="${d.toFixed(1)}"/>`})():'';
+  const dial=`<div class="gc-dial"><svg viewBox="0 0 120 66" aria-hidden="true">${arc(0,12,'is-calm')}${arc(12,18,'is-breezy')}${arc(18,30,'is-windy')}${gustTick}<line class="gc-dial-needle" x1="60" y1="58" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}"/><circle cx="60" cy="58" r="4" fill="#14324f"/></svg><b>${Math.round(wv)}<small> mph</small></b><span>${w.wind!==null?`wind${w.dir!==null?` from ${compass(w.dir)}`:''}${w.gust!==null?` · gusts ${Math.round(w.gust)}`:''}`:'gusts'}</span></div>`;
+  const rain=w.rain,ry=rain===null?0:clamp(rain,0,100);
+  const drop=`<div class="gc-drop"><svg viewBox="0 0 40 52" aria-hidden="true"><defs><clipPath id="gc-drop-clip"><path d="M20 2 C 20 2, 4 22, 4 33 a16 16 0 0 0 32 0 C 36 22, 20 2, 20 2z"/></clipPath></defs><path d="M20 2 C 20 2, 4 22, 4 33 a16 16 0 0 0 32 0 C 36 22, 20 2, 20 2z" fill="#eef2f5"/><rect clip-path="url(#gc-drop-clip)" x="0" y="${(2+48*(1-ry/100)).toFixed(1)}" width="40" height="52" fill="#5b8fd6"/><path d="M20 2 C 20 2, 4 22, 4 33 a16 16 0 0 0 32 0 C 36 22, 20 2, 20 2z" fill="none" stroke="#5b8fd6" stroke-width="1.5"/></svg><b>${rain===null?'—':`${Math.round(rain)}%`}</b><span>chance of rain</span></div>`;
+  const hours=st.wx?.hours||[],hourly=hours.length>1?`<div class="gc-hours" aria-label="Hour by hour during the game">${hours.map(h=>`<div class="gc-hour"><small>${E(dateFmt(h.at,{hour:'numeric'}))}</small><b>${h.temp===null?'—':Math.round(h.temp)+'°'}</b><span class="gc-hour-rain" title="${h.rain??'—'}% chance of rain"><i style="height:${clamp(h.rain??0,0,100)}%"></i></span><em>${h.rain===null?'—':Math.round(h.rain)+'%'}</em><span class="gc-hour-wind">${h.dir!==null?`<svg viewBox="0 0 12 12" style="transform:rotate(${Math.round(h.dir+180)}deg)" aria-hidden="true"><path d="M6 1v10M6 1l-3 4M6 1l3 4"/></svg>`:''}${h.wind===null?'—':Math.round(h.wind)}</span></div>`).join('')}</div>`:'';
+  const label=t<=32?'Freezing':t<=45?'Cold':t>=85?'Hot':'Mild';
+  return envCard('Weather',envTag(label,t<=32||t>=85?'is-low':''),`${thermo}<div class="gc-wx-row">${dial}${drop}</div>${hourly}`);
+ }
+ function impactCard(st){
+  if(indoorGame(st))return '';
+  const w=weatherNow(st);if(!w)return '';
+  const wind=w.wind??0,gust=w.gust??0,rain=w.rain??0;
+  const kick=wind>=18||gust>=28||rain>=60?2:wind>=12||gust>=20||rain>=40?1:0,pass=wind>=18||gust>=28||rain>=60?2:wind>=15||gust>=25||rain>=50?1:0;
+  const meter=(label,lv,why)=>`<div class="gc-meter"><span class="gc-meter-label">${E(label)}</span><span class="gc-meter-track is-l${lv}">${['None','Some','Big'].map((t,i)=>`<i class="${i===lv?'is-on':''}">${t}</i>`).join('')}</span><small>${E(why)}</small></div>`;
+  const kickWhy=kick===2?'Long field goals and punts are much harder':kick===1?'Long field goals are the first thing hurt':'Normal kicking conditions';
+  const passWhy=pass===2?'Deep passing usually drops; more running':pass===1?'Some deep throws may be held back':'Normal passing conditions';
+  const tag=kick===2||pass===2?envTag('Passing &amp; kicking down','is-low'):kick||pass?envTag('Worth watching','is-neutral'):envTag('No impact','is-good');
+  return envCard('Weather impact',tag,`${meter('Passing',pass,passWhy)}${meter('Kicking',kick,kickWhy)}<p class="gc-note">From the kickoff forecast: ${[w.wind!==null?`wind ${Math.round(wind)} mph`:'',w.gust!==null?`gusts ${Math.round(gust)} mph`:'',w.rain!==null?`rain ${Math.round(rain)}%`:''].filter(Boolean).join(', ')}.</p>`);
+ }
+ function scoringCard(st){
+  const pc=(st.summary?.pickcenter||[])[0],total=num(pc?.overUnder);if(total===null)return '';
+  const games=(Number(st.week)===curWeek()?NFL_WEEK1:(W.games.get(Number(st.week))||[]))||[];
+  const pts=games.map(g=>({id:String(g.eventId),total:num(g.market?.total)})).filter(g=>g.total!==null);
+  if(!pts.some(g=>g.id===String(st.eventId)))pts.push({id:String(st.eventId),total});else pts.forEach(g=>{if(g.id===String(st.eventId))g.total=total});
+  const lvl=total>=49?'High':total>=45?'Good':total>=41?'Neutral':'Low',tagCls=`is-${lvl.toLowerCase()}`;
+  const vals=pts.map(g=>g.total),lo=Math.floor(Math.min(...vals,36)-1),hi=Math.ceil(Math.max(...vals,52)+1),x=v=>clamp((v-lo)/(hi-lo)*100,0,100);
+  const avg=vals.reduce((a,b)=>a+b,0)/vals.length,rank=1+vals.filter(v=>v>total).length;
+  const plot=`<div class="gc-dots" aria-label="This week's game totals"><div class="gc-dots-track">${[[lo,41,'is-low'],[41,45,'is-neutral'],[45,49,'is-good'],[49,hi,'is-high']].map(([a,b,c])=>`<i class="${c}" style="left:${x(a)}%;width:${x(b)-x(a)}%"></i>`).join('')}${pts.filter(g=>g.id!==String(st.eventId)).map(g=>`<span class="gc-dot" style="left:${x(g.total)}%" title="${g.total}"></span>`).join('')}<span class="gc-dots-avg" style="left:${x(avg)}%"></span><span class="gc-dot is-this" style="left:${x(total)}%"><b>${total}</b></span></div><div class="gc-dots-scale"><span style="left:0%">${lo}</span><span style="left:${x(avg)}%">avg ${avg.toFixed(1)}</span><span style="left:100%">${hi}</span></div></div>`;
+  const words=lvl==='High'?'One of the better spots for fantasy points: both offenses expected to score':lvl==='Good'?'Above-average scoring expected; a good spot for the skill players':lvl==='Neutral'?'Around an average NFL game':'A low-scoring game is expected; temper expectations';
+  return envCard('Scoring environment',envTag(`${lvl} · ${rank} of ${vals.length} this week`,tagCls),`<div class="gc-env-big">${total}<small>points expected</small></div>${plot}<p class="gc-note">${E(words)}. Each dot is one of this week's games by its total; the line is the week's average.</p>`);
+ }
+ function scriptCard(st){
+  if(stateOf(st)!=='pre')return '';
+  const [A,H]=st.teams,pc=(st.summary?.pickcenter||[])[0],hs=num(pc?.spread);
   let pA=null,pH=null;if(st.summary?.predictor){pH=num(st.summary.predictor.homeTeam?.gameProjection);pA=num(st.summary.predictor.awayTeam?.gameProjection)??(pH!==null?100-pH:null)}
   if(pA===null&&pc){const ca=mlChance(pc.awayTeamOdds?.moneyLine),ch=mlChance(pc.homeTeamOdds?.moneyLine);if(ca&&ch){pA=ca/(ca+ch)*100;pH=ch/(ca+ch)*100}}
-  if(state==='pre'&&pA!==null&&pH!==null){const f=pH>=pA?H:A,d=pH>=pA?A:H,p=Math.max(pA,pH);
-   tile('script','Game script',p>=70?`${E(f.abbr)} heavy favorite`:p>=60?`${E(f.abbr)} favored`:'Close game',p>=70?`${E(f.abbr)} ${p.toFixed(0)}% to win: a big lead means more ${E(f.abbr)} running late and more ${E(d.abbr)} passing to catch up`:p>=60?`${E(f.abbr)} ${p.toFixed(0)}% to win: a late lead would tilt ${E(f.abbr)} toward the run`:`${E(A.abbr)} ${pA.toFixed(0)}% · ${E(H.abbr)} ${pH.toFixed(0)}%: both offenses should stay balanced for four quarters`)}
-  const ra=restDays(st,A.id),rh=restDays(st,H.id);
-  if(ra&&rh&&ra.days&&rh.days){const edge=rh.days-ra.days,txt=t=>t.days?`${t.days} days${t.bye?' (bye)':''}`:'—';
-   tile('rest','Rest',edge===0?'Even rest':`${E((edge>0?H:A).abbr)} +${Math.abs(edge)} days`,`${E(A.abbr)} ${txt(ra)} · ${E(H.abbr)} ${txt(rh)} since their last game`)}
+  if(pA===null||pH===null)return '';
+  const favH=pH>=pA,f=favH?H:A,d=favH?A:H,p=Math.max(pA,pH);
+  const margin=hs===null?null:-hs,mx=margin===null?50:50+clamp(margin,-21,21)/21*50;
+  const axis=margin===null?'':`<div class="gc-margin" aria-label="Projected margin"><div class="gc-margin-track"><span class="gc-margin-mid"></span><span class="gc-margin-fill" style="${margin>=0?`left:50%;width:${mx-50}%`:`left:${mx}%;width:${50-mx}%`};background:${E(teamColor(st,margin>=0?1:0))}"></span><span class="gc-margin-mark" style="left:${mx}%"><b>${margin===0?'Even':`${E((margin>0?H:A).abbr)} by ${Math.abs(margin)}`}</b></span></div><div class="gc-margin-ends">${teamLabel(A)}<small>Projected margin</small>${teamLabel(H)}</div></div>`;
+  const tug=`<div class="gc-tug"><b>${pA.toFixed(0)}%</b><span class="gc-split"><i style="width:${pA.toFixed(1)}%;background:${E(teamColor(st,0))}"></i><i style="width:${pH.toFixed(1)}%;background:${E(teamColor(st,1))}"></i></span><b>${pH.toFixed(0)}%</b></div>`;
+  const leanOf=t=>t===f?(p>=70?'more running late':'leans run late'):(p>=70?'more passing late':'leans pass late');
+  const lean=p>=60?`<div class="gc-lean"><em><b>${E(A.abbr)}</b> ${leanOf(A)}</em><em><b>${E(H.abbr)}</b> ${leanOf(H)}</em></div>`:'<div class="gc-lean"><em>Both offenses should stay balanced for four quarters</em></div>';
+  return envCard('Game script',envTag(p>=70?`${E(f.abbr)} heavy favorite`:p>=60?`${E(f.abbr)} favored`:'Close game'),`${axis}${tug}${lean}`);
+ }
+ function restCard(st){
+  const [A,H]=st.teams,ra=restDays(st,A.id),rh=restDays(st,H.id);if(!ra?.days||!rh?.days)return '';
+  const edge=rh.days-ra.days,max=Math.max(14,ra.days,rh.days);
+  const row=(t,r,i)=>`<div class="gc-rest-row">${teamLabel(t)}<span class="gc-rest-bar">${Array.from({length:max},(_,k)=>`<i class="${k<r.days?'is-on':''}" style="${k<r.days?`background:${E(teamColor(st,i))}`:''}"></i>`).join('')}</span><b>${r.days}<small> days</small></b>${r.bye?'<em class="is-bye">Bye</em>':r.days<6?'<em class="is-short">Short week</em>':''}</div>`;
+  return envCard('Rest',envTag(edge===0?'Even rest':`${E((edge>0?H:A).abbr)} +${Math.abs(edge)} days`,edge===0?'':'is-good'),`${row(A,ra,0)}${row(H,rh,1)}<p class="gc-note">Days since each team's last game; each block is one day.</p>`);
+ }
+ function venueResults(st,team,where){
+  const data=st.schedules?.[team.id],kick=new Date(comp(st)?.date||st.game?.kickoff||0).getTime();if(!data)return null;
+  return (data.events||[]).filter(e=>new Date(e.date).getTime()<kick-6*3600000).map(e=>{const c=e.competitions?.[0]||{},me=(c.competitors||[]).find(x=>String(x.id||x.team?.id)===String(team.id)),op=(c.competitors||[]).find(x=>x!==me);
+   if(!me||me.homeAway!==where||!(c.status?.type?.completed??e.status?.type?.completed))return null;
+   const a=num(me.score?.value??me.score),b=num(op?.score?.value??op?.score),res=me.winner===true?'W':op?.winner===true?'L':a!==null&&b!==null?(a>b?'W':a<b?'L':'T'):'';
+   return res?{res,opp:op?.team?.abbreviation||'',score:a!==null&&b!==null?`${a}-${b}`:''}:null}).filter(Boolean);
+ }
+ function homeRoadCard(st){
+  const [A,H]=st.teams;if(!st.schedules)loadSchedules(st).then(()=>{if(active===st)render(st)});
+  const hr=venueResults(st,H,'home'),ar=venueResults(st,A,'away');
   const rec=(ha,type)=>(side(st,ha)?.record||[]).find(r=>r.type===type)?.summary;
-  const hr=rec('home','home'),ar=rec('away','road');
-  if(hr||ar)tile('home','Home & road',[hr?`${E(H.abbr)} ${E(hr)} home`:'',ar?`${E(A.abbr)} ${E(ar)} road`:''].filter(Boolean).join(' · '),`This season: ${E(H.abbr)} at home, ${E(A.abbr)} away from home`);
-  if(gi.attendance)tile('crowd','Attendance',Number(gi.attendance).toLocaleString(),'');
-  const ats=(st.summary?.againstTheSpread||[]).filter(x=>(x.records||[]).length);
-  if(ats.length)tile('script','Against the spread',ats.map(x=>`${E(abbrOf(x.team?.id))} ${E(x.records[0]?.summary||'')}`).join(' · '),'This season');
-  parts.push(`<div class="gc-line-head is-env"><span class="gc-eyebrow">Game environment</span></div><div class="gc-tiles">${tiles.join('')}</div>`);
-  return section('odds','Odds & game environment',parts.join(''),pc?.provider?.name?`Lines: ${E(pc.provider.name)}`:'');
+  if(!hr&&!ar&&!rec('home','home')&&!rec('away','road'))return '';
+  const strip=(t,list,label,fallback)=>{const w=(list||[]).filter(g=>g.res==='W').length,l=(list||[]).filter(g=>g.res==='L').length,ti=(list||[]).filter(g=>g.res==='T').length;
+   return `<div class="gc-hr-row">${teamLabel(t)}<small>${label}</small><b>${list?`${w}-${l}${ti?`-${ti}`:''}`:E(fallback||'—')}</b><div class="gc-hr-dots">${(list||[]).map(g=>`<span class="is-${g.res.toLowerCase()}" title="${E(`${g.res} vs ${g.opp} ${g.score}`)}"><i>${g.res}</i><small>${E(g.opp)}</small></span>`).join('')||'<em>No games yet</em>'}</div></div>`};
+  return envCard('Home & road','',`${strip(H,hr,'at home',rec('home','home'))}${strip(A,ar,'on the road',rec('away','road'))}`);
+ }
+ function atsCard(st){
+  const ats=(st.summary?.againstTheSpread||[]).filter(x=>(x.records||[]).length);if(!ats.length)return '';
+  const rows=ats.map(x=>{const t=st.teams.find(tm=>String(tm.id)===String(x.team?.id));const m=/^(\d+)-(\d+)(?:-(\d+))?/.exec(x.records[0]?.summary||'');if(!t||!m)return '';const [w,l,p]=[+m[1],+m[2],+(m[3]||0)],n=w+l+p||1;
+   return `<div class="gc-ats-row">${teamLabel(t)}<span class="gc-ats-bar"><i class="is-w" style="width:${w/n*100}%"></i><i class="is-p" style="width:${p/n*100}%"></i><i class="is-l" style="width:${l/n*100}%"></i></span><b>${w}-${l}${p?`-${p}`:''}</b></div>`}).join('');
+  return rows?envCard('Against the spread',envTag('This season'),`${rows}<p class="gc-note">Covered (green) and failed to cover (red) the spread, game by game totals.</p>`):'';
+ }
+ function attendanceCard(st){const n=num(st.summary?.gameInfo?.attendance);return n?envCard('Attendance','',`<div class="gc-env-big">${n.toLocaleString()}<small>fans</small></div>`):''}
+ function envHTML(st){
+  loadWx(st);
+  const cards=[kickoffCard,stadiumCard,weatherCard,impactCard,scoringCard,scriptCard,restCard,homeRoadCard,atsCard,attendanceCard].map(f=>{try{return f(st)}catch(error){console.warn('Game environment card failed',error);return ''}}).filter(Boolean);
+  return cards.length?section('env','Game environment',`<div class="gc-env-grid">${cards.join('')}</div>`):'';
  }
 
  /* ---------- injuries ---------- */
@@ -674,8 +801,8 @@
  }
 
  /* ---------- the game page ---------- */
- const NAV={gamecast:'Gamecast',plays:'Plays',box:'Box score',stats:'Team stats',predictor:'Predictor',leaders:'Leaders',depth:'Depth charts',odds:'Odds',injuries:'Injuries',schedule:'Schedules'};
- function sectionsFor(st){return stateOf(st)==='pre'?[depthHTML,predictorHTML,leadersHTML,oddsHTML,injuriesHTML,schedulesHTML]:[gamecastHTML,playsHTML,boxHTML,teamStatsHTML,predictorHTML,leadersHTML,depthHTML,oddsHTML,injuriesHTML,schedulesHTML]}
+ const NAV={gamecast:'Gamecast',plays:'Plays',box:'Box score',stats:'Team stats',predictor:'Predictor',leaders:'Leaders',depth:'Depth charts',odds:'Odds',env:'Environment',injuries:'Injuries',schedule:'Schedules'};
+ function sectionsFor(st){return stateOf(st)==='pre'?[depthHTML,predictorHTML,leadersHTML,oddsHTML,envHTML,injuriesHTML,schedulesHTML]:[gamecastHTML,playsHTML,boxHTML,teamStatsHTML,predictorHTML,leadersHTML,depthHTML,oddsHTML,envHTML,injuriesHTML,schedulesHTML]}
  let active=null;
  function bindNav(st){
   const nav=st.root.querySelector('[data-gc-nav]'),scroll=st.root.querySelector('.gc-scroll');if(!nav||!scroll)return;
