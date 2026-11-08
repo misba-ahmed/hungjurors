@@ -91,7 +91,7 @@ function hjFreeThrowBetSnapshot(data,agreement=HJ_FREE_THROW_BET){
   const view=hjFreeThrowBetSnapshot(data);if(!view)return built;
   const afterRecap=built.cards.reduce((last,c,i)=>c.section==='recap'?i+1:last,0);
   // Keep the completed bet in the recap group when the carousel sorts sections.
-  built.cards.splice(afterRecap,0,{section:Number(WIRE.recapWeek)===BET.week?'recap':'sidebet',html:card(view)});
+  built.cards.splice(afterRecap,0,{section:Number(WIRE.recapWeek)===BET.week?'recap':'sidebet',week:BET.week,html:card(view)});
   return built;
  };
  const stories=hjRcStories;

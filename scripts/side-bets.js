@@ -155,7 +155,7 @@
   const view=currentSnapshot(data);
   if(view){
    const afterRecap=built.cards.reduce((last,card,index)=>card.section==='recap'?index+1:last,0);
-   built.cards.splice(afterRecap,0,{section:'sidebet',html:wireHTML(view)});
+   built.cards.splice(afterRecap,0,{section:'sidebet',week:BET.week,html:wireHTML(view)});
   }
   return built;
  };

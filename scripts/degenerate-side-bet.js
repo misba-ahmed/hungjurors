@@ -55,7 +55,7 @@ function hjDegenerateBetSnapshot(data){
   const result=build.apply(this,arguments),view=hjDegenerateBetSnapshot(data);if(view)refreshExpanded(view);if(!view||!(hjCurrentWeek(data)<=8||Number(WIRE.recapWeek)===8))return result;
   const body='<div class="sb-wire-intro dg-intro"><div class="wc-title">Degenerate Side Bet</div>'+table()+weeks(view)+stakes(view)+'<div class="sb-wire-expanded">'+copy()+'</div><button type="button" class="sb-open" data-wire-matchup="'+view.key+'">View Week 8 matchup <span aria-hidden="true">→</span></button></div>';
   const html=wireCard({kicker:'Side Bet',tag:'Week 8 · MISBA vs CESAR',cls:'is-lead sb-wire sb-dg-wire',body}).replace('data-wire-card','data-wire-key="'+BET.id+'" data-wire-card');
-  result.cards.unshift({section:'sidebet',html});return result;
+  result.cards.unshift({section:'sidebet',week:8,html});return result;
  };
  const stories=hjRcStories;
  hjRcStories=function(chosen,weeks,model){const html=stories.apply(this,arguments),view=Number(chosen?.week)===8?hjDegenerateBetSnapshot(model?.data):null;return view?html+'<section class="rc-block sb-recap"><h3 class="rc-h">Degenerate Side Bet <small>MISBA vs CESAR</small></h3>'+detail(view,'recap')+'</section>':html};

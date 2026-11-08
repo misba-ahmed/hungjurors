@@ -69,7 +69,7 @@ const dstMascots=readFileSync(new URL('../assets/team-photos/mascots.json',impor
 const degenerateBetStyle=readFileSync(new URL('../styles/degenerate-side-bet.css',import.meta.url),'utf8');
 const rosterWeeks=readFileSync(new URL('./roster-weeks.js',import.meta.url),'utf8');
 const rosterWeeksStyle=readFileSync(new URL('../styles/roster-weeks.css',import.meta.url),'utf8');
-const sideBets=['side-bets.js','free-throw-bet.js','degenerate-side-bet.js'].map(file=>readFileSync(new URL(file,import.meta.url),'utf8')).join('\n');
+const sideBets=['side-bets.js','free-throw-bet.js','degenerate-side-bet.js','side-bet-order.js'].map(file=>readFileSync(new URL(file,import.meta.url),'utf8')).join('\n');
 const challengeScripts=['challenge-engine.js','perfect-lineup.js','challenge-live.js'].map(file=>readFileSync(new URL(file,import.meta.url),'utf8')).join('\n');
 function replaceOnce(html,pattern,replacement){
  if([...html.matchAll(pattern)].length!==1)throw Error('Source markup changed; review site preparation');
@@ -514,10 +514,3 @@ if(process.argv[2]){
  await writeFile(path,page);
  await writeFile(join(dirname(path),'version.json'),JSON.stringify({build})+'\n');
 }
-
-
-
-
-
-
-
