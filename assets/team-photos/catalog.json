@@ -2466,5 +2466,25 @@
     "name": "Dylan Sampson",
     "teamId": 5,
     "jersey": "22"
+  },
+  "5081432": {
+    "file": "5081432-faces-v1.webp",
+    "width": 299,
+    "height": 850,
+    "ratio": 0.35176,
+    "heightInches": 71,
+    "name": "Antonio Williams",
+    "teamId": 28,
+    "jersey": "14"
+  },
+  "4040761": {
+    "file": "4040761-faces-v1.webp",
+    "width": 316,
+    "height": 850,
+    "ratio": 0.37176,
+    "heightInches": 67,
+    "name": "Devin Singletary",
+    "teamId": 19,
+    "jersey": "26"
   }
 }
