@@ -342,6 +342,14 @@ export function prepareSite(html){
  // over no games is "—", as on the profile (it showed 0.00).
  swap("espn.games>=new Set(rows.filter(hj40Played).map(row=>Number(row.week)).filter(Boolean)).size;Object.entries(espn.values).forEach(([key,value])=>{if(Number.isFinite(value)&&(preferEspn||!Number.isFinite(values[key])))values[key]=value})}",
   "espn.games>=new Set(rows.filter(hj40Played).map(row=>Number(row.week)).filter(Boolean)).size;Object.entries(espn.values).forEach(([key,value])=>{if(Number.isFinite(value)&&(preferEspn||!Number.isFinite(values[key])))values[key]=value})}if(isAvg&&!(Math.max(games,espn.games)>0))for(const k of Object.keys(values))values[k]=null;if(Math.max(games,espn.games)>0){if(values.tgt===0)for(const k of ['targetShare','airShare','recAir'])if(!Number.isFinite(values[k]))values[k]=0;if(!Number.isFinite(values.rzOpp)&&state?.rzWeeks){const max=Math.max(0,...[...state.rzWeeks.values()].flat().map(r=>Number(r.week)||0)),weeks=week?[week]:[...new Set([...rows.filter(hj40Played).map(r=>Number(r.week)),...Object.keys(player?._espnActualByWeek||{}).map(Number)])];if(weeks.length&&weeks.every(w=>w<=max))values.rzOpp=0}}");
+ // Game links (Nov 10): the OPP cell of every game log row (players and D/ST) opens that game's page
+ // (scripts/game-center.js: hjGameLinkAttr marks the cell, a click opens the game on top of the profile).
+ for(const [from,to] of [
+  ['<td class="pc-opponent-cell">${opponentHTML}</td>','<td class="pc-opponent-cell"${typeof hjGameLinkAttr===\'function\'?hjGameLinkAttr(row.week,row.opponent_team,row.season,status):\'\'}>${opponentHTML}</td>'],
+  ['<td class="pc-opponent-cell">${opponent}</td>','<td class="pc-opponent-cell"${typeof hjGameLinkAttr===\'function\'?hjGameLinkAttr(row.week,row.opponent,row.season,status):\'\'}>${opponent}</td>']]){
+  if(html.split(from).length!==2)throw Error('Game log opponent cell changed: '+from);
+  html=html.replace(from,()=>to);
+ }
  // Use real PNG files, with fresh URLs so failed icon requests are not reused.
  html=replaceOnce(html,/<link rel="apple-touch-icon"[^>]*>/g,'<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-hung-jurors-v2.png">');
  html=replaceOnce(html,/<link rel="icon" type="image\/png" sizes="192x192"[^>]*>/g,'<link rel="icon" type="image/png" sizes="192x192" href="/hung-jurors-icon-192-v2.png">');

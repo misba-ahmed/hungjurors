@@ -460,3 +460,9 @@ body.gc-modal-open{overflow:hidden}
 .gc-ats-bar i{display:block;height:100%}.gc-ats-bar .is-w{background:#2f8a57}.gc-ats-bar .is-l{background:#c9434b}.gc-ats-bar .is-p{background:#9aa5af}
 .gc-ats-row b{color:var(--navy);font:850 12px/1 var(--mono)}
 @media(max-width:720px){.gc-env-grid{grid-template-columns:1fr}}
+
+/* Game log OPP cells that open the game (Nov 10) */
+.pc-opponent-cell[data-gc-week]{cursor:pointer}
+.pc-opponent-cell[data-gc-week] .hj-opponent{text-decoration:underline;text-decoration-color:rgba(20,50,79,.25);text-underline-offset:3px}
+.pc-opponent-cell[data-gc-week]:hover .hj-opponent,.pc-opponent-cell[data-gc-week]:focus-visible .hj-opponent{text-decoration-color:currentColor}
+.pc-opponent-cell[data-gc-week]:focus-visible{outline:2px solid var(--brass);outline-offset:-2px}

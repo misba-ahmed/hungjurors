@@ -56,6 +56,12 @@ nothing for a free agent; the depth charts use the same owner line); the schedul
 and shows his owner or FA. Players who are not fantasy-relevant appear by name only. Nothing on the page names or links
 to an outside site: tooltips written by shared helpers are reworded while the page is open.
 
+## Opening a game from a player's game log (Nov 10)
+In every game log on a player profile (players and D/ST), the OPP cell of a game this season (not a bye) opens
+that game's page on top of the profile: `hjGameLinkAttr` (scripts/game-center.js) marks the cell with the week and
+opponent through a build swap in prepare-site.mjs, and the game is found in that week's schedule by the opponent.
+Escape or × closes whichever is on top, so the game closes back to the profile.
+
 ## Fantasy points per play
 `hjGameFantasy.playPoints(play, ctx)` scores one play in the league's scoring (read from the synced league settings,
 with a built-in copy as a fallback): yards, receptions (TE 1.5), TDs, 2-pt tries, interceptions, fumbles lost, kicking

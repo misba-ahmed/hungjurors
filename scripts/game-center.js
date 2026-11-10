@@ -907,7 +907,8 @@
   setTimeout(()=>root.querySelector('.gc-close')?.focus({preventScroll:true}),80);
  }
  // Capture phase: decided before a player profile opened on top closes itself on the same key press.
- document.addEventListener('keydown',e=>{if(e.key==='Escape'&&active&&!document.querySelector('.pc-modal-overlay.is-open:not(.gc-overlay)'))close()},true);
+ // Escape closes whichever is on top: a profile opened from the game, or the game opened from a profile.
+ document.addEventListener('keydown',e=>{if(e.key!=='Escape'||!active)return;const open=[...document.querySelectorAll('.pc-modal-overlay.is-open')];if(open.at(-1)!==active.root)return;e.stopPropagation();close()},true);
  document.addEventListener('visibilitychange',()=>{if(active&&!document.hidden&&stateOf(active)==='in')refresh(active)});
 
  /* ---------- week switcher ---------- */
@@ -980,5 +981,23 @@
   const g=shownGames()?.[Number(front.closest('.nfl-game')?.dataset.gameIndex)];if(g)openGame(g,front);
  },true);
  renderNFLWeekSchedule();
+ /* ---------- game links from player game logs (Nov 10) ---------- */
+ // The OPP cell of a game log row (this season, not a bye) carries the week and the opponent; a click or Enter
+ // opens that game, found in that week's schedule by the opponent, on top of the open profile. Escape or ×
+ // closes the game and returns to the profile.
+ window.hjGameLinkAttr=(week,opp,season,status)=>{
+  const w=Number(week),t=String(opp||'').replace(/^(?:@|vs)\s*/i,'').trim().toUpperCase();
+  if(status==='BYE'||!(w>=1&&w<=18)||!/^[A-Z]{2,4}$/.test(t)||Number(season||NFL_SEASON)!==Number(NFL_SEASON))return '';
+  return ` data-gc-week="${w}" data-gc-opp="${E(t)}" role="link" tabindex="0" title="Open this game"`;
+ };
+ async function openWeekGame(w,opp,trigger){
+  let list=w===curWeek()?NFL_WEEK1:W.games.get(w);
+  if(!list){await loadWeek(w);list=W.games.get(w)}
+  const key=pcTeam(opp),g=(list||[]).find(x=>teamsOf(x).some(t=>t.abbr===key));
+  if(g)openGame(g,trigger);
+ }
+ const gameLink=e=>{const c=e.target.closest?.('[data-gc-week][data-gc-opp]');if(!c)return;e.preventDefault();openWeekGame(Number(c.dataset.gcWeek),c.dataset.gcOpp,c)};
+ document.addEventListener('click',gameLink);
+ document.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')gameLink(e)});
  window.hjGameCenter={open:openGame,setWeek,state:()=>active,week:()=>({shown:shownWeek(),current:curWeek()})};
 })();
