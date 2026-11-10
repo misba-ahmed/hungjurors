@@ -244,6 +244,11 @@
 .rcx-pp-badge.is-in{background:#2f8a57;color:#fff}.rcx-pp-badge.is-out{background:#e3ddd0;color:#7a8794}.rcx-pp-badge.is-must{background:#b3262f;color:#fff}
 .rcx-pp-odds{margin-left:auto;color:var(--navy);font:900 12px/1 var(--mono);white-space:nowrap}.rcx-pp-odds em{margin-left:4px;font:800 8.5px/1 var(--mono);font-style:normal}
 .rcx-pp-odds .is-up{color:#2f8a57}.rcx-pp-odds .is-down{color:#b3262f}
+.rcx-pp-more{display:grid;place-items:center;flex:none;width:18px;height:18px;margin-left:-1px;border-radius:50%;background:#efe9da;transition:background .15s}
+.rcx-pp-more::before{content:"";width:5px;height:5px;margin-top:-3px;border:solid #7a8794;border-width:0 2px 2px 0;transform:rotate(45deg);transition:transform .2s,margin .2s}
+.rcx-pp-row[open] .rcx-pp-more{background:#14324f}.rcx-pp-row[open] .rcx-pp-more::before{margin-top:3px;border-color:#fff;transform:rotate(-135deg)}
+.rcx-pp-row.has-more>summary:hover .rcx-pp-more{background:#e3dccb}.rcx-pp-row.has-more[open]>summary:hover .rcx-pp-more{background:#1d4468}
+.rcx-pp-row:not(.has-more)>summary{cursor:default}
 .rcx-pp-path,.rcx-pp-sched{display:flex;align-items:center;gap:8px;margin-left:25px}
 .rcx-pp-path small,.rcx-pp-sched small{width:44px;flex:none;color:#8b98a4;font:700 7.5px/1.1 var(--mono);text-transform:uppercase}
 .rcx-pp-cells{display:grid;grid-template-columns:repeat(var(--n),26px);gap:3px}
