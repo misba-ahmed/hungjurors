@@ -1,6 +1,6 @@
 /* Weekly Recap extras (October 27, 2026).
  * Thirteen extra cards, all computed from data the recap already loads:
- * Report card, Playoff picture, Series update, Matchup flow,
+ * Report card, Paths to the playoffs, Series update, Matchup flow,
  * When you scored, Garbage time, Casualty report, Where the points came from,
  * TD luck, Good call / bad call, Boom and bust, ESPN vs Vegas and the
  * side-challenge ticker. Lives in its own file so index.html stays untouched.
@@ -43,7 +43,7 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
   return section('grades','Weekly report card','score rank, lineup efficiency, result and projection, graded',`<div class="rcx-grades">${rows.map(r=>`<article class="rcx-grade ${cls(r.letter)}">${face(r.m.short,'rcx-av-mid')}<div class="rcx-grade-copy"><b class="manager-profile-trigger" data-manager="${esc(r.m.short)}" role="button" tabindex="0">${esc(r.m.short)}</b><small>${ord(r.rank)} · ${r.m.eff!==null?r.m.eff.toFixed(0)+'% lineup':'lineup —'} · ${r.m.result}${Number.isFinite(r.m.proj)?` · ${hjRcSigned(r.m.pts-r.m.proj,1)} vs proj`:''}</small></div><strong>${r.letter}</strong></article>`).join('')}</div>`);
  }
 
- /* ---------- 2. Playoff picture (Monte Carlo) ---------- */
+ /* ---------- 2. Playoff odds (Monte Carlo), shown in Paths to the playoffs ---------- */
  function simulate(model,through,sims=4000){
   const data=model.data,ss=data?.settings?.scheduleSettings||{},slots=Number(ss.playoffTeamCount)||4,regular=Number(ss.matchupPeriodCount)||14;
   if(through>=regular)return null;
@@ -65,15 +65,137 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
   }
   return {slots,regular,teams:list.map(t=>({...t,odds:odds.get(t.short).made/sims,top:odds.get(t.short).top/sims})),left:regular-through};
  }
- function playoffPicture(model){
+ /* ---------- 3. Paths to the playoffs (Nov 10; replaces the odds-only Playoff picture card) ----------
+  * Exact scenarios from every way the remaining regular-season games can go (2^games, at most 2^25 with five
+  * weeks left: worked out once per week in a background worker and kept for the session). For each manager:
+  *  - the 0–N wins strip: green = in whatever else happens, yellow = needs help or a points tiebreak, grey = out;
+  *  - clinch / elimination for the coming week, a Must-win tag, Clinched / Eliminated badges;
+  *  - tap to expand: what each yellow box needs, the points gap to 4th, and a rooting guide for the coming week
+  *    (the result of each other game that raises his chances; chances count every outcome equally, ties on wins
+  *    going to the current points order).
+  * Odds and ▲▼ come from the same 4,000-season simulation as before (simulate above). Ties go to total points
+  * (league setting), which no scenario can know in advance, so a tie on wins is always "needs help". */
+ const PATH_WORKER=`self.onmessage=e=>{const{W0,pfOrder,games,m,slots,left}=e.data,K=W0.length,G=games.length,n2=G-m;
+  let lo=99,hi=0;for(const v of W0){if(v<lo)lo=v;if(v+left>hi)hi=v+left}const R=hi-lo+2;
+  const byK=new Float64Array(K*(left+1)*3),wk=new Float64Array(K*(1<<m)*4),w=new Int32Array(K),cnt=new Int32Array(R),suf=new Int32Array(R+1),seen=new Int32Array(R),bits=new Uint8Array(n2),T=1<<n2;
+  for(let o=0;o<(1<<m);o++){
+   for(let t=0;t<K;t++)w[t]=W0[t]-lo;
+   for(let j=0;j<m;j++){const g=games[j];w[(o>>j)&1?g[0]:g[1]]++}
+   for(let j=m;j<G;j++)w[games[j][1]]++;
+   bits.fill(0);cnt.fill(0);for(let t=0;t<K;t++)cnt[w[t]]++;
+   for(let i=0;i<T;i++){
+    if(i){let b=0;while(!((i>>b)&1))b++;const g=games[m+b],h=g[0],a=g[1];cnt[w[h]]--;cnt[w[a]]--;if(bits[b]){bits[b]=0;w[h]--;w[a]++}else{bits[b]=1;w[h]++;w[a]--}cnt[w[h]]++;cnt[w[a]]++}
+    suf[R]=0;for(let v=R-1;v>=0;v--){suf[v]=suf[v+1]+cnt[v];seen[v]=0}
+    for(let r=0;r<K;r++){const t=pfOrder[r],v=w[t],above=suf[v+1],eq=cnt[v]-1,before=seen[v]++,k=v+lo-W0[t];
+     const a=(t*(left+1)+k)*3,c=(t*(1<<m)+o)*4;byK[a]++;wk[c]++;
+     if(above+eq<slots){byK[a+1]++;wk[c+1]++}else if(above>=slots){byK[a+2]++;wk[c+2]++}
+     if(above+before<slots)wk[c+3]++}
+   }
+  }
+  postMessage({byK,wk})};`;
+ function pathInput(model){
+  const data=model.data,ss=data?.settings?.scheduleSettings||{},slots=Number(ss.playoffTeamCount)||4,regular=Number(ss.matchupPeriodCount)||14,through=model.week;
+  if(through>=regular)return null;
+  const teams=new Map();
+  for(const wk of weeksThrough(model,through))for(const r of wk.scores){const t=teams.get(String(r.teamId))||{short:r.short,teamId:String(r.teamId),w:0,l:0,t:0,pf:0};
+   if(r.pts>r.oppPts+.005)t.w++;else if(r.oppPts>r.pts+.005)t.l++;else t.t++;t.pf+=r.pts;teams.set(String(r.teamId),t)}
+  const list=[...teams.values()];if(list.length<slots+1)return null;
+  const idx=new Map(list.map((t,i)=>[t.teamId,i]));
+  const games=(data.schedule||[]).filter(g=>Number(g.matchupPeriodId)>through&&Number(g.matchupPeriodId)<=regular&&idx.has(String(g.home?.teamId))&&idx.has(String(g.away?.teamId)))
+   .sort((a,b)=>Number(a.matchupPeriodId)-Number(b.matchupPeriodId)).map(g=>({week:Number(g.matchupPeriodId),h:idx.get(String(g.home.teamId)),a:idx.get(String(g.away.teamId))}));
+  if(!games.length||games.length>25)return null;
+  const next=games[0].week,m=games.filter(g=>g.week===next).length,left=regular-through;
+  // Ties count half a win for the standings; the scenarios use whole wins (a tie this season is rare and shown as is).
+  const W0=list.map(t=>t.w),pfOrder=list.map((t,i)=>i).sort((x,y)=>list[y].pf-list[x].pf);
+  return {list,games,next,m,left,slots,regular,W0,pfOrder,key:`${through}|${list.map(t=>`${t.teamId}:${t.w}:${t.l}:${t.pf.toFixed(1)}`).join(',')}|${games.length}`};
+ }
+ function pathCompute(inp){
+  HJ_RCX.paths=HJ_RCX.paths||new Map();
+  if(HJ_RCX.paths.has(inp.key))return HJ_RCX.paths.get(inp.key);
+  // Kept per device for the week: the scenarios only change when a week's results are final.
+  const store='hj:playoff-paths';
+  try{const saved=JSON.parse(localStorage.getItem(store)||'null');if(saved?.key===inp.key&&saved.byK&&saved.wk){const job={pending:false,byK:saved.byK,wk:saved.wk};HJ_RCX.paths.set(inp.key,job);return job}}catch(_){}
+  const job={pending:true};HJ_RCX.paths.set(inp.key,job);
+  const msg={W0:inp.W0,pfOrder:inp.pfOrder,games:inp.games.map(g=>[g.h,g.a]),m:inp.m,slots:inp.slots,left:inp.left};
+  const done=res=>{job.pending=false;job.byK=Array.from(res.byK);job.wk=Array.from(res.wk);try{localStorage.setItem(store,JSON.stringify({key:inp.key,byK:job.byK,wk:job.wk}))}catch(_){}if(HJ_HQ_STATE.activeTab==='recap')hjRefreshRecap()};
+  try{
+   const url=URL.createObjectURL(new Blob([PATH_WORKER],{type:'text/javascript'})),worker=new Worker(url);
+   worker.onmessage=e=>{done(e.data);worker.terminate();URL.revokeObjectURL(url)};
+   worker.onerror=()=>{job.pending=false;job.failed=true;worker.terminate()};
+   worker.postMessage(msg);
+  }catch(_){
+   // No worker: work it out here when it is small enough not to stall the page (from three weeks left).
+   if(msg.games.length<=15){const scope={};new Function('self','postMessage',PATH_WORKER)(scope,r=>done(r));scope.onmessage({data:msg})}else{job.pending=false;job.failed=true}
+  }
+  return job;
+ }
+ function playoffPaths(model){
+  const inp=pathInput(model);if(!inp)return '';
   const key=model.week+':'+model.weeks.map(w=>w.scores.map(r=>r.pts).join(',')).join('|');
   if(HJ_RCX.odds?.key!==key)HJ_RCX.odds={key,now:simulate(model,model.week),before:model.week>1?simulate(model,model.week-1):null};
-  const now=HJ_RCX.odds.now;if(!now)return '';
-  const before=HJ_RCX.odds.before,prev=new Map((before?.teams||[]).map(t=>[t.short,t.odds]));
-  const rows=[...now.teams].sort((a,b)=>b.odds-a.odds||b.w-a.w||b.pf-a.pf).map(t=>{const p=prev.get(t.short),d=p===undefined?null:t.odds-p;
-   const pct=v=>v>=.995?'>99%':v<=.005&&v>0?'<1%':`${Math.round(100*v)}%`;
-   return `<div class="rcx-odds-row${t.odds>=.5?' is-in':''}">${face(t.short)}<b class="manager-profile-trigger" data-manager="${esc(t.short)}" role="button" tabindex="0">${esc(t.short)}</b><small>${t.w}–${t.l}${t.t?`–${t.t}`:''}</small><div class="rcx-odds-bar"><i style="width:${(100*t.odds).toFixed(1)}%"></i><span>${pct(t.odds)}</span></div><em class="${d===null||Math.abs(d)<.005?'':d>0?'is-up':'is-down'}">${d===null||Math.abs(d)<.005?'—':`${d>0?'▲':'▼'}${Math.round(Math.abs(100*d))}`}</em><small class="rcx-odds-top">${t.top>=.005?`#1 seed ${pct(t.top)}`:''}</small></div>`}).join('');
-  return section('playoffs','Playoff picture',`odds after Week ${model.week} from 4,000 simulated seasons · top ${now.slots} make it · ${now.left} week${now.left===1?'':'s'} left`,`<div class="rcx-odds">${rows}</div><p class="rcx-note">Each team's remaining games are simulated from its season scoring (pulled toward the league average early on). Ties go to points for, like ESPN. ▲▼ is the change from last week.</p>`);
+  const odds=new Map((HJ_RCX.odds.now?.teams||[]).map(t=>[t.short,t.odds])),prev=new Map((HJ_RCX.odds.before?.teams||[]).map(t=>[t.short,t.odds]));
+  const job=pathCompute(inp),{list,games,next,m,left,slots}=inp,K=list.length,O=1<<m;
+  const sub=`${left} week${left===1?'':'s'} left · top ${slots} make it · ties go to total points`;
+  if(job.pending||job.failed||!job.byK)return section('playoffs','Paths to the playoffs',sub,`<p class="rcx-note">${job.failed?'Scenarios unavailable right now.':'Working out every scenario…'}</p>`);
+  const {byK,wk}=job,pct=v=>v>=.995?'>99':v<=.005&&v>0?'<1':String(Math.round(100*v));
+  const at=(t,k)=>{const a=(t*(left+1)+k)*3;return {tot:byK[a],sure:byK[a+1],out:byK[a+2]}};
+  const cellOf=(t,k)=>{const c=at(t,k);return !c.tot?'none':c.sure===c.tot?'in':c.out===c.tot?'out':'help'};
+  const seedOrder=list.map((t,i)=>i).sort((x,y)=>list[y].w-list[x].w||list[y].pf-list[x].pf),seed=new Map(seedOrder.map((t,i)=>[t,i+1]));
+  const pfRank=new Map(inp.pfOrder.map((t,i)=>[t,i+1])),ordn=n=>{const x=['th','st','nd','rd'],v=n%100;return n+(x[(v-20)%10]||x[v]||x[0])};
+  const state=list.map((t,i)=>{const cells=Array.from({length:left+1},(_,k)=>cellOf(i,k));return {cells,clinched:cells.every(c=>c==='in'||c==='none'),out:cells.every(c=>c==='out'||c==='none')}});
+  // The coming week: chances given each result of each game (every outcome counted equally).
+  const wkGames=games.slice(0,m),chance=(t,j,homeWins)=>{let made=0,tot=0;for(let o=0;o<O;o++){if(((o>>j)&1)!==(homeWins?1:0))continue;const c=(t*O+o)*4;tot+=wk[c];made+=wk[c+3]}return tot?made/tot:0};
+  const swing=wkGames.map((g,j)=>{const d=list.map((t,i)=>chance(i,j,true)-chance(i,j,false));return {g,j,d,total:d.reduce((s,v)=>s+Math.abs(v),0),moved:d.filter(v=>Math.abs(v)>=.01).length}});
+  const gotw=[...swing].sort((a,b)=>b.total-a.total)[0];
+  // Clinch / elimination this week: every completion of a week result decides it.
+  const weekSets=i=>{const cl=[],el=[];for(let o=0;o<O;o++){const c=(i*O+o)*4;if(!wk[c])continue;if(wk[c+1]===wk[c])cl.push(o);if(wk[c+2]===wk[c])el.push(o)}return {cl,el}};
+  // A set of week results as the fewest game results that guarantee it (each listed result must happen).
+  const needed=set=>{if(!set.length||set.length===O)return null;const fixed=[];for(let j=0;j<m;j++){const v=(set[0]>>j)&1;if(set.every(o=>((o>>j)&1)===v))fixed.push([j,v])}
+   const size=1<<(m-fixed.length);return set.length===size?fixed.map(([j,v])=>v?wkGames[j].h:wkGames[j].a):null};
+  const weekLines=[];for(const i of seedOrder){if(state[i].clinched||state[i].out)continue;const {cl,el}=weekSets(i);
+   const c=needed(cl),e=needed(el);
+   if(c)weekLines.push(`<div>${face(list[i].short,'rcx-av')}<b>${esc(list[i].short)}</b> <em class="is-in">clinches</em> if ${c.map(t=>`${face(list[t].short,'rcx-av')}<b>${esc(list[t].short)}</b>`).join(' ')} ${c.length>1?'all ':''}win</div>`);
+   else if(cl.length)weekLines.push(`<div>${face(list[i].short,'rcx-av')}<b>${esc(list[i].short)}</b> can <em class="is-in">clinch</em> this week</div>`);
+   if(e)weekLines.push(`<div>${face(list[i].short,'rcx-av')}<b>${esc(list[i].short)}</b> is <em class="is-out">eliminated</em> if ${e.map(t=>`${face(list[t].short,'rcx-av')}<b>${esc(list[t].short)}</b>`).join(' ')} ${e.length>1?'all ':''}win</div>`);
+   else if(el.length)weekLines.push(`<div>${face(list[i].short,'rcx-av')}<b>${esc(list[i].short)}</b> can be <em class="is-out">eliminated</em> this week</div>`)}
+  const mustWin=i=>{const j=wkGames.findIndex(g=>g.h===i||g.a===i);if(j<0)return false;const loseBit=wkGames[j].h===i?0:1;let any=false;
+   for(let o=0;o<O;o++){if(((o>>j)&1)!==loseBit)continue;const c=(i*O+o)*4;if(!wk[c])continue;any=true;if(wk[c+2]!==wk[c])return false}return any};
+  const moves=list.map((t,i)=>({i,d:prev.has(t.short)&&odds.has(t.short)?odds.get(t.short)-prev.get(t.short):0})).filter(x=>Math.abs(x.d)>=.03).sort((a,b)=>b.d-a.d);
+  const moveTxt=[...moves.filter(x=>x.d>0).slice(0,2),...moves.filter(x=>x.d<0).slice(-2).reverse()].map(x=>`${x.d>0?'▲':'▼'} ${esc(list[x.i].short)} ${x.d>0?'+':'−'}${Math.round(100*Math.abs(x.d))}`).join(' · ');
+  const name=i=>`${face(list[i].short,'rcx-av')}<b>${esc(list[i].short)}</b>`;
+  const top=`<div class="rcx-pp-week"><small>Week ${next}</small>${gotw&&gotw.moved>1?`<div class="rcx-pp-gotw"><span class="rcx-pp-tag">Game of the week</span>${name(gotw.g.h)} vs ${name(gotw.g.a)}<span class="rcx-pp-sub">moves ${gotw.moved} teams’ chances</span></div>`:''}${weekLines.length?weekLines.join(''):'<div>No one can clinch or be eliminated this week.</div>'}${moveTxt?`<div class="rcx-pp-chg"><small>Since Week ${model.week-1}</small> ${moveTxt}</div>`:''}</div>`;
+  // Remaining opponents per team; a ring marks a rival in the race with him (counts twice).
+  const opps=i=>games.filter(g=>g.h===i||g.a===i).map(g=>g.h===i?g.a:g.h);
+  const alive=i=>!state[i].clinched&&!state[i].out;
+  const rival=(i,o)=>alive(i)&&alive(o)&&(seed.get(o)<seed.get(i)||(seed.get(i)<=slots&&Math.abs(list[o].w-list[i].w)<=1));
+  const fourth=seedOrder[slots-1];
+  // Who can still get to R wins (with all his games won, the teams he plays lose one of theirs).
+  const reach=(i,R,k)=>list.map((t,o)=>o).filter(o=>o!==i&&list[o].w+left-(k===left&&opps(i).includes(o)?opps(i).filter(x=>x===o).length:0)>=R);
+  const named=o=>`${face(list[o].short,'rcx-av rcx-pp-mini')}<b class="rcx-pp-nm">${esc(list[o].short)}</b>`;
+  const detail=i=>{const t=list[i],rows=[];
+   state[i].cells.forEach((c,k)=>{if(c!=='help')return;const R=t.w+k,rec=`${R}–${t.l+(left-k)}`,can=reach(i,R,k),already=can.filter(o=>list[o].w>=R);
+    let txt;if(already.length>=slots){const tie=already.filter(o=>list[o].w===R);txt=tie.length?`only if ${tie.length>1?'one of ':''}${tie.map(named).join(tie.length>1?', ':'')} loses out, nobody else passes him, and he wins on points`:'only on points'}
+    else txt=`in if no more than ${slots-1} others get to ${R} wins <span class="rcx-pp-can">${can.length} can${already.length?` (${already.length} already ${already.length===1?'has':'have'})`:''}</span>`;
+    rows.push(`<div><b>${k}–${left-k} → ${rec}</b> ${txt}</div>`)});
+   const gap=seed.get(i)>slots?`<p>Tied on wins → total points decide (${esc(t.short)} is ${ordn(pfRank.get(i))}, ${(list[fourth].pf-t.pf).toFixed(1)} behind ${esc(list[fourth].short)} in ${ordn(slots)})</p>`:`<p>Tied on wins → total points decide (${esc(t.short)} is ${ordn(pfRank.get(i))} in points)</p>`;
+   let guide='';if(alive(i)){const own=wkGames.findIndex(g=>g.h===i||g.a===i);
+    const picks=swing.filter(s=>s.j!==own&&Math.abs(s.d[i])>=.001).sort((a,b)=>Math.abs(b.d[i])-Math.abs(a.d[i])).map(s=>{const win=s.d[i]>0?s.g.h:s.g.a,lose=s.d[i]>0?s.g.a:s.g.h;return `<span class="rcx-pp-pick">${face(list[win].short,'rcx-av rcx-pp-mini')}<b>${esc(list[win].short)}</b><i>over</i>${face(list[lose].short,'rcx-av rcx-pp-mini')}<u>${esc(list[lose].short)}</u></span>`});
+    const ownOpp=own>=0?(wkGames[own].h===i?wkGames[own].a:wkGames[own].h):null;
+    if(picks.length||ownOpp!==null)guide=`<div class="rcx-pp-root"><small>Week ${next} rooting guide</small>${picks.join('')}${ownOpp!==null?`<span class="rcx-pp-own">and beat ${face(list[ownOpp].short,'rcx-av rcx-pp-mini')}<b>${esc(list[ownOpp].short)}</b> — his own game matters most</span>`:''}</div>`}
+   return rows.join('')+gap+guide};
+  const lineOf=i=>{const s=state[i];if(s.clinched)return 'Clinched a playoff spot';if(s.out)return 'Eliminated';
+   const c=s.cells,clinchK=c.findIndex(x=>x==='in'),lastOut=c.lastIndexOf('out'),parts=[];
+   parts.push(clinchK<0?'Can’t clinch alone':clinchK===left?'Win out to clinch':`${clinchK} more win${clinchK===1?'':'s'} clinches`);
+   if(lastOut>=0)parts.push(lastOut+1===left?'must win out':`needs ${lastOut+1}+ win${lastOut===0?'':'s'}`);
+   return parts.join(' · ')};
+  const row=i=>{const t=list[i],s=state[i],o=odds.get(t.short),d=prev.has(t.short)&&o!==undefined?o-prev.get(t.short):0,sd=seed.get(i);
+   const badge=s.clinched?'<span class="rcx-pp-badge is-in">Clinched</span>':s.out?'<span class="rcx-pp-badge is-out">Eliminated</span>':mustWin(i)?'<span class="rcx-pp-badge is-must">Must win</span>':'';
+   return `<details class="rcx-pp-row${sd<=slots?' is-seed':''}${s.out?' is-out':''}"><summary><span class="rcx-pp-top"><span class="rcx-pp-seed">${sd}</span>${av(t.short,'rcx-av')}<b>${esc(t.short)}</b><span class="rcx-pp-rec">${t.w}–${t.l}${t.t?`–${t.t}`:''}</span>${badge}<span class="rcx-pp-odds">${o===undefined?'':`${pct(o)}%`}${Math.abs(d)>=.005?`<em class="${d>0?'is-up':'is-down'}">${d>0?'▲':'▼'}${Math.round(100*Math.abs(d))}</em>`:''}</span></span>
+    <span class="rcx-pp-path"><small>wins left of ${left}</small><span class="rcx-pp-cells" style="--n:${left+1}">${s.cells.map((c,k)=>`<i class="is-${c}">${c==='in'?'✓':c==='out'?'✕':k}</i>`).join('')}</span></span>
+    <span class="rcx-pp-line">${lineOf(i)}<span class="rcx-pp-pts">PTS ${ordn(pfRank.get(i))}</span></span>
+    <span class="rcx-pp-sched"><small>left</small>${opps(i).map(o=>`<span class="rcx-pp-o${rival(i,o)?' is-rival':''}">${av(list[o].short,'rcx-av rcx-pp-opp')}</span>`).join('')}</span></summary>
+    ${alive(i)?`<div class="rcx-pp-detail">${detail(i)}</div>`:''}</details>`};
+  return section('playoffs','Paths to the playoffs',sub,`${top}<div class="rcx-pp-list">${seedOrder.map(row).join('')}</div><div class="rcx-pp-key"><span><i class="is-in"></i>in, no matter what</span><span><i class="is-help"></i>needs help</span><span><i class="is-out"></i>out</span><span><i class="is-ring"></i>rival, counts twice</span></div><p class="rcx-note">Every way the remaining ${games.length} games can go is checked. Odds: 4,000 simulated seasons from each team’s scoring. Tap a manager for what each yellow box needs and who to root for.</p>`);
  }
 
  /* ---------- 4. Series update ---------- */
@@ -393,7 +515,7 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
   const weeks=model.weeks;
   const parts={
    grades:reportCard(model),
-   standings:playoffPicture(model)+seriesUpdate(model),
+   standings:playoffPaths(model)+seriesUpdate(model),
    game:matchupFlow(model)+whenScored(model)+garbageTime(model)+casualty(model)+availability(model),
    team:pointSources(model)+tdLuck(model),
    players:calls(model)+boomBust(model)+espnVegas(model),
