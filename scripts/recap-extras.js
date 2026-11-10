@@ -141,27 +141,85 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
  }
 
  /* ---------- 8. Casualty report ---------- */
+ // Nov 10 rewrite. Facts only, most impactful first. A starter counts as hurt in his game when
+ //  1. the play-by-play says so ("NE-R.Stevenson was injured during the play"), or
+ //  2. he played and his team's injury report gave him a status after kickoff (within 4 days, the same window as
+ //     the week), or a later status while his last play came 10+ game minutes before the end (he left early
+ //     without a play note: Josh Jacobs, Week 9, last play Q1 8:41).
+ // Shown: when he was hurt (or his last play), when he came back or the game clock he missed, his status, points
+ // and projection. Order: the biggest share of his projection missed first (projection × game clock missed / 60
+ // minutes), then the ones who came back. The old card showed "projection minus points" as an injury cost, which
+ // mixed a bad game with the injury (Stevenson −0.1 after 14.8 of 14.9; Jefferson, who returned, −9.5).
+ // Play text has a team code and a short name but no player id (id-less source, AGENTS.md): each note or play is
+ // tied to the starter by the short name built from his ESPN id's box-score name, within his own team in that game
+ // (team code checked, BLT=BAL, CLV=CLE…); a short name two teammates share is skipped rather than guessed. Injury
+ // reports come from his team's roster, matched by his ESPN id.
+ const PLAY_CODE={BLT:'BAL',CLV:'CLE',HST:'HOU',ARZ:'ARI',LA:'LAR',WSH:'WAS',JAC:'JAX',SL:'STL'};
+ const clockSec=c=>{const m=/^(\d+):(\d{2})$/.exec(String(c||''));return m?Number(m[1])*60+Number(m[2]):null};
+ const mmss=v=>`${Math.floor(v/60)}:${String(Math.round(v%60)).padStart(2,'0')}`;
+ const playWhen=pl=>{const q=Number(pl?.period?.number)||0;return `${q>4?'OT':q?`Q${q}`:''} ${pl?.clock?.displayValue||''}`.trim()};
+ const left=pl=>{const q=Number(pl?.period?.number)||0,c=clockSec(pl?.clock?.displayValue);return c!==null&&q>=1&&q<=4?(4-q)*900+c:q>4?0:null};
+ const shortOf=a=>a?.firstName&&a?.lastName?a.firstName[0]+'.'+String(a.lastName).replace(/ (?:Jr\.?|Sr\.?|II|III|IV)$/i,''):'';
+ const ROSTERS=new Map();
+ function teamRoster(teamId){
+  const key=String(teamId);if(ROSTERS.has(key))return ROSTERS.get(key);
+  const job=hjDataJson(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${encodeURIComponent(key)}/roster`).then(d=>{
+   const map=new Map();for(const g of d?.athletes||[])for(const a of g.items||[]){const i=(a.injuries||[])[0];if(a.id&&i?.status)map.set(String(a.id),{status:i.status,date:Date.parse(i.date||''),type:i.type?.abbreviation||''})}
+   job.value=map;if(HJ_HQ_STATE.activeTab==='recap')hjRefreshRecap();return map}).catch(()=>{job.value=new Map();return job.value});
+  ROSTERS.set(key,job);return job;
+ }
  function casualty(model){
-  // Built from that week's play-by-play ("X was injured during the play"), so the card never changes
-  // after the games are final. The live ESPN status badge is added next to the name by the site-wide decorator.
   const games=model.extra?.games;if(!games?.size||typeof hjRcAthleteAlias!=='function')return '';
   const rx=t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),plays=new Map(),hurt=[];
   for(const p of allStarters(model)){
-   if(p.pos==='D/ST'||!p.gameId)continue;const game=games.get(p.gameId);if(!game)continue;
+   if(p.pos==='D/ST'||p.pos==='K'||!p.gameId)continue;const game=games.get(p.gameId);if(!game)continue;
    const meta=hjRcAthleteAlias(p,game);if(!meta)continue;
+   const box=game.boxscore?.players||[],team=box.find(t=>String(t.team?.id)===String(meta.teamId))?.team,abbr=String(team?.abbreviation||'').toUpperCase();
+   const named=own=>box.filter(t=>(String(t.team?.id)===String(meta.teamId))===own).flatMap(t=>(t.statistics||[]).flatMap(g=>(g.athletes||[]).map(r=>r.athlete))).filter(a=>a?.id&&shortOf(a)===meta.alias);
+   // Same short name twice on his team in this game: the play text cannot be tied to him.
+   if(new Set(named(true).map(a=>String(a.id))).size>1)continue;
+   // An opponent with the same short name: only his own team-coded notes count.
+   const oppSame=named(false).length>0;
    if(!plays.has(p.gameId))plays.set(p.gameId,hjRcGamePlays(game));
-   const i=meta.alias.indexOf('.'),name=`(?:^|[\\s(;-])${rx(meta.alias.slice(0,i))}[a-z]?\\.${rx(meta.alias.slice(i+1))}\\b`;
-   const hurtRe=new RegExp(name+' was injured during the play'),backRe=new RegExp(name);
-   let hit=null,back=false;
-   for(const play of plays.get(p.gameId)){const t=String(play.text||'');if(hurtRe.test(t)){hit=play;back=false}else if(hit&&!back&&backRe.test(t))back=true}
-   if(hit)hurt.push({...p,back,quarter:Number(hit.period?.number)||0,cost:Number.isFinite(p.projection)?p.projection-p.points:0});
+   const list=plays.get(p.gameId),i=meta.alias.indexOf('.'),name=`${rx(meta.alias.slice(0,i))}[a-z]?\\.${rx(meta.alias.slice(i+1))}\\b`;
+   const hurtRe=new RegExp(`\\b([A-Z]{2,3})-${name} was injured during the play`),returnRe=new RegExp(`\\b([A-Z]{2,3})-${name} has returned to the game`),inPlay=new RegExp(`(?:^|[\\s(;\\[-])${name}`);
+   const ours=code=>code===abbr||PLAY_CODE[code]===abbr;
+   let hit=null,back=null,last=null;
+   for(const play of list){
+    const t=String(play.text||''),h=hurtRe.exec(t);
+    if(h&&ours(h[1])){hit=play;back=null;last=play;continue}
+    const r=returnRe.exec(t);if(r&&ours(r[1])){if(hit&&!back)back=play;continue}
+    if(!oppSame&&inPlay.test(t)){last=play;if(hit&&!back)back=play}
+   }
+   const kick=Date.parse(game.header?.competitions?.[0]?.date||''),roster=teamRoster(meta.teamId).value,rep=roster?.get(String(p.id));
+   const reported=rep&&!/^active$/i.test(rep.status)&&Number.isFinite(kick)&&rep.date>=kick?rep:null;
+   if(hit){
+    const missed=back?Math.max(0,(left(hit)??0)-(left(back)??0)):left(hit);
+    hurt.push({...p,kind:'play',hit,back,missed,report:reported});continue;
+   }
+   // No play note: an injury report after kickoff, for a starter who played.
+   if(!reported||!last)continue;
+   const after=left(last)??0;
+   if(!(reported.date<=kick+4*86400000||after>=600))continue;
+   hurt.push({...p,kind:'report',last,back:null,missed:after>=600?after:0,report:reported});
   }
   if(!hurt.length)return '';
-  hurt.sort((a,b)=>(a.back-b.back)||b.cost-a.cost);
-  const per=new Map();for(const h of hurt)if(!h.back&&h.cost>0)per.set(h.owner,(per.get(h.owner)||0)+h.cost);
+  // Points missed: his projection × the share of the 60-minute game he sat out (an estimate, labeled as one).
+  const impact=h=>(Number.isFinite(h.projection)?h.projection:0)*(h.missed||0)/3600;
+  const severity=h=>({Out:3,'Injured Reserve':3,Doubtful:2,Questionable:1})[h.report?.status]||0;
+  hurt.sort((a,b)=>impact(b)-impact(a)||severity(b)-severity(a)||(b.projection||0)-(a.projection||0));
+  const per=new Map();for(const h of hurt){const v=impact(h);if(v>0)per.set(h.owner,(per.get(h.owner)||0)+v)}
   const worst=[...per].sort((a,b)=>b[1]-a[1])[0];
-  const when=h=>`hurt ${h.quarter>4?'in OT':h.quarter?`in Q${h.quarter}`:'in-game'}${h.back?', returned':', didn’t return'}`;
-  return section('casualty','Casualty report','starters who got hurt during their game',`<div class="rcx-list">${hurt.slice(0,6).map(h=>`<div class="rcx-item${h.back?' is-back':''}">${head(h)}<div class="rcx-item-copy">${pname(h)}<small>${esc(hjRcTeam(h.proTeamId))} ${esc(h.pos)} · started by ${esc(h.owner)} · ${when(h)} · ${fmt1(h.points)}${Number.isFinite(h.projection)?` of ${fmt1(h.projection)} projected`:' pts'}</small></div>${h.cost>0?`<strong class="is-neg">−${fmt1(h.cost)}</strong>`:`<strong>${fmt1(h.points)}</strong>`}</div>`).join('')}</div>${worst?`<p class="rcx-note">Hardest hit: ${mgr(worst[0])} lost ${fmt1(worst[1])} projected points to starters who didn’t return.</p>`:''}`);
+  // Game clock bar: four quarters, red from the injury to the return (or the end), a tick at each.
+  const at=pl=>pl?Math.max(0,Math.min(3600,3600-(left(pl)??0))):null;
+  const bar=h=>{const from=at(h.kind==='play'?h.hit:h.last),to=h.back?at(h.back):3600,out=h.kind==='play'||h.missed>0;
+   const pct=v=>(100*v/3600).toFixed(2);
+   return `<span class="rcx-clock" aria-hidden="true">${[1,2,3].map(q=>`<i class="rcx-clock-q" style="left:${q*25}%"></i>`).join('')}${out&&from!==null?`<i class="rcx-clock-out" style="left:${pct(from)}%;width:${pct(Math.max(0,to-from))}%"></i><i class="rcx-clock-hit" style="left:${pct(from)}%"></i>${h.back?`<i class="rcx-clock-back" style="left:${pct(to)}%"></i>`:''}`:`<i class="rcx-clock-hit is-late" style="left:${pct(from??3600)}%"></i>`}</span>`};
+  const gone=h=>h.missed?` (${mmss(h.missed)} missed)`:'';
+  const caption=h=>(h.kind==='report'?(h.missed?`Left ${playWhen(h.last)}`:`Hurt late · last play ${playWhen(h.last)}`):h.back?`Hurt ${playWhen(h.hit)} · back ${playWhen(h.back)}`:`Hurt ${playWhen(h.hit)} · didn’t return`)+gone(h);
+  const owner=h=>`<span class="rcx-item-owner"><span class="rc-five-owner manager-profile-trigger" data-manager="${esc(h.owner)}" role="button" tabindex="0" aria-label="Open ${esc(h.owner)} profile">${av(h.owner,'rc-av')}<span>${esc(h.owner)}</span></span></span>`;
+  const row=h=>{const lost=impact(h);return `<div class="rcx-cas${h.back?' is-back':''}"><span class="rcx-cas-face">${head(h)}<small>${esc(hjRcTeam(h.proTeamId))} ${esc(h.pos)}</small></span><div class="rcx-cas-copy">${pname(h)}${owner(h)}${bar(h)}<small class="rcx-cas-when">${caption(h)}</small></div><div class="rcx-cas-pts"><b>${fmt1(h.points)}<small> pts</small></b>${lost>=0.05?`<strong class="is-neg">−${fmt1(lost)}<small> missed</small></strong>`:''}${Number.isFinite(h.projection)?`<em>${fmt1(h.projection)} proj</em>`:''}</div></div>`};
+  return section('casualty','Casualty report','starters hurt in their game, most points missed first',`<div class="rcx-list">${hurt.slice(0,6).map(row).join('')}</div>${worst?`<p class="rcx-cas-lead">Hardest hit ${mgr(worst[0])}<strong class="is-neg">−${fmt1(worst[1])}</strong><small>projected pts missed</small></p>`:''}<p class="rcx-note">Points missed: his projection × the share of the game he sat out.</p>`);
  }
 
  /* ---------- 9. Where the points came from ---------- */
@@ -354,4 +412,3 @@ const HJ_RCX={model:null,vegas:new Map(),vegasPending:new Map()};
   return html;
  };
 })();
-
