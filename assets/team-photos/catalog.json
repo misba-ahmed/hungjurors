@@ -2070,13 +2070,13 @@
     "jersey": "20"
   },
   "4688813": {
-    "file": "4688813-faces-v2.webp",
-    "width": 300,
+    "file": "4688813-faces-v3.webp",
+    "width": 305,
     "height": 850,
-    "ratio": 0.35294,
+    "ratio": 0.35882,
     "heightInches": 69,
     "name": "Josh Downs",
-    "teamId": 11,
+    "teamId": 12,
     "jersey": "2"
   },
   "4689936": {
@@ -2535,5 +2535,15 @@
     "name": "Corey Kiner",
     "teamId": 17,
     "jersey": "9"
+  },
+  "4837248": {
+    "file": "4837248-faces-v1.webp",
+    "width": 310,
+    "height": 850,
+    "ratio": 0.36471,
+    "heightInches": 77,
+    "name": "Fernando Mendoza",
+    "teamId": 13,
+    "jersey": "15"
   }
 }

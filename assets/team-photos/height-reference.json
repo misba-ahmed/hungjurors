@@ -1022,8 +1022,8 @@
   "4688813": {
     "name": "Josh Downs",
     "heightInches": 69,
-    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4688813?lang=en&region=us",
-    "checkedAt": "2026-10-02T02:47:38.300Z"
+    "source": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/12/roster",
+    "checkedAt": "2026-11-11T12:43:02.934707+00:00"
   },
   "4689936": {
     "name": "Jake Bates",
@@ -1264,5 +1264,11 @@
     "heightInches": 69,
     "source": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/17/roster",
     "checkedAt": "2026-11-11T08:52:50.671550+00:00"
+  },
+  "4837248": {
+    "name": "Fernando Mendoza",
+    "heightInches": 77,
+    "source": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/13/roster",
+    "checkedAt": "2026-11-11T12:43:02.933331+00:00"
   }
 }
