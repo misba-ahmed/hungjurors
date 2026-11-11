@@ -4,4 +4,4 @@ Read AGENTS.md before editing this site. For EVERY player lineup artwork generat
 
 For manager artwork, follow assets/MANAGER_ARTWORK_RULES.md. NEVER fit, paste, composite, or independently resize a separate head onto a body. Generate each complete pose with its head, neck, collar, and body together. Approved portraits supply identity; approved full figures supply pose and proportions. The owner's request to preview before publishing takes precedence over automatic publication instructions.
 
-HARD RULES (owner, Nov 2): match players by ESPN player id, and never cut off a player's name. Side bets (Nov 8): a finished week's bet card goes after that week's recap cards; see AGENTS.md. See "identify players by ESPN player id" and "player names are never cut off" in AGENTS.md for exactly what they cover.
+HARD RULES (owner, Nov 2; Nov 11): match players by ESPN player id, and never cut off a player's, manager's or team's name. Side bets (Nov 8): a finished week's bet card goes after that week's recap cards; see AGENTS.md. See "identify players by ESPN player id" and "names are never cut off" in AGENTS.md for exactly what they cover.

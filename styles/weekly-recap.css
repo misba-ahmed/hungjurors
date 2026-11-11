@@ -262,14 +262,15 @@
 
 /* Movers */
 .rc .rc-movers{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
-.rc .rc-mover{display:grid;grid-template-columns:20px 38px minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:8px;align-items:center;padding:7px 9px;background:#fff;border:1px solid var(--line);border-radius:10px}
+.rc .rc-mover{display:grid;grid-template-columns:20px 38px auto minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:7px;row-gap:3px;align-items:center;padding:7px 8px;background:#fff;border:1px solid var(--line);border-radius:10px}
 .rc .rc-mover-rank{grid-row:1/3;font:900 15px/1 var(--serif);color:#6f8090;text-align:center}
 .rc .rc-mover>span:nth-child(2){grid-row:1/3;cursor:pointer}
-.rc .rc-mover b{font:800 12.5px/1.1 var(--sans);color:var(--navy);cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rc .rc-mover small{font:600 10px/1.2 var(--mono);color:#6f8090}
-.rc .rc-mover-move{grid-column:4;grid-row:1;font:800 11px/1 var(--mono);color:#9aa7b3;text-align:right}
+/* The name gets the whole top line (never cut off, AGENTS.md); the move arrow sits with the record and streak below it. */
+.rc .rc-mover b{grid-column:3/6;grid-row:1;font:800 12.5px/1.1 var(--sans);color:var(--navy);cursor:pointer;white-space:nowrap}
+.rc .rc-mover small{grid-column:3;grid-row:2;font:600 10px/1.2 var(--mono);color:#6f8090;white-space:nowrap}
+.rc .rc-mover-move{grid-column:4;grid-row:2;justify-self:start;font:800 11px/1 var(--mono);color:#9aa7b3}
 .rc .rc-mover.is-up .rc-mover-move{color:#2f8a4c}.rc .rc-mover.is-down .rc-mover-move{color:var(--verdict-red)}
-.rc .rc-mover-streak{grid-column:4;grid-row:2;justify-self:end;font:800 8.5px/1 var(--mono);letter-spacing:.08em;padding:3px 5px;border-radius:5px;background:var(--paper-dim);color:#6f8090}
+.rc .rc-mover-streak{grid-column:5;grid-row:2;justify-self:end;font:800 8.5px/1 var(--mono);letter-spacing:.08em;padding:3px 5px;border-radius:5px;background:var(--paper-dim);color:#6f8090}
 .rc .rc-mover-streak.is-w{background:#e3f2e6;color:#2f8a4c}.rc .rc-mover-streak.is-l{background:#f5e1df;color:var(--verdict-red)}
 
 /* Position battles */
@@ -277,7 +278,7 @@
 .rc .rc-pb{display:grid;grid-template-columns:64px minmax(0,1fr) 64px;gap:8px;align-items:center;padding:9px 10px;background:#fff;border:1px solid var(--line);border-radius:12px}
 .rc .rc-pb-side{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;text-align:center}
 .rc .rc-pb-side>span{cursor:pointer}
-.rc .rc-pb-side b{font:800 11px/1.1 var(--sans);color:var(--navy);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc .rc-pb-side b{font:800 11px/1.1 var(--sans);color:var(--navy);white-space:nowrap}
 .rc .rc-pb-side small{font:700 9px/1 var(--mono);color:#6f8090}
 .rc .rc-pb-strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;min-width:0}
 .rc .rc-pb-cell{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:40px;border-radius:7px;background:var(--paper-dim);color:#6f8090}
@@ -343,7 +344,7 @@
 .rc .rc-vis-halves small{display:block;margin-top:4px}
 @media (max-width:640px){
  .rc .rc-mu{grid-template-columns:60px minmax(0,1fr) 60px;padding:8px}
- .rc .rc-pb{grid-template-columns:48px minmax(0,1fr) 48px;gap:5px;padding:8px 6px}
+ .rc .rc-pb{grid-template-columns:62px minmax(0,1fr) 62px;gap:5px;padding:8px 6px}
  .rc .rc-pb-side .rc-av-mid{width:32px;height:32px;flex-basis:32px}
  .rc .rc-pb-cell{min-height:36px;border-radius:5px}.rc .rc-pb-cell b{font-size:9px}.rc .rc-pb-cell small{font-size:7.5px}
  .rc .rc-char{grid-template-columns:auto minmax(0,1fr);gap:10px}.rc .rc-char strong{grid-column:2;justify-self:start;font-size:18px}

@@ -1,0 +1,50 @@
+/* Names are never cut off (AGENTS.md hard rule; owner, Nov 2 for players, Nov 11 for managers and teams).
+ *
+ * Every element below shows a player, manager or team name and used to end in "…" when the name did not fit.
+ * Here none of them clips, and a name that fits looks exactly as before:
+ *  - player names wrap between words (long names wrap; "Jaxon Smith-Njigba" goes onto two lines);
+ *  - manager and team names stay on one line ("NATHAN T" is never split into "NATHAN" / "T"), unclipped.
+ * Where a layout was too tight for a manager name, the layout itself was widened (standings.css,
+ * weekly-recap.css). Loaded last so it wins over the original rules, some of which use !important.
+ *
+ * A new name element must not use text-overflow:ellipsis or clip with overflow; give it room or let it wrap.
+ */
+
+/* Players */
+html .season-draft-pick .player,html .season-first-pick .player,html .wc-list .who .pc-player-trigger b,
+html .depth-player-name,html .depth-team .depth-player-name,html .pt-name,html .ffn-player-name,html .pc-depth-name,
+html .league-player-name,html .hq-swing-player b,html .hq-fa-player b,html .hq-lineup-player-name,html .wire-row-name,
+html .wc-draft-bookend-copy b,html .hq-player-name,html .hj3-player .n,html .hj6-player .n,html .hj7-player .n,
+html .hj8-player .n,html #hq-panel-strength .hj10-player-inline .n,html #hq-panel-strength .hj11-player .name,
+html #hq-panel-strength .hj12-player .name,html #hq-panel-strength .hj13-player .name,
+html #hq-panel-strength .hj14-player .name,html .manager-draft-player b,html .manager-draft-player-cell b,
+html .hj-kickoff-player>span>.hj-status-name,html .wp-player>span>b>.hj-status-name,html .rcx-call-p .rcx-pname,
+html .rcx-avail-who b,html .rcx-avail-srow b,html .mvp-card-name,html .opt-player,html .rc .rc-feat-name,
+html .rc .rc-mini-name,html .rc .rc-pcard-name,html .wc.wl-lead .wl-row-name b{
+ white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:normal!important
+}
+
+/* Managers and teams */
+html .cc-season-snapshot .team,html .cc-featured-ranking .name,html .standings-manager,html .standings-team,
+html .standings-start-person b,html .profile-team-name,html .profile-rival .mgr,html .season-capsule-team,
+html .season-standings-table .team-name,html .season-standing-manager,html .season-first-pick .manager,
+html .wc-mgr span,html .wc-list .who b,html .wc-vs .side b,html .nfl-team-name,html .depth-team-name,
+html .depth-team .depth-player-owner,html .fantasy-team-id b,html .award-plaque-winner-name,html .mini-match .mn,
+html .schedule-matchup-name,html .profile-schedule-opp,html .profile-schedule-opp-name,html .dues-manager-name,
+html .profile-next-opponent strong,html .league-team-tab-copy b,html .hq-strength-manager b,
+html .hq-lineup-team-head b,html .hq-match-team-name,html .hq-player-owner,html .hq-power-manager-copy b,
+html .hj3-manager-copy b,html .hj3-cteam-copy b,html .hj6-person-copy b,html .hj6-cteam b,html .hj7-person-copy b,
+html .hj7-cteam b,html .hj8-person-copy b,html .hj8-cteam b,html #hq-panel-strength .hj11-team b,html .hj11-cteam b,
+html #hq-panel-strength .hj11-mperson b,html #hq-panel-strength .hj12-person b,html .hj12-cteam b,
+html #hq-panel-strength .hj13-person b,html .hj13-cteam b,html #hq-panel-strength .hj14-name,html .hj14-cteam b,
+html #hq-panel-strength .hj15-manager b,html .hj15-cteam b,html .wire-preview-team b,html .wire-kickoff-team b,
+html .wire-kickoff-floater-owner,html .hq40-owner-name,html .hq41-player-head .hq40-owner-name,
+html .pc-history-manager>span,html #standings-out .st-pre-person b,html .rc .rc-award-name,html .rc .rc-mu-side b,
+html .wc .wl-side b{
+ overflow:visible!important;text-overflow:clip!important
+}
+
+/* Lines that end in an owner's name: the Wire's draft/Vegas line under a player ("WR37 BY DRAFT · WR15 BY VEGAS · GARRETT";
+   prepare-site.mjs wraps each part so a line breaks only between parts) and the draft bookends ("GARRETT · ATL RB"). */
+html .wire-row-meta,html .wc-draft-bookend-copy small{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+html .wire-meta-part{white-space:nowrap}

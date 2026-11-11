@@ -32,8 +32,8 @@
 #standings-out .st-who{display:flex;align-items:center;gap:9px;min-width:0;max-width:100%;justify-self:start;cursor:pointer}
 #standings-out .st-who>.av{width:30px;height:30px;flex:0 0 30px}
 #standings-out .st-who>span{display:flex;flex-direction:column;min-width:0;gap:2px}
-#standings-out .st-who b{font:800 13px/1.15 var(--sans);color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#standings-out .st-who small{font:600 9.5px/1.1 var(--mono);color:#6f8090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#standings-out .st-who b{font:800 13px/1.15 var(--sans);color:var(--navy);white-space:nowrap}
+#standings-out .st-who small{font:600 9.5px/1.1 var(--mono);color:#6f8090;white-space:nowrap}
 #standings-out .st-who:hover b{text-decoration:underline;text-decoration-color:var(--brass);text-underline-offset:2px}
 #standings-out .st-rec,#standings-out .st-num,#standings-out .st-metric{font:600 12.5px/1 var(--mono);color:var(--navy-ink);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 #standings-out .st-rec b{font-weight:800;color:var(--navy)}
@@ -102,7 +102,7 @@
  #standings-out .st-modes{display:grid;grid-template-columns:repeat(5,1fr)}
  #standings-out .st-mode{padding:7px 0;font-size:8.5px;letter-spacing:.04em;text-align:center}
  #standings-out .st-note{text-align:left;font-size:9.5px}
- #standings-out .st-row{grid-template-columns:28px minmax(0,1fr) 44px 60px 58px 14px;gap:0 6px;min-height:42px;padding:0 8px}
+ #standings-out .st-row{grid-template-columns:28px minmax(0,1fr) 34px 54px 50px 14px;gap:0 6px;min-height:42px;padding:0 8px}
  #standings-out .st-pa,#standings-out .st-form{display:none}
  #standings-out .st-head{min-height:28px;font-size:8px;letter-spacing:.1em}
  #standings-out .st-rank{font-size:15px}
@@ -124,9 +124,22 @@
  #standings-out .st-race-axis{font-size:12px}
  #standings-out .st-pre{grid-template-columns:1fr 1fr;gap:6px;padding:10px}
 }
+/* Small phones: the manager column keeps the full name ("NATHAN M", "Next NATHAN M"; names are never cut off). */
+@media (max-width:380px){
+ #standings-out .st-row{grid-template-columns:28px minmax(0,1fr) 30px 50px 44px 12px;gap:0 5px;padding:0 6px}
+ #standings-out .st-who{gap:5px}
+ #standings-out .st-who>.av{width:24px;height:24px;flex-basis:24px}
+ #standings-out .st-who small{font-size:8px}
+ #standings-out .st-rec,#standings-out .st-num,#standings-out .st-metric{font-size:11px}
+}
 @media (max-width:360px){
  #standings-out .st-who small{display:none}
- #standings-out .st-row{grid-template-columns:26px minmax(0,1fr) 42px 56px 54px 12px;gap:0 5px}
+ #standings-out .st-row{grid-template-columns:24px minmax(0,1fr) 30px 48px 42px 10px;gap:0 4px}
+}
+@media (max-width:340px){
+ #standings-out .st-who b{font-size:11px}
+ #standings-out .st-who>.av{width:22px;height:22px;flex-basis:22px}
+ #standings-out .st-rec,#standings-out .st-num,#standings-out .st-metric{font-size:10.5px}
 }
 @media (prefers-reduced-motion:reduce){
  #standings-out .st-tray-wrap,#standings-out .st-caret{transition:none}
