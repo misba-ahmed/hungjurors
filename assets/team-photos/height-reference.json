@@ -14,8 +14,8 @@
   "14880": {
     "name": "Kirk Cousins",
     "heightInches": 75,
-    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/14880?lang=en&region=us",
-    "checkedAt": "2026-10-07T08:03:22.246Z"
+    "source": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/16/roster",
+    "checkedAt": "2026-11-11T08:52:50.671640+00:00"
   },
   "15847": {
     "name": "Travis Kelce",
@@ -476,8 +476,8 @@
   "4360761": {
     "name": "Michael Wilson",
     "heightInches": 74,
-    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4360761?lang=en&region=us",
-    "checkedAt": "2026-10-02T02:47:38.147Z"
+    "source": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/22/roster",
+    "checkedAt": "2026-11-11T08:52:50.672563+00:00"
   },
   "4360939": {
     "name": "Rashod Bateman",
@@ -566,8 +566,8 @@
   "4372016": {
     "name": "Jaylen Waddle",
     "heightInches": 70,
-    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4372016?lang=en&region=us",
-    "checkedAt": "2026-10-02T02:47:38.178Z"
+    "source": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/7/roster",
+    "checkedAt": "2026-11-11T08:52:50.672650+00:00"
   },
   "4373626": {
     "name": "Tyler Allgeier",
@@ -848,8 +848,8 @@
   "4569173": {
     "name": "Rhamondre Stevenson",
     "heightInches": 72,
-    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4569173?lang=en&region=us",
-    "checkedAt": "2026-10-02T02:47:38.232Z"
+    "source": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/17/roster",
+    "checkedAt": "2026-11-11T08:52:50.672482+00:00"
   },
   "4569559": {
     "name": "Devaughn Vele",
@@ -974,8 +974,8 @@
   "4685278": {
     "name": "Luther Burden III",
     "heightInches": 72,
-    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4685278?lang=en&region=us",
-    "checkedAt": "2026-10-02T02:47:38.266Z"
+    "source": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/3/roster",
+    "checkedAt": "2026-11-11T08:52:50.672312+00:00"
   },
   "4685382": {
     "name": "Omarion Hampton",
@@ -1226,8 +1226,8 @@
   "15818": {
     "name": "Keenan Allen",
     "heightInches": 74,
-    "source": "https://www.colts.com/team/players-roster/",
-    "checkedAt": "2026-11-06T20:11:10.982073+00:00"
+    "source": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/25/roster",
+    "checkedAt": "2026-11-11T08:52:50.671892+00:00"
   },
   "4360438": {
     "name": "Brandon Aiyuk",
@@ -1252,5 +1252,17 @@
     "heightInches": 67,
     "source": "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes/4040761",
     "checkedAt": "2026-11-08T02:29:32.779340+00:00"
+  },
+  "4569682": {
+    "name": "Audric Estime",
+    "heightInches": 71,
+    "source": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/18/roster",
+    "checkedAt": "2026-11-11T08:52:50.671019+00:00"
+  },
+  "4431431": {
+    "name": "Corey Kiner",
+    "heightInches": 69,
+    "source": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/17/roster",
+    "checkedAt": "2026-11-11T08:52:50.671550+00:00"
   }
 }

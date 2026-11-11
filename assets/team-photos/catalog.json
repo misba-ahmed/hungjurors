@@ -20,13 +20,13 @@
     "jersey": "9"
   },
   "14880": {
-    "file": "14880-faces-v2.webp",
-    "width": 318,
+    "file": "14880-faces-v3.webp",
+    "width": 308,
     "height": 850,
-    "ratio": 0.37412,
+    "ratio": 0.36235,
     "heightInches": 75,
     "name": "Kirk Cousins",
-    "teamId": 13,
+    "teamId": 16,
     "jersey": "8"
   },
   "15847": {
@@ -957,7 +957,14 @@
     "heightInches": 74,
     "name": "Michael Wilson",
     "teamId": 22,
-    "jersey": "14"
+    "jersey": "14",
+    "unavailable": {
+      "file": "4360761-crutches-v1.webp",
+      "width": 318,
+      "height": 850,
+      "ratio": 0.37412,
+      "kind": "injury"
+    }
   },
   "4360939": {
     "file": "4360939-faces-v2.webp",
@@ -1121,7 +1128,14 @@
     "heightInches": 70,
     "name": "Jaylen Waddle",
     "teamId": 7,
-    "jersey": "17"
+    "jersey": "17",
+    "unavailable": {
+      "file": "4372016-crutches-v1.webp",
+      "width": 306,
+      "height": 850,
+      "ratio": 0.36,
+      "kind": "injury"
+    }
   },
   "4373626": {
     "file": "4373626-faces-v1.webp",
@@ -1697,7 +1711,14 @@
     "heightInches": 72,
     "name": "Rhamondre Stevenson",
     "teamId": 17,
-    "jersey": "38"
+    "jersey": "38",
+    "unavailable": {
+      "file": "4569173-crutches-v1.webp",
+      "width": 333,
+      "height": 850,
+      "ratio": 0.39176,
+      "kind": "injury"
+    }
   },
   "4569559": {
     "file": "4569559-faces-v2.webp",
@@ -1955,7 +1976,14 @@
     "heightInches": 72,
     "name": "Luther Burden III",
     "teamId": 3,
-    "jersey": "10"
+    "jersey": "10",
+    "unavailable": {
+      "file": "4685278-crutches-v1.webp",
+      "width": 313,
+      "height": 850,
+      "ratio": 0.36824,
+      "kind": "injury"
+    }
   },
   "4685382": {
     "file": "4685382-faces-v2.webp",
@@ -2431,14 +2459,15 @@
     "jersey": "2"
   },
   "15818": {
-    "file": "15818-faces-v1.webp",
-    "width": 300,
+    "file": "15818-faces-v2.webp",
+    "width": 305,
     "height": 850,
-    "ratio": 0.35294,
+    "ratio": 0.35882,
     "heightInches": 74,
     "name": "Keenan Allen",
-    "teamId": 11,
-    "jersey": "10"
+    "teamId": 25,
+    "jersey": "",
+    "jerseyNote": "49ers number not assigned in ESPN/NFL listings on 2026-11-11; artwork uses an unnumbered practice jersey."
   },
   "4360438": {
     "file": "4360438-faces-v1.webp",
@@ -2486,5 +2515,25 @@
     "name": "Devin Singletary",
     "teamId": 19,
     "jersey": "26"
+  },
+  "4569682": {
+    "file": "4569682-faces-v1.webp",
+    "width": 310,
+    "height": 850,
+    "ratio": 0.36471,
+    "heightInches": 71,
+    "name": "Audric Estime",
+    "teamId": 18,
+    "jersey": "30"
+  },
+  "4431431": {
+    "file": "4431431-faces-v1.webp",
+    "width": 310,
+    "height": 850,
+    "ratio": 0.36471,
+    "heightInches": 69,
+    "name": "Corey Kiner",
+    "teamId": 17,
+    "jersey": "9"
   }
 }
