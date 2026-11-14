@@ -1647,7 +1647,14 @@
     "heightInches": 69,
     "name": "Kenneth Walker III",
     "teamId": 12,
-    "jersey": "9"
+    "jersey": "9",
+    "unavailable": {
+      "file": "4567048-crutches-v1.webp",
+      "width": 329,
+      "height": 850,
+      "ratio": 0.38706,
+      "kind": "injury"
+    }
   },
   "4567104": {
     "file": "4567104-faces-v3.webp",
@@ -2545,5 +2552,15 @@
     "name": "Fernando Mendoza",
     "teamId": 13,
     "jersey": "15"
+  },
+  "4832955": {
+    "file": "4832955-faces-v1.webp",
+    "width": 312,
+    "height": 850,
+    "ratio": 0.36706,
+    "heightInches": 71,
+    "name": "Emmett Johnson",
+    "teamId": 12,
+    "jersey": "10"
   }
 }
