@@ -2466,15 +2466,14 @@
     "jersey": "2"
   },
   "15818": {
-    "file": "15818-faces-v2.webp",
-    "width": 305,
+    "file": "15818-faces-v3.webp",
+    "width": 306,
     "height": 850,
-    "ratio": 0.35882,
+    "ratio": 0.36,
     "heightInches": 74,
     "name": "Keenan Allen",
     "teamId": 25,
-    "jersey": "",
-    "jerseyNote": "49ers number not assigned in ESPN/NFL listings on 2026-11-11; artwork uses an unnumbered practice jersey."
+    "jersey": "3"
   },
   "4360438": {
     "file": "4360438-faces-v1.webp",
