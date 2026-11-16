@@ -8,5 +8,11 @@ export function prepareMatchupNote(html){
  html=html.replace(from,()=>to);
  const anchor='hjTeamViewHTML=function(team,data){\n  const week=hjCurrentWeek(data),manager=hjMatchManager(team,data)';
  if(html.split(anchor).length!==2)throw Error('Roster view renderer changed; review scripts/prepare-matchup-note.mjs');
- return html.replace(anchor,()=>helper+'\n'+anchor);
+ html=html.replace(anchor,()=>helper+'\n'+anchor);
+ // The page forces Public Sans inline on everything in the roster banner; the note's handwritten label and "VS"
+ // keep their marker font.
+ const fonts="if(el.closest('.hq-match-team-score.is-actual,.league-roster-lineup-head-total,.league-roster-total,.league-matchup-team b.is-actual'))return;";
+ if(html.split(fonts).length!==2)throw Error('Font normalizer changed; review scripts/prepare-matchup-note.mjs');
+ return html.replace(fonts,()=>fonts.replace("b.is-actual'","b.is-actual,.hj-mnote-label,.hj-mnote-vs-text'"));
 }
+
