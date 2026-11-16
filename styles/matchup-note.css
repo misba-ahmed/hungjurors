@@ -1,0 +1,75 @@
+/* League HQ › Rosters: the clipped "Week N matchup" sticky note (scripts/matchup-note.js; owner redesign Nov 16).
+ *
+ * The two managers sit across from each other, like the Matchup tab: own manager on the left, opponent on the
+ * right, everything centered in its half, with a grey line between them broken by a grey "VS" level with the
+ * names. Each side: avatar, name, the score with ESPN's live projection beside it (toward the middle, small grey
+ * italics), then the original E/V projection under the score.
+ *
+ * The note keeps its paper (now without the paper clip) and its place in the roster banner (beside the team
+ * photo on desktop and tablets, under the business card on phones); the banner's columns are unchanged. Its width
+ * changes a lot with the browser (about 190px on a narrow desktop up to the full width of a phone), so everything
+ * inside is sized by a container query on the note's own width, and nothing overlaps, clips or cuts off a name
+ * at any size. In the narrowest notes the live projection goes on its own line under the score.
+ */
+#league-hq #league-sync-content .league-roster-head .league-matchup-score.hj-mnote{
+ --hq-note:var(--hj-clipless-note);
+ display:block!important;text-align:left!important;justify-content:normal!important;
+ /* The plain sticky-note art (no clip) is stretched to the note: the paper runs from about 3% to 97% of its
+    width, with the page curl in the bottom-right corner. Equal side padding keeps the two halves centered. */
+ padding:15px calc(3% + 10px) 19px!important;min-height:0!important;box-sizing:border-box;
+}
+.hj-mnote-in{display:grid;gap:8px;width:100%;min-width:0;container-type:inline-size;container-name:hjmnote}
+.hj-mnote-label{display:block;padding-bottom:6px;border-bottom:1px solid rgba(74,72,57,.22);text-align:center;
+ color:#5a605a;font:800 9px/1.1 var(--mono)!important;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+.hj-mnote-vs{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);grid-template-rows:auto auto auto auto;
+ column-gap:12px;row-gap:4px;align-items:center;justify-items:center;text-align:center}
+/* Each side's avatar, name, score and E/V projection sit in rows 1–4 of the shared grid, so the middle column's
+   "VS" is on the names' line, with the grey line above it (avatar row) and below it (score and E/V rows). */
+.hj-mnote-side{display:contents}
+.hj-mnote-side>*{grid-column:1;min-width:0;max-width:100%}
+.hj-mnote-side.is-away>*{grid-column:3}
+.hj-mnote-side>.hj-mnote-av{grid-row:1}.hj-mnote-side>.hj-mnote-name{grid-row:2}
+.hj-mnote-side>.hj-mnote-pts{grid-row:3}.hj-mnote-side>.hj-mnote-orig{grid-row:4}
+.hj-mnote-side.is-away .hj-mnote-pts{flex-direction:row-reverse}
+.hj-mnote-line{grid-column:2;width:1px;align-self:stretch;background:#a3a08c;font-style:normal}
+.hj-mnote-line.is-top{grid-row:1;margin-bottom:4px}
+.hj-mnote-line.is-bottom{grid-row:3/5;margin-top:4px}
+.hj-mnote-vs-text{grid-column:2;grid-row:2;color:#a3a08c;font:900 10px/1 var(--sans)!important;letter-spacing:.06em}
+.hj-mnote .hj-mnote-av{width:30px;height:30px;flex:none;margin:0;border-radius:50%;pointer-events:none}
+.hj-mnote .hj-mnote-av.is-empty{display:block;background:rgba(74,72,57,.12)}
+.hj-mnote-name{min-width:0;color:#14324f;font:800 12.5px/1.15 var(--sans)!important;letter-spacing:.01em;white-space:nowrap}
+.hj-mnote-pts{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:center;gap:2px 5px;min-width:0;max-width:100%}
+.hj-mnote-score{color:#14324f;font:800 20px/1 var(--sans)!important;font-variant-numeric:tabular-nums;letter-spacing:-.01em;white-space:nowrap}
+/* ESPN's live projection: small grey italics beside the score. */
+.hj-mnote-live{color:#7a8794;font:italic 600 9.5px/1 var(--sans)!important;font-variant-numeric:tabular-nums;white-space:nowrap}
+.hj-mnote-orig{white-space:nowrap;margin-top:-1px}
+#league-hq #league-sync-content .hj-mnote .hj-proj-flip{display:inline-flex;align-items:baseline;gap:3px;padding:0;background:none;border:0;cursor:pointer}
+#league-hq #league-sync-content .hj-mnote .hj-proj-source{color:#9b741d;font:850 9px/1 var(--sans)!important}
+#league-hq #league-sync-content .hj-mnote .hj-proj-value{color:#657066;font:650 9px/1 var(--sans)!important;font-variant-numeric:tabular-nums}
+#league-hq #league-sync-content .hj-mnote .hj-mnote-score.is-projected .hj-proj-source{font-size:11px!important}
+#league-hq #league-sync-content .hj-mnote .hj-mnote-score.is-projected .hj-proj-value{color:#14324f;font:800 16px/1 var(--sans)!important}
+
+/* Smaller notes (desktop and tablet beside the photo, small phones): the same layout, scaled down. */
+@container hjmnote (max-width:259px){
+ .hj-mnote-vs{column-gap:8px}
+ .hj-mnote-vs-text{font-size:9px!important}
+ .hj-mnote .hj-mnote-av{width:26px;height:26px}
+ .hj-mnote-name{font-size:11px!important}
+ .hj-mnote-score{font-size:16px!important}
+ .hj-mnote-live{font-size:8.5px!important}
+ #league-hq #league-sync-content .hj-mnote .hj-mnote-score.is-projected .hj-proj-value{font-size:14px!important}
+}
+@container hjmnote (max-width:199px){
+ .hj-mnote-vs{column-gap:5px}
+ .hj-mnote-vs-text{font-size:8.5px!important;letter-spacing:.03em}
+ .hj-mnote-pts{column-gap:3px}
+ .hj-mnote .hj-mnote-av{width:24px;height:24px}
+ .hj-mnote-name{font-size:10.5px!important;letter-spacing:0}
+ .hj-mnote-score{font-size:14.5px!important}
+ .hj-mnote-live{font-size:7.5px!important}
+ #league-hq #league-sync-content .hj-mnote .hj-proj-source,#league-hq #league-sync-content .hj-mnote .hj-proj-value{font-size:8.5px!important}
+}
+/* Narrowest notes (a desktop window just over 1050px): the live projection under the score. */
+@container hjmnote (max-width:175px){
+ .hj-mnote-pts,.hj-mnote-side.is-away .hj-mnote-pts{flex-direction:column;align-items:center;gap:2px}
+}
