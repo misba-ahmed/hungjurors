@@ -31,7 +31,7 @@
 .hj-mnote-side{display:contents}
 .hj-mnote-side>*{grid-column:1;min-width:0;max-width:100%}
 .hj-mnote-side.is-away>*{grid-column:3}
-.hj-mnote-side>.hj-mnote-av{grid-row:1}.hj-mnote-side>.hj-mnote-name{grid-row:2}
+.hj-mnote-side>.hj-mnote-avw{grid-row:1}.hj-mnote-side>.hj-mnote-name{grid-row:2}
 .hj-mnote-side>.hj-mnote-pts{grid-row:3}.hj-mnote-side>.hj-mnote-orig{grid-row:4}
 .hj-mnote-side.is-away .hj-mnote-pts{flex-direction:row-reverse}
 .hj-mnote-line{grid-column:2;position:relative;display:block;width:8px;min-height:10px;align-self:stretch}
@@ -40,6 +40,10 @@
 .hj-mnote-line.is-bottom{grid-row:3/5;margin-top:4px}
 .hj-mnote-vs-text{grid-column:2;grid-row:2;color:#1d1d1f;font:400 14px/1 'Permanent Marker',var(--sans)!important;letter-spacing:.02em}
 .hj-mnote .hj-mnote-av{width:30px;height:30px;flex:none;margin:0;border-radius:50%;pointer-events:none}
+/* The marker circle around each avatar sits just outside the photo's own ring. */
+.hj-mnote-avw{position:relative;display:block;margin:5px 0 3px;line-height:0;pointer-events:none}
+.hj-mnote-ring{position:absolute;left:-7px;top:-7px;width:calc(100% + 14px);height:calc(100% + 13px);overflow:visible}
+.hj-mnote-side.is-away .hj-mnote-ring{left:-6px;top:-8px;height:calc(100% + 14px);width:calc(100% + 13px)}
 .hj-mnote .hj-mnote-av.is-empty{display:block;background:rgba(74,72,57,.12)}
 .hj-mnote-name{min-width:0;color:#14324f;font:800 12.5px/1.15 var(--sans)!important;letter-spacing:.01em;white-space:nowrap}
 .hj-mnote-pts{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:center;gap:2px 5px;min-width:0;max-width:100%}
@@ -79,4 +83,5 @@
 @container hjmnote (max-width:175px){
  .hj-mnote-pts,.hj-mnote-side.is-away .hj-mnote-pts{flex-direction:column;align-items:center;gap:2px}
 }
+
 

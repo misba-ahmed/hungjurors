@@ -21,6 +21,10 @@ const HJ_MNOTE_LINE_TOP=`<span class="hj-mnote-line is-top" aria-hidden="true"><
 const HJ_MNOTE_LINE_BOTTOM=`<span class="hj-mnote-line is-bottom" aria-hidden="true"><svg viewBox="0 0 10 100" preserveAspectRatio="none" aria-hidden="true"><path ${HJ_MNOTE_MARKER} stroke-width="2.3" d="M4.6 2 C5.7 15 4.1 31 5.3 47 C6.2 61 4.4 78 5.4 90 C5.6 94 5 96.5 4.7 98"/></svg></span>`;
 // The rule under the label: a hand-drawn horizontal marker line across the note.
 const HJ_MNOTE_RULE=`<span class="hj-mnote-rule" aria-hidden="true"><svg viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><path ${HJ_MNOTE_MARKER} stroke-width="2" d="M1.2 6.4 C9 5.1 18 3.6 30 4.6 C42 5.7 50 6.9 62 5.4 C73 4 82 3.2 91 4.3 C94.5 4.7 97 4.1 98.8 3.3"/></svg></span>`;
+// A loose marker circle around each avatar: one stroke that doesn't quite close and overshoots its start,
+// drawn a little differently on each side (owner, Nov 17).
+const HJ_MNOTE_RING_A=`<svg class="hj-mnote-ring" viewBox="0 0 44 44" aria-hidden="true"><path ${HJ_MNOTE_MARKER} stroke-width="2.1" d="M34.2 7.4 C27.2 2.4 15.6 2.9 9 9.4 C2.4 16 2.6 27.6 9.4 34.2 C16.6 41.2 29.6 40.6 36 32.9 C41.8 25.9 40.8 15.1 33.9 8.9 C31 6.3 27.4 4.6 23.6 4.2"/></svg>`;
+const HJ_MNOTE_RING_B=`<svg class="hj-mnote-ring" viewBox="0 0 44 44" aria-hidden="true"><path ${HJ_MNOTE_MARKER} stroke-width="2.1" d="M6.4 15.2 C9.4 6.9 18.4 2.6 26.9 4.2 C35.9 5.9 42.1 14.1 41.2 23 C40.4 32.1 32.4 39.9 23 40.6 C13.4 41.3 4.4 34.8 3.2 25.6 C2.6 20.8 3.9 16.1 6.7 12.4 C8.9 9.4 12 6.6 15.8 4.6 C16.6 4.2 17.3 3.9 18 3.6"/></svg>`;
 function hjMatchupNoteHTML(o){
  const fmt=value=>Number.isFinite(value)?pcFpts(value):'—';
  const side=(name,actual,original,vegas,adjusted,final,raw,away)=>{
@@ -29,8 +33,9 @@ function hjMatchupNoteHTML(o){
   const score=live?`<strong class="hj-mnote-score" ${attrs}>${fmt(actual)}</strong>`:`<strong class="hj-mnote-score is-projected">${hjProjectionFlipHTML(original,vegas,key)}</strong>`;
   const liveProj=live&&Number.isFinite(adjusted)?`<small class="hj-mnote-live" title="Live ESPN projection" aria-label="Live ESPN projection ${fmt(adjusted)}">${fmt(adjusted)}</small>`:'';
   const orig=live?`<span class="hj-mnote-orig">${hjProjectionFlipHTML(original,vegas,key)}</span>`:'';
-  return `<span class="hj-mnote-side${away?' is-away':''}">${name?av(name,'hj-mnote-av'):'<span class="hj-mnote-av is-empty"></span>'}<b class="hj-mnote-name">${esc(name||'TBD')}</b><span class="hj-mnote-pts">${score}${liveProj}</span>${orig}</span>`;
+  return `<span class="hj-mnote-side${away?' is-away':''}"><span class="hj-mnote-avw">${name?av(name,'hj-mnote-av'):'<span class="hj-mnote-av is-empty"></span>'}${away?HJ_MNOTE_RING_B:HJ_MNOTE_RING_A}</span><b class="hj-mnote-name">${esc(name||'TBD')}</b><span class="hj-mnote-pts">${score}${liveProj}</span>${orig}</span>`;
  };
  return `<button class="league-matchup-score hj-mnote${o.live?' has-actual':''}" type="button" data-hq-open-matchup="${esc(o.teamId)}" aria-label="Open Week ${o.week} matchup in Matchup Center"><span class="hj-mnote-in"><span class="hj-mnote-label">Week ${o.week} matchup</span>${HJ_MNOTE_RULE}<span class="hj-mnote-vs">${side(o.ownName,o.ownActual,o.ownProjected,o.ownVegas,o.ownAdjusted,o.ownFinal,o.teamId,false)}${HJ_MNOTE_LINE_TOP}<span class="hj-mnote-vs-text">VS</span>${HJ_MNOTE_LINE_BOTTOM}${side(o.oppName,o.oppActual,o.oppProjected,o.oppVegas,o.oppAdjusted,o.oppFinal,o.oppId,true)}</span></span></button>`;
 }
+
 
