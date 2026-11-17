@@ -1367,7 +1367,14 @@
     "heightInches": 70,
     "name": "Woody Marks",
     "teamId": 34,
-    "jersey": "4"
+    "jersey": "4",
+    "unavailable": {
+      "file": "4429059-crutches-v1.webp",
+      "width": 323,
+      "height": 850,
+      "ratio": 0.38,
+      "kind": "injury"
+    }
   },
   "4429086": {
     "file": "4429086-faces-v2.webp",
@@ -1511,7 +1518,14 @@
     "heightInches": 76,
     "name": "Drake Maye",
     "teamId": 17,
-    "jersey": "10"
+    "jersey": "10",
+    "unavailable": {
+      "file": "4431452-crutches-v1.webp",
+      "width": 325,
+      "height": 850,
+      "ratio": 0.38235,
+      "kind": "injury"
+    }
   },
   "4431459": {
     "file": "4431459-faces-v3.webp",

@@ -680,8 +680,8 @@
   "4429059": {
     "name": "Woody Marks",
     "heightInches": 70,
-    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4429059?lang=en&region=us",
-    "checkedAt": "2026-10-14T09:28:23.971880+00:00"
+    "source": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/34/roster",
+    "checkedAt": "2026-11-17T09:36:13.601450+00:00"
   },
   "4429086": {
     "name": "Michael Mayer",
@@ -758,8 +758,8 @@
   "4431452": {
     "name": "Drake Maye",
     "heightInches": 76,
-    "source": "https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/athletes/4431452?lang=en&region=us",
-    "checkedAt": "2026-10-02T02:47:38.224Z"
+    "source": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/17/roster",
+    "checkedAt": "2026-11-17T09:36:13.600125+00:00"
   },
   "4431459": {
     "name": "Tyler Warren",
