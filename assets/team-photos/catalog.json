@@ -2592,5 +2592,15 @@
     "name": "Cam Ward",
     "teamId": 10,
     "jersey": "1"
+  },
+  "4426338": {
+    "file": "4426338-faces-v1.webp",
+    "width": 314,
+    "height": 850,
+    "ratio": 0.36941,
+    "heightInches": 74,
+    "name": "Bo Nix",
+    "teamId": 7,
+    "jersey": "10"
   }
 }

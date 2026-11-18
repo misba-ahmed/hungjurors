@@ -1282,5 +1282,11 @@
     "heightInches": 74,
     "source": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/10/roster",
     "checkedAt": "2026-11-18T08:45:01.703080+00:00"
+  },
+  "4426338": {
+    "name": "Bo Nix",
+    "heightInches": 74,
+    "source": "https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/7/roster",
+    "checkedAt": "2026-11-18T18:29:21.863319+00:00"
   }
 }
