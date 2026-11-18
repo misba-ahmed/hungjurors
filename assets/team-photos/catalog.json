@@ -1759,7 +1759,14 @@
     "heightInches": 68,
     "name": "Wan'Dale Robinson",
     "teamId": 10,
-    "jersey": "4"
+    "jersey": "4",
+    "unavailable": {
+      "file": "4569587-crutches-v1.webp",
+      "width": 324,
+      "height": 850,
+      "ratio": 0.38118,
+      "kind": "injury"
+    }
   },
   "4569618": {
     "file": "4569618-faces-v2.webp",
@@ -2575,5 +2582,15 @@
     "name": "Emmett Johnson",
     "teamId": 12,
     "jersey": "10"
+  },
+  "4688380": {
+    "file": "4688380-faces-v1.webp",
+    "width": 310,
+    "height": 850,
+    "ratio": 0.36471,
+    "heightInches": 74,
+    "name": "Cam Ward",
+    "teamId": 10,
+    "jersey": "1"
   }
 }
