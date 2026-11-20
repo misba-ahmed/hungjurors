@@ -2604,16 +2604,16 @@
     "jersey": "10"
   },
   "3122840": {
-    "file": "3122840-baby-oil-v1.webp",
-    "width": 319,
+    "file": "3122840-towel-baby-oil-v1.webp",
+    "width": 320,
     "height": 850,
-    "ratio": 0.37529,
+    "ratio": 0.37647,
     "heightInches": 75,
     "name": "Deshaun Watson",
     "teamId": 5,
     "jersey": "4",
     "unavailable": {
-      "file": "3122840-baby-oil-crutches-v1.webp",
+      "file": "3122840-towel-baby-oil-crutches-v1.webp",
       "width": 327,
       "height": 850,
       "ratio": 0.38471,
